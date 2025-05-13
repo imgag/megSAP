@@ -311,7 +311,9 @@ if ($build=="GRCh38" && $check)
 if (get_path("copy_dbs_to_local_data"))
 {
 	$network_folder = get_path("container_folder");
+	$network_checksum_folder = $network_folder."/checksums/";
 	$local_folder = get_path("local_data")."/container/";
+	$local_checksum_folder = $local_folder."/checksums/";
 
 	print "\n";
 	print "### Copy apptainer containers ###\n";
@@ -322,6 +324,18 @@ if (get_path("copy_dbs_to_local_data"))
 	if (!file_exists($network_folder))
 	{
 		trigger_error("Container folder not found: {$network_folder}. The Apptainer containers may not have been downloaded yet.", E_USER_ERROR);
+	}
+	
+	if (!file_exists($network_checksum_folder)) //Check if checksum folder exists
+	{
+		if (!mkdir($network_checksum_folder))
+		{
+			trigger_error("Could not create checksum folder '{$network_checksum_folder}'!", E_USER_ERROR);
+		}
+		if (!chmod($network_checksum_folder, 0777))
+		{
+			trigger_error("Could not change privileges of checksum folder '{$network_checksum_folder}'!", E_USER_ERROR);
+		}
 	}
 
 	// Create local container folder
@@ -337,6 +351,18 @@ if (get_path("copy_dbs_to_local_data"))
 		}
 	}
 
+	if (!file_exists($local_checksum_folder)) //Check if checksum folder exists
+	{
+		if (!mkdir($local_checksum_folder))
+		{
+			trigger_error("Could not create checksum folder '{$local_checksum_folder}'!", E_USER_ERROR);
+		}
+		if (!chmod($local_checksum_folder, 0777))
+		{
+			trigger_error("Could not change privileges of checksum folder '{$local_checksum_folder}'!", E_USER_ERROR);
+		}
+	}
+
 	// get list of apptainer containers to transfer from settings file
 	$ini = get_ini();
 	foreach($ini as $key => $value)
@@ -347,11 +373,59 @@ if (get_path("copy_dbs_to_local_data"))
 		$container_file = $network_folder."/".substr($key, 10)."_".$value.".sif";
 		$base = basename($container_file);
 		$local_container_file = $local_folder.$base;
+		$md5_local = "{$local_checksum_folder}{$base}.md5";
+		$md5_net = "{$network_checksum_folder}{$base}.md5";
 
-		if (!file_exists($local_container_file) || (filemtime($local_container_file)<filemtime($container_file)))
+		//Check that container exists in network folder
+		if (!file_exists($container_file)) trigger_error("Could not find container $container_file. Make sure your settings.ini is correct and the container exists in $network_folder");
+
+		//Make sure that md5 checksum for container in network directory is present
+		if (!file_exists($md5_net))
 		{
-			print "  {$base}: Copying new container version to '$local_container_file'.\n";
-			// Copy the new container or new version
+			print "MD5 checksum missing for $container_file, creating it now.\n";
+			exec2("md5sum -b {$container_file} | cut -d ' ' -f1 > $md5_net");
+		}
+
+		//Make sure md5 checksum for container in local data is present
+		if (file_exists($local_container_file) && !file_exists($md5_local))
+		{
+			print "MD5 checksum missing for $local_container_file, creating it now.\n";
+			exec2("md5sum -b {$local_container_file} | cut -d ' ' -f1 > $md5_local");
+		}
+
+		//Check md5 sum and update local container folder
+		if (file_exists($md5_local))
+		{
+			exec("diff $md5_local $md5_net", $output, $code);
+			if ($code==0)
+			{
+				print "MD5 checksums of container '{$base}.md5' match - local copy is up-to-date\n";
+				continue;
+			}
+			else
+			{
+				print "MD5 checksums of container '{$base}.md5' differ. Updating container {$base}!\n";
+				// Copy the new container version
+				list($stdout, $stderr) = exec2("cp {$container_file} {$local_container_file}");
+				foreach (array_merge($stdout, $stderr) as $line) 
+				{
+					$line = trim($line);
+					if ($line == "") continue;
+					print "    $line\n";
+				}
+
+				// Set permissions on the new local copy
+				@chmod($local_container_file, 0777);
+				
+				//create new local md5 sum
+				exec2("rm $md5_local");
+				exec2("md5sum -b {$local_container_file} | cut -d ' ' -f1 > $md5_local");
+			}
+		}
+		else
+		{
+			print "Container $base missing in local data folder. Copying container {$base}!\n";
+			// Copy the new container
 			list($stdout, $stderr) = exec2("cp {$container_file} {$local_container_file}");
 			foreach (array_merge($stdout, $stderr) as $line) 
 			{
@@ -363,12 +437,8 @@ if (get_path("copy_dbs_to_local_data"))
 			// Set permissions on the new local copy
 			@chmod($local_container_file, 0777);
 			
-			//update date
-			@touch($local_container_file);
-		}
-		else
-		{
-			print "  {$base}: skipped - local copy is up-to-date\n";
+			//create local md5 sum
+			exec2("md5sum -b {$local_container_file} | cut -d ' ' -f1 > $md5_local");
 		}
 	}
 }

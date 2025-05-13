@@ -83,6 +83,8 @@ if (is_file("{$container_repo}/{$sif}"))
 		exec2("mv {$log} ".repository_basedir()."/data/tools/container_recipes/");
 		print "Moving $sif to {$container_repo}/{$sif}\n";
 		exec2("mv {$sif} {$container_repo}/{$sif}");
+		print "Calculating MD5 sum for $sif and saving it to {$container_repo}/checksums/{$sif}.md5\n";
+		exec2("md5sum -b {$container_repo}/{$sif} > {$container_repo}/checksums/{$sif}.md5");
 	}
 	elseif (strtolower($input) === "n") 
 	{
@@ -99,6 +101,8 @@ else
 	exec2("mv {$log} ".repository_basedir()."/data/tools/container_recipes/");
 	print "Moving $sif to {$container_repo}/{$sif}\n";
 	exec2("mv {$sif} {$container_repo}/{$sif}");
+	print "Calculating MD5 sum for $sif and saving it to {$container_repo}/checksums/{$sif}.md5\n";
+	exec2("md5sum -b {$container_repo}/{$sif} > {$container_repo}/checksums/{$sif}.md5");
 }
 print "Deploying finished\n";
 
