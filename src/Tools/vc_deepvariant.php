@@ -24,6 +24,10 @@ $parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calli
 $parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.", true, 10);
 $parser->addFlag("raw_output", "return the raw output of deepvariant with no post-processing.");
 $parser->addFlag("allow_empty_examples", "allows DeepVariant to call variants even if no examples were created with make_examples.");
+$parser->addFlag("gpu", "Use DeepVariant container with GPU acceleration support.");
+$parser->addFlag("add_sample_header", "Add sample header to VCF file.");
+$parser->addString("name", "Sample name for the sample header. Has to be set with add_sample_header.", true, "");
+$parser->addString("analysistype", "Type of analysis performed for the sample header. Has to be set with add_sample_header.", true, "GERMLINE_SINGLESAMPLE");
 extract($parser->parse($argv));
 
 //init
@@ -74,15 +78,16 @@ $in_files = array_merge($in_files, $bam);
 
 // run deepvariant
 $pipeline = array();
+$container = ($gpu) ? "deepvariant-gpu" : "deepvariant";
 
 if ($raw_output)
 {
-	$parser->execApptainer("deepvariant", "run_deepvariant" ,implode(" ", $args)." --output_vcf=$out", $in_files, [dirname($out)]);
+	$parser->execApptainer($container, "run_deepvariant" ,implode(" ", $args)." --output_vcf=$out", $in_files, [dirname($out)]);
 	return;
 }
 
 $vcf_deepvar_out = $parser->tempFile(".vcf.gz");
-$parser->execApptainer("deepvariant", "run_deepvariant", implode(" ", $args)." --output_vcf=$vcf_deepvar_out", $in_files, [dirname($out)]);
+$parser->execApptainer($container, "run_deepvariant", implode(" ", $args)." --output_vcf=$vcf_deepvar_out", $in_files, [dirname($out)]);
 
 //filter variants according to variant quality>5
 $pipeline[] = ["zcat", "$vcf_deepvar_out"];
