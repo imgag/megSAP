@@ -531,6 +531,27 @@ if (in_array("vc", $steps))
 		}
 		
 	}
+	elseif(get_path("use_deepsomatic"))
+	{
+		$args = [];
+
+		if ($sys['type'] === "WGS")	$args[] = "-model_type WGS";
+		else $args[] = "-model_type WES";
+
+		$args[] = "-bam_tumor ".$t_bam;
+		$args[] = "-bam_normal ".$n_bam;
+		$args[] = "-out ".$variants;
+		$args[] = "-build ".$sys['build'];
+		$args[] = "-threads ".$threads;
+
+		if (!empty($roi))
+		{
+			$args[] = "-target {$roi}";
+		}
+		$args[] = "-allow_empty_examples";
+
+		$parser->execTool("Tools/vc_deepsomatic.php", implode(" ", $args));
+	}
 	else //Strelka calling
 	{
 		$args_strelka = [

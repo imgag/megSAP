@@ -14,6 +14,7 @@ By default they are downloaded to `data/tools/apptainer_container/`. They can al
 | clair3_v1.0.10.sif                    | clair3	                | 1.0.10	        | run_clair3.sh                                                                                     |
 | clair3-trio_v0.7.sif                  | clair3-trio               | 0.7	            | /opt/bin/run_clair3_trio.sh                                                                       |
 | ClinCNV_v1.18.3.sif	                | ClinCNV                   | 1.18.3	        | clinCNV.R                                                                                         |
+| deepsomatic_1.8.0.sif	                | DeepSomatic               | 1.8.0 	        | run_deepsomatic                                                                                   |
 | deepvariant_1.8.0.sif	                | DeepVariant               | 1.8.0 	        | run_deepvariant                                                                                   |
 | expansionhunter_v5.0.0.sif            | expansionhunter	        | 5.0.0	            | ExpansionHunter                                                                                   |
 | freebayes_v1.3.6.sif	                | freebayes                 | 1.3.6	            | freebayes                                                                                         |
