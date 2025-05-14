@@ -401,6 +401,8 @@ if (in_array("vc", $steps))
 		$args[] = "-min_af ".$min_af;
 		$args[] = "-min_mq ".$min_mq;
 		$args[] = "-min_bq ".$min_bq;
+		$args[] = "-add_sample_header";
+		$args[] = "-name ".$name;
 
 		if ($gpu)
 		{

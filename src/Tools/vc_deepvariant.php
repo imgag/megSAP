@@ -110,12 +110,21 @@ $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "-out $tm
 //(2) execute pipeline
 $parser->execPipeline($pipeline, "deepvariant post processing");
 
-//prepend source, date and reference to outfile:
-$file_format = "##fileformat=VCFv4.2\n";
-$file_date = "##fileDate=".date("Ymd")."\n";
-$source_line = "##source=DeepVariant ".get_path("container_deepvariant")."\n";
-$reference_line = "##reference=".genome_fasta($build, false)."\n";
-file_put_contents($tmp_out, $file_format . $file_date . $source_line . $reference_line . file_get_contents($tmp_out));
+//Add header to VCF file
+$vcf = Matrix::fromTSV($tmp_out);
+$comments = $vcf->getComments();
+$comments[] = "#fileformat=VCFv4.2\n";
+$comments[] = "#source=DeepVariant ".get_path("container_deepvariant")."\n";
+$comments[] = "#reference=".genome_fasta($build, false)."\n";
+$comments[] = "#fileDate=".date("Ymd")."\n";
+if ($add_sample_header)
+{
+	$comments[] = "#ANALYSISTYPE=$analysistype\n";
+	$comments[] = "#PIPELINE=".repository_revision(true)."\n";
+	$comments[] = gsvar_sample_header($name, array("DiseaseStatus"=>"Affected"), "#", "");
+}
+$vcf->setComments($comments);
+$vcf->toTSV($tmp_out);
 
 //zip
 $parser->execApptainer("htslib", "bgzip", "-c $tmp_out > $out", [], [dirname($out)]);
