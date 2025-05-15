@@ -138,7 +138,6 @@ function run_qc_pipeline($ps, $fq1, $fq2, $roi, $report, $is_tumor)
 $parser = new ToolBase("mvh_grz_export", "GRZ export for Modellvorhaben.");
 $parser->addInt("case_id", "'id' in 'data_data' of 'MVH' database.", false);
 $parser->addFlag("clear", "Clear export and QC folder before running this script");
-$parser->addFlag("test", "Activates test mode (no checksum calculation).");
 extract($parser->parse($argv));
 
 //init
@@ -151,8 +150,8 @@ $id = $db_mvh->getValue("SELECT id FROM case_data WHERE id='{$case_id}'");
 if ($id=="") trigger_error("No case with id '{$case}' in MVH database!", E_USER_ERROR);
 
 //clear
-$folder = "{$mvh_folder}/grz_export/{$case_id}/";
-$qc_folder = "{$mvh_folder}/grz_qc/{$case_id}/";
+$folder = realpath($mvh_folder)."/grz_export/{$case_id}/";
+$qc_folder = realpath($mvh_folder)."/grz_qc/{$case_id}/";
 if ($clear) exec2("rm -rf {$folder} {$qc_folder}");
 
 //parse case management data
@@ -252,7 +251,7 @@ $n_fq2 = "{$folder}/files/{$tang}_normal_R2.fastq.gz";
 $n_vcf = "{$folder}/files/{$tang}_normal.vcf";
 if (!file_exists($n_fq1) || !file_exists($n_fq2) || !file_exists($n_vcf))
 {
-	$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$bam} -out1 {$n_fq1} -out2 {$n_fq2}", [$bam], ["{$folder}/files/"]); //TODO: -extend {$read_length} necessary?
+	$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$bam} -out1 {$n_fq1} -out2 {$n_fq2} -extend {$read_length}", [$bam], ["{$folder}/files/"]);
 	exec2("zcat ". $info['ps_folder']."/{$ps}_var.vcf.gz > {$n_vcf}");
 }
 else
@@ -275,7 +274,7 @@ if ($roi!="")
 }
 
 //run QC pipeline for germline sample
-exec2("mkdir -p {$qc_folder}");
+exec2("mkdir -p {$qc_folder}/checksums/");
 print "QC folder: {$qc_folder}\n";
 $n_report = "{$qc_folder}/normal_report.csv";
 $grz_qc = run_qc_pipeline($ps, $n_fq1, $n_fq2, $roi, $n_report, false);
@@ -287,26 +286,28 @@ if ($is_somatic)
 }
 
 //prepare file info for meta data JSON
-print "  checking files...\n";
+print "  calculating file checksums...\n";
 $files = [];
 foreach($files_to_submit as $file)
 {
+	$file = realpath($file);
 	$data = [];
-	$data["filePath"] = strtr($file, [$folder=>""]);
+	$data["filePath"] = basename($file);
 	if (ends_with($file, ".fastq.gz")) $data["fileType"] = "fastq";
 	else if (ends_with($file, ".bam")) $data["fileType"] = "bam";
 	else if (ends_with($file, ".vcf")) $data["fileType"] = "vcf";
 	else if (ends_with($file, ".bed")) $data["fileType"] = "bed";
 	$data["checksumType"] = "sha256";
-	if ($test)
+	$checksum_file = "{$qc_folder}/checksums/".basename($file).".sha256sum";
+	if (!file_exists($checksum_file))
 	{
-		$checksum = "8664aac83568e8f0891d8fc8ea8ebae757277c4469d69eac66c1d245f9821baa";
+		exec2("sha256sum {$file} > {$checksum_file}");
 	}
 	else
 	{
-		list($stdout) = exec2("sha256sum $file");
-		$checksum = explode(" ", trim(implode(" ", $stdout)))[0];
+		print "    note: checksum file for ".basename($file)." exists - using it\n";
 	}
+	$checksum = explode(" ", trim(implode(" ", file($checksum_file))))[0];
 	$data["fileChecksum"] = $checksum;
 	$data["fileSizeInBytes"] = filesize($file);
 	if (ends_with($file, "_R1.fastq.gz"))
@@ -330,6 +331,7 @@ if ($is_somatic)
 {
 	//TODO
 }
+
 //create meta data JSON
 print "  creating metadata...\n";
 $json = [];
@@ -374,7 +376,13 @@ $json['donors'] = [
 						],
 				]
 			],
-		//TODO researchConsents
+		"researchConsents" => [
+				0 => [
+					"schemaVersion" => "2025.0.1",
+					"presentationDate" => (string)($cm_data->bc_date),
+					"scope" => ""
+					]
+			],
 		"labData" => [
 					0 => [
 						"labDataName" => "DNA normal",
@@ -432,7 +440,8 @@ file_put_contents("{$folder}/metadata/metadata.json", json_encode($json, JSON_PR
 
 
 //validate the submission
-#exec2("/mnt/storage2/MVH/tools/miniforge3/bin/conda activate grz-tools && grz-cli validate --submission-dir EXAMPLE_SUBMISSION
+#list($stdout) = exec2("/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/bin/grz-cli validate --submission-dir {$folder}");
+#print_r($stdout);
 
 //Encrypt the submission
 #grz-cli encrypt --submission-dir EXAMPLE_SUBMISSION
@@ -444,7 +453,7 @@ file_put_contents("{$folder}/metadata/metadata.json", json_encode($json, JSON_PR
 
 
 /*
-#TODO:
+//TODO:
 - test if export works with other user, e.g. bioinf
 - store schema of MVH DB
 
