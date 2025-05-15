@@ -1,5 +1,5 @@
 #type=GENE_EXPRESSION
-#track graphtype=points name="DX000018_02 CNV coverage" color=0,0,255 altColor=255,0,0 maxHeightPixels=80:80:80 viewLimits=0:2:8 yLineMark=2 yLineOnOff=on
+#track graphtype=points name="DX000018_02 CNV coverage" color=0,0,255 altColor=255,0,0 maxHeightPixels=80:80:80 viewLimits=0:2:6 yLineMark=2 yLineOnOff=on
 ID	chr	start	end	variance	value
 DX000018_02	chr1	2556639	2556758	0.0376	2.12
 DX000018_02	chr1	2557700	2557859	0.0294	2.07

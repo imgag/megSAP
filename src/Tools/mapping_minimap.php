@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("mapping_minimap", "Maps nanopore reads to a reference genome using minimap2.");
+$parser = new ToolBase("mapping_minimap", "Maps reads to a reference genome using minimap2.");
 $parser->addOutfile("out",  "Output file in BAM format (sorted).", false);
 //optional
 $parser->addString("sample", "Sample name to use in BAM header. If unset the basename of the 'out' file is used.", true, "");
@@ -40,6 +40,7 @@ $qcml_map = $basename."_stats_map.qcML";
 //extract processing system information from DB
 $sys = load_system($system, $sample);
 $genome_fasta = genome_fasta($sys['build']);
+$platform = get_longread_sequencing_platform($sys['name_short']);
 
 //set read group information
 $group_props = [];
@@ -47,7 +48,14 @@ $group_props[] = "ID:{$sample}";
 $group_props[] = "SM:{$sample}";
 $group_props[] = "LB:{$sample}";
 $group_props[] = "DT:".date("c");
-$group_props[] = "PL:ONT";
+if ($platform == "PB")
+{
+	$group_props[] = "PL:PACBIO";
+}
+elseif ($platform == "ONT")
+{
+	$group_props[] = "PL:ONT";
+}
 if(db_is_enabled("NGSD"))
 {
 	$db_conn = DB::getInstance("NGSD");
@@ -57,6 +65,20 @@ if(db_is_enabled("NGSD"))
 		$group_props[] = "PM:".$psample_info['device_type'];
 		$group_props[] = "en:".$psample_info['sys_name'];
 	}
+}
+
+//set preset, default to ONT
+if ($platform == "PB")
+{
+	$preset = "map-hifi";
+}
+elseif ($platform == "ONT")
+{
+	$preset = "map-ont";
+}
+else
+{
+	trigger_error("Could not determine preset as platform {$platform} is unknown", E_USER_ERROR);
 }
 
 
@@ -90,7 +112,7 @@ if ($bam_input)
 $minimap_options = [
 	"-a",
 	"--MD",
-	"-x map-ont",
+	"-x {$preset}",
 	"--eqx",
 	"-t {$threads}",
 	"-R '@RG\\t" . implode("\\t", $group_props) . "'",
