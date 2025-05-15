@@ -137,7 +137,8 @@ function run_qc_pipeline($ps, $fq1, $fq2, $roi, $report, $is_tumor)
 //parse command line arguments
 $parser = new ToolBase("mvh_grz_export", "GRZ export for Modellvorhaben.");
 $parser->addInt("case_id", "'id' in 'data_data' of 'MVH' database.", false);
-$parser->addFlag("clear", "Clear export and QC folder before running this script");
+$parser->addFlag("clear", "Clear export and QC folder before running this script.");
+$parser->addFlag("test", "Test mode.");
 extract($parser->parse($argv));
 
 //init
@@ -440,11 +441,26 @@ file_put_contents("{$folder}/metadata/metadata.json", json_encode($json, JSON_PR
 
 
 //validate the submission
-#list($stdout) = exec2("/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/bin/grz-cli validate --submission-dir {$folder}");
-#print_r($stdout);
+print "running grz-cli validate...\n";
+list($stdout, $stderr, $exit_code) = exec2("/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/bin/grz-cli validate --submission-dir {$folder}");
+file_put_contents("{$folder}/logs/grz_cli_validate.stdout", $stdout);
+file_put_contents("{$folder}/logs/grz_cli_validate.stderr", $stdout);
+if ($exit_code!=0)
+{
+	trigger_error("grz-cli validate failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
+}
 
 //Encrypt the submission
-#grz-cli encrypt --submission-dir EXAMPLE_SUBMISSION
+print "running grz-cli encrypt...\n";
+$config = ""; //TODO
+if ($test) $config = "/mnt/storage2/MVH/config/config_test_phase.txt";
+list($stdout, $stderr, $exit_code) = exec2("/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/bin/grz-cli encrypt --submission-dir {$folder} --config-file {$config}");
+file_put_contents("{$folder}/logs/grz_cli_encrypt.stdout", $stdout);
+file_put_contents("{$folder}/logs/grz_cli_encrypt.stderr", $stdout);
+if ($exit_code!=0)
+{
+	trigger_error("grz-cli encrypt failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
+}
 
 //Upload the submission
 #grz-cli upload --submission-dir EXAMPLE_SUBMISSION
@@ -454,7 +470,8 @@ file_put_contents("{$folder}/metadata/metadata.json", json_encode($json, JSON_PR
 
 /*
 //TODO:
-- test if export works with other user, e.g. bioinf
+- test if export works on SRV005
+- test if export works on SRV005 with user bioinf
 - store schema of MVH DB
 
 
