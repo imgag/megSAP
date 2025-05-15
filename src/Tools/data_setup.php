@@ -121,6 +121,18 @@ foreach($files as $file)
 	}
 }
 
+//copy samtools ref_cache folder
+print "Copying samtools ref cache...\n";
+$ref_cache = "{$genome_folder}/samtools_ref_cache";
+if (file_exists($ref_cache))
+{
+	exec2("{$rsync} {$ref_cache} {$local_data}/");
+}
+else
+{
+	trigger_error("Ref cache folder in genome folder '{$genome_folder}' doesn't exists!", E_USER_WARNING);
+}
+
 ######################### VEP cache #########################
 if ($build=="GRCh38")
 {

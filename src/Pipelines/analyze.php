@@ -170,6 +170,12 @@ if ($annotation_only)
 	} 
 }
 
+// prevent accidentally re-mapping if Dragen already ran
+if (!$no_dragen && in_array("ma", $steps) && (file_exists($bamfile) || file_exists($cramfile)) && file_exists($folder."/dragen_variant_calls")) 
+{
+	trigger_error("'ma'-step provided, but sample already analyzed with DRAGEN. Use '-no_dragen' if you really want to do a re-mapping!", E_USER_ERROR);
+}
+
 //mapping
 if (in_array("ma", $steps))
 {
@@ -353,6 +359,26 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 		$parser->execApptainer("ngs-bits", "MappingQC", implode(" ", $params), $in_files);
 	}	
 	
+	//check for bam_for_mapping folder, get read counts and delete it
+	if (file_exists("{$folder}/bams_for_mapping"))
+	{
+		$prev_bam = glob("{$folder}/bams_for_mapping/*am");
+		if (count($prev_bam) == 0)
+		{
+			trigger_error("Empty BAM temp folder found, deleting it..", E_USER_NOTICE);
+			$parser->exec("rm", "-d {$folder}/bams_for_mapping");
+		}
+		else if (count($prev_bam) == 1)
+		{
+			$prev_bam = $prev_bam[0];
+			compare_bam_read_count($used_bam_or_cram, $prev_bam, $threads, true, false, 0.0, array("-F", "2304"), $build);
+			//delete folder if no error occured
+			trigger_error("Read counts of input and output BAM/CRAM match, deleting mapping folder...", E_USER_NOTICE);
+			$parser->exec("rm", "-r {$folder}/bams_for_mapping");
+		}
+
+	}
+
 	//low-coverage regions for samples mapped/called on NovaSeq X
 	if(!file_exists($lowcov_file))
 	{
@@ -367,8 +393,57 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 		}
 	}
 
+	//delete fastq files after mapping - remove files only if sample doesn't contain UMIs and the corresponding setting is set in the settings.ini
+	if ($sys['umi_type']=="n/a" && get_path("delete_fastq_files")) 
+	{
+		//check if project overwrites the settings
+		$preserve_fastqs = true;
+		if (db_is_enabled("NGSD"))
+		{
+			$db = DB::getInstance("NGSD", false);
+			$info = get_processed_sample_info($db, $name, false);
+			if (!is_null($info))
+			{
+				$preserve_fastqs = $info['preserve_fastqs'];
+			}
+		}
 
-	//TODO: check for remaining FastQ/ORAs and delete them
+		//TODO: remove
+		$preserve_fastqs = false;
+
+		if(!$preserve_fastqs)
+		{
+			//check for remaining FastQ/ORAs and delete them
+			$fastq_files = glob($folder."/*_R?_00?.fastq.gz");
+			$ora_files = glob($folder."/*_R?_00?.fastq.ora");
+
+			if ((count($ora_files) + count($fastq_files)) > 0)
+			{
+				$bam_read_count = get_read_count($used_bam_or_cram, max(8, $threads), array("-F", "2304"), $sys['build']);
+
+				if (count($ora_files)  > 0) $fastq_read_count = get_ora_read_count($ora_files);
+				else $fastq_read_count = get_fastq_read_count($fastq_files);
+
+				//calculate relative difference
+				$diff = abs($bam_read_count - $fastq_read_count);
+				$rel_diff = $diff /(($bam_read_count + $fastq_read_count)/2);
+
+				if (($bam_read_count == $fastq_read_count) || ($rel_diff < 0.0001))
+				{
+					// remove old BAM(s)
+					if ($bam_read_count == $fastq_read_count) trigger_error("Read count of FASTQ/ORA files and BAM/CRAM match. Deleting FASTQ/ORA files...", E_USER_NOTICE);
+					else if ($rel_diff < 0.0001) trigger_error("Read count of FASTQ/ORA files and BAM/CRAM in allowed tolerance (<0.01%) (".($rel_diff*100)."%). Deleting FASTQ/ORA files...", E_USER_NOTICE);
+					
+					if (count($ora_files)  > 0) $parser->exec("rm", implode(" ", $ora_files));
+					else $parser->exec("rm", implode(" ", $fastq_files));
+				}
+				else
+				{
+					trigger_error("Cannot delete FASTQ/ORA file(s) - BAM file read counts doesn't match FASTQ/ORA file(s) (".($rel_diff*100)."%).", E_USER_ERROR);
+				}
+			}
+		}
+	}
 }
 
 //check gender after mapping

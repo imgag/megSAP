@@ -20,7 +20,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mappi
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
 $parser->addFlag("queue_analysis", "Queue megSAP analysis afterwards.");
-$parser->addFlag("enable_cnv", "Enable CNV calling with self-normalization (WGS only).");
+$parser->addFlag("dragen_only", "Perform only DRAGEN analysis and copy all output files without renaming (not compatible with later megSAP analysis).");
 $parser->addFlag("debug", "Add debug output to the log file.");
 
 extract($parser->parse($argv));
@@ -33,6 +33,13 @@ if ($parser->getLogFile()=="") $parser->setLogFile($folder."/analyze_dragen_".da
 //log server, user, etc.
 $parser->logServerEnvronment();
 
+//check steps
+$steps = explode(",", $steps);
+foreach($steps as $step)
+{
+	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
+}
+
 //determine processing system
 $sys = load_system($system, $name);
 $is_wes = $sys['type']=="WES";
@@ -40,7 +47,10 @@ $is_wgs = $sys['type']=="WGS";
 $is_panel = $sys['type']=="Panel" || $sys['type']=="Panel Haloplex";
 $has_roi = $sys['target_file']!="";
 $build = $sys['build'];
-$genome = genome_fasta($build);
+$genome = genome_fasta($build, false);
+
+//stop on unsupported processing systems:
+if (!($is_wes || $is_wgs || $is_panel)) trigger_error("Can only analyze WGS/WES/panel samples not ".$sys['type']." samples!", E_USER_ERROR);
 
 //check if valid reference genome is provided
 $dragen_genome_path = get_path("dragen_genomes")."/".$build."/dragen/";
@@ -50,7 +60,7 @@ if (!file_exists($dragen_genome_path))
 }
 
 //sample checks:
-if (if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq", "IDT-xGen-Prism", "Twist"]))) trigger_error("UMI handling is not supported by the DRAGEN pipeline! Please use local mapping instead.", E_USER_ERROR);
+if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq", "IDT-xGen-Prism", "Twist"])) trigger_error("UMI handling is not supported by the DRAGEN pipeline! Please use local mapping instead.", E_USER_ERROR);
 if ($sys['type']=="WGS (shallow)") trigger_error("Shallow genomes are not supported by the DRAGEN pipeline! Please use local mapping instead.", E_USER_ERROR);
 
 
@@ -72,9 +82,24 @@ else
 	trigger_error("Cannot perform DRAGEN analysis without mapping!", E_USER_ERROR);
 }
 
+//disable megSAP queuing for DRAGEN only analyses
+if ($dragen_only) $queue_analysis = false;
+
+
+// create empty folder for analysis
+$working_dir = get_path("dragen_data")."/megSAP_working_dir/";
+if (file_exists($working_dir))	
+{
+	$parser->exec("rm", "-rf $working_dir");
+}
+if (!mkdir($working_dir, 0777))
+{
+	trigger_error("Could not create working directory '".$working_dir."'!", E_USER_ERROR);
+}
+// explicitly set file privileges, since mkdir doesn't seem to work 
+$parser->exec("chmod", "777 {$working_dir}");
 
 //get ORA files
-
 $files_forward = glob("{$folder}/*_L00[0-9]_R1_00[0-9].fastq.ora");
 $files_reverse = glob("{$folder}/*_L00[0-9]_R2_00[0-9].fastq.ora");
 
@@ -115,15 +140,22 @@ if (count($files_forward) == 0)
 			trigger_error("Neither ORA, FastQ, CRAM nor BAM file found in sample folder! Cannot perform analysis!", E_USER_ERROR);
 		}
 	}
-	//convert BAM/CRAM to FastQ
-	$fastq_r1 = $parser->tempFile("{$name}_BamToFastq_R1_001.fastq.gz");
-	$fastq_r2 = $parser->tempFile("{$name}_BamToFastq_R2_001.fastq.gz");
-	$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$input_bam} -ref {$genome} -out1 {$fastq_r1} -out2 {$fastq_r2}", [$genome, $folder]);
+	//move BAM/CRAM to temp folder 
+	if (file_exists("{$folder}/bams_for_mapping")) $parser->exec("rm", "-rf {$folder}/bams_for_mapping");
+	$parser->exec("mkdir", "{$folder}/bams_for_mapping");
+	$parser->moveFile($input_bam, "{$folder}/bams_for_mapping/".basename($input_bam));
+	$input_bam = "{$folder}/bams_for_mapping/".basename($input_bam);
+
+	//convert BAM/CRAM to FastQ (don't use temp since it is tiny on DRAGEN)
+	$fastq_r1 = "{$working_dir}/{$name}_BamToFastq_R1_001.fastq.gz";
+	$fastq_r2 = "{$working_dir}/{$name}_BamToFastq_R2_001.fastq.gz";
+	//use samtools to avoid requirement of Apptainer
+	$parser->exec("samtools", "fastq -1 {$fastq_r1} -2 {$fastq_r2} -0 /dev/null -s /dev/null -n {$input_bam} --reference {$genome} -@ 15");
+	// $parser->execApptainer("ngs-bits", "BamToFastq", "-in {$input_bam} -ref {$genome} -out1 {$fastq_r1} -out2 {$fastq_r2}", [$genome, $folder]);
 	$files_forward = array($fastq_r1);
 	$files_reverse = array($fastq_r2);
 
 }
-
 
 //define output files
 $out_cram = $folder."/".$name.".cram";
@@ -135,17 +167,14 @@ $out_sv = $dragen_out_folder."/".$name."_dragen_svs.vcf.gz";
 $out_cnv = $dragen_out_folder."/".$name."_dragen_cnvs.vcf.gz";
 $out_cnv_raw = $dragen_out_folder."/".$name."_dragen_cnvs.bw";
 
-
-
-
 //check if input files are readable and output file is writeable
 foreach ($files_forward as $in_file) 
 {
-	if (!is_readable($in1)) trigger_error("Input file '{$in_file}' is not readable!", E_USER_ERROR);
+	if (!is_readable($in_file)) trigger_error("Input file '{$in_file}' is not readable!", E_USER_ERROR);
 }
 foreach ($files_reverse as $in_file) 
 {
-	if (!is_readable($in1)) trigger_error("Input file '{$in_file}' is not readable!", E_USER_ERROR);
+	if (!is_readable($in_file)) trigger_error("Input file '{$in_file}' is not readable!", E_USER_ERROR);
 }
 if (!is_writable2($out_cram)) trigger_error("Output file '{$out_cram}' is not writable!", E_USER_ERROR);
 if (!is_writable2($out_vcf)) trigger_error("Output file '{$out_vcf}' is not writable!", E_USER_ERROR);
@@ -155,29 +184,20 @@ if (!is_writable2($out_cnv)) trigger_error("Output file '{$out_cnv}' is not writ
 if (!is_writable2($out_cnv_raw)) trigger_error("Output file '{$out_cnv_raw}' is not writable!", E_USER_ERROR);
 
 
-// create empty folder for analysis
-$working_dir = get_path("dragen_data")."/megSAP_working_dir/";
-if (file_exists($working_dir))	
-{
-	$parser->exec("rm", "-rf $working_dir");
-}
-if (!mkdir($working_dir, 0777))
-{
-	trigger_error("Could not create working directory '".$working_dir."'!", E_USER_ERROR);
-}
-
 // ********************************* call dragen *********************************//
 
 //create FastQ file list
-$fastq_file_list_data = array("RGID,RGSM,RGLB,Lane,Read1File,Read2File");
+$fastq_file_list_data = array("RGID,RGSM,RGLB,Lane,Read1File,Read2File,RGDT,RGPL");
 
 //get library
 $rglb = "UnknownLibrary";
+$device_type = "UnknownDevice";
 if(db_is_enabled("NGSD"))
 {
 	$db_conn = DB::getInstance("NGSD");
 	$psample_info = get_processed_sample_info($db_conn, $name, false, true);
 	$rglb = $psample_info['sys_name'];
+	$device_type = $psample_info['device_type'];
 }
 
 for ($i=0; $i < count($files_forward); $i++) 
@@ -221,7 +241,7 @@ for ($i=0; $i < count($files_forward); $i++)
 	}
 
 	//add line to CSV
-	$fastq_file_list_data[] = "{$name},{$name},{$rglb},{$lane},{$fastq_for},{$fastq_rev}";
+	$fastq_file_list_data[] = "{$name},{$name},{$rglb},{$lane},{$fastq_for},{$fastq_rev},".date("c").",{$device_type}";
 }
 $fastq_file_list = $parser->tempFile(".csv");
 if ($debug) $parser->log("FastQ file list:", $fastq_file_list_data); //debug
@@ -231,7 +251,25 @@ file_put_contents($fastq_file_list, implode("\n", $fastq_file_list_data));
 if ($is_wes || $is_panel)
 {
 	$target_extended = $parser->tempFile("_roi_extended.bed");
-	$parser->execApptainer("ngs-bits", "BedExtend", "-in ".$sys['target_file']." -n 200 -out $target_extended -fai {$genome}.fai", [$sys['target_file'], $genome]);
+	$target_region = file($sys['target_file'], FILE_IGNORE_NEW_LINES);
+	$target_region_extended = array();
+	foreach ($target_region as $line) 
+	{
+		if (starts_with($line, "#")) 
+		{
+			$target_region_extended[] = $line;
+		}
+		else
+		{
+			$parts = explode("\t", $line);
+			if (count($parts) < 3) trigger_error("Invalid BED line: '{$line}'!", E_USER_ERROR);
+			$parts[1] = intval($parts[1]) - 200;
+			$parts[2] = intval($parts[2]) + 200;
+			$target_region_extended[] = implode("\t", $parts);
+		}	
+	}
+	file_put_contents($target_extended, implode("\n", $target_region_extended));
+	// $parser->execApptainer("ngs-bits", "BedExtend", "-in ".$sys['target_file']." -n 200 -out $target_extended -fai {$genome}.fai", [$sys['target_file'], $genome]);
 
 }
 
@@ -239,14 +277,15 @@ if ($is_wes || $is_panel)
 $dragen_parameter = [];
 $dragen_parameter[] = "-r ".$dragen_genome_path;
 $dragen_parameter[] = "--fastq-list ".$fastq_file_list;
+$dragen_parameter[] = "--ora-reference ".get_path("data_folder")."/dbs/oradata/";
 $dragen_parameter[] = "--output-directory $working_dir";
-$dragen_parameter[] = "--output-file-prefix output";
+$dragen_parameter[] = "--output-file-prefix {$name}";
 $dragen_parameter[] = "--output-format CRAM"; //always use CRAM
 $dragen_parameter[] = "--enable-map-align-output=true";
 $dragen_parameter[] = "--enable-bam-indexing true";
-$dragen_parameter[] = "--RGID $name";
-$dragen_parameter[] = "--RGSM $name";
-$dragen_parameter[] = "--RGDT ".date("c");
+// $dragen_parameter[] = "--RGID $name";
+// $dragen_parameter[] = "--RGSM $name";
+// $dragen_parameter[] = "--RGDT ".date("c");
 $dragen_parameter[] = "--enable-rh=false"; //disabled RH special caller because this leads to variants with EVENTTYPE=GENE_CONVERSION that have no DP and AF entry and sometimes are duplicated (same variant twice in the VCF).
 if ($is_wgs)
 {
@@ -261,8 +300,8 @@ if(db_is_enabled("NGSD"))
 {
 	$db_conn = DB::getInstance("NGSD");
 	$psample_info = get_processed_sample_info($db_conn, $name, false, true);
-	$dragen_parameter[] = "--RGPL '".$psample_info['device_type']."'";
-	$dragen_parameter[] = "--RGLB '".$psample_info['sys_name']."'";
+	// $dragen_parameter[] = "--RGPL '".$psample_info['device_type']."'";
+	// $dragen_parameter[] = "--RGLB '".$psample_info['sys_name']."'";
 }
 //always mark duplicates
 $dragen_parameter[] = "--enable-duplicate-marking true";
@@ -288,32 +327,56 @@ if ($debug)
 	$parser->log("working_dir content:", $stdout);
 }
 
+//remove temporary created fastq files
+foreach (glob("{$working_dir}/{$name}_BamToFastq_R?_00?.fastq.gz") as $tmp_fastq_file) 
+{
+	if ($debug) trigger_error("Removing tmp FASTQ file '{$tmp_fastq_file}'...", E_USER_NOTICE);
+	unlink($tmp_fastq_file);
+}
+
 // ********************************* copy data back *********************************//
 
-//copy CRAM/CRAI to sample folder
-$parser->log("Copying CRAM/CRAI to output folder");
-$parser->copyFile($working_dir."output.cram", $out);
-$parser->copyFile($working_dir."output.cram.crai", $out.".crai");
-
-// copy small variant calls to sample folder
-$parser->log("Copying small variants to output folder");
-$parser->copyFile($working_dir."output.hard-filtered.vcf.gz", $out_vcf);
-$parser->copyFile($working_dir."output.hard-filtered.vcf.gz.tbi", $out_vcf.".tbi");
-$parser->copyFile($working_dir."output.hard-filtered.gvcf.gz", $out_gvcf);
-$parser->copyFile($working_dir."output.hard-filtered.gvcf.gz.tbi", $out_gvcf.".tbi");
-
-// copy SV calls to sample folder
-$parser->log("Copying SVs to output folder");
-$parser->copyFile($working_dir."output.sv.vcf.gz", $out_sv);
-$parser->copyFile($working_dir."output.sv.vcf.gz.tbi", $out_sv.".tbi");
-
-// copy CNV calls
-if ($is_wgs)
+if ($dragen_only)
 {
-	$parser->log("Copying CNVs to output folder");
-	$parser->copyFile($working_dir."output.cnv.vcf.gz", $out_cnv);
-	$parser->copyFile($working_dir."output.cnv.vcf.gz.tbi", $out_cnv.".tbi");
-	$parser->copyFile($working_dir."output.target.counts.diploid.bw", $out_cnv_raw);
+	$parser->log("Copying complete DRAGEN folder to output...");
+	//remove already existing output folder
+	if (file_exists($dragen_out_folder)) 
+	{
+		$parser->exec("rm", "-rf $dragen_out_folder");
+		mkdir($dragen_out_folder);
+	}
+	$parser->exec("cp", "-rf {$working_dir}/* {$dragen_out_folder}");
+}
+else
+{
+	//copy CRAM/CRAI to sample folder
+	$parser->log("Copying CRAM/CRAI to output folder");
+	$parser->copyFile($working_dir.$name.".cram", $out_cram);
+	$parser->copyFile($working_dir.$name.".cram.crai", $out_cram.".crai");
+
+	// copy small variant calls to sample folder
+	$parser->log("Copying small variants to output folder");
+	$parser->copyFile($working_dir.$name.".hard-filtered.vcf.gz", $out_vcf);
+	$parser->copyFile($working_dir.$name.".hard-filtered.vcf.gz.tbi", $out_vcf.".tbi");
+	$parser->copyFile($working_dir.$name.".hard-filtered.gvcf.gz", $out_gvcf);
+	$parser->copyFile($working_dir.$name.".hard-filtered.gvcf.gz.tbi", $out_gvcf.".tbi");
+
+	// copy SV calls to sample folder
+	$parser->log("Copying SVs to output folder");
+	$parser->copyFile($working_dir.$name.".sv.vcf.gz", $out_sv);
+	$parser->copyFile($working_dir.$name.".sv.vcf.gz.tbi", $out_sv.".tbi");
+
+	// copy CNV calls
+	if ($is_wgs)
+	{
+		$parser->log("Copying CNVs to output folder");
+		$parser->copyFile($working_dir.$name.".cnv.vcf.gz", $out_cnv);
+		$parser->copyFile($working_dir.$name.".cnv.vcf.gz.tbi", $out_cnv.".tbi");
+		if (file_exists($working_dir.$name.".target.counts.diploid.bw")) $parser->copyFile($working_dir.$name.".target.counts.diploid.bw", $out_cnv_raw);
+		else if (file_exists($working_dir.$name.".target.counts.bw")) $parser->copyFile($working_dir.$name.".target.counts.bw", $out_cnv_raw);
+		else trigger_error("BigWig CNV file '{$working_dir}{$name}.target.counts.diploid.bw' not found!", E_USER_WARNING);
+	}
+
 }
 
 // ********************************* cleanup *********************************//

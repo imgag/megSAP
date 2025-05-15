@@ -2506,4 +2506,54 @@ function get_longread_sequencing_platform($name_short)
         return 'ONT';
     }
 }
+
+/**
+	@brief	Determines the number of reads of a set of ORA files
+	@param	array containing ORA file names
+	@return	int number of reads
+*/
+function get_ora_read_count($ora_files)
+{
+	$read_count = 0;
+	foreach ($ora_files as $ora_file) 
+	{
+		$rc_current_file = -1;
+		list($stdout, $stderr, $exit_code) = execApptainer("orad", "orad", "-i {$ora_file}", [$ora_file]);
+		foreach ($stdout as $line) 
+		{
+			if (starts_with($line, "Total number of sequences"))
+			{
+				$rc_current_file = intval(explode(":", $line)[1]);
+				break;
+			}
+		}
+		if ($rc_current_file < 0) trigger_error("Sequences count not found in ORA stats of file '{$ora_file}'!", E_USER_ERROR);
+		$read_count += $rc_current_file;
+	}
+	return $read_count;
+}
+
+/**
+	@brief	Determines the number of reads of a set of FASTQ files
+	@param	array containing FASTQ file names
+	@return	int number of reads
+*/
+function get_fastq_read_count($fastq_files)
+{
+	$read_count = 0;
+	foreach ($fastq_files as $fastq_file) 
+	{
+		$rc_current_file = -1;
+		list($stdout, $stderr, $exit_code) = exec2("zcat -f {$fastq_file} | wc -l");
+		$rc_current_file = intval($stdout[0]) / 4;
+		$read_count += $rc_current_file;
+	}
+	return $read_count;
+}
+
+
+
+
+
 ?>
+
