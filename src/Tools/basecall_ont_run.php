@@ -28,15 +28,15 @@ extract($parser->parse($argv));
 //check basecall model
 if ($basecall_model == "hac")
 {
-	$basecall_model = "hac,5mCG_5hmCG";
+	$basecall_model = "hac@".get_path("dorado_model_version").",5mCG_5hmCG";
 }
 else if ($basecall_model == "sup")
 {
-	$basecall_model = "sup,5mCG_5hmCG";
+	$basecall_model = "sup@".get_path("dorado_model_version").",5mCG_5hmCG";
 }
 else
 {
-	trigger_error("Invalid basecall model '{$basecall_model}' provided!", E_USER_ERROR);
+	trigger_error("Custom basecall model '{$basecall_model}' provided!", E_USER_WARNING);
 }
 //set ulimit
 exec2("ulimit -n 10000");
