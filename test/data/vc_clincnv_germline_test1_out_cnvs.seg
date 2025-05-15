@@ -1,5 +1,5 @@
 #type=GENE_EXPRESSION
-#track graphtype=points name="DX000018_02 CNV calls" color=0,0,255 altColor=255,0,0 maxHeightPixels=80:80:80 viewLimits=0:2:8 yLineMark=2 yLineOnOff=on
+#track graphtype=points name="DX000018_02 CNV calls" color=0,0,255 altColor=255,0,0 maxHeightPixels=80:80:80 viewLimits=0:2:6 yLineMark=2 yLineOnOff=on
 ID	chr	start	end	loglik	value
 DX000018_02	chr1	158537368	158537419	6.99	3
 DX000018_02	chr1	158614227	158614331	5.5	3

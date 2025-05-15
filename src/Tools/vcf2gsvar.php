@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 $parser = new ToolBase("vcf2gsvar", "Converts an annotated VCF file from freebayes to a GSvar file.");
-$parser->addInfile("in",  "Input file in VCF format.", false);
+$parser->addInfile("in",  "Input file in VCF or VCF.GZ format.", false);
 $parser->addOutfile("out", "Output file in GSvar format.", false);
 //optional
 $parser->addEnum("genotype_mode", "Genotype handling mode.", true, array("single", "multi", "skip"), "single");
@@ -384,7 +384,7 @@ $c_skipped_wgs = 0;
 $multi_cols = array();
 $hgnc_messages = array();
 $in_header = true;
-$handle = fopen2($in, "r");
+$handle = gzopen2($in, "r");
 $handle_out = fopen2($out, "w");
 fwrite($handle_out, "##GENOME_BUILD=GRCh38\n");
 $skip_ngsd = true; // true as long as no NGSD header is found
@@ -401,9 +401,9 @@ fwrite($handle_out, "##CREATION_DATE=".date("Y-m-d", filemtime($in))."\n");
 
 $clair_info = ["", ""];
 
-while(!feof($handle))
+while(!gzeof($handle))
 {
-	$line = nl_trim(fgets($handle));
+	$line = nl_trim(gzgets($handle));
 	if ($line=="" || trim($line)=="") continue;
 	
 	//write header
@@ -473,6 +473,10 @@ while(!feof($handle))
 			{
 				fwrite($handle_out, "##SOURCE=".$clair_info[0]." ".$clair_info[1]."\n");
 			}
+		}
+		if (starts_with($line, "##source=DeepVariant"))
+		{
+			fwrite($handle_out, "##SOURCE=".trim(substr($line,9))."\n");
 		}
 		
 		//filters
@@ -1654,7 +1658,7 @@ if ($in_header)
 	write_header_line($handle_out, $column_desc, $filter_desc);
 }
 
-fclose($handle);
+gzclose($handle);
 fclose($handle_out);
 
 if (count($missing_domains)>0)

@@ -281,7 +281,7 @@ $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [
 $pipeline[] = array("php ".repository_basedir()."/src/Tools/vcf_fix.php", "", false);
 
 //zip
-$pipeline[] = array("bgzip", "-c > $out", false);
+$pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c > $out", [], [dirname($out)], true));
 
 //(2) execute pipeline
 $parser->execPipeline($pipeline, "freebayes post processing");
@@ -291,10 +291,10 @@ if ($target_extend>0)
 {
 	$tmp = $parser->tempFile(".vcf");
 	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $out -mark off-target -reg $target -out $tmp", [$out, $target]);
-	$parser->exec("bgzip", "-c $tmp > $out", false);
+	$parser->execApptainer("htslib", "bgzip", "-c $tmp > $out", [], [dirname($out)]);
 }
 
 //(4) index output file
-$parser->exec("tabix", "-f -p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
+$parser->execApptainer("htslib", "tabix", "-f -p vcf $out", [], [dirname($out)]);
 
 ?>

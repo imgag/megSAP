@@ -1,6 +1,6 @@
 ##ANALYSISTYPE=CLINCNV_TUMOR_ONLY
-##ClinCNV version: v1.19.0
-##Analysis finished on: 2024-12-19 09:30:32
+##ClinCNV version: v1.18.3
+##Analysis finished on: 2025-05-07 19:43:43
 ##GENOME_BUILD=GRCh38
 ##high-quality cnvs: 0
 ##mean correlation to reference samples: 0.761

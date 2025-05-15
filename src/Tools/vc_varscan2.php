@@ -63,17 +63,17 @@ $parser->execPipeline($pipeline, "merge");
 //Sort file
 $tmp_sorted_file = $parser->tempFile("varscan2_all_variants_sorted.vcf");
 $parser->execApptainer("ngs-bits", "VcfSort", "-in $tmp_merged_file -out $tmp_sorted_file");
-$parser->exec("bgzip", "-c $tmp_sorted_file > $out");
+$parser->execApptainer("htslib", "bgzip", "-c $tmp_sorted_file > $out", [], [dirname($out)]);
 
 //flag off-targets
 if(isset($target))
 {
 	$tmp = $parser->tempFile("target.vcf");
 	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $out -reg $target -mark off-target -out $tmp", [$out, $target]);
-	$parser->exec("bgzip", "-c $tmp > $out");
+	$parser->execApptainer("htslib", "bgzip", "-c $tmp > $out", [], [dirname($out)]);
 }
 
 //index
-$parser->exec("tabix", "-p vcf $out", false); 
+$parser->execApptainer("htslib", "tabix", "-p vcf $out", [], [dirname($out)]);
 
 ?>

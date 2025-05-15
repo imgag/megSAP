@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: ubuntu:20.04
+From: ubuntu:24.04
 
 %post
 	LANG=C.UTF-8
@@ -7,16 +7,41 @@ From: ubuntu:20.04
 	PATH=/opt/manta:/bin:$PATH
 
 	# Update ubuntu packages and install build dependencies
-	apt-get update -qq && \
-	yes | apt-get upgrade -y && \
-	apt-get install -qq -y \
+	apt-get update --fix-missing && \
+	apt-get install -y \
 		wget \
+		build-essential \
+		liblzma-dev \
 		bzip2 \
 		samtools \
 		make \
-		python2 \
-		zlib1g-dev
+		zlib1g-dev \
+		autoconf \
+		build-essential \
+		libbz2-dev \
+		libffi-dev \
+		libssl-dev \
+		libreadline-dev \
+		libncurses5-dev \
+		libsqlite3-dev \
+		pkg-config
 	rm -rf /var/lib/apt/lists/*
+
+	# Download and build Python 2.7
+	cd /opt
+	mkdir python2.7
+	wget https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tgz
+	tar xzf Python-2.7.18.tgz
+	cd Python-2.7.18
+	./configure --prefix=/opt/python2.7
+	make -j$(nproc)
+	make altinstall
+	cd ..
+	rm -rf Python-2.7.18
+	rm Python-2.7.18.tgz
+
+	# Add to path
+	ln -s /opt/python2.7/bin/python2.7 /usr/bin/python2
 
 	# Download and build manta
 	mkdir -p /opt
@@ -33,8 +58,19 @@ From: ubuntu:20.04
 	apt-get remove -y \
 		wget \
 		bzip2 \
+		build-essential \
+		liblzma-dev \
 		make \
-		zlib1g-dev
+		zlib1g-dev \
+		autoconf \
+		build-essential \
+		libbz2-dev \
+		libffi-dev \
+		libssl-dev \
+		libreadline-dev \
+		libncurses5-dev \
+		libsqlite3-dev \
+		pkg-config
 	apt-get autoremove -y && \
 	apt-get clean && \
 	rm -rf /var/lib/apt/lists/*

@@ -18,9 +18,10 @@ By default they are downloaded to `data/tools/apptainer_container/`. They can al
 | expansionhunter_v5.0.0.sif            | expansionhunter	        | 5.0.0	            | ExpansionHunter                                                                                   |
 | freebayes_v1.3.6.sif	                | freebayes                 | 1.3.6	            | freebayes                                                                                         |
 | gatk_4.6.0.0.sif	                    | gatk                      | 4.6.0.0	        | gatk                                                                                              |
-| glnexus_v1.4.1.sif                    | GLnexus                   | 1.4.1 	        | glnexus-cli                                                                                     |
+| glnexus_v1.4.1.sif                    | GLnexus                   | 1.4.1 	        | glnexus-cli                                                                                       |
 | happy_v0.3.14.sif	                    | happy                     | 0.3.14	        | hap.py                                                                                            |
-| hla-genotyper_2022-05.sif	            | hla-genotyper             | 2022-05	        | genotyper.py                                                                                      |
+| hla-genotyper_2022-05.sif	            | hla-genotyper             | 2025-04	        | genotyper.py                                                                                      |
+| htslib_1.16.sif                       | bgzip/tabix               | 1.16              | `bgzip` or `tabix`                                                                                |
 | kraken2_v2.1.3.sif	                | kraken2	                | 2.1.3         	| kraken2                                                                                           |
 | longphase_v1.7.3.sif	                | longphase                 | 1.7.3	            | longphase                                                                                         |
 | manta_v1.6.0.sif	                    | manta                     | 1.6.0	            | python2 /opt/manta/bin/configManta.py                                                             |
@@ -35,7 +36,7 @@ By default they are downloaded to `data/tools/apptainer_container/`. They can al
 | samblaster_v0.1.26.sif	            | samblaster	            | 0.1.26	        | samblaster                                                                                        |
 | samtools_1.20.sif	                    | samtools	                | 1.20	            | samtools                                                                                          |
 | scarHRD_v1.sif	                    | scarHRD	                | 1	                | cli_scarHRD.R                                                                                     |
-| SigProfilerExtractor_v1.1.24.sif      | SigProfilerExtractor      | 1.1.24	        | python -c 'from SigProfilerExtractor import sigpro as sig; sig.sigProfilerExtractor("parameter")' |
+| SigProfilerExtractor_v1.1.24.sif      | SigProfilerExtractor      | 1.1.24	        | python3 -c 'from SigProfilerExtractor import sigpro as sig; sig.sigProfilerExtractor("parameter")' |
 | sniffles_v2.4.sif	                    | sniffles	                | 2.4	            | sniffles                                                                                          |
 | spliceai_v1.3.1.sif	                | spliceai	                | 1.3.1	            | spliceai                                                                                          |
 | STAR_v2.7.11b.sif                     | STAR	                    | 2.7.11b	        | STAR                                                                                              |

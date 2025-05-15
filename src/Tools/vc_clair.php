@@ -111,7 +111,7 @@ if (file_exists($clair_mito_gvcf))
 	$clair_merged_gvcf2 = $parser->tempFile("_merged.gvcf.gz");
 	$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$clair_gvcf} {$clair_mito_gvcf} -out {$clair_merged_gvcf1}");
 	//no sorting since MT is last chr anyways
-	$parser->exec("bgzip", "-c {$clair_merged_gvcf1} > {$clair_merged_gvcf2}");
+	$parser->execApptainer("htslib", "bgzip", "-c {$clair_merged_gvcf1} > {$clair_merged_gvcf2}");
 }
 else
 {
@@ -165,25 +165,24 @@ if ($target_extend>0)
 	$result = $parser->execApptainer("ngs-bits", "BedAdd", "-in {$target} {$target_mito} -out {$on_target_region}", [$target]);
 	$tmp = $parser->tempFile(".vcf");
 	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $uncompressed_vcf -mark off-target -reg {$on_target_region} -out $tmp", [$on_target_region]);
-	$parser->exec("bgzip", "-c $tmp > $out", false);
+	$parser->execApptainer("htslib", "bgzip", "-c $tmp > $out", [], [dirname($out)]);
 }
 else
 {
-	$parser->exec("bgzip", "-c $uncompressed_vcf > $out", false);
+	$parser->execApptainer("htslib", "bgzip", "-c $uncompressed_vcf > $out", [], [dirname($out)]);
 }
 
 //index output file
-$parser->exec("tabix", "-f -p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
-
+$parser->execApptainer("htslib", "tabix", "-f -p vcf $out", [], [dirname($out)]);
 
 //create/copy gvcf:
 $pipeline = array();
 
 $pipeline[] = array("zcat", $clair_merged_gvcf2);
 $pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfFilter", "-remove_invalid -ref $genome", [$genome], [], true));
-$pipeline[] = array("bgzip", "-c > {$out_gvcf}");
+$pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c > {$out_gvcf}", [], [dirname($out_gvcf)], true));
 $parser->execPipeline($pipeline, "gVCF post processing");
 
-$parser->exec("tabix", "-f -p vcf {$out_gvcf}", false); //no output logging, because Toolbase::extractVersion() does not return
+$parser->execApptainer("htslib", "tabix", "-f -p vcf {$out_gvcf}", [], [dirname($out_gvcf)]);
 
 ?>

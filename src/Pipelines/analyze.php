@@ -29,8 +29,6 @@ $parser->addFlag("annotation_only", "Performs only a reannotation of the already
 // $parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping, small variant and structural variant calling.");
 // $parser->addFlag("use_dragen_ML", "Use ML model in small variant calling of Illumina DRAGEN.");
 $parser->addFlag("no_dragen", "Do not use Illumina DRAGEN calls from NovaSeq X or Dragen server.");
-$parser->addFlag("use_deepvariant", "Use Deepvariant instead of freebayes for small variant calling.");
-$parser->addFlag("gpu", "Use GPU version of DeepVariant for small variant calling");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
@@ -57,11 +55,12 @@ $is_wgs_shallow = $sys['type']=="WGS (shallow)";
 $has_roi = $sys['target_file']!="";
 $build = $sys['build'];
 
-//disable abra and soft-clipping if deepvariant is used for calling
-$use_deepvariant = $use_deepvariant || get_path("use_deepvariant");
-if ($use_deepvariant)
+//disable abra and soft-clipping if DeepVariant is used for calling
+$use_freebayes = get_path("use_freebayes");
+if (!$use_freebayes)
 {
 	$no_abra = true;
+	$clip_overlap = false;
 }
 
 //handle somatic flag
@@ -436,7 +435,7 @@ if (in_array("vc", $steps))
 				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true));
 
 				//zip
-				$pipeline[] = array("bgzip", "-c > $vcffile", false);
+				$pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c > $vcffile", [], [dirname($vcffile)], true));
 
 				//execute pipeline
 				$parser->execPipeline($pipeline, "Dragen small variants post processing");
@@ -475,44 +474,12 @@ if (in_array("vc", $steps))
 				fclose($hw);
 				
 				//bgzip
-				$parser->exec("bgzip", "-c $tmp2 > $vcffile", false);
+				$parser->execApptainer("htslib", "bgzip", "-c $tmp2 > $vcffile", [], [dirname($vcffile)]);
 
 				//index output file
-				$parser->exec("tabix", "-p vcf $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
+				$parser->execApptainer("htslib", "tabix", "-p vcf $vcffile", [], [dirname($vcffile)]);
 			}
-			elseif ($use_deepvariant)
-			{
-				$args = [];
-
-				if ($is_wes || $is_wgs)
-				{
-					$args[] = "-model_type ".$sys['type'];
-				}
-				else
-				{
-					trigger_error("The usage of DeepVariant is limited to WGS or WES short-read data! Different type '".$sys['type']."' detected in $system.", E_USER_ERROR);
-				}
-
-				$args[] = "-bam ".$used_bam_or_cram;
-				$args[] = "-out ".$vcffile;
-				$args[] = "-build ".$build;
-				$args[] = "-threads ".$threads;
-
-				if ($has_roi)
-				{
-					$args[] = "-target ".$sys['target_file'];
-					$args[] = "-target_extend 200";
-				}
-
-				if ($gpu) $args[] = "-gpu";
-
-				$args[] = "-min_af ".$min_af;
-				$args[] = "-min_mq ".$min_mq;
-				$args[] = "-min_bq ".$min_bq;
-
-				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
-			}
-			else
+			elseif ($use_freebayes) //perform variant calling with freebayes if set in settings.ini
 			{
 				$args = [];
 				$args[] = "-bam ".$used_bam_or_cram;
@@ -528,6 +495,35 @@ if (in_array("vc", $steps))
 				$args[] = "-min_mq ".$min_mq;
 				$args[] = "-min_bq ".$min_bq;
 				$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args));
+			}
+			else //perform variant calling with DeepVariant
+			{
+				$args = [];
+
+				if ($is_wes || $is_panel)	$args[] = "-model_type WES";
+				elseif ($is_wgs) $args[] = "-model_type WGS";
+				else
+				{
+					trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types are: WES, WGS, Panel, Panel Haloplex.", E_USER_ERROR);
+				}
+
+				$args[] = "-bam ".$used_bam_or_cram;
+				$args[] = "-out ".$vcffile;
+				$args[] = "-build ".$build;
+				$args[] = "-threads ".$threads;
+
+				if ($has_roi)
+				{
+					$args[] = "-target ".$sys['target_file'];
+					$args[] = "-target_extend 200";
+				}
+
+				$args[] = "-min_af ".$min_af;
+				$args[] = "-min_mq ".$min_mq;
+				$args[] = "-min_bq ".$min_bq;
+				$args[] = "-allow_empty_examples";
+
+				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
 			}
 		}
 		
@@ -557,13 +553,13 @@ if (in_array("vc", $steps))
 				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true));
 
 				//zip
-				$pipeline[] = array("bgzip", "-c > $vcffile_mito", false);
+				$pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c > $vcffile_mito", [], [], true));
 
 				//execute pipeline
 				$parser->execPipeline($pipeline, "Dragen small variants post processing (chrMT)");
 
 				//index output file
-				$parser->exec("tabix", "-p vcf $vcffile_mito", false); //no output logging, because Toolbase::extractVersion() does not return
+				$parser->execApptainer("htslib", "tabix", "-p vcf $vcffile_mito");
 			}
 			else
 			{
@@ -639,32 +635,7 @@ if (in_array("vc", $steps))
 			{
 				$tmp_low_mappability = $parser->tempFile("_low_mappability.vcf.gz");
 
-				if ($use_deepvariant)
-				{
-					$args = [];
-	
-					if ($is_wes || $is_wgs)
-					{
-						$args[] = "-model_type ".$sys['type'];
-					}
-					else
-					{
-						trigger_error("The usage of DeepVariant is limited to WGS or WES short-read data! Different type '".$sys['type']."' detected in $system.", E_USER_ERROR);
-					}
-	
-					$args[] = "-bam ".$used_bam_or_cram;
-					$args[] = "-out ".$tmp_low_mappability;
-					$args[] = "-build ".$build;
-					$args[] = "-threads ".$threads;
-					$args[] = "-target $roi_low_mappabilty";
-					$args[] = "-min_af ".$min_af;
-					$args[] = "-min_mq 0";
-					$args[] = "-min_bq ".$min_bq;
-					if ($gpu) $args[] = "-gpu";
-	
-					$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
-				}
-				else
+				if ($use_freebayes) //perform variant calling with freebayes if set in settings.ini
 				{
 					$args = [];
 					$args[] = "-bam ".$used_bam_or_cram;
@@ -677,6 +648,30 @@ if (in_array("vc", $steps))
 					$args[] = "-min_bq ".$min_bq;
 					$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args));
 				}
+				else
+				{
+					$args = [];
+
+					if ($is_wes || $is_panel)	$args[] = "-model_type WES";
+					elseif ($is_wgs) $args[] = "-model_type WGS";
+					else
+					{
+						trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types are: WES, WGS, Panel, Panel Haloplex.", E_USER_ERROR);
+					}
+
+					$args[] = "-bam ".$used_bam_or_cram;
+					$args[] = "-out ".$tmp_low_mappability;
+					$args[] = "-build ".$build;
+					$args[] = "-threads ".$threads;
+					$args[] = "-target $roi_low_mappabilty";
+					$args[] = "-min_af ".$min_af;
+					$args[] = "-min_mq 0";
+					$args[] = "-min_bq ".$min_bq;
+					$args[] = "-allow_empty_examples";
+
+					$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
+				}
+
 				//unzip
 				$tmp_low_mappability2 = $parser->tempFile("_low_mappability.vcf");
 				$parser->exec("zcat", "$tmp_low_mappability > $tmp_low_mappability2", true);
@@ -713,8 +708,8 @@ if (in_array("vc", $steps))
 		$parser->execApptainer("ngs-bits", "VcfSort", "-in $vcf -remove_unused_contigs -out $vcf");
 		
 		//zip and index
-		$parser->exec("bgzip", "-c $vcf > $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
-		$parser->exec("tabix", "-f -p vcf $vcffile", false); //no output logging, because Toolbase::extractVersion() does not return
+		$parser->execApptainer("htslib", "bgzip", "-c $vcf > $vcffile", [], [dirname($vcffile)]);
+		$parser->execApptainer("htslib", "tabix", "-f -p vcf $vcffile", [], [dirname($vcffile)]);
 		
 		//create b-allele frequency file
 		$params = array();
@@ -1002,8 +997,8 @@ if (in_array("sv", $steps))
 			}
 	
 			//bgzip and index
-			$parser->exec("bgzip", "-c $vcf_marked > $sv_manta_file");
-			$parser->exec("tabix", "-p vcf $sv_manta_file", false); //no output logging, because Toolbase::extractVersion() does not return
+			$parser->execApptainer("htslib", "bgzip", "-c $vcf_marked > $sv_manta_file", [], [dirname($sv_manta_file)]);
+			$parser->execApptainer("htslib", "tabix", "-p vcf $sv_manta_file", [], [dirname($sv_manta_file)]);
 		}
 		else
 		{

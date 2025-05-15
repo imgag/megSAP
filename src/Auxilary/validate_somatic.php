@@ -43,10 +43,11 @@ function get_bases($filename)
 function load_vcf($filename, $roi, $caller)
 {
 	global $with_low_evs;
+	global $parser;
 	global $ignore_filters;
 	
 	$output = array();
-	list($lines) = exec2("tabix --regions {$roi} {$filename}");
+	list($lines) = $parser->execApptainer("htslib", "tabix", "--regions {$roi} {$filename}", [$roi], [dirname($filename)]);
 	foreach($lines as $line)
 	{
 		$line = trim($line);
