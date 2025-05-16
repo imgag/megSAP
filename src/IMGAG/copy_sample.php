@@ -719,7 +719,7 @@ foreach($sample_data as $sample => $sample_infos)
 			{
 				foreach ($fastq_files as $fastq_file) 
 				{
-					if(ends_with(strtolower($fastq_file), ".fastq.ora") && !$use_dragen)
+					if(ends_with(strtolower($fastq_file), ".fastq.ora") && !$use_dragen && !$merge_sample)
 					{
 						//convert to fastq.gz
 						$orad_files = [

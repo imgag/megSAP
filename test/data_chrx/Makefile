@@ -51,9 +51,15 @@ reanno:
 	diff NA12878_17_var_structural_variants.bedpe NA12878_17_old_var_structural_variants.bedpe
 
 link2:
-	php ../link_test_data.php . -copy NA12878_17.cram
-	php ../link_test_data.php . -copy NA12878_17.cram.crai
-	php ../link_test_data.php dragen_variant_calls
+	php ../link_test_data.php NA12878_17.cram . -copy
+	php ../link_test_data.php NA12878_17.cram.crai . -copy
+	mkdir -p dragen_variant_calls
+	php ../link_test_data.php NA12878_17_dragen.vcf.gz dragen_variant_calls -copy
+	php ../link_test_data.php NA12878_17_dragen.vcf.gz.tbi dragen_variant_calls -copy
+	php ../link_test_data.php NA12878_17_dragen_svs.vcf.gz dragen_variant_calls -copy
+	php ../link_test_data.php NA12878_17_dragen_svs.vcf.gz.tbi dragen_variant_calls -copy
+	php ../link_test_data.php NA12878_17_dragen.gvcf.gz dragen_variant_calls -copy
+	php ../link_test_data.php NA12878_17_dragen.gvcf.gz.tbi dragen_variant_calls -copy
 
 dragen_analysis:
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps vc,cn,sv,re
