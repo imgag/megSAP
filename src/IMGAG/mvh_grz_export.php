@@ -454,18 +454,34 @@ if ($exit_code!=0)
 print "running grz-cli encrypt...\n";
 $config = ""; //TODO
 if ($test) $config = "/mnt/storage2/MVH/config/config_test_phase.txt";
-list($stdout, $stderr, $exit_code) = exec2("/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/bin/grz-cli encrypt --submission-dir {$folder} --config-file {$config}");
-file_put_contents("{$folder}/logs/grz_cli_encrypt.stdout", $stdout);
-file_put_contents("{$folder}/logs/grz_cli_encrypt.stderr", $stdout);
+$stdout = "{$folder}/logs/grz_cli_encrypt.stdout";
+$stderr = "{$folder}/logs/grz_cli_encrypt.stderr";
+$output = [];
+$exit_code = null;
+exec("/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/bin/grz-cli encrypt --submission-dir {$folder} --config-file {$config} > {$stdout} 2> {$stderr}", $output, $exit_code); //when using exec2 the process hangs indefinitely sometimes
 if ($exit_code!=0)
 {
+	print_r($output);
 	trigger_error("grz-cli encrypt failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
 }
 
 //Upload the submission
-#grz-cli upload --submission-dir EXAMPLE_SUBMISSION
+print "running grz-cli upload...\n";
+$stdout = "{$folder}/logs/grz_cli_upload.stdout";
+$stderr = "{$folder}/logs/grz_cli_upload.stderr";
+$output = [];
+$exit_code = null;
+exec("/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/bin/grz-cli upload --submission-dir {$folder} --config-file {$config} > {$stdout} 2> {$stderr}", $output, $exit_code); //when using exec2 the process hangs indefinitely sometimes
+if ($exit_code!=0)
+{
+	print_r($output);
+	trigger_error("grz-cli upload failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
+}
 
 //update submission status in MVH/submission_grz
+$submission_id = trim(implode("", file($stdout)));
+
+//clean up export folder if successfull
 
 
 /*
