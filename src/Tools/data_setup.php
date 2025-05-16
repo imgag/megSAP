@@ -363,13 +363,26 @@ if (get_path("copy_dbs_to_local_data"))
 		}
 	}
 
-	// get list of apptainer containers to transfer from settings file
+	// Copy apptainer containers from network folder to local data
+	//Get list of apptainer containers from megSAP master settings.ini.default
+	$tmp_ini = temp_file(".ini");
+	$branch = trim(shell_exec("cd ".repository_basedir()." && git rev-parse --abbrev-ref HEAD"));
+	exec("wget --no-check-certificate https://raw.githubusercontent.com/imgag/megSAP/$branch/settings.ini.default -O $tmp_ini");
+	$tmp_ini_content = parse_ini_file($tmp_ini);
+
+	//Get list of apptainer containers to transfer from settings file
 	$ini = get_ini();
 	foreach($ini as $key => $value)
 	{
 		if (!starts_with($key, "container_")) continue;
 		if ($key=="container_folder") continue;
 		
+		//Check if different container version is available
+		if (!(array_key_exists($key, $tmp_ini_content) && $tmp_ini_content[$key] === $value))
+		{
+			trigger_error("Different version '".$tmp_ini_content[$key]."' for container '".substr($key, 10)."' found in megSAP branch '$branch'. Your version: '$value'. To update your container update your settings.ini and re-run download_container.sh", E_USER_NOTICE);
+		}
+
 		$container_file = $network_folder."/".substr($key, 10)."_".$value.".sif";
 		$base = basename($container_file);
 		$local_container_file = $local_folder.$base;
