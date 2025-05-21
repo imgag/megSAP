@@ -144,7 +144,7 @@ apptainer exec $htslib tabix -C -m 9 -p vcf gnomAD_genome_v3.1.mito_GRCh38.vcf.g
 cd $dbs
 mkdir -p phyloP
 cd phyloP
-wget http://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.phyloP100way.bw
+wget -O hg38.phyloP100way.bw http://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.phyloP100way.bw
 
 #Install CADD
 cd $dbs
@@ -164,7 +164,7 @@ rm -rf CADD_SNVs_1.7_GRCh38.tsv.gz CADD_InDels_1.7_GRCh38.tsv.gz
 cd $dbs
 mkdir -p REVEL
 cd REVEL
-wget https://zenodo.org/record/7072866/files/revel-v1.3_all_chromosomes.zip
+wget -O revel-v1.3_all_chromosomes.zip https://zenodo.org/record/7072866/files/revel-v1.3_all_chromosomes.zip
 unzip -p revel-v1.3_all_chromosomes.zip | php $src/Install/db_converter_revel.php > tmp.vcf
 apptainer exec $ngsbits VcfSort -in tmp.vcf -out REVEL_1.3.vcf
 rm tmp.vcf
@@ -176,7 +176,7 @@ apptainer exec -B $genome_dir $ngsbits VcfCheck -in REVEL_1.3.vcf.gz -lines 1000
 cd $dbs
 mkdir -p AlphaMissense
 cd AlphaMissense
-wget https://storage.googleapis.com/dm_alphamissense/AlphaMissense_hg38.tsv.gz
+wget -O AlphaMissense_hg38.tsv.gz https://storage.googleapis.com/dm_alphamissense/AlphaMissense_hg38.tsv.gz
 php $src/Install/db_converter_alphamissense.php AlphaMissense_hg38.tsv.gz > AlphaMissense_hg38.vcf
 apptainer exec $ngsbits VcfSort -in AlphaMissense_hg38.vcf -out AlphaMissense_hg38.vcf
 apptainer exec $htslib bgzip AlphaMissense_hg38.vcf
@@ -232,9 +232,9 @@ apptainer exec $htslib tabix $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalize
 
 #download reference genome for orad
 cd $dbs
-mkdir oradata
+mkdir -p oradata
 cd oradata
-wget https://webdata.illumina.com/downloads/software/dragen-decompression/orad.2.6.1.tar.gz
+wget -O orad.2.6.1.tar.gz https://webdata.illumina.com/downloads/software/dragen-decompression/orad.2.6.1.tar.gz
 tar xzf orad.2.6.1.tar.gz
 rm orad.2.6.1.tar.gz
 mv orad_2_6_1/oradata/refbin .
@@ -242,7 +242,7 @@ rm -rf orad_2_6_1
 
 #create reference file for msisensor-pro
 cd $dbs
-mkdir msisensor-pro
+mkdir -p msisensor-pro
 cd msisensor-pro
 apptainer exec -B $genome $msisensor msisensor-pro scan -d $genome -o msisensor_references_GRCh38.site
 
@@ -250,7 +250,7 @@ apptainer exec -B $genome $msisensor msisensor-pro scan -d $genome -o msisensor_
 cd $dbs
 mkdir -p tandem-repeats
 cd tandem-repeats
-wget https://github.com/fritzsedlazeck/Sniffles/blob/fdf6e6d334353a06872fe98f74fe68cc9a9a7d1f/annotations/human_GRCh38_no_alt_analysis_set.trf.bed
+wget -O human_GRCh38_no_alt_analysis_set.trf.bed https://raw.githubusercontent.com/fritzsedlazeck/Sniffles/fdf6e6d334353a06872fe98f74fe68cc9a9a7d1f/annotations/human_GRCh38_no_alt_analysis_set.trf.bed
 
 # # install OMIM (you might need a license; production NGSD has to be available and initialized)
 # cd $dbs

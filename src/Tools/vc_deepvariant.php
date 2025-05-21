@@ -24,6 +24,10 @@ $parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calli
 $parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.", true, 10);
 $parser->addFlag("raw_output", "return the raw output of deepvariant with no post-processing.");
 $parser->addFlag("allow_empty_examples", "allows DeepVariant to call variants even if no examples were created with make_examples.");
+$parser->addFlag("gpu", "Use DeepVariant container with GPU acceleration support.");
+$parser->addFlag("add_sample_header", "Add sample header to VCF file.");
+$parser->addString("name", "Sample name for the sample header. Has to be set with add_sample_header.", true, "");
+$parser->addString("analysistype", "Type of analysis performed for the sample header. Has to be set with add_sample_header.", true, "GERMLINE_SINGLESAMPLE");
 extract($parser->parse($argv));
 
 //init
@@ -74,15 +78,16 @@ $in_files = array_merge($in_files, $bam);
 
 // run deepvariant
 $pipeline = array();
+$container = ($gpu) ? "deepvariant-gpu" : "deepvariant";
 
 if ($raw_output)
 {
-	$parser->execApptainer("deepvariant", "run_deepvariant" ,implode(" ", $args)." --output_vcf=$out", $in_files, [dirname($out)]);
+	$parser->execApptainer($container, "run_deepvariant" ,implode(" ", $args)." --output_vcf=$out", $in_files, [dirname($out)]);
 	return;
 }
 
 $vcf_deepvar_out = $parser->tempFile(".vcf.gz");
-$parser->execApptainer("deepvariant", "run_deepvariant", implode(" ", $args)." --output_vcf=$vcf_deepvar_out", $in_files, [dirname($out)]);
+$parser->execApptainer($container, "run_deepvariant", implode(" ", $args)." --output_vcf=$vcf_deepvar_out", $in_files, [dirname($out)]);
 
 //filter variants according to variant quality>5
 $pipeline[] = ["zcat", "$vcf_deepvar_out"];
@@ -105,12 +110,21 @@ $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "-out $tm
 //(2) execute pipeline
 $parser->execPipeline($pipeline, "deepvariant post processing");
 
-//prepend source, date and reference to outfile:
-$file_format = "##fileformat=VCFv4.2\n";
-$file_date = "##fileDate=".date("Ymd")."\n";
-$source_line = "##source=DeepVariant ".get_path("container_deepvariant")."\n";
-$reference_line = "##reference=".genome_fasta($build, false)."\n";
-file_put_contents($tmp_out, $file_format . $file_date . $source_line . $reference_line . file_get_contents($tmp_out));
+//Add header to VCF file
+$vcf = Matrix::fromTSV($tmp_out);
+$comments = $vcf->getComments();
+$comments[] = "#fileformat=VCFv4.2\n";
+$comments[] = "#source=DeepVariant ".get_path("container_deepvariant")."\n";
+$comments[] = "#reference=".genome_fasta($build, false)."\n";
+$comments[] = "#fileDate=".date("Ymd")."\n";
+if ($add_sample_header)
+{
+	$comments[] = "#ANALYSISTYPE=$analysistype\n";
+	$comments[] = "#PIPELINE=".repository_revision(true)."\n";
+	$comments[] = gsvar_sample_header($name, array("DiseaseStatus"=>"Affected"), "#", "");
+}
+$vcf->setComments($comments);
+$vcf->toTSV($tmp_out);
 
 //zip
 $parser->execApptainer("htslib", "bgzip", "-c $tmp_out > $out", [], [dirname($out)]);

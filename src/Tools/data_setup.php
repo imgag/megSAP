@@ -311,7 +311,9 @@ if ($build=="GRCh38" && $check)
 if (get_path("copy_dbs_to_local_data"))
 {
 	$network_folder = get_path("container_folder");
+	$network_checksum_folder = $network_folder."/checksums/";
 	$local_folder = get_path("local_data")."/container/";
+	$local_checksum_folder = $local_folder."/checksums/";
 
 	print "\n";
 	print "### Copy apptainer containers ###\n";
@@ -322,6 +324,18 @@ if (get_path("copy_dbs_to_local_data"))
 	if (!file_exists($network_folder))
 	{
 		trigger_error("Container folder not found: {$network_folder}. The Apptainer containers may not have been downloaded yet.", E_USER_ERROR);
+	}
+	
+	if (!file_exists($network_checksum_folder)) //Check if checksum folder exists
+	{
+		if (!mkdir($network_checksum_folder))
+		{
+			trigger_error("Could not create checksum folder '{$network_checksum_folder}'!", E_USER_ERROR);
+		}
+		if (!chmod($network_checksum_folder, 0777))
+		{
+			trigger_error("Could not change privileges of checksum folder '{$network_checksum_folder}'!", E_USER_ERROR);
+		}
 	}
 
 	// Create local container folder
@@ -337,21 +351,109 @@ if (get_path("copy_dbs_to_local_data"))
 		}
 	}
 
-	// get list of apptainer containers to transfer from settings file
+	if (!file_exists($local_checksum_folder)) //Check if checksum folder exists
+	{
+		if (!mkdir($local_checksum_folder))
+		{
+			trigger_error("Could not create checksum folder '{$local_checksum_folder}'!", E_USER_ERROR);
+		}
+		if (!chmod($local_checksum_folder, 0777))
+		{
+			trigger_error("Could not change privileges of checksum folder '{$local_checksum_folder}'!", E_USER_ERROR);
+		}
+	}
+
+	// Copy apptainer containers from network folder to local data
+	//Get list of apptainer containers from megSAP master settings.ini.default
+	$tmp_ini = temp_file(".ini");
+	$branch = trim(shell_exec("cd ".repository_basedir()." && git rev-parse --abbrev-ref HEAD"));
+	exec("wget --no-check-certificate https://raw.githubusercontent.com/imgag/megSAP/$branch/settings.ini.default -O $tmp_ini");
+	$tmp_ini_content = parse_ini_file($tmp_ini);
 	$ini = get_ini();
+
+	//Check if container present in branch is missing in local repo
+	foreach ($tmp_ini_content as $tmp_key => $tmp_value)
+	{
+		if (!starts_with($tmp_key, "container_")) continue;
+		if ($tmp_key=="container_folder") continue;
+		if (!array_key_exists($tmp_key, $ini))
+		{
+			trigger_error("Container entry '{$tmp_key}={$tmp_value}' is present in megSAP branch '$branch' but missing from your settings.ini. You may want to add it if it's relevant to your analysis.", E_USER_NOTICE);
+		}
+	}
+
+	//Get list of apptainer containers to transfer from settings file
 	foreach($ini as $key => $value)
 	{
 		if (!starts_with($key, "container_")) continue;
 		if ($key=="container_folder") continue;
 		
+		//Check if different container version is available
+		if (!array_key_exists($key, $tmp_ini_content))
+		{
+			trigger_error("Container entry '{$key}={$value}' not found in settings.ini.default of megSAP branch '$branch'. This may be a custom addition or the container might have been removed or deprecated in the current branch.", E_USER_NOTICE);
+		}		
+		else if ($tmp_ini_content[$key] != $value)
+		{
+			trigger_error("Different version '".$tmp_ini_content[$key]."' for container '".substr($key, 10)."' found in megSAP branch '$branch'. Your version: '$value'. To update your container update your settings.ini and re-run download_container.sh", E_USER_NOTICE);
+		}
+
 		$container_file = $network_folder."/".substr($key, 10)."_".$value.".sif";
 		$base = basename($container_file);
 		$local_container_file = $local_folder.$base;
+		$md5_local = "{$local_checksum_folder}{$base}.md5";
+		$md5_net = "{$network_checksum_folder}{$base}.md5";
 
-		if (!file_exists($local_container_file) || (filemtime($local_container_file)<filemtime($container_file)))
+		//Check that container exists in network folder
+		if (!file_exists($container_file)) trigger_error("Could not find container $container_file. Make sure your settings.ini is correct and the container exists in $network_folder");
+
+		//Make sure that md5 checksum for container in network directory is present
+		if (!file_exists($md5_net))
 		{
-			print "  {$base}: Copying new container version to '$local_container_file'.\n";
-			// Copy the new container or new version
+			print "MD5 checksum missing for $container_file, creating it now.\n";
+			exec2("md5sum -b {$container_file} | cut -d ' ' -f1 > $md5_net");
+		}
+
+		//Make sure md5 checksum for container in local data is present
+		if (file_exists($local_container_file) && !file_exists($md5_local))
+		{
+			print "MD5 checksum missing for $local_container_file, creating it now.\n";
+			exec2("md5sum -b {$local_container_file} | cut -d ' ' -f1 > $md5_local");
+		}
+
+		//Check md5 sum and update local container folder
+		if (file_exists($md5_local))
+		{
+			exec("diff $md5_local $md5_net", $output, $code);
+			if ($code==0)
+			{
+				print "MD5 checksums of container '{$base}.md5' match - local copy is up-to-date\n";
+				continue;
+			}
+			else
+			{
+				print "MD5 checksums of container '{$base}.md5' differ. Updating container {$base}!\n";
+				// Copy the new container version
+				list($stdout, $stderr) = exec2("cp {$container_file} {$local_container_file}");
+				foreach (array_merge($stdout, $stderr) as $line) 
+				{
+					$line = trim($line);
+					if ($line == "") continue;
+					print "    $line\n";
+				}
+
+				// Set permissions on the new local copy
+				@chmod($local_container_file, 0777);
+				
+				//create new local md5 sum
+				exec2("rm $md5_local");
+				exec2("md5sum -b {$local_container_file} | cut -d ' ' -f1 > $md5_local");
+			}
+		}
+		else
+		{
+			print "Container $base missing in local data folder. Copying container {$base}!\n";
+			// Copy the new container
 			list($stdout, $stderr) = exec2("cp {$container_file} {$local_container_file}");
 			foreach (array_merge($stdout, $stderr) as $line) 
 			{
@@ -363,12 +465,8 @@ if (get_path("copy_dbs_to_local_data"))
 			// Set permissions on the new local copy
 			@chmod($local_container_file, 0777);
 			
-			//update date
-			@touch($local_container_file);
-		}
-		else
-		{
-			print "  {$base}: skipped - local copy is up-to-date\n";
+			//create local md5 sum
+			exec2("md5sum -b {$local_container_file} | cut -d ' ' -f1 > $md5_local");
 		}
 	}
 }
