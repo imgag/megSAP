@@ -93,39 +93,78 @@ function megsap_version($gsvar)
 	trigger_error("Could not determine megSAP version from '{$gsvar}'!", E_USER_ERROR);
 }
 
-function run_qc_pipeline($ps, $fq1, $fq2, $roi, $report, $is_tumor)
+function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 {
 	global $parser;
 	global $seq_mode;
 	global $is_somatic;
+	global $qc_folder;
+	$qc_wf_folder = "/mnt/storage2/MVH/tools/GRZ_QC_Workflow/";
 	
-	//run QC pipeline if necessary
-	if (!file_exists($report))
+	//run mosdepth if necessary
+	$mosdepth_folder = $qc_folder."/mosdepth/";
+	$mosdepth_summary = "{$mosdepth_folder}/output_prefix.mosdepth.summary.txt";
+	$mosdepth_regions = "{$mosdepth_folder}/output_prefix.regions.bed.gz";
+	if (!file_exists($mosdepth_summary) || !file_exists($mosdepth_regions))
 	{
-		$tmp_folder = $parser->tempFolder();
-		print "  running QC for {$ps} in folder {$tmp_folder}...\n";
+		print "  running mosdepth for {$ps} in folder {$mosdepth_folder} ...\n";
 		
-		//get absolute paths
-		$fq1 = realpath($fq1);
-		$fq2 = realpath($fq2);
-		if ($roi!="") $roi = realpath($roi);
+		//make sure output folder exits
+		exec2("mkdir -p {$mosdepth_folder}");
 		
-		//create sample sheet. docu: https://github.com/BfArM-MVH/GRZ_QC_Workflow/blob/main/docs/usage.md#samplesheet-input
-		$sample_sheet = "{$tmp_folder}/samplesheet.csv";
-		$tmp = [];
-		$tmp[] = "sample,labDataName,libraryType,sequenceSubtype,genomicStudySubtype,fastq_1,fastq_2,bed_file\n";
-		$tmp[] = "{$ps},,".strtolower($seq_mode).",".($is_tumor ? "somatic" : "germline").",".($is_somatic ? "tumor+germline" : "germline-only").",{$fq1},{$fq2},{$roi}\n";
-		file_put_contents($sample_sheet, $tmp);
-
 		//run QC workflow
-		$time_start = microtime(true);
-		list($stdout, $stderr) = exec2("export NXF_OFFLINE='true' && /mnt/storage2/MVH/tools/nextflow-24.10.5/nextflow-24.10.5-dist run /mnt/storage2/MVH/tools/GRZ_QC_Workflow/main.nf -profile grzqc_GRCh38,singularity --outdir {$tmp_folder} -work-dir {$tmp_folder}/work --input {$sample_sheet} --genome GRCh38");
-		copy("{$tmp_folder}/results/report.csv", $report);
+		$args = [];
+		$args[] = "--threads 10";
+		$args[] = "--by ".($roi!="" ? realpath($roi) : "{$qc_wf_folder}/assets/default_files/hg38_440_omim_genes.bed"); 
+		$args[] = "--fasta /tmp/local_ngs_data_GRCh38/GRCh38.fa ";
+		exec2("/mnt/storage2/MVH/tools/mosdepth ".implode(" ", $args)." {$mosdepth_folder}/output_prefix {$bam}");
 	}
 	else
 	{
-		print "  note: GRZ QC report {$report} already exist - using it\n";
+		print "  note: mosdepth results already exist in folder {$mosdepth_folder} - using it\n";
 	}
+	
+	//run fastp if necessary
+	$fastp_folder = "{$qc_folder}/fastp/";
+	$fastp_json = "{$fastp_folder}/{$ps}.json";
+	if (!file_exists($fastp_json))
+	{
+		print "  running fastp for {$ps} in folder {$fastp_folder} ...\n";
+		
+		//make sure output folder exits
+		exec2("mkdir -p {$fastp_folder}");
+		
+		//run fastp
+		$args = [];
+		$args[] = "--thread 10";
+		$args[] = "--in1 ".realpath($fq1);
+		$args[] = "--in2 ".realpath($fq2);
+		$args[] = "--out1 {$fastp_folder}/R1.fastq.gz";
+		$args[] = "--out2 {$fastp_folder}/R2.fastq.gz";
+		$args[] = "--json {$fastp_json}";
+		$args[] = "--html {$fastp_folder}/{$ps}.html";
+		$args[] = "--detect_adapter_for_pe";
+		exec2("/mnt/storage2/MVH/tools/fastp ".implode(" ", $args));
+	}
+	else
+	{
+		print "  note: fastp results already exist in folder {$fastp_folder} - using it\n";
+	}
+	
+	//generate report
+	$report = "{$qc_folder}/{$ps}_report.csv";
+	$args = [];
+	$args[] = "--sample_id '{$ps}'";
+	$args[] = "--labDataName 'blood DNA'";
+	$args[] = "--libraryType ".strtolower($seq_mode);
+	$args[] = "--sequenceSubtype ".($is_tumor ? "somatic" : "germline");
+	$args[] = "--genomicStudySubtype ".($is_somatic ? "tumor+germline" : "germline-only");
+	$args[] = "--fastp_json {$fastp_json}";
+	$args[] = "--mosdepth_global_summary {$mosdepth_summary}";
+	$args[] = "--mosdepth_target_regions_bed {$mosdepth_regions}";
+	$args[] = " --thresholds {$qc_wf_folder}/assets/default_files/thresholds.json";
+	$args[] = "--output {$report}";
+	exec2("python3 {$qc_wf_folder}/bin/compare_threshold.py ".implode(" ", $args));
 	
 	//parse QC report
 	$file = file($report);
@@ -277,8 +316,7 @@ if ($roi!="")
 //run QC pipeline for germline sample
 exec2("mkdir -p {$qc_folder}/checksums/");
 print "QC folder: {$qc_folder}\n";
-$n_report = "{$qc_folder}/normal_report.csv";
-$grz_qc = run_qc_pipeline($ps, $n_fq1, $n_fq2, $roi, $n_report, false);
+$grz_qc = run_qc_pipeline($ps, $bam, $n_fq1, $n_fq2, $roi, false);
 
 //run QC pipeline for somatic sample
 if ($is_somatic)
@@ -442,9 +480,11 @@ file_put_contents("{$folder}/metadata/metadata.json", json_encode($json, JSON_PR
 
 //validate the submission
 print "running grz-cli validate...\n";
-list($stdout, $stderr, $exit_code) = exec2("/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/bin/grz-cli validate --submission-dir {$folder}");
-file_put_contents("{$folder}/logs/grz_cli_validate.stdout", $stdout);
-file_put_contents("{$folder}/logs/grz_cli_validate.stderr", $stdout);
+$output = [];
+$exit_code = null;
+$stdout = "{$folder}/logs/grz_cli_validate.stdout";
+$stderr = "{$folder}/logs/grz_cli_validate.stderr";
+exec2("/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/bin/grz-cli validate --submission-dir {$folder} > {$stdout} 2> {$stderr}", $output, $exit_code); //when using exec2 the process hangs indefinitely sometimes
 if ($exit_code!=0)
 {
 	trigger_error("grz-cli validate failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
@@ -490,6 +530,18 @@ $submission_id = trim(implode("", file($stdout)));
 - test if export works on SRV005 with user bioinf
 - store schema of MVH DB
 
+#Test samples
+- WGS: NA12878x3_20
+- WES: NA12878x3_15
+
+#Installation of mosdepth
+
+> wget https://github.com/brentp/mosdepth/releases/download/v0.3.11/mosdepth --no-check-certificate
+
+#Installation of fastp
+
+> wget http://opengene.org/fastp/fastp
+> chmod a+x ./fastp
 
 #Installation notes GRZ-CLI (see https://github.com/BfArM-MVH/grz-cli):
 
