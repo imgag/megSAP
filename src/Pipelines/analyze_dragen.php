@@ -19,7 +19,7 @@ $steps_all = array("ma", "vc", "cn", "sv", "re", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, db=import into NGSD.", true, "ma,vc,cn,sv,re,db");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
-$parser->addFlag("queue_analysis", "Queue megSAP analysis afterwards.");
+$parser->addFlag("no_queuing", "Do not queue megSAP analysis afterwards.");
 $parser->addFlag("dragen_only", "Perform only DRAGEN analysis and copy all output files without renaming (not compatible with later megSAP analysis).");
 $parser->addFlag("debug", "Add debug output to the log file.");
 
@@ -83,7 +83,23 @@ else
 }
 
 //disable megSAP queuing for DRAGEN only analyses
-if ($dragen_only) $queue_analysis = false;
+if ($dragen_only) $no_queuing = true;
+
+
+if (!$no_queuing)
+{
+	//add vc, sv steps for later megSAP analysis
+	if (!in_array("vc", $steps))
+	{
+		trigger_error("Small variant calling step missing in later megSAP analysis, adding step 'vc'!", E_USER_WARNING);
+		$steps[] = "vc";
+	}
+	if (!in_array("sv", $steps))
+	{
+		trigger_error("Structural variant calling step missing in later megSAP analysis, adding step 'sv'!", E_USER_WARNING);
+		$steps[] = "sv";
+	}
+}
 
 
 // create empty folder for analysis
@@ -386,16 +402,22 @@ $parser->exec("rm", "-rf $working_dir");
 
 // ********************************* queue megSAP ****************************//
 
-if ($queue_analysis)
-{
-	//parse megSAP parameter
-	$megSAP_args = array();
-	if ($system != "") $megSAP_args[] = "-system {$system}";
-	$megSAP_args[] = "-steps ".implode(",", $steps);
-	$megSAP_args[] = "-threads {$threads}";
-	if ($rna_sample != "") $megSAP_args[] = "-rna_sample {$rna_sample}";
 
-	//queue analysis
+//parse megSAP parameter
+$megSAP_args = array();
+if ($system != "") $megSAP_args[] = "-system {$system}";
+$megSAP_args[] = "-steps ".implode(",", $steps);
+$megSAP_args[] = "-threads {$threads}";
+if ($rna_sample != "") $megSAP_args[] = "-rna_sample {$rna_sample}";
+
+//queue analysis
+
+if ($no_queuing) 
+{
+	trigger_error("megSAP queueing skipped! \nCommand to queue analysis: \n\tphp ".repository_basedir()."/src/Tools/queue_analysis.php -type 'single sample' -samples {$name} -args '".implode(" ", $megSAP_args)."'", E_USER_NOTICE);
+}
+else 
+{
 	$parser->execTool("Tools/queue_analysis.php", "-type 'single sample' -samples {$name} -args '".implode(" ", $megSAP_args)."'");
 }
 

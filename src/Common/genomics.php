@@ -2551,9 +2551,4 @@ function get_fastq_read_count($fastq_files)
 	return $read_count;
 }
 
-
-
-
-
 ?>
-

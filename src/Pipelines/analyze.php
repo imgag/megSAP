@@ -371,7 +371,7 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 		else if (count($prev_bam) == 1)
 		{
 			$prev_bam = $prev_bam[0];
-			compare_bam_read_count($used_bam_or_cram, $prev_bam, $threads, true, false, 0.0, array("-F", "2304"), $build);
+			compare_bam_read_count($used_bam_or_cram, $prev_bam, $threads, true, false, 0.001, array("-F", "2304"), $build);
 			//delete folder if no error occured
 			trigger_error("Read counts of input and output BAM/CRAM match, deleting mapping folder...", E_USER_NOTICE);
 			$parser->exec("rm", "-r {$folder}/bams_for_mapping");
@@ -408,9 +408,6 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 			}
 		}
 
-		//TODO: remove
-		$preserve_fastqs = false;
-
 		if(!$preserve_fastqs)
 		{
 			//check for remaining FastQ/ORAs and delete them
@@ -428,11 +425,11 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 				$diff = abs($bam_read_count - $fastq_read_count);
 				$rel_diff = $diff /(($bam_read_count + $fastq_read_count)/2);
 
-				if (($bam_read_count == $fastq_read_count) || ($rel_diff < 0.0001))
+				if (($bam_read_count == $fastq_read_count) || ($rel_diff < 0.001))
 				{
 					// remove old BAM(s)
 					if ($bam_read_count == $fastq_read_count) trigger_error("Read count of FASTQ/ORA files and BAM/CRAM match. Deleting FASTQ/ORA files...", E_USER_NOTICE);
-					else if ($rel_diff < 0.0001) trigger_error("Read count of FASTQ/ORA files and BAM/CRAM in allowed tolerance (<0.01%) (".($rel_diff*100)."%). Deleting FASTQ/ORA files...", E_USER_NOTICE);
+					else if ($rel_diff < 0.001) trigger_error("Read count of FASTQ/ORA files and BAM/CRAM in allowed tolerance (<0.01%) (".($rel_diff*100)."%). Deleting FASTQ/ORA files...", E_USER_NOTICE);
 					
 					if (count($ora_files)  > 0) $parser->exec("rm", implode(" ", $ora_files));
 					else $parser->exec("rm", implode(" ", $fastq_files));
