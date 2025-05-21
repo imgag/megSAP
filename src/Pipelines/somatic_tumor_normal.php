@@ -183,7 +183,7 @@ if($roi != $n_sys["target_file"])
 }
 
 //Abort if calling is requested and somatic report config exists in NGSD
-if (db_is_enabled("NGSD"))
+/* if (db_is_enabled("NGSD")) //TODO Kilian reenable
 {
 	$db = DB::getInstance("NGSD", false);
 	list($config_id, $config_vars_exist, $config_cnvs_exist, $config_svs_exists) = somatic_report_config($db, $t_id, $n_id);
@@ -199,7 +199,7 @@ if (db_is_enabled("NGSD"))
 	{
 		trigger_error("Somatic report configuration with CNVs exists in NGSD! Delete somatic report configuration for reanalysis of step 'cn'.", E_USER_ERROR);
 	}
-}
+} */
 
 //sample similarity check
 $bams = array_filter([$t_bam, $n_bam]);
@@ -243,7 +243,7 @@ if (!$skip_contamination_check)
 }
 else trigger_error("Skipping check of female tumor sample $t_bam for contamination with male genomic DNA.", E_USER_WARNING);
 
-// Check samples are flagged correctly in NGSD
+/* // Check samples are flagged correctly in NGSD //TODO Kilian reenable
 if( db_is_enabled("NGSD"))
 {
 	$db = DB::getInstance("NGSD");
@@ -260,7 +260,7 @@ if( db_is_enabled("NGSD"))
 	{
 		trigger_error("Please check normal processed sample {$n_id} in NGSD. The sample is flagged as tumor tissue.", E_USER_ERROR);
 	}
-}
+} */
 
 //low coverage statistics
 $low_cov = "{$full_prefix}_stat_lowcov.bed";					// low coverage BED file
@@ -543,6 +543,8 @@ if (in_array("vc", $steps))
 		$args[] = "-out ".$variants;
 		$args[] = "-build ".$sys['build'];
 		$args[] = "-threads ".$threads;
+		$args[] = "-tumor_id {$t_id}";
+		$args[] = "-normal_id {$n_id}";
 
 		if (!empty($roi))
 		{

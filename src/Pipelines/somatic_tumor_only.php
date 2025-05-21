@@ -157,7 +157,32 @@ if (in_array("vc", $steps))
 	}
 	
 	//Varscan2 calling
-	$parser->execTool("Tools/vc_varscan2.php", "-bam $t_bam -out $variants -build " .$sys['build']. " -target ". $roi. " -name $t_id -min_af $min_af");
+	if (get_path("use_deepsomatic"))
+	{
+		$args = [];
+
+		$args[] = "-model_type WGS_TUMOR_ONLY";
+		$args[] = "-bam_tumor ".$t_bam;
+		$args[] = "-out ".$variants;
+		$args[] = "-build ".$sys['build'];
+		$args[] = "-threads ".$threads;
+		$args[] = "-tumor_id {$t_id}";
+		$args[] = "-min_af $min_af";
+		$args[] = "-tumor_only";
+
+		if (!empty($roi))
+		{
+			$args[] = "-target {$roi}";
+		}
+		$args[] = "-allow_empty_examples";
+
+		$parser->execTool("Tools/vc_deepsomatic.php", implode(" ", $args));
+	}
+	else
+	{
+		$parser->execTool("Tools/vc_varscan2.php", "-bam $t_bam -out $variants -build " .$sys['build']. " -target ". $roi. " -name $t_id -min_af $min_af");
+	}
+	
 	$parser->execApptainer("htslib", "tabix", "-f -p vcf $variants", [], [dirname($variants)]);
 
 	//add somatic BAF file

@@ -1036,6 +1036,31 @@ function vcf_freebayes($format_col, $sample_col)
 	return array($d1,$f);
 }
 
+function vcf_deepvariant($format_col, $sample_col)
+{
+	$g = explode(":",$format_col);
+	$index_DP = NULL;
+	$index_VAF = NULL;
+	$index_GT = NULL;
+	for($i=0;$i<count($g);++$i)
+	{
+		if($g[$i]=="DP")	$index_DP = $i;
+		if($g[$i]=="VAF")	$index_VAF = $i;
+		if($g[$i]=="GT")	$index_GT = $i;
+	}
+	if(is_null($index_DP) || is_null($index_VAF) ||is_null($index_GT))	trigger_error("Invalid DeepVariant format; either field DP, GT or VAF not available.",E_USER_ERROR);	
+	
+	$s = explode(":",$sample_col);
+
+	if(!is_numeric($s[$index_DP]))	trigger_error("Could not identify numeric depth (".$format_col." ".$sample_col.").",E_USER_ERROR);
+	if(!is_numeric($s[$index_VAF]))	trigger_error("Invalid variant allele frequency (".$format_col." ".$sample_col.").",E_USER_ERROR);	// currently no multiallelic variants supported
+
+	$dp = $s[$index_DP];
+	$fq = $s[$index_VAF];
+	
+	return array($dp,$fq);
+}
+
 function vcf_dragen_var($format_col, $sample_col)
 {
 	$g = explode(":",$format_col);
