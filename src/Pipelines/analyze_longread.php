@@ -965,10 +965,21 @@ if (in_array("an", $steps))
 }
 
 // collect other QC terms - if CNV or SV calling was done
-if ((in_array("cn", $steps) || in_array("sv", $steps) || in_array("an", $steps)))
+if ((in_array("ma", $steps)) || (in_array("cn", $steps) || in_array("sv", $steps) || in_array("an", $steps)))
 {
 	$terms = [];
 	$sources = [];
+
+	//Basecall model
+	if (file_exists($used_bam_or_cram))
+	{
+		$basecall_model = get_basecall_model($used_bam_or_cram);
+		if ($basecall_model != "")
+		{
+			$terms[] = "QC:2000149\t{$basecall_model}";
+			$sources[] = $used_bam_or_cram;
+		}	
+	}
 	
 	//CNVs
 	if (file_exists($cnv_file))
@@ -998,7 +1009,7 @@ if ((in_array("cn", $steps) || in_array("sv", $steps) || in_array("an", $steps))
 			{
 				$parts = explode("\t", $line);
 				$ll = $parts[4];
-				if ($ll>=20)
+				if ($ll>=12) # changed to 12 for long-reads
 				{
 					++$cnv_count_hq;
 					
