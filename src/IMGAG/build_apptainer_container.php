@@ -21,10 +21,12 @@ if (contains($tag, "_"))
 }
 
 //build
-$sif = "{$tool}_{$tag}.sif";
+$date = date("Y-m-d H:i:s");
+$datestr = date("Ymd");
+$sif = "{$tool}_{$tag}-{$datestr}.sif";
 $recipe_folder = "data/tools/container_recipes/";
 $def = "{$recipe_folder}{$tool}_{$tag}.def";
-$log = "{$tool}_{$tag}.log";
+$log = "{$tool}_{$tag}-{$datestr}.log";
 $pull_file = "{$recipe_folder}{$tool}_{$tag}_pull_command.txt";
 
 if (is_file($def))
@@ -34,11 +36,10 @@ if (is_file($def))
 	// write server name, user and date to logfile as header
 	$server = php_uname('n');
 	$user = getenv("USER") ?: getenv("LOGNAME");
-	$date = date("Y-m-d H:i:s");
+	
 
 	$log_header = "Built on: {$server}\nBuilt by: {$user}\nBuild date: {$date}\n\n";
 	file_put_contents($log, $log_header);
-
 	exec2("apptainer build {$sif} {$recipe_folder}/{$tool}_{$tag}.def >> $log 2>&1");
 }
 elseif (is_file($pull_file))
@@ -50,12 +51,12 @@ elseif (is_file($pull_file))
 	// write server name, user and date to logfile as header
 	$server = php_uname('n');
 	$user = getenv("USER") ?: getenv("LOGNAME");
-	$date = date("Y-m-d H:i:s");
 
 	$log_header = "Built on: {$server}\nBuilt by: {$user}\nBuild date: {$date}\nPull command: ".$pull_command[0]."\n\n";
 	file_put_contents($log, $log_header);
 
 	exec2($pull_command[0]." >> $log 2>&1");
+	exec2("mv {$tool}_{$tag}.sif $sif");
 }
 else
 {
@@ -63,6 +64,9 @@ else
 	print "Recipe '$def' not found! The following recipes are available for your tool: \n".implode("\n", $def_available)."\n";
 	exit();
 }
+
+print "Calculating MD5 sum for $sif\n";
+exec2("md5sum -b {$sif} | cut -d ' ' -f1 > {$sif}.md5");
 
 exec2("chmod 777 {$sif}");
 print "Building container finished.\n";

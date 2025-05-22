@@ -788,7 +788,7 @@ if (in_array("an", $steps))
 		$prs_scoring_files = glob($prs_folder."/*_".$build.".vcf");
 		if (count($prs_scoring_files) > 0)
 		{
-			$parser->execApptainer("ngs-bits", "VcfCalculatePRS", "-in {$vcf_file} -bam {$used_bam_or_cram} -out $prs_file -prs ".implode(" ", $prs_scoring_files)." -ref $genome", [$folder, $genome, $prs_folder]);
+			$parser->execApptainer("ngs-bits", "VcfCalculatePRS", "-in {$vcf_file} -bam {$used_bam_or_cram} -out $prs_file -prs ".implode(" ", $prs_scoring_files)." -ref $genome -long_read", [$folder, $genome, $prs_folder]);
 		}
 
 		//determine ancestry
