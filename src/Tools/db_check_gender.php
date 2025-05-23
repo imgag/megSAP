@@ -104,7 +104,7 @@ if (db_is_enabled("NGSD"))
 	else if ($sys_type=="lrGS")
 	{
 		$method = "hetx";
-		$args = "-include_single_end_reads";
+		$args = "-long_read";
 	}
 	else
 	{
