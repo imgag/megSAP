@@ -17,6 +17,7 @@ $parser->addFloat("max_slots", "Maximum percentage of SGE slots to use.", true, 
 $parser->addInt("max_jobs", "Maximum number of jobs to start in parallel.", true, 1000000);
 $parser->addInt("sleep_secs", "Number of seconds to sleep between tries to start jobs.", true, 120);
 $parser->addString("queues", "Comma-separted list of SGE queues to use (is unset the default queues from the INI file are use).", true, "");
+$parser->addString("email", "Email address to notify about sge job status (start, end, error)", true, "");
 extract($parser->parse($argv));
 
 //determine how many jobs are still running
@@ -141,7 +142,12 @@ while(count($commands)>0)
 			$base = "{$sge_folder}".date("Ymdhis")."_".str_pad($id, 3, '0', STR_PAD_LEFT)."_{$user}";
 			$sge_out = "{$base}.out";
 			$sge_err = "{$base}.err";
-			$command_sge = "qsub -V -pe smp {$slots_per_job} -b y -wd {$sge_folder} -m n -e {$sge_err} -o {$sge_out} -q ".implode(",", $queues)." -shell n";
+			$email_notification = "-m n";
+			if ($email != "")
+			{
+				$email_notification = "-m bea -M {$email}";
+			}
+			$command_sge = "qsub -V -pe smp {$slots_per_job} -b y -wd {$sge_folder} {$email_notification} -e {$sge_err} -o {$sge_out} -q ".implode(",", $queues)." -shell n";
 			if (trim($time_limit)!="") $command_sge .= " -l h_rt={$time_limit}";
 			list($stdout, $stderr) = exec2($command_sge." ".$command);
 			
