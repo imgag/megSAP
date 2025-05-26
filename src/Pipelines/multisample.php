@@ -463,7 +463,7 @@ if (in_array("vc", $steps))
 	$parser->execApptainer("htslib", "tabix", "-p vcf $vcf_zipped", [], [dirname($vcf_zipped)]);
 
 	//basic annotation
-	$parser->execTool("Tools/annotate.php", "-out_name {$prefix} -out_folder $out_folder -system $system -threads $threads -multi");
+	$parser->execTool("Tools/annotate.php", "-out_name {$prefix} -out_folder {$out_folder} -system {$system} -threads {$threads} -multi");
 
 	//update sample entry 
 	$status_map = array();
