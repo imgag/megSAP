@@ -11,7 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 // parse command line arguments
 $parser = new ToolBase("vc_deepvariant", "Variant calling with DeepVariant.");
 $parser->addInfileArray("bam",  "Input files in BAM format. Space separated. Note: .bam.bai file is required!", false);
-$parser->addOutfile("out", "Output file in VCF.gz format.", false);
+$parser->addOutfile("out", "Output file in VCF.GZ format.", false);
 $parser->addString("model_type", "Type of model to use for variant calling. Choose from <WGS|WES|PACBIO|ONT_R104|HYBRID_PACBIO_ILLUMINA|MASSEQ>.", false);
 //optional
 $parser->addInfile("target",  "Enrichment targets BED file.", true);
@@ -92,7 +92,6 @@ $parser->execApptainer($container, "run_deepvariant", implode(" ", $args)." --ou
 //filter variants according to variant quality>5
 $pipeline[] = ["zcat", "$vcf_deepvar_out"];
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-qual 5 -remove_invalid -ref $genome", [$genome], [], true)];
-/* } */
 
 //split complex variants to primitives
 //this step has to be performed before VcfBreakMulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276

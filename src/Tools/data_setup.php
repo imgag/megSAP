@@ -367,7 +367,7 @@ if (get_path("copy_dbs_to_local_data"))
 	//Get list of apptainer containers from megSAP master settings.ini.default
 	$tmp_ini = temp_file(".ini");
 	$branch = trim(shell_exec("cd ".repository_basedir()." && git rev-parse --abbrev-ref HEAD"));
-	exec2("wget --no-check-certificate https://raw.githubusercontent.com/imgag/megSAP/{$branch}/settings.ini.default -O $tmp_ini");
+	exec2("wget --no-check-certificate https://raw.githubusercontent.com/imgag/megSAP/{$branch}/settings.ini.default -O $tmp_ini -o /dev/null");
 	$tmp_ini_content = parse_ini_file($tmp_ini);
 	$ini = get_ini();
 

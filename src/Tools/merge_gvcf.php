@@ -186,9 +186,9 @@ $pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c > {$tmp_vc
 $parser->execPipeline($pipeline, "Merge VCF");
 
 //post-processing 
-$pipeline = array();
+$pipeline = [];
 //stream vcf.gz
-$pipeline[] = array("zcat", $tmp_vcf);
+$pipeline[] = ["zcat", $tmp_vcf];
 
 //filter variants according to variant quality>5
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-qual 5 -ref $genome", [$genome], [], true)];
