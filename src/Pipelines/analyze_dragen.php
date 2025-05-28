@@ -285,8 +285,6 @@ if ($is_wes || $is_panel)
 		}	
 	}
 	file_put_contents($target_extended, implode("\n", $target_region_extended));
-	// $parser->execApptainer("ngs-bits", "BedExtend", "-in ".$sys['target_file']." -n 200 -out $target_extended -fai {$genome}.fai", [$sys['target_file'], $genome]);
-
 }
 
 //parameters
@@ -299,9 +297,6 @@ $dragen_parameter[] = "--output-file-prefix {$name}";
 $dragen_parameter[] = "--output-format CRAM"; //always use CRAM
 $dragen_parameter[] = "--enable-map-align-output=true";
 $dragen_parameter[] = "--enable-bam-indexing true";
-// $dragen_parameter[] = "--RGID $name";
-// $dragen_parameter[] = "--RGSM $name";
-// $dragen_parameter[] = "--RGDT ".date("c");
 $dragen_parameter[] = "--enable-rh=false"; //disabled RH special caller because this leads to variants with EVENTTYPE=GENE_CONVERSION that have no DP and AF entry and sometimes are duplicated (same variant twice in the VCF).
 if ($is_wgs)
 {
@@ -316,8 +311,6 @@ if(db_is_enabled("NGSD"))
 {
 	$db_conn = DB::getInstance("NGSD");
 	$psample_info = get_processed_sample_info($db_conn, $name, false, true);
-	// $dragen_parameter[] = "--RGPL '".$psample_info['device_type']."'";
-	// $dragen_parameter[] = "--RGLB '".$psample_info['sys_name']."'";
 }
 //always mark duplicates
 $dragen_parameter[] = "--enable-duplicate-marking true";
