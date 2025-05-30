@@ -1617,7 +1617,7 @@ function add_missing_contigs_to_vcf($build, $vcf)
 		$fai_file_path = genome_fasta($build).".fai";
 		if (!file_exists($fai_file_path))
 		{
-			trigger_error("Fasta index file \"${fai_file_path}\" is missing!", E_USER_ERROR);
+			trigger_error("Fasta index file \"{$fai_file_path}\" is missing!", E_USER_ERROR);
 		}
 		$fai_file_content = file($fai_file_path, FILE_IGNORE_NEW_LINES);
 		foreach ($fai_file_content as $line) 
@@ -1633,7 +1633,7 @@ function add_missing_contigs_to_vcf($build, $vcf)
 			}
 			$chr = trim($parts[0]);
 			$len = intval($parts[1]);
-			$new_contigs[] = "##contig=<ID={$chr}, length={$len}>";
+			$new_contigs[] = "##contig=<ID={$chr},length={$len}>";
 		}
 
 		if(empty($new_contigs))
