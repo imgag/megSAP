@@ -584,7 +584,7 @@ if (in_array("ph", $steps))
 	$tmp_vcf = $parser->tempFile("_var.vcf");
 	$contig_pipeline = array();
 	$contig_pipeline[] = array("zcat", $vcf_file);
-	$contig_pipeline[] = array("egrep", "-v \"##contig=^\" > {$tmp_vcf}");
+	$contig_pipeline[] = array("egrep", "-v \"^##contig=\" > {$tmp_vcf}");
 	$parser->execPipeline($contig_pipeline, "contig removal");
 	add_missing_contigs_to_vcf($sys['build'], $tmp_vcf);
 	$parser->execApptainer("htslib", "bgzip", "-c {$tmp_vcf} > {$vcf_file}", [], [dirname($vcf_file)]);
