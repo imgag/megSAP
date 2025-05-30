@@ -366,8 +366,7 @@ if (get_path("copy_dbs_to_local_data"))
 	// Copy apptainer containers from network folder to local data
 	//Get list of apptainer containers from megSAP master settings.ini.default
 	$tmp_ini = temp_file(".ini");
-	$branch = trim(shell_exec("cd ".repository_basedir()." && git rev-parse --abbrev-ref HEAD"));
-	exec2("wget --no-check-certificate https://raw.githubusercontent.com/imgag/megSAP/refs/heads/{$branch}/settings.ini.default -O $tmp_ini -o /dev/null");
+	exec2("wget --no-check-certificate https://raw.githubusercontent.com/imgag/megSAP/refs/heads/master/settings.ini.default -O $tmp_ini -o /dev/null");
 	$tmp_ini_content = parse_ini_file($tmp_ini);
 	$ini = get_ini();
 
@@ -378,7 +377,7 @@ if (get_path("copy_dbs_to_local_data"))
 		if ($tmp_key=="container_folder") continue;
 		if (!array_key_exists($tmp_key, $ini))
 		{
-			trigger_error("Container entry '{$tmp_key}={$tmp_value}' is present in megSAP branch '$branch' but missing from your settings.ini. You may want to add it if it's relevant to your analysis.", E_USER_NOTICE);
+			trigger_error("Container entry '{$tmp_key}={$tmp_value}' is present in megSAP branch 'master' but missing from your settings.ini. You may want to add it if it's relevant to your analysis.", E_USER_NOTICE);
 		}
 	}
 
@@ -391,11 +390,11 @@ if (get_path("copy_dbs_to_local_data"))
 		//Check if different container version is available
 		if (!array_key_exists($key, $tmp_ini_content))
 		{
-			trigger_error("Container entry '{$key}={$value}' not found in settings.ini.default of megSAP branch '$branch'. This may be a custom addition or the container might have been removed or deprecated in the current branch.", E_USER_NOTICE);
+			trigger_error("Container entry '{$key}={$value}' not found in settings.ini.default of megSAP branch 'master'. This may be a custom addition or the container might have been removed or deprecated in the current branch.", E_USER_NOTICE);
 		}		
 		else if ($tmp_ini_content[$key] != $value)
 		{
-			trigger_error("Different version '".$tmp_ini_content[$key]."' for container '".substr($key, 10)."' found in megSAP branch '$branch'. Your version: '$value'. To update your container update your settings.ini and re-run download_container.sh", E_USER_NOTICE);
+			trigger_error("Different version '".$tmp_ini_content[$key]."' for container '".substr($key, 10)."' found in megSAP branch 'master'. Your version: '$value'. To update your container update your settings.ini and re-run download_container.sh", E_USER_NOTICE);
 		}
 
 		$container_file = $network_folder."/".substr($key, 10)."_".$value.".sif";
