@@ -569,25 +569,18 @@ if (in_array("vc", $steps))
 			else //perform variant calling with DeepVariant
 			{
 				$args = [];
-
-				if ($is_wes || $is_panel)	$args[] = "-model_type WES";
-				elseif ($is_wgs) $args[] = "-model_type WGS";
-				else
-				{
-					trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types are: WES, WGS, Panel, Panel Haloplex.", E_USER_ERROR);
-				}
-
+				if ($is_wes || $is_panel) $args[] = "-model_type WES";
+				else if ($is_wgs) $args[] = "-model_type WGS";
+				else trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types are: WES, WGS, Panel, Panel Haloplex.", E_USER_ERROR);
 				$args[] = "-bam ".$used_bam_or_cram;
 				$args[] = "-out ".$vcffile;
 				$args[] = "-build ".$build;
 				$args[] = "-threads ".$threads;
-
 				if ($has_roi)
 				{
 					$args[] = "-target ".$sys['target_file'];
 					$args[] = "-target_extend 200";
 				}
-
 				$args[] = "-min_af ".$min_af;
 				$args[] = "-min_mq ".$min_mq;
 				$args[] = "-min_bq ".$min_bq;

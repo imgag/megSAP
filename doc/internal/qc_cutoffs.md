@@ -13,13 +13,13 @@
 
 ### WGS
 
-| QC value                 | good           | medium          | bad             |
-|--------------------------|----------------|-----------------|-----------------|
-| target region read depth | > 33x          | > 30x           | < 30x           |
-| 20x coverage             | > 98.5%        | > 90%           | < 90%           |
-| SNV deviation            | < 3%           | < 8%            | > 8%            |
+| QC value                 | good           | medium           | bad             |
+|--------------------------|----------------|------------------|-----------------|
+| target region read depth | > 33x          | > 30x            | < 30x           |
+| 20x coverage             | > 98.5%        | 90-98.5%         | < 90%           |
+| SNV deviation            | < 3%           | 3-6%             | > 6%            |
 | CNV count                | 1000-2500      | < 1000 \| > 2500 |                |
-| AT dropout               | < 3%            | < 8%            | > 8%           |
+| AT dropout               | < 3%           | < 8%             | > 8%           |
 
 - high SNV deviation (>5) indicates contanmination!
 
