@@ -263,6 +263,117 @@ check($db->getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sa
 check($db->getValue("SELECT COUNT(*) FROM merged_processed_samples WHERE processed_sample_id = 4 AND merged_into = 12"), 1); //merge correctly added
 
 
+//merge fastq + ora germline sample:
+reset_test_db($db, $name);
+clear_analysis_folder();
+
+create_folder("Sample_DNA220004_01", [data_folder()."merge_samples_in1_L001_R1_001.fastq.ora"=>"DNA220004_01_L001_R1_001.fastq.ora", data_folder()."merge_samples_in1_L001_R2_001.fastq.ora"=>"DNA220004_01_L001_R2_001.fastq.ora"], "dummy.txt");
+create_folder("Sample_DNA220004_02", [data_folder()."merge_samples_in2_L001_R1_001.fastq.gz"=>"DNA220004_02_L001_R1_001.fastq.gz", data_folder()."merge_samples_in2_L001_R2_001.fastq.gz"=>"DNA220004_02_L001_R2_001.fastq.gz"], "dummy2.txt");
+
+check($db->getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=4"), 1); // should be 1 before merging
+check_exec("php ".src_folder()."/Tools/".$name.".php -db NGSD_TEST -ps DNA220004_01 -into DNA220004_02");
+check($db->getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=4"), 0); // should be 0 after merging
+
+check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220004_02/DNA220004_01_L001_R1_001.fastq.gz");
+check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220004_02/DNA220004_01_L001_R2_001.fastq.gz");
+check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220004_02/DNA220004_02_L001_R1_001.fastq.gz");
+check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220004_02/DNA220004_02_L001_R2_001.fastq.gz");
+check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220004_02/dummy2.txt");
+check_file_exists(data_folder()."/+analysis/merge_samples/+merged_samples/Sample_DNA220004_01/");
+check_file_exists(data_folder()."/+analysis/merge_samples/+merged_samples/Sample_DNA220004_01/dummy.txt");
+
+check($db->getValue("SELECT COUNT(*) FROM detected_variant WHERE processed_sample_id=4"), 0);
+check($db->getValue("SELECT COUNT(*) FROM detected_variant WHERE processed_sample_id!=4"), 14);
+
+check($db->getValue("SELECT COUNT(*) FROM cnv"), 24);
+check($db->getValue("SELECT COUNT(*) FROM cnv_callset"), 2);
+
+check($db->getValue("SELECT COUNT(*) FROM sv_deletion"), 5);
+check($db->getValue("SELECT COUNT(*) FROM sv_duplication"), 5);
+check($db->getValue("SELECT COUNT(*) FROM sv_insertion"), 5);
+check($db->getValue("SELECT COUNT(*) FROM sv_inversion"), 5);
+check($db->getValue("SELECT COUNT(*) FROM sv_translocation"), 5);
+check($db->getValue("SELECT COUNT(*) FROM sv_callset"), 2);
+
+check($db->getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sample_id=4"), 0);
+check($db->getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sample_id!=4"), 30);
+
+check($db->getValue("SELECT COUNT(*) FROM merged_processed_samples WHERE processed_sample_id = 4 AND merged_into = 12"), 1); //merge correctly added
+
+
+//merge ora germline sample:
+reset_test_db($db, $name);
+clear_analysis_folder();
+
+create_folder("Sample_DNA220004_01", [data_folder()."merge_samples_in1_L001_R1_001.fastq.ora"=>"DNA220004_01_L001_R1_001.fastq.ora", data_folder()."merge_samples_in1_L001_R2_001.fastq.ora"=>"DNA220004_01_L001_R2_001.fastq.ora"], "dummy.txt");
+create_folder("Sample_DNA220004_02", [data_folder()."merge_samples_in2_L001_R1_001.fastq.ora"=>"DNA220004_02_L001_R1_001.fastq.ora", data_folder()."merge_samples_in2_L001_R2_001.fastq.ora"=>"DNA220004_02_L001_R2_001.fastq.ora"], "dummy2.txt");
+
+check($db->getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=4"), 1); // should be 1 before merging
+check_exec("php ".src_folder()."/Tools/".$name.".php -db NGSD_TEST -ps DNA220004_01 -into DNA220004_02");
+check($db->getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=4"), 0); // should be 0 after merging
+
+check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220004_02/DNA220004_01_L001_R1_001.fastq.gz");
+check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220004_02/DNA220004_01_L001_R2_001.fastq.gz");
+check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220004_02/DNA220004_02_L001_R1_001.fastq.gz");
+check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220004_02/DNA220004_02_L001_R2_001.fastq.gz");
+check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220004_02/dummy2.txt");
+check_file_exists(data_folder()."/+analysis/merge_samples/+merged_samples/Sample_DNA220004_01/");
+check_file_exists(data_folder()."/+analysis/merge_samples/+merged_samples/Sample_DNA220004_01/dummy.txt");
+
+check($db->getValue("SELECT COUNT(*) FROM detected_variant WHERE processed_sample_id=4"), 0);
+check($db->getValue("SELECT COUNT(*) FROM detected_variant WHERE processed_sample_id!=4"), 14);
+
+check($db->getValue("SELECT COUNT(*) FROM cnv"), 24);
+check($db->getValue("SELECT COUNT(*) FROM cnv_callset"), 2);
+
+check($db->getValue("SELECT COUNT(*) FROM sv_deletion"), 5);
+check($db->getValue("SELECT COUNT(*) FROM sv_duplication"), 5);
+check($db->getValue("SELECT COUNT(*) FROM sv_insertion"), 5);
+check($db->getValue("SELECT COUNT(*) FROM sv_inversion"), 5);
+check($db->getValue("SELECT COUNT(*) FROM sv_translocation"), 5);
+check($db->getValue("SELECT COUNT(*) FROM sv_callset"), 2);
+
+check($db->getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sample_id=4"), 0);
+check($db->getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sample_id!=4"), 30);
+
+check($db->getValue("SELECT COUNT(*) FROM merged_processed_samples WHERE processed_sample_id = 4 AND merged_into = 12"), 1); //merge correctly added
+
+//merge cram + ora germline samples: (ora and cram files should be converted into fastq)
+reset_test_db($db, $name);
+clear_analysis_folder();
+
+create_folder("Sample_DNA220004_01", [data_folder()."merge_samples.cram"=>"DNA220004_01.cram"], "dummy.txt");
+create_folder("Sample_DNA220004_02", [data_folder()."merge_samples_in2_L001_R1_001.fastq.ora"=>"DNA220004_02_L001_R1_001.fastq.ora", data_folder()."merge_samples_in2_L001_R2_001.fastq.ora"=>"DNA220004_02_L001_R2_001.fastq.ora"], "dummy2.txt");
+
+check_exec("php ".src_folder()."/Tools/".$name.".php -db NGSD_TEST -ps DNA220004_01 -into DNA220004_02 -sys ".data_folder()."merge_samples_system.txt");
+check($db->getValue("SELECT scheduled_for_resequencing FROM processed_sample WHERE id=4"), 0); // should be 0 after
+
+check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220004_02/DNA220004_02_L001_R1_001.fastq.gz");
+check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220004_02/DNA220004_02_L001_R2_001.fastq.gz");
+check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220004_02/DNA220004_01_BamToFastq_R1_001.fastq.gz");
+check_file_exists(data_folder()."/+analysis/merge_samples/Sample_DNA220004_02/DNA220004_01_BamToFastq_R2_001.fastq.gz");
+check_file_exists(data_folder()."/+analysis/merge_samples/+merged_samples/Sample_DNA220004_01/");
+check_file_exists(data_folder()."/+analysis/merge_samples/+merged_samples/Sample_DNA220004_01/dummy.txt");
+
+check($db->getValue("SELECT COUNT(*) FROM detected_variant WHERE processed_sample_id=4"), 0);
+check($db->getValue("SELECT COUNT(*) FROM detected_variant WHERE processed_sample_id!=4"), 14);
+
+check($db->getValue("SELECT COUNT(*) FROM cnv"), 24);
+check($db->getValue("SELECT COUNT(*) FROM cnv_callset"), 2);
+
+check($db->getValue("SELECT COUNT(*) FROM sv_deletion"), 5);
+check($db->getValue("SELECT COUNT(*) FROM sv_duplication"), 5);
+check($db->getValue("SELECT COUNT(*) FROM sv_insertion"), 5);
+check($db->getValue("SELECT COUNT(*) FROM sv_inversion"), 5);
+check($db->getValue("SELECT COUNT(*) FROM sv_translocation"), 5);
+check($db->getValue("SELECT COUNT(*) FROM sv_callset"), 2);
+
+check($db->getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sample_id=4"), 0);
+check($db->getValue("SELECT COUNT(*) FROM processed_sample_qc WHERE processed_sample_id!=4"), 30);
+
+check($db->getValue("SELECT COUNT(*) FROM merged_processed_samples WHERE processed_sample_id = 4 AND merged_into = 12"), 1); //merge correctly added
+
+
 //clean up rest up copied data
 clear_analysis_folder();
 end_test();

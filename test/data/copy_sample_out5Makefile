@@ -1,4 +1,4 @@
-all: import_runqc import_read_counts check_md5_analysis_data copy_SomaticAndTreatment_diagnostic copy_Exome_Diagnostik_diagnostic merge queue_SomaticAndTreatment_diagnostic queue_Exome_Diagnostik_diagnostic
+all: import_runqc import_read_counts check_md5_analysis_data Sample_RX123456_03 Sample_DX180049_05 Sample_DX181277_05 Sample_DX181278_05 queue_somatic
 
 import_runqc:
 	php /mnt/storage2/megSAP/pipeline/src/Tools/runqc_parser.php -name "#00123" -run_dir Analysis/../ -force
@@ -9,9 +9,12 @@ import_read_counts:
 check_md5_analysis_data:
 	md5sum -c analysis_checksums.txt
 
-copy_SomaticAndTreatment_diagnostic:
+create_project_folder:
 	mkdir -p /test/project/folder/
 	chmod 775 /test/project/folder/
+
+Sample_RX123456_03:
+	#copy
 	mkdir -p /test/project/folder/Sample_RX123456_03
 	cp Analysis/3/Data/BCLConvert/fastq/RX123456_03_S5_L006_R1_001.fastq.gz /test/project/folder//Sample_RX123456_03/
 	cp Analysis/3/Data/BCLConvert/fastq/RX123456_03_S5_L006_R2_001.fastq.gz /test/project/folder//Sample_RX123456_03/
@@ -19,6 +22,29 @@ copy_SomaticAndTreatment_diagnostic:
 	cp Analysis/3/Data/BCLConvert/fastq/RX123456_03_S5_L008_R2_001.fastq.gz /test/project/folder//Sample_RX123456_03/
 	chmod -R 775 /test/project/folder/Sample_RX123456_03
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_RX123456_03
+	#queue
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples RX123456_03
+
+Sample_DX180049_05:
+	#copy
+	mkdir -p /test/project/folder/Sample_DX180049_05
+	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L001_R1_001.fastq.gz /test/project/folder//Sample_DX180049_05/
+	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L001_R2_001.fastq.gz /test/project/folder//Sample_DX180049_05/
+	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L002_R1_001.fastq.gz /test/project/folder//Sample_DX180049_05/
+	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L002_R2_001.fastq.gz /test/project/folder//Sample_DX180049_05/
+	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L003_R1_001.fastq.gz /test/project/folder//Sample_DX180049_05/
+	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L003_R2_001.fastq.gz /test/project/folder//Sample_DX180049_05/
+	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L004_R1_001.fastq.gz /test/project/folder//Sample_DX180049_05/
+	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L004_R2_001.fastq.gz /test/project/folder//Sample_DX180049_05/
+	chmod -R 775 /test/project/folder/Sample_DX180049_05
+	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_DX180049_05
+	#merge
+	php /mnt/storage2/megSAP/pipeline/src/Tools/merge_samples.php -ps DX180049_04 -into DX180049_05
+	#queue
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX180049_05 -args '-steps vc,cn,sv,re,db'
+
+Sample_DX181277_05:
+	#copy
 	mkdir -p /test/project/folder/Sample_DX181277_05
 	mkdir -p /test/project/folder/Sample_DX181277_05/dragen_variant_calls
 	cp -r Analysis/3/Data/DragenEnrichment/DX181277_05/logs /test/project/folder/Sample_DX181277_05/dragen_variant_calls/
@@ -36,6 +62,13 @@ copy_SomaticAndTreatment_diagnostic:
 	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.sv.vcf.gz.tbi /test/project/folder/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen_svs.vcf.gz.tbi
 	chmod -R 775 /test/project/folder/Sample_DX181277_05
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_DX181277_05
+	#merge
+	php /mnt/storage2/megSAP/pipeline/src/Tools/merge_samples.php -ps DX181277_01 -into DX181277_05
+	#queue
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181277_05 -args '-steps vc,cn,sv,re,db'
+
+Sample_DX181278_05:
+	#copy
 	mkdir -p /test/project/folder/Sample_DX181278_05
 	mkdir -p /test/project/folder/Sample_DX181278_05/dragen_variant_calls
 	cp -r Analysis/3/Data/DragenEnrichment/DX181278_05/logs /test/project/folder/Sample_DX181278_05/dragen_variant_calls/
@@ -47,30 +80,10 @@ copy_SomaticAndTreatment_diagnostic:
 	mv  Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/DX181278_05.cram.crai /test/project/folder/Sample_DX181278_05/
 	chmod -R 775 /test/project/folder/Sample_DX181278_05
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_DX181278_05
-
-copy_Exome_Diagnostik_diagnostic:
-	mkdir -p /test/project/folder/
-	chmod 775 /test/project/folder/
-	mkdir -p /test/project/folder/Sample_DX180049_05
-	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L001_R1_001.fastq.gz /test/project/folder//Sample_DX180049_05/
-	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L001_R2_001.fastq.gz /test/project/folder//Sample_DX180049_05/
-	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L002_R1_001.fastq.gz /test/project/folder//Sample_DX180049_05/
-	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L002_R2_001.fastq.gz /test/project/folder//Sample_DX180049_05/
-	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L003_R1_001.fastq.gz /test/project/folder//Sample_DX180049_05/
-	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L003_R2_001.fastq.gz /test/project/folder//Sample_DX180049_05/
-	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L004_R1_001.fastq.gz /test/project/folder//Sample_DX180049_05/
-	cp Analysis/3/Data/DragenGermline/fastq/DX180049_05_S5_L004_R2_001.fastq.gz /test/project/folder//Sample_DX180049_05/
-	chmod -R 775 /test/project/folder/Sample_DX180049_05
-	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_DX180049_05
-
-merge:
-	php /mnt/storage2/megSAP/pipeline/src/Tools/merge_samples.php -ps DX180049_04 -into DX180049_05
-
-queue_SomaticAndTreatment_diagnostic:
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples RX123456_03
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181277_05 -args '-steps vc,cn,sv,re,db -use_dragen -no_abra'
+	#merge
+	php /mnt/storage2/megSAP/pipeline/src/Tools/merge_samples.php -ps DX181278_01 -into DX181278_05
+	#queue
 	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181278_05 -args '-steps db -somatic'
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'somatic' -samples DX181278_05 DX181277_01 -info tumor normal
 
-queue_Exome_Diagnostik_diagnostic:
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX180049_05 -args '-steps ma,vc,cn,sv,re,db -use_dragen -no_abra'
+queue_somatic:
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'somatic' -samples DX181278_05 DX181277_01 -info tumor normal 

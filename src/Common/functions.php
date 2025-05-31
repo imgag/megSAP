@@ -730,9 +730,10 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 	$apptainer_args = [];
 	$apptainer_args[] = "--no-mount home,cwd";
 	$apptainer_args[] = "--cleanenv";
-	if ($container=="samtools" || $container=="methylartist" || $container=="straglrOn") //samtools needs REF_CACHE to avoid re-initializing the reference cache inside the container every call: http://www.htslib.org/doc/samtools.html#ENVIRONMENT_VARIABLES
+	if ($container=="samtools" || $container=="methylartist" || $container=="straglrOn") //samtools (and methylartist, straglrOn) need REF_CACHE/REF_PATH to avoid re-initializing the reference cache inside the container every call: http://www.htslib.org/doc/samtools.html#ENVIRONMENT_VARIABLES, https://www.htslib.org/workflow/cram.html#The%20REF_PATH%20and%20REF_CACHE 
 	{
 		$apptainer_args[] = "--env REF_CACHE=".get_path("local_data")."/samtools_ref_cache/%2s/%2s/%s";
+		$apptainer_args[] = "--env REF_PATH=".get_path("local_data")."/samtools_ref_cache/%2s/%2s/%s:http://www.ebi.ac.uk/ena/cram/md5/%s";
 	}
 
 	if ($container=="subread") //subread repair needs access to the cwd to save intermediate files. Therefore we set the cwd in the container to /tmp when executing it

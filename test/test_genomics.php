@@ -396,4 +396,22 @@ check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in2.bam", da
 
 end_test();
 
+//##################################################################################
+start_test("get_ora_read_count");
+
+check(get_ora_read_count([data_folder()."/get_ora_read_count_in1_L001_R1_001.fastq.ora"]), 1250);
+check(get_ora_read_count([data_folder()."/get_ora_read_count_in1_L001_R2_001.fastq.ora"]), 1250);
+check(get_ora_read_count([data_folder()."/get_ora_read_count_in1_L001_R1_001.fastq.ora", data_folder()."/get_ora_read_count_in1_L001_R2_001.fastq.ora"]), 2500);
+
+end_test();
+
+//##################################################################################
+start_test("get_fastq_read_count");
+
+check(get_fastq_read_count([data_folder()."/get_fastq_read_count_in1_L001_R1_001.fastq.gz"]), 1250);
+check(get_fastq_read_count([data_folder()."/get_fastq_read_count_in1_L001_R2_001.fastq.gz"]), 1250);
+check(get_fastq_read_count([data_folder()."/get_fastq_read_count_in1_L001_R1_001.fastq.gz", data_folder()."/get_fastq_read_count_in1_L001_R2_001.fastq.gz"]), 2500);
+
+end_test();
+
 ?>
