@@ -76,47 +76,68 @@ if ($skipped_only)
 
 
 //get POD5 location
-$pod5_location = "{$run_dir}/*/pod5*/";
-if ($skipped_only) $pod5_location = "{$run_dir}/*/pod5_skip/";
+$pod5_location_pattern = "{$run_dir}/*/pod5*/";
+if ($skipped_only) $pod5_location_pattern = "{$run_dir}/*/pod5_skip/";
 
 //copy POD5s
 if ($copy_pod5)
 {
 	$pod5_temp = $parser->tempFolder("pod5_temp");
-	$pod5_files = glob($pod5_location."*.pod5");
+	$pod5_files = glob($pod5_location_pattern."*.pod5");
 	foreach($pod5_files as $file)
 	{
 		$parser->copyFile($file, $pod5_temp."/".basename($file));
 	}
 
-	$pod5_location = $pod5_temp;
+	$pod5_location = [$pod5_temp];
+}
+else
+{
+	$pod5_location = glob($pod5_location_pattern);
 }
 
 
-//TODO: add basecall model path
 //TODO: create container
 // perform basecalling
-$tmp_bam = $parser->tempFile(".mod.unmapped.bam");
-$parser->exec(get_path("dorado"), "basecaller -r $basecall_model $pod5_location --min-qscore $min_qscore > $tmp_bam");
+$bams_to_merge = [];
+$dorado_model_path = get_path("dorado_model_path");
+foreach ($pod5_location as $folder) 
+{
+	$tmp_bam = $parser->tempFile(".mod.unmapped.bam");
+	$parser->exec(get_path("dorado"), "basecaller --models-directory {$dorado_model_path} -r {$basecall_model} {$folder} --min-qscore {$min_qscore} > {$tmp_bam}");
+	$bams_to_merge[] = $tmp_bam;
+}
+
 
 
 if ($skipped_only)
 {
-	//merge with basecalled bams
-	$merged_bam = $parser->tempFile(".merged.mod.unmapped.bam");
+	//add already basecalled bams
+	list($stdout, $stderr, $ec) = $parser->exec("find", "{$run_dir}/*/bam_pass/*.bam -name '*.bam' -type f");
 
-
-	$pipeline = [];
-	$pipeline[] = ["find", "{$run_dir}/*/bam_pass/*.bam -name '*.bam' -type f"];
-	$pipeline[] = ["", $parser->execApptainer("samtools", "samtools cat", "--threads {$threads} -o {$merged_bam} -b -", [$run_dir], [$out_dir], true)]; //no reference required
-	$parser->execPipeline($pipeline, "merge unaligned BAM files");
-
-	$tmp_bam = $merged_bam;
-
+	$bams_to_merge = array_merge($bams_to_merge, $stdout);
 }
 
-//copy output
-$parser->copyFile($tmp_bam, $out_bam);
+
+if (count($bams_to_merge) > 1)
+{
+	//merge bams and copy to output location
+	$merged_bam = $parser->tempFile(".merged.mod.unmapped.bam");
+	$bam_list = $parser->tempFile(".bams_to_merge.txt");
+	file_put_contents($bam_list, implode("\n", $bams_to_merge));
+	$dorado_model_path = get_path("dorado_model_path");
+	$parser->execApptainer("samtools", "samtools cat", "--threads 20 -o {$merged_bam} -b {$bam_list}", [$run_dir], []);
+
+	
+	//copy output
+	$parser->copyFile($merged_bam, $out_bam);
+}
+else
+{
+	//only copy necessary
+	$parser->copyFile($bams_to_merge[0], $out_bam);
+}
+
 
 
 //queue sample
