@@ -407,11 +407,11 @@ if ($rna_sample != "") $megSAP_args[] = "-rna_sample {$rna_sample}";
 
 if ($no_queuing) 
 {
-	trigger_error("megSAP queueing skipped! \nCommand to queue analysis: \n\tphp ".repository_basedir()."/src/Tools/queue_analysis.php -type 'single sample' -samples {$name} -args '".implode(" ", $megSAP_args)."'", E_USER_NOTICE);
+	trigger_error("megSAP queueing skipped! \nCommand to queue analysis: \n\tphp ".repository_basedir()."/src/Tools/db_queue_analysis.php -type 'single sample' -samples {$name} -args '".implode(" ", $megSAP_args)."'", E_USER_NOTICE);
 }
 else 
 {
-	$parser->execTool("Tools/queue_analysis.php", "-type 'single sample' -samples {$name} -args '".implode(" ", $megSAP_args)."'");
+	$parser->execTool("Tools/db_queue_analysis.php", "-type 'single sample' -samples {$name} -args '".implode(" ", $megSAP_args)."'");
 }
 
 //print to STDOUT executed successfully (because there is no exit code from SGE after a job has finished)
