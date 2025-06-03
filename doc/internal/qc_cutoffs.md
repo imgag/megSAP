@@ -5,7 +5,7 @@
 
 | QC value                 | good           | medium          | bad             |
 |--------------------------|----------------|-----------------|-----------------|
-| target region read depth | > 30x          | 20-30x          | < 25x           |
+| target region read depth | > 30x          | 25-30x          | < 25x           |
 | 20x coverage             | > 95%          | 95-85%          | < 85%           |
 | SNV deviation            | < 4%           | 4-6%            | > 6%            |
 | N50                      | >=10kb         |  < 10kb         |                 |
@@ -29,7 +29,7 @@ see <https://vswliscurator01.ukt.ad.local/web/0/intra/index.php?art_id=dc_2021_0
 |--------------------------|----------------|-----------------|-----------------|
 | target region read depth | > 100x         | 80-100x         | < 80x           |
 | 20x coverage             | > 95%          | 95-90%          | < 90%           |
-| SNV deviation            | < 3%           | 3-6%            | > 5%            |
+| SNV deviation            | < 3%           | 3-6%            | > 6%            |
 
 see <https://vswliscurator01.ukt.ad.local/web/0/intra/index.php?art_id=dc_2021_09_24_c4e4ec2d1b5b118a21>
 
