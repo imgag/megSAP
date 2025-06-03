@@ -122,10 +122,12 @@ foreach($files as $file)
 }
 
 //copy samtools ref_cache folder
-print "Copying samtools ref cache...\n";
-$ref_cache = "{$genome_folder}/samtools_ref_cache";
+$ref_cache = "{$genome_folder}/samtools_ref_cache/";
 if (file_exists($ref_cache))
 {
+	print "Copying samtools ref cache...\n";
+	print "  source: {$ref_cache}\n";
+	print "  taget: {$local_data}/samtools_ref_cache/\n";
 	exec2("{$rsync} {$ref_cache} {$local_data}/");
 }
 else

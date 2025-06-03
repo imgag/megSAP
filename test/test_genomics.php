@@ -208,6 +208,7 @@ if (db_is_enabled("NGSD") && get_path("location", false)=="IMGAG")
 {
 	$db_conn = DB::getInstance("NGSD");
 	check(get_processed_sample_id($db_conn, "GS130043_01"), 1498);
+	check(get_processed_sample_id($db_conn, "GS130043_01_tumor"), 1498);
 	check(get_processed_sample_id($db_conn, "GS130043", false), -1);
 	check(get_processed_sample_id($db_conn, "GS123456_01", false), -1);
 }
