@@ -1,7 +1,7 @@
 # Sample QC cutoffs
 
 
-### lrGS
+### lrGS germline
 
 | QC value                 | good           | medium          | bad             |
 |--------------------------|----------------|-----------------|-----------------|
@@ -12,7 +12,7 @@
 
 see <https://vswliscurator01.ukt.ad.local/web/0/intra/index.php?art_id=dc_2023_11_15_fc131c46c46463ef86>
 
-### WGS
+### WGS germline
 
 | QC value                 | good           | medium           | bad             |
 |--------------------------|----------------|------------------|-----------------|
@@ -23,12 +23,12 @@ see <https://vswliscurator01.ukt.ad.local/web/0/intra/index.php?art_id=dc_2023_1
 
 see <https://vswliscurator01.ukt.ad.local/web/0/intra/index.php?art_id=dc_2021_09_24_c4e4ec2d1b5b118a21>
 
-### WES normal
+### WES germline
 
 | QC value                 | good           | medium          | bad             |
 |--------------------------|----------------|-----------------|-----------------|
 | target region read depth | > 100x         | 80-100x         | < 80x           |
-| 20x coverage             | > 95%          | 95-90%          | < 90%           |
+| 20x coverage             | > 95%          | 90-95%          | < 90%           |
 | SNV deviation            | < 3%           | 3-6%            | > 6%            |
 
 see <https://vswliscurator01.ukt.ad.local/web/0/intra/index.php?art_id=dc_2021_09_24_c4e4ec2d1b5b118a21>
