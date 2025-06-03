@@ -166,13 +166,13 @@ foreach($bams as $bam)
 	}
 	if ($sys["name_short"]!=$sys_ps["name_short"]) $sys_matching = false;
 }
+$genome = genome_fasta($sys['build']);
 
 //check genome build of BAMs
 foreach($bams as $bam)
 {
 	check_genome_build($bam, $sys['build']);
 }
-
 
 //check steps
 $is_wes = $sys['type']=="WES";
@@ -278,13 +278,13 @@ if (in_array("vc", $steps))
 		{
 			$args = array();
 			$args[] = "-bam ".implode(" ", $local_bams);
-			$args[] = "-out $vcf_all";
+			$args[] = "-out {$vcf_all}";
 			$args[] = "-target ".$sys['target_file'];
 			$args[] = "-min_mq 20";
 			$args[] = "-min_af 0.1";
 			$args[] = "-target_extend 200";
 			$args[] = "-build ".$sys['build'];
-			$args[] = "-threads $threads";
+			$args[] = "-threads {$threads}";
 			$args[] = "--log ".$parser->getLogFile();
 			$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args), true);
 		}
@@ -294,7 +294,7 @@ if (in_array("vc", $steps))
 			foreach($local_bams as $local_bam) // DeepVariant calling for each bam with gVCF output
 			{
 				$deepvar_vcf = $parser->tempFile("_deepvar.vcf.gz");
-				$deepvar_gvcf = $parser->tempFile("_deepvar.gvcf");
+				$deepvar_gvcf = $parser->tempFile("_deepvar.gvcf.gz");
 
 				$args = [];
 
@@ -318,24 +318,39 @@ if (in_array("vc", $steps))
 				
 				$deepvar_gvcfs[] = $deepvar_gvcf;
 			}
-
-			//Merge gVCFs with GLnexus
-			$glnexus_tmp = $parser->tempFolder()."/GLnexus.DB/";
-			$pipeline = array();
-
-			// GLnexus args
-			$args = array();
-			$args[] = "--dir ".$glnexus_tmp;
-			if ($is_wes) $args[] = "--config DeepVariantWES";
-			else $args[] = "--config DeepVariantWGS";
+			
+			//merge gVCFs with GLnexus
+			$tmp_vcf_merged = $parser->tempFile(".vcf.gz");
+			$args = [];
+			$args[] = "--dir ".$parser->tempFolder()."/GLnexus.DB/";
+			$args[] = "--config DeepVariant".($is_wes ? "WES" : "WGS");
 			$args[] = implode(" ", $deepvar_gvcfs);
-
-			// Merge pipeline
+			$pipeline = [];
 			$pipeline[] = ["", $parser->execApptainer("glnexus", "glnexus_cli", implode(" ", $args), [], [], true)];
 			$pipeline[] = ["", $parser->execApptainer("glnexus", "bcftools view", "", [], [], true)];
-			$pipeline[] = ["", $parser->execApptainer("htslib", "bgzip", "-@ -c > $vcf_all", [], [dirname($vcf_all)], true)];
-
+			$pipeline[] = ["", $parser->execApptainer("htslib", "bgzip", "-@ -c > {$tmp_vcf_merged}", [], [], true)];
 			$parser->execPipeline($pipeline, "GLnexus gVCF merging");
+			
+			//post-processing pipeline
+			$tmp_vcf_post = $parser->tempFile(".vcf");
+			$pipeline = [];
+			$pipeline[] = array("zcat", $tmp_vcf_merged);
+			//split complex variants to primitives - this step has to be performed before VcfBreakMulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
+			$pipeline[] = ["", $parser->execApptainer("vcflib", "vcfallelicprimitives", "-kg", [], [], true)];
+			//split multi-allelic variants
+			$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "-no_errors", [], [], true)];
+			//remove invalid variants
+			$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-remove_invalid -ref {$genome}", [$genome], [], true)];
+			//normalize all variants and align INDELs to the left
+			$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref {$genome}", [$genome], [], true)];
+			//sort variants by genomic position
+			$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "> {$tmp_vcf_post}", [], [], true)];
+			//execute post-processing pipeline
+			$parser->execPipeline($pipeline, "DeepVariant multi-sample post processing");
+			
+			//bgzip and index
+			$parser->execApptainer("htslib", "bgzip", "-@ {$threads} -c {$tmp_vcf_post} > {$vcf_all}", [], [dirname($vcf_all)]);
+			$parser->execApptainer("htslib", "tabix", "-f -p vcf {$vcf_all}", [], [dirname($vcf_all)]);
 		}
 
 		//variant calling for mito with special parameters
@@ -463,7 +478,7 @@ if (in_array("vc", $steps))
 	$parser->execApptainer("htslib", "tabix", "-p vcf $vcf_zipped", [], [dirname($vcf_zipped)]);
 
 	//basic annotation
-	$parser->execTool("Tools/annotate.php", "-out_name {$prefix} -out_folder $out_folder -system $system -threads $threads -multi");
+	$parser->execTool("Tools/annotate.php", "-out_name {$prefix} -out_folder {$out_folder} -system {$system} -threads {$threads} -multi");
 
 	//update sample entry 
 	$status_map = array();

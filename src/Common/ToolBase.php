@@ -783,13 +783,13 @@ class ToolBase
 	{
 		$add_info = array();
 		$parts = array();
-		$stderr_files = array();
+		$stderr_files = [];
 		foreach($commands_params as $call)
 		{
 			list($command, $params) = $call;
 			
 			$stderr_file = $this->tempFile(".stderr");
-			$parts[] = "$command $params 2>$stderr_file";
+			$parts[] = "{$command} {$params} 2>{$stderr_file}";
 			$stderr_files[] = $stderr_file;
 			$add_info[] = "command ".count($parts)."  = $command";
 			if (!isset($call[2]) || $call[2]==true)
@@ -797,7 +797,6 @@ class ToolBase
 				$add_info[] = "version    = ".$this->extractVersion($command);
 			}
 			$add_info[] = "parameters = $params";	
-			
 		}
 			
 		//log call
@@ -819,10 +818,13 @@ class ToolBase
 		//log stderr
 		if($log_output || $return!=0)
 		{
-			$stderr = array();
+			$stderr = [];
 			foreach($stderr_files as $stderr_file)
 			{
-				$stderr += file($stderr_file);
+				foreach(file($stderr_file) as $line)
+				{
+					if (trim($line)!="") $stderr[] = $line;
+				}
 			}
 			if (count($stderr)>0)
 			{
@@ -902,8 +904,10 @@ class ToolBase
 			$add_info[] = "parameters          = $parameters";
 			$this->log("Calling external tool '$command' in container '".basename2($container_path)."'", $add_info);
 		}
-/* 		$this->log("DEBUG: Apptainer version: ".$this->extractVersion("apptainer"));
-		$this->log("DEBUG: Apptainer command: ".$apptainer_command); */
+		/*
+		$this->log("DEBUG: Apptainer version: ".$this->extractVersion("apptainer"));
+		$this->log("DEBUG: Apptainer command: ".$apptainer_command); 
+		*/
 		
 		$pid = getmypid();
 		//execute call - pipe stdout/stderr to file

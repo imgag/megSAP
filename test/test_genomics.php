@@ -208,6 +208,7 @@ if (db_is_enabled("NGSD") && get_path("location", false)=="IMGAG")
 {
 	$db_conn = DB::getInstance("NGSD");
 	check(get_processed_sample_id($db_conn, "GS130043_01"), 1498);
+	check(get_processed_sample_id($db_conn, "GS130043_01_tumor"), 1498);
 	check(get_processed_sample_id($db_conn, "GS130043", false), -1);
 	check(get_processed_sample_id($db_conn, "GS123456_01", false), -1);
 }
@@ -393,6 +394,24 @@ check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in1.bam", da
 check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in1.cram", data_folder()."/compare_bam_read_count_in2.cram", 2, false, true, 0.021), true);
 check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in2.bam", data_folder()."/compare_bam_read_count_in3.bam", 2, false, false, 0.005), true);
 check(compare_bam_read_count(data_folder()."/compare_bam_read_count_in2.bam", data_folder()."/compare_bam_read_count_in3.bam", 2, false, true, 0.041), true);
+
+end_test();
+
+//##################################################################################
+start_test("get_ora_read_count");
+
+check(get_ora_read_count([data_folder()."/get_ora_read_count_in1_L001_R1_001.fastq.ora"]), 1250);
+check(get_ora_read_count([data_folder()."/get_ora_read_count_in1_L001_R2_001.fastq.ora"]), 1250);
+check(get_ora_read_count([data_folder()."/get_ora_read_count_in1_L001_R1_001.fastq.ora", data_folder()."/get_ora_read_count_in1_L001_R2_001.fastq.ora"]), 2500);
+
+end_test();
+
+//##################################################################################
+start_test("get_fastq_read_count");
+
+check(get_fastq_read_count([data_folder()."/get_fastq_read_count_in1_L001_R1_001.fastq.gz"]), 1250);
+check(get_fastq_read_count([data_folder()."/get_fastq_read_count_in1_L001_R2_001.fastq.gz"]), 1250);
+check(get_fastq_read_count([data_folder()."/get_fastq_read_count_in1_L001_R1_001.fastq.gz", data_folder()."/get_fastq_read_count_in1_L001_R2_001.fastq.gz"]), 2500);
 
 end_test();
 
