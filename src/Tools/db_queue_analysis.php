@@ -15,6 +15,7 @@ $parser->addFlag("use_dragen", "Use illumina DRAGEN pipeline to analyze (only tu
 $parser->addString("args",  "Custom arguments passed on to the analysis script.", true);
 $parser->addString("user", "Name of the user who queued the analysis (current user if unset).", true, "");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
+$parser->addFlag("ignore_running_jobs", "Do not check for running jobs of the same sample.");
 extract($parser->parse($argv));
 
 //check info
@@ -46,31 +47,34 @@ foreach($samples as $sample)
 	$ps_ids[] = get_processed_sample_id($db_conn, $sample);
 }
 
-//check if the analysis is already in queue
-$result = $db_conn->executeQuery("SELECT j.id FROM analysis_job j, analysis_job_sample js WHERE j.type=:type AND js.analysis_job_id=j.id AND js.processed_sample_id=:ps_id ORDER BY id DESC", array("type"=>$type, "ps_id"=>$ps_ids[0]));
-foreach($result as $row)
+if (!$ignore_running_jobs)
 {
-	$job_id = $row['id'];
-	$job_info = analysis_job_info($db_conn, $job_id);
-		
-	//only running jobs
-	$last_status = end($job_info['history']);
-	if ($last_status!="queued" && $last_status!="started") continue;
-	
-	//same samples
-	if (count($job_info['samples'])!=count($samples)) continue;
-	$same_samples = true;
-	for ($i=0; $i<count($samples); ++$i)
+	//check if the analysis is already in queue
+	$result = $db_conn->executeQuery("SELECT j.id FROM analysis_job j, analysis_job_sample js WHERE j.type=:type AND js.analysis_job_id=j.id AND js.processed_sample_id=:ps_id ORDER BY id DESC", array("type"=>$type, "ps_id"=>$ps_ids[0]));
+	foreach($result as $row)
 	{
-		if ($job_info['samples'][$i]!=$samples[$i]."/".$info[$i])
+		$job_id = $row['id'];
+		$job_info = analysis_job_info($db_conn, $job_id);
+			
+		//only running jobs
+		$last_status = end($job_info['history']);
+		if ($last_status!="queued" && $last_status!="started") continue;
+		
+		//same samples
+		if (count($job_info['samples'])!=count($samples)) continue;
+		$same_samples = true;
+		for ($i=0; $i<count($samples); ++$i)
 		{
-			$same_samples = false;
-			break;
+			if ($job_info['samples'][$i]!=$samples[$i]."/".$info[$i])
+			{
+				$same_samples = false;
+				break;
+			}
 		}
+		if (!$same_samples) continue;
+		
+		trigger_error("Analysis is already running with NGSD job ID '{$job_id}' and last status '{$last_status}'!", E_USER_ERROR);
 	}
-	if (!$same_samples) continue;
-	
-	trigger_error("Analysis is already running with NGSD job ID '{$job_id}' and last status '{$last_status}'!", E_USER_ERROR);
 }
 
 //queue analysis

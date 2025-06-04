@@ -22,6 +22,7 @@ $parser->addString("rna_sample", "Processed sample name of the RNA sample which 
 $parser->addFlag("no_queuing", "Do not queue megSAP analysis afterwards.");
 $parser->addFlag("dragen_only", "Perform only DRAGEN analysis and copy all output files without renaming (not compatible with later megSAP analysis).");
 $parser->addFlag("debug", "Add debug output to the log file.");
+$parser->addFlag("high_priority", "Queue megSAP analysis with high priority.");
 
 extract($parser->parse($argv));
 
@@ -402,16 +403,17 @@ if ($system != "") $megSAP_args[] = "-system {$system}";
 $megSAP_args[] = "-steps ".implode(",", $steps);
 $megSAP_args[] = "-threads {$threads}";
 if ($rna_sample != "") $megSAP_args[] = "-rna_sample {$rna_sample}";
+$high_priority_str = ($high_priority)? "-high_priority " : ""; 
 
 //queue analysis
 
 if ($no_queuing) 
 {
-	trigger_error("megSAP queueing skipped! \nCommand to queue analysis: \n\tphp ".repository_basedir()."/src/Tools/db_queue_analysis.php -type 'single sample' -samples {$name} -args '".implode(" ", $megSAP_args)."'", E_USER_NOTICE);
+	trigger_error("megSAP queueing skipped! \nCommand to queue analysis: \n\tphp ".repository_basedir()."/src/Tools/db_queue_analysis.php -type 'single sample' -samples {$name} -ignore_running_jobs {$high_priority_str} -args '".implode(" ", $megSAP_args)."'", E_USER_NOTICE);
 }
 else 
 {
-	$parser->execTool("Tools/db_queue_analysis.php", "-type 'single sample' -samples {$name} -args '".implode(" ", $megSAP_args)."'");
+	$parser->execTool("Tools/db_queue_analysis.php", "-type 'single sample' -samples {$name} -ignore_running_jobs {$high_priority_str} -args '".implode(" ", $megSAP_args)."'");
 }
 
 //print to STDOUT executed successfully (because there is no exit code from SGE after a job has finished)

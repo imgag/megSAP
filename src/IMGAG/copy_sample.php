@@ -851,15 +851,17 @@ foreach($sample_data as $sample => $sample_infos)
 			{
 				if (($sys_type == "WGS") || ($sys_type == "WES"))
 				{
-					if ($nsx_analysis_done)
+					if ($nsx_analysis_done && !$merge_sample)
 					{
 						$args[] = "-steps vc,cn,sv,re,db";
 					}
 					else
 					{
-						//perform DRAGEN analysis at front:
-						$outputline .= " -use_dragen";
-
+						if ($use_dragen)
+						{
+							//perform DRAGEN analysis at front:
+							$outputline .= " -use_dragen";
+						}
 						//complete analysis => no '-steps' parameter 
 					}
 				}

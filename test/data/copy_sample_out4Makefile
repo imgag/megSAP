@@ -41,7 +41,7 @@ Sample_DX180049_05:
 	#merge
 	php /mnt/storage2/megSAP/pipeline/src/Tools/merge_samples.php -ps DX180049_04 -into DX180049_05
 	#queue
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX180049_05 -args '-steps vc,cn,sv,re,db'
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX180049_05 -use_dragen
 
 Sample_DX181277_05:
 	#copy

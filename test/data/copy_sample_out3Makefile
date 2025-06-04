@@ -19,7 +19,7 @@ Sample_DX203663_02:
 	chmod -R 775 /test/project/folder/Sample_DX203663_02
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_DX203663_02
 	#queue
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX203663_02 -use_dragen
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX203663_02
 
 Sample_DX203664_03:
 	#copy
@@ -27,7 +27,7 @@ Sample_DX203664_03:
 	chmod -R 775 /test/project/folder/Sample_DX203664_03
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_DX203664_03
 	#queue
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX203664_03 -use_dragen
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX203664_03
 
 Sample_DX203665_04:
 	#copy
@@ -35,7 +35,7 @@ Sample_DX203665_04:
 	chmod -R 775 /test/project/folder/Sample_DX203665_04
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_DX203665_04
 	#queue
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX203665_04 -use_dragen
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX203665_04
 
 queue_trios:
 	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'trio' -samples DX203663_02 DX203665_04 DX203664_03 -info child father mother
