@@ -26,8 +26,7 @@ $parser->addFlag("no_gender_check", "Skip gender check (done between mapping and
 $parser->addFlag("correction_n", "Use Ns for errors by barcode correction.");
 $parser->addFlag("somatic", "Set somatic single sample analysis options (i.e. correction_n, clip_overlap).");
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
-$parser->addFlag("use_dragen", "Use Illumina DRAGEN server for mapping, small variant and structural variant calling.");
-$parser->addFlag("use_dragen_ML", "Use ML model in small variant calling of Illumina DRAGEN.");
+$parser->addFlag("no_dragen", "Do not use Illumina DRAGEN calls from NovaSeq X or Dragen server.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
@@ -75,21 +74,6 @@ $steps = explode(",", $steps);
 foreach($steps as $step)
 {
 	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
-}
-
-//checks in case DRAGEN should be used
-if ($use_dragen)
-{
-	$no_abra = true;
-	
-	if (!in_array("ma", $steps) && in_array("vc", $steps) && !file_exists($folder."/dragen_variant_calls/{$name}_dragen.vcf.gz")) 
-	{
-		trigger_error("DRAGEN small variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
-	}
-	if (!in_array("ma", $steps) && in_array("sv", $steps) && !file_exists($folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz")) 
-	{
-		trigger_error("DRAGEN structural variant calls have to be present in the folder {$folder}/dragen_variant_calls for the use of DRAGEN without the mapping step!", E_USER_ERROR);
-	}
 }
 
 //remove invalid steps
@@ -184,6 +168,12 @@ if ($annotation_only)
 	} 
 }
 
+// prevent accidentally re-mapping if Dragen already ran
+if (!$no_dragen && in_array("ma", $steps) && (file_exists($bamfile) || file_exists($cramfile)) && file_exists($folder."/dragen_variant_calls")) 
+{
+	trigger_error("'ma'-step provided, but sample already analyzed with DRAGEN. Use '-no_dragen' if you really want to do a re-mapping!", E_USER_ERROR);
+}
+
 //mapping
 if (in_array("ma", $steps))
 {
@@ -246,8 +236,6 @@ if (in_array("ma", $steps))
 	if($no_trim) $args[] = "-no_trim";
 	if($correction_n) $args[] = "-correction_n";
 	if(!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);
-	if($use_dragen) $args[] = "-use_dragen";
-	if($use_dragen_ML) $args[] = "-use_dragen_ML";
 	if($somatic) $args[] = "-somatic_custom_map";
 	$used_bam_or_cram = $parser->tempFolder("local_bam")."/".$name.".bam"; //local copy of BAM file to reduce IO over network when mapping is done 
 	$parser->execTool("Tools/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name -local_bam $used_bam_or_cram ".implode(" ", $args)." -threads $threads");
@@ -369,6 +357,26 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 		$parser->execApptainer("ngs-bits", "MappingQC", implode(" ", $params), $in_files);
 	}	
 	
+	//check for bam_for_mapping folder, get read counts and delete it
+	if (file_exists("{$folder}/bams_for_mapping"))
+	{
+		$prev_bam = glob("{$folder}/bams_for_mapping/*am");
+		if (count($prev_bam) == 0)
+		{
+			trigger_error("Empty BAM temp folder found, deleting it..", E_USER_NOTICE);
+			$parser->exec("rm", "-d {$folder}/bams_for_mapping");
+		}
+		else if (count($prev_bam) == 1)
+		{
+			$prev_bam = $prev_bam[0];
+			compare_bam_read_count($used_bam_or_cram, $prev_bam, $threads, true, false, 0.001, array("-F", "2304"), $build);
+			//delete folder if no error occured
+			trigger_error("Read counts of input and output BAM/CRAM match, deleting mapping folder...", E_USER_NOTICE);
+			$parser->exec("rm", "-r {$folder}/bams_for_mapping");
+		}
+
+	}
+
 	//low-coverage regions for samples mapped/called on NovaSeq X
 	if(!file_exists($lowcov_file))
 	{
@@ -379,6 +387,55 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 			{
 
 				$parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", [$folder]);
+			}
+		}
+	}
+
+	//delete fastq files after mapping - remove files only if sample doesn't contain UMIs and the corresponding setting is set in the settings.ini
+	if ($sys['umi_type']=="n/a" && get_path("delete_fastq_files")) 
+	{
+		//check if project overwrites the settings
+		$preserve_fastqs = true;
+		if (db_is_enabled("NGSD"))
+		{
+			$db = DB::getInstance("NGSD", false);
+			$info = get_processed_sample_info($db, $name, false);
+			if (!is_null($info))
+			{
+				$preserve_fastqs = $info['preserve_fastqs'];
+			}
+		}
+
+		if(!$preserve_fastqs)
+		{
+			//check for remaining FastQ/ORAs and delete them
+			$fastq_files = glob($folder."/*_R?_00?.fastq.gz");
+			$ora_files = glob($folder."/*_R?_00?.fastq.ora");
+
+			if ((count($ora_files) + count($fastq_files)) > 0)
+			{
+				$bam_read_count = get_read_count($used_bam_or_cram, max(8, $threads), array("-F", "2304"), $sys['build']);
+
+				if (count($ora_files)  > 0) $fastq_read_count = get_ora_read_count($ora_files);
+				else $fastq_read_count = get_fastq_read_count($fastq_files);
+
+				//calculate relative difference
+				$diff = abs($bam_read_count - $fastq_read_count);
+				$rel_diff = $diff /(($bam_read_count + $fastq_read_count)/2);
+
+				if (($bam_read_count == $fastq_read_count) || ($rel_diff < 0.001))
+				{
+					// remove old BAM(s)
+					if ($bam_read_count == $fastq_read_count) trigger_error("Read count of FASTQ/ORA files and BAM/CRAM match. Deleting FASTQ/ORA files...", E_USER_NOTICE);
+					else if ($rel_diff < 0.001) trigger_error("Read count of FASTQ/ORA files and BAM/CRAM in allowed tolerance (<0.01%) (".($rel_diff*100)."%). Deleting FASTQ/ORA files...", E_USER_NOTICE);
+					
+					if (count($ora_files)  > 0) $parser->exec("rm", implode(" ", $ora_files));
+					else $parser->exec("rm", implode(" ", $fastq_files));
+				}
+				else
+				{
+					trigger_error("Cannot delete FASTQ/ORA file(s) - BAM file read counts doesn't match FASTQ/ORA file(s) (".($rel_diff*100)."%).", E_USER_ERROR);
+				}
 			}
 		}
 	}
@@ -425,11 +482,12 @@ if (in_array("vc", $steps))
 		//perform main variant calling on autosomes/genosomes
 		if(!$only_mito_in_target_region)
 		{
-			if ($use_dragen)
+			$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen.vcf.gz";
+			if (!$no_dragen && file_exists($dragen_output_vcf))
 			{
-				if (!in_array("ma", $steps)) trigger_error("'-use_dragen' with no mapping step provided. Using old DRAGEN VCF for small variant calling.", E_USER_NOTICE);
+				trigger_error("DRAGEN analysis found in sample folder. Using this data for small variant calling. ", E_USER_NOTICE);
 				$pipeline = [];
-				$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen.vcf.gz";
+
 				$pipeline[] = array("zcat", $dragen_output_vcf);
 				
 				//filter by target region (extended by 200) and quality 5
@@ -511,25 +569,18 @@ if (in_array("vc", $steps))
 			else //perform variant calling with DeepVariant
 			{
 				$args = [];
-
-				if ($is_wes || $is_panel)	$args[] = "-model_type WES";
-				elseif ($is_wgs) $args[] = "-model_type WGS";
-				else
-				{
-					trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types are: WES, WGS, Panel, Panel Haloplex.", E_USER_ERROR);
-				}
-
+				if ($is_wes || $is_panel) $args[] = "-model_type WES";
+				else if ($is_wgs) $args[] = "-model_type WGS";
+				else trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types are: WES, WGS, Panel, Panel Haloplex.", E_USER_ERROR);
 				$args[] = "-bam ".$used_bam_or_cram;
 				$args[] = "-out ".$vcffile;
 				$args[] = "-build ".$build;
 				$args[] = "-threads ".$threads;
-
 				if ($has_roi)
 				{
 					$args[] = "-target ".$sys['target_file'];
 					$args[] = "-target_extend 200";
 				}
-
 				$args[] = "-min_af ".$min_af;
 				$args[] = "-min_mq ".$min_mq;
 				$args[] = "-min_bq ".$min_bq;
@@ -544,10 +595,12 @@ if (in_array("vc", $steps))
 		if ($mito)
 		{
 			$vcffile_mito = $parser->tempFile("_mito.vcf.gz");
-			if ($use_dragen)
+			$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen.vcf.gz";
+			if (!$no_dragen && file_exists($dragen_output_vcf))
 			{
+				trigger_error("DRAGEN analysis found in sample folder. Using this data for mito small variant calling. ", E_USER_NOTICE);
 				$pipeline = [];
-				$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen.vcf.gz";
+				
 				$pipeline[] = array("zcat", $dragen_output_vcf);
 				
 				//filter by target region and quality 5
@@ -979,10 +1032,9 @@ if (in_array("sv", $steps))
 	if (!$annotation_only)
 	{
 		$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz";
-		if ($use_dragen)
+		if (!$no_dragen && file_exists($dragen_output_vcf))
 		{
-			if (!file_exists($dragen_output_vcf)) trigger_error("Dragen SV calling file not found!", E_USER_ERROR);
-			if (!in_array("ma", $steps)) trigger_error("'-use_dragen' without mapping step provided. Using DRAGEN SV VCF that is already present.", E_USER_NOTICE);
+			trigger_error("DRAGEN analysis found in sample folder. Using this data for structural variant calling. ", E_USER_NOTICE);
 					
 			//combine BND of INVs to one INV in VCF
 			$vcf_inv_corrected = $parser->tempFile("_sv_inv_corrected.vcf");

@@ -80,8 +80,25 @@ if (!mkdir($working_dir, 0777))
 //parameters
 $dragen_parameter = [];
 $dragen_parameter[] = "-r ".$dragen_genome_path;
-$dragen_parameter[] = "--tumor-bam-input ".$t_bam;
-if ($n_bam != "") $dragen_parameter[] = "--bam-input ".$n_bam;
+if (ends_with($t_bam, ".bam"))
+{
+	$dragen_parameter[] = "--tumor-bam-input ".$t_bam;
+}
+else if (ends_with($t_bam, ".cram"))
+{
+	$dragen_parameter[] = "--tumor-cram-input ".$t_bam;
+}
+if ($n_bam != "")
+{
+	if (ends_with($n_bam, ".bam"))
+	{
+		$dragen_parameter[] = "--bam-input ".$n_bam;
+	}
+	else if (ends_with($n_bam, ".cram"))
+	{
+		$dragen_parameter[] = "--cram-input ".$n_bam;
+	}
+}
 $dragen_parameter[] = "--output-directory $working_dir";
 $dragen_parameter[] = "--output-file-prefix output";
 $dragen_parameter[] = "--enable-map-align false"; # cannot map multiple (tumor, normal) inputs at once

@@ -277,7 +277,7 @@ if (in_array("cn", $steps))
 		
 			fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data);
 
-			//add Contamination data
+			//contamination check (only necessary for shallow - for deep genomes we have the check in VariantQC)
 			if($lines = file($cnv_multi))
 			{
 				list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "TrioMaternalContamination", "-bam_m $m -bam_f $f -bam_c $c -build ".ngsbits_build($sys['build']), [$m, $f, $c]);
