@@ -93,6 +93,7 @@ function megsap_version($gsvar)
 	trigger_error("Could not determine megSAP version from '{$gsvar}'!", E_USER_ERROR);
 }
 
+//TODO check that the results are really the same as with the official QC pipeline bofore going live
 function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 {
 	global $parser;
@@ -102,7 +103,7 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 	$qc_wf_folder = "/mnt/storage2/MVH/tools/GRZ_QC_Workflow/";
 	
 	//run mosdepth if necessary
-	$mosdepth_folder = $qc_folder."/mosdepth/";
+	$mosdepth_folder = "{$qc_folder}/mosdepth_".($is_tumor ? "tumor" : "germline")."/";
 	$mosdepth_summary = "{$mosdepth_folder}/output_prefix.mosdepth.summary.txt";
 	$mosdepth_regions = "{$mosdepth_folder}/output_prefix.regions.bed.gz";
 	if (!file_exists($mosdepth_summary) || !file_exists($mosdepth_regions))
@@ -112,7 +113,7 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 		//make sure output folder exits
 		exec2("mkdir -p {$mosdepth_folder}");
 		
-		//run QC workflow
+		//run
 		$args = [];
 		$args[] = "--threads 10";
 		$args[] = "--by ".($roi!="" ? realpath($roi) : "{$qc_wf_folder}/assets/default_files/hg38_440_omim_genes.bed"); 
@@ -125,7 +126,7 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 	}
 	
 	//run fastp if necessary
-	$fastp_folder = "{$qc_folder}/fastp/";
+	$fastp_folder = "{$qc_folder}/fastp".($is_tumor ? "tumor" : "germline")."/";
 	$fastp_json = "{$fastp_folder}/{$ps}.json";
 	if (!file_exists($fastp_json))
 	{
@@ -173,6 +174,142 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 	return array_combine($headers, $metrics);
 }
 
+function get_read_length($ps, $info)
+{
+	global $db_ngsd;
+	
+	$sys_type = $info['sys_type'];
+	if ($sys_type=="lrGS")
+	{
+		$read_length = get_processed_sample_qc($db_ngsd, $ps, "QC:2000131");	
+	}
+	else
+	{
+		$read_length = get_processed_sample_qc($db_ngsd, $ps, "QC:2000006");
+		while (contains($read_length, "-")) $read_length = explode("-", $read_length, 2)[1];
+	}
+	
+	return $read_length;
+}
+
+
+function create_files_json($files_to_submit, $info, $read_length)
+{
+	$output = [];
+	foreach($files_to_submit as $file)
+	{
+		$file = realpath($file);
+		$data = [];
+		$data["filePath"] = basename($file);
+		if (ends_with($file, ".fastq.gz")) $data["fileType"] = "fastq";
+		else if (ends_with($file, ".bam")) $data["fileType"] = "bam";
+		else if (ends_with($file, ".vcf")) $data["fileType"] = "vcf";
+		else if (ends_with($file, ".bed")) $data["fileType"] = "bed";
+		$data["checksumType"] = "sha256";
+		$checksum_file = "{$qc_folder}/checksums/".basename($file).".sha256sum";
+		if (!file_exists($checksum_file))
+		{
+			exec2("sha256sum {$file} > {$checksum_file}");
+		}
+		else
+		{
+			print "    note: checksum file for ".basename($file)." exists - using it\n";
+		}
+		$checksum = explode(" ", trim(implode(" ", file($checksum_file))))[0];
+		$data["fileChecksum"] = $checksum;
+		$data["fileSizeInBytes"] = filesize($file);
+		if (ends_with($file, "_R1.fastq.gz"))
+		{
+			$data["readOrder"] = "R1";
+		}
+		else if (ends_with($file, "_R2.fastq.gz"))
+		{
+			$data["readOrder"] = "R2";
+		}
+		if (ends_with($file, "_R1.fastq.gz") || ends_with($file, "_R2.fastq.gz"))
+		{
+			$data["readLength"] = (int)$read_length;
+			$data["flowcellId"] = $info["run_fcid"];
+			$data["laneId"] =  implode(",", $info["ps_lanes"]);
+		}
+		
+		$output[] = $data;
+	}
+	
+	return $toutput;
+}
+
+function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
+{
+	global $megsap_ver;
+	global $db_ngsd;
+	
+	$output = [
+				"labDataName" => "DNA ".($is_tumor ? "tumor" : "normal"),
+				"tissueOntology" => [
+						"name" => "BRENDA tissue ontology",
+						"version" => "2021-10-26"
+					],
+				"tissueTypeId" => convert_tissue($info["tissue"]),
+				"tissueTypeName" => $info["tissue"],
+				"sampleDate" => not_empty($info["s_received"], "sampleDate"),
+				"sampleConservation" => ($info["is_ffpe"] ? "ffpe" : "fresh-tissue"),
+				"sequenceType" => "dna",
+				"sequenceSubtype" => ($is_tumor ? "somatic" : "germline"),
+				"fragmentationMethod" => ($info['sys_name_short']=="twistCustomExomeV2" ? "enzymatic" : "sonication"),
+				"libraryType" => convert_system_type($info['sys_type']), 
+				"libraryPrepKit" => $info["sys_name"],
+				"libraryPrepKitManufacturer" => convert_kit_manufacturer($info['sys_name_short']), 
+				"sequencerModel" => $info["device_type"],
+				"sequencerManufacturer" => convert_sequencer_manufacturer($info["device_type"]),
+				"kitName" => convert_sequencer_manufacturer($info["device_type"])." sequencing kit",
+				"kitManufacturer" => convert_sequencer_manufacturer($info["device_type"]),
+				"enrichmentKitManufacturer" => convert_kit_manufacturer($info['sys_name_short']),
+				"enrichmentKitDescription" => $info["sys_name"],
+				"barcode" => $info["sys_adapter1"]."/".$info["sys_adapter2"],
+				"sequencingLayout" => "paired-end",
+				"sequenceData"=> [
+						"bioinformaticsPipelineName" => "megSAP",
+						"bioinformaticsPipelineVersion" => $megsap_ver,
+						"referenceGenome" => "GRCh38",
+						"percentBasesAboveQualityThreshold" =>  [
+								"minimumQuality" => (float)($grz_qc["qualityThreshold"]),
+								"percent" => (float)($grz_qc["percentBasesAboveQualityThreshold"])
+							], 
+						"meanDepthOfCoverage" => (float)($grz_qc["meanDepthOfCoverage"]),
+						"minCoverage" => (float)($grz_qc["minCoverage"]),
+						"targetedRegionsAboveMinCoverage" => (float)(number_format($grz_qc["targetedRegionsAboveMinCoverage"],2)),
+						"nonCodingVariants" => "true",
+						"callerUsed" => [
+								0 => [ //TODO remove hard-coded somatic caller when somatic small variants callset is implemented in NGSD
+									"name" => $is_tumor ? "DRAGEN" : $db_ngsd->getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='".$info["ps_id"]."'"),
+									"version" => $is_tumor ? "4.3.13" : $db_ngsd->getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='".$info["ps_id"]."'"),
+									]
+							],
+						"files" => $files
+					]
+		 ];
+		 
+	if ($is_tumor)
+	{
+		$tcc = [];
+		
+		//tumor content - bioinformatics
+		$tc = get_processed_sample_qc($db_ngsd, $info['ps_name'], "QC:2000054");	
+		if (is_numeric($tc) && $tc>=0 && $tc<=100)
+		{
+			$tcc[] = ["count" => (float)$tc, "method" => "bioinformatics"];
+		}
+		
+		if (count($tcc)>0)
+		{
+			$output["tumor cell count"] = $tcc;
+		}
+	}
+	 
+	return $output;
+}
+
 //parse command line arguments
 $parser = new ToolBase("mvh_grz_export", "GRZ export for Modellvorhaben.");
 $parser->addInt("case_id", "'id' in 'data_data' of 'MVH' database.", false);
@@ -203,7 +340,7 @@ $kdk = "";
 $study_subtype = "";
 $disease_type = "";
 $is_somatic  = false;
-if ($network="Netzwerk Seltene Erkrankungen")
+if ($network=="Netzwerk Seltene Erkrankungen")
 {
 	$kdk = "KDKTUE002"; //NSE - Tübingen
 	$study_subtype = "germline-only";
@@ -226,6 +363,7 @@ else trigger_error("Unhandled network type '{$network}'!", E_USER_ERROR);
 
 //check seqencing mode
 $seq_mode = $cm_data->seq_mode;
+if ($test && $seq_mode=="") $seq_mode="WES"; //TODO
 if ($seq_mode!="WGS" && $seq_mode!="WES") trigger_error("Unhandled seq_mode '{$seq_mode}'!", E_USER_ERROR);
 
 print "case: {$case_id} (seq_mode: {$seq_mode} / network: {$network})\n";
@@ -235,11 +373,12 @@ $ps = $db_mvh->getValue("SELECT ps FROM case_data WHERE id='{$case_id}'");
 $info = get_processed_sample_info($db_ngsd, $ps);
 $sys = $info['sys_name_short'];
 $patient_id = $info['patient_identifier'];
-if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}''!", E_USER_ERROR);
+if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}'!", E_USER_ERROR);
 print "germline sample: {$ps} (system: {$sys})\n";
 
 //check germline processed sample is ok
 $ps_t = "";
+$info_t = "";
 if ($is_somatic)
 {
 	$ps_t = $db_mvh->getValue("SELECT ps_t FROM case_data WHERE id='{$case_id}'");
@@ -249,6 +388,8 @@ if ($is_somatic)
 	$info_t = get_processed_sample_info($db_ngsd, $ps_t);
 	$sys_t = $info_t['sys_name_short'];
 	if ($sys!=$sys_t) trigger_error("Mismatching tumor/normal processing systems for case '{$case_id}' in network '{$network}': '{$sys}' vs '{$sys_t}'", E_USER_ERROR);
+	
+	print "tumor sample: {$ps_t} (system: {$sys})\n";
 }
 
 //determine ROI
@@ -262,7 +403,7 @@ if (count($sub_ids)!=1)  trigger_error(count($sub_ids)." pending GRZ submissions
 $sub_id = $sub_ids[0];
 $tang = $db_mvh->getValue("SELECT tang FROM submission_grz WHERE id='{$sub_id}'");
 
-//determine megSAP version
+//determine megSAP version from germline GSvar file
 $megsap_ver = megsap_version($info['ps_folder']."/{$ps}.GSvar");
 
 //create export folder
@@ -272,38 +413,47 @@ exec2("mkdir -p {$folder}/files/");
 exec2("mkdir -p {$folder}/metadata/");
 
 //determine read length
-$sys_type = $info['sys_type'];
-if ($sys_type=="lrGS")
+$read_length = get_read_length($ps, $info);
+if ($is_somatic)
 {
-	$read_length = get_processed_sample_qc($db_ngsd, $ps, "QC:2000131");	
-}
-else
-{
-	$read_length = get_processed_sample_qc($db_ngsd, $ps, "QC:2000006");
-	while (contains($read_length, "-")) $read_length = explode("-", $read_length, 2)[1];
+	$read_length_t = get_read_length($ps_t, $info_t);
 }
 
 //TODO add support for lrGS
+//TODO? add support for trio and RNA
 //create germline raw data (FASTQs + germline VCF)
-$bam = $info['ps_bam'];
+$n_bam = $info['ps_bam'];
 $n_fq1 = "{$folder}/files/{$tang}_normal_R1.fastq.gz";
 $n_fq2 = "{$folder}/files/{$tang}_normal_R2.fastq.gz";
 $n_vcf = "{$folder}/files/{$tang}_normal.vcf";
 if (!file_exists($n_fq1) || !file_exists($n_fq2) || !file_exists($n_vcf))
 {
-	$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$bam} -out1 {$n_fq1} -out2 {$n_fq2} -extend {$read_length}", [$bam], ["{$folder}/files/"]);
+	$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$n_bam} -out1 {$n_fq1} -out2 {$n_fq2} -extend {$read_length}", [$n_bam], ["{$folder}/files/"]);
 	exec2("zcat ". $info['ps_folder']."/{$ps}_var.vcf.gz > {$n_vcf}");
 }
 else
 {
-	print "  note: FASTQ/VCF for {$ps} already exist - using them\n";
+	print "  note: FASTQ/VCF for germline {$ps} already exist - using them\n";
 }
 $files_to_submit = [$n_fq1, $n_fq2, $n_vcf];
 
 //create tumor raw data (FASTQs, somatic VCF)
 if ($is_somatic)
 {
-	//TODO
+	$t_bam = $info_t['ps_bam'];
+	$t_fq1 = "{$folder}/files/{$tang}_tumor_R1.fastq.gz";
+	$t_fq2 = "{$folder}/files/{$tang}_tumor_R2.fastq.gz";
+	$tn_vcf = "{$folder}/files/{$tang}_somatic.vcf";
+	if (!file_exists($t_fq1) || !file_exists($t_fq2) || !file_exists($tn_vcf))
+	{
+		$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$t_bam} -out1 {$t_fq1} -out2 {$t_fq2} -extend {$read_length_t}", [$t_bam], ["{$folder}/files/"]);
+		exec2("zcat ". $info_t['ps_folder']."/../Somatic_{$ps_t}-{$ps}/{$ps_t}-{$ps}_var.vcf.gz > {$tn_vcf}");
+	}
+	else
+	{
+		print "  note: FASTQ/VCF for tumor {$ps_t} already exist - using them\n";
+	}
+	$files_to_submit_t = [$t_fq1, $t_fq2, $tn_vcf];
 }
 
 //copy target region
@@ -311,6 +461,10 @@ if ($roi!="")
 {
 	exec2("cp {$roi} {$folder}/files/target_regions.bed");
 	$files_to_submit[] = "{$folder}/files/target_regions.bed";
+	if ($is_somatic)
+	{
+		$files_to_submit_t[] = "{$folder}/files/target_regions.bed";
+	}
 }
 
 //run QC pipeline for germline sample
@@ -321,54 +475,23 @@ $grz_qc = run_qc_pipeline($ps, $bam, $n_fq1, $n_fq2, $roi, false);
 //run QC pipeline for somatic sample
 if ($is_somatic)
 {
-	//TODO
+	$grz_qc_t = run_qc_pipeline($ps_t, $t_bam, $t_fq1, $t_fq2, $roi, true);
 }
 
 //prepare file info for meta data JSON
 print "  calculating file checksums...\n";
-$files = [];
-foreach($files_to_submit as $file)
-{
-	$file = realpath($file);
-	$data = [];
-	$data["filePath"] = basename($file);
-	if (ends_with($file, ".fastq.gz")) $data["fileType"] = "fastq";
-	else if (ends_with($file, ".bam")) $data["fileType"] = "bam";
-	else if (ends_with($file, ".vcf")) $data["fileType"] = "vcf";
-	else if (ends_with($file, ".bed")) $data["fileType"] = "bed";
-	$data["checksumType"] = "sha256";
-	$checksum_file = "{$qc_folder}/checksums/".basename($file).".sha256sum";
-	if (!file_exists($checksum_file))
-	{
-		exec2("sha256sum {$file} > {$checksum_file}");
-	}
-	else
-	{
-		print "    note: checksum file for ".basename($file)." exists - using it\n";
-	}
-	$checksum = explode(" ", trim(implode(" ", file($checksum_file))))[0];
-	$data["fileChecksum"] = $checksum;
-	$data["fileSizeInBytes"] = filesize($file);
-	if (ends_with($file, "_R1.fastq.gz"))
-	{
-		$data["readOrder"] = "R1";
-	}
-	else if (ends_with($file, "_R2.fastq.gz"))
-	{
-		$data["readOrder"] = "R2";
-	}
-	if (ends_with($file, "_R1.fastq.gz") || ends_with($file, "_R2.fastq.gz"))
-	{
-		$data["readLength"] = (int)$read_length;
-		$data["flowcellId"] = $info["run_fcid"];
-		$data["laneId"] = implode(",", $info["ps_lanes"]);
-	}
-	
-	$files[] = $data;
-}
+$files = create_files_json($files_to_submit, $info, $read_length);
 if ($is_somatic)
 {
-	//TODO
+	$files_t = create_files_json($files_to_submit_t, $info_t, $read_length_t);
+}
+
+//prepare lab data for meta data JSON
+$lab_data = [];
+$lab_data[] = create_lab_data_json($files, $info, $grz_qc, false);
+if ($is_somatic)
+{
+	$lab_data[] = create_lab_data_json($files_t, $info_t, $grz_qc_t, true);
 }
 
 //create meta data JSON
@@ -380,7 +503,7 @@ $json['submission'] = [
 	"submissionType" => $db_mvh->getValue("SELECT type FROM submission_grz WHERE id='{$sub_id}'"),
 	"tanG" => $tang,
 	"localCaseId" => $patient_id,
-	"coverageType" => "UNK", //TODO get from GenLab or ZSE RedCap
+	"coverageType" => "UNK", //TODO get from GenLab
 	"submitterId" => "260840108",
 	"genomicDataCenterId" => "GRZTUE002",
 	"clinicalDataNodeId" => $kdk,
@@ -422,55 +545,7 @@ $json['donors'] = [
 					"scope" => ""
 					]
 			],
-		"labData" => [
-					0 => [
-						"labDataName" => "DNA normal",
-						"tissueOntology" => [
-								"name" => "BRENDA tissue ontology",
-								"version" => "2021-10-26"
-							],
-						"tissueTypeId" => convert_tissue($info["tissue"]),
-						"tissueTypeName" => $info["tissue"],
-						"sampleDate" => not_empty($info["s_received"], "sampleDate"),
-						"sampleConservation" => ($info["is_ffpe"] ? "ffpe" : "fresh-tissue"),
-						"sequenceType" => "dna",
-						"sequenceSubtype" => "germline",
-						"fragmentationMethod" => ($sys=="twistCustomExomeV2" ? "enzymatic" : "sonication"),
-						"libraryType" => convert_system_type($sys_type), 
-						"libraryPrepKit" => $info["sys_name"],
-						"libraryPrepKitManufacturer" => convert_kit_manufacturer($sys), 
-						"sequencerModel" => $info["device_type"],
-						"sequencerManufacturer" => convert_sequencer_manufacturer($info["device_type"]),
-						"kitName" => convert_sequencer_manufacturer($info["device_type"])." sequencing kit",
-						"kitManufacturer" => convert_sequencer_manufacturer($info["device_type"]),
-						"enrichmentKitManufacturer" => convert_kit_manufacturer($sys),
-						"enrichmentKitDescription" => $info["sys_name"],
-						"barcode" => $info["sys_adapter1"]."/".$info["sys_adapter2"],
-						"sequencingLayout" => "paired-end",
-						//TODO somatic: tumor cell count
-						"sequenceData"=> [
-							"bioinformaticsPipelineName" => "megSAP",
-							"bioinformaticsPipelineVersion" => $megsap_ver,
-							"referenceGenome" => "GRCh38",
-							"percentBasesAboveQualityThreshold" => [
-								"minimumQuality" => (float)($grz_qc["qualityThreshold"]),
-								"percent" => (float)($grz_qc["percentBasesAboveQualityThreshold"])
-								], 
-							"meanDepthOfCoverage" => (float)($grz_qc["meanDepthOfCoverage"]),
-							"minCoverage" => (float)($grz_qc["minCoverage"]),
-							"targetedRegionsAboveMinCoverage" => (float)(number_format($grz_qc["targetedRegionsAboveMinCoverage"],2)),
-							"nonCodingVariants" => "true",
-							"callerUsed" => [
-								0 => [
-									"name" => $db_ngsd->getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='".$info["ps_id"]."'"),
-									"version" => $db_ngsd->getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='".$info["ps_id"]."'"),
-									]
-								],
-							"files" => $files
-						],
-					 ]
-				 //TODO somatic: tumor sample
-			]		 
+		"labData" => $lab_data		 
 		]
 	];
 
@@ -518,21 +593,23 @@ if ($exit_code!=0)
 	trigger_error("grz-cli upload failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
 }
 
-//update submission status in MVH/submission_grz
+//update submission status in database: MVH/submission_grz
 $submission_id = trim(implode("", file($stdout)));
+$db_mvh->executeStmt("UPDATE submission_grz SET status='done', submission_id='{$submission_id}' WHERE id='{$sub_id}'");
+//TODO how do we see that the script failed and update MVH database? A wrapper around this script would be best...
 
 //clean up export folder if successfull
-
+exec2("rm -rf {$folder}");
 
 /*
 //TODO:
-- test if export works on SRV005
-- test if export works on SRV005 with user bioinf
+- run on SRV005 as bioinf when updated to Ubuntu 24.04
 - store schema of MVH DB
 
 #Test samples
-- WGS: NA12878x3_20
-- WES: NA12878x3_15
+- WGS: NA12878x3_20 - 99999
+- WES T/N: NA12878x3_44 / NA12877_32 - 99998
+- lrGS: 24067LRa008_01
 
 #Installation of mosdepth
 
