@@ -244,6 +244,7 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 {
 	global $megsap_ver;
 	global $db_ngsd;
+	global $test;
 	
 	$output = [
 				"labDataName" => "DNA ".($is_tumor ? "tumor" : "normal"),
@@ -302,9 +303,14 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 			$tcc[] = ["count" => (float)$tc, "method" => "bioinformatics"];
 		}
 		
+		if($test && count($tcc)==0)
+		{
+			$tcc[] = ["count" => 47.11, "method" => "bioinformatics"];
+		}
+		
 		if (count($tcc)>0)
 		{
-			$output["tumor cell count"] = $tcc;
+			$output["tumorCellCount"] = $tcc;
 		}
 	}
 	 
