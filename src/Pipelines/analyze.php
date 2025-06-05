@@ -377,7 +377,7 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 
 	}
 
-	//low-coverage regions for samples mapped/called on NovaSeq X
+	//low-coverage regions for samples mapped/called on NovaSeq X / DRAGEN server
 	if(!file_exists($lowcov_file))
 	{
 		if ($has_roi && !$is_wgs_shallow)
