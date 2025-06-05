@@ -93,7 +93,6 @@ function megsap_version($gsvar)
 	trigger_error("Could not determine megSAP version from '{$gsvar}'!", E_USER_ERROR);
 }
 
-//TODO check that the results are really the same as with the official QC pipeline bofore going live
 function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 {
 	global $parser;
@@ -126,7 +125,7 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 	}
 	
 	//run fastp if necessary
-	$fastp_folder = "{$qc_folder}/fastp".($is_tumor ? "tumor" : "germline")."/";
+	$fastp_folder = "{$qc_folder}/fastp_".($is_tumor ? "tumor" : "germline")."/";
 	$fastp_json = "{$fastp_folder}/{$ps}.json";
 	if (!file_exists($fastp_json))
 	{
@@ -195,6 +194,8 @@ function get_read_length($ps, $info)
 
 function create_files_json($files_to_submit, $info, $read_length)
 {
+	global $qc_folder;
+	
 	$output = [];
 	foreach($files_to_submit as $file)
 	{
@@ -236,7 +237,7 @@ function create_files_json($files_to_submit, $info, $read_length)
 		$output[] = $data;
 	}
 	
-	return $toutput;
+	return $output;
 }
 
 function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
@@ -411,6 +412,7 @@ exec2("mkdir -p {$folder}");
 print "export folder: {$folder}\n";
 exec2("mkdir -p {$folder}/files/");
 exec2("mkdir -p {$folder}/metadata/");
+exec2("mkdir -p {$folder}/logs/");
 
 //determine read length
 $read_length = get_read_length($ps, $info);
@@ -470,7 +472,7 @@ if ($roi!="")
 //run QC pipeline for germline sample
 exec2("mkdir -p {$qc_folder}/checksums/");
 print "QC folder: {$qc_folder}\n";
-$grz_qc = run_qc_pipeline($ps, $bam, $n_fq1, $n_fq2, $roi, false);
+$grz_qc = run_qc_pipeline($ps, $n_bam, $n_fq1, $n_fq2, $roi, false);
 
 //run QC pipeline for somatic sample
 if ($is_somatic)
@@ -599,7 +601,10 @@ $db_mvh->executeStmt("UPDATE submission_grz SET status='done', submission_id='{$
 //TODO how do we see that the script failed and update MVH database? A wrapper around this script would be best...
 
 //clean up export folder if successfull
-exec2("rm -rf {$folder}");
+if (!$test)
+{
+	exec2("rm -rf {$folder} {$qc_folder}");
+}
 
 /*
 //TODO:
