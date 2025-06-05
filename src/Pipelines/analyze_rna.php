@@ -182,7 +182,6 @@ if (in_array("ma", $steps))
 	//cut off Twist UMIs
 	if (in_array($sys['umi_type'], ["Twist"]))
 	{
-		//TODO: check protocol
 		$cut1 = 5;
 		$cut2 = 5;
 		
