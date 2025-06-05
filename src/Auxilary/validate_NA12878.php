@@ -364,7 +364,7 @@ if ($min_qual>0) $options[] = "min_qual={$min_qual}";
 $options = implode(" ", $options);
 $date = strtr(date("Y-m-d H:i:s", filemtime($vcf)), "T", " ");
 $output = array();
-$output[] = "#name\toptions\tdate\taverage_depth\texpected_snvs\texpected_indels\tsnv_sensitivity\tsnv_ppv\tsnv_f1\tsnv_genotyping_accuracy\tindel_sensitivity\tindel_ppv\tindel_f1\tindel_genotyping_accuracy\tall_sensitivity\tall_ppv\tall_f1\tall_genotyping_accuracy";
+$output[] = "#name\toptions\tdate\taverage_depth\t20x percentage\texpected_snvs\texpected_indels\tsnv_sensitivity\tsnv_ppv\tsnv_f1\tsnv_genotyping_accuracy\tindel_sensitivity\tindel_ppv\tindel_f1\tindel_genotyping_accuracy\tall_sensitivity\tall_ppv\tall_f1\tall_genotyping_accuracy";
 if (file_exists($stats))
 {
 	foreach(file($stats) as $line)
@@ -374,8 +374,10 @@ if (file_exists($stats))
 		$output[] = $line;
 	}
 }
-$avg_depth = "n/a";
+
+//get QC metrics
 $qcml = dirname($bam)."/".basename2($bam)."_stats_map.qcML";
+$avg_depth = "n/a";
 if (file_exists($qcml))
 {
 	list($stdout) = exec2("grep 'QC:2000025' $qcml"); //Average sequencing depth in target region
@@ -385,9 +387,20 @@ if (file_exists($qcml))
 		$avg_depth = explode("\"", $part)[1];
 	}
 }
+$cov20x = "n/a";
+if (file_exists($qcml))
+{
+	list($stdout) = exec2("grep 'QC:2000027' $qcml"); //Average sequencing depth in target region
+	foreach(explode(" ", $stdout[0]) as $part)
+	{
+		if (!contains($part, "value")) continue;
+		$cov20x = explode("\"", $part)[1];
+	}
+}
+
 list($snv_exp, $snv_sens, $snv_ppv, $snv_geno, $snv_f1) = stats("SNVS", $expected, $var_diff);
 list($indel_exp, $indel_sens, $indel_ppv, $indel_geno, $indel_f1) = stats("INDELS", $expected, $var_diff);
 list($all_exp, $all_sens, $all_ppv, $all_geno, $all_f1) = stats(null, $expected, $var_diff);
-$output[] = implode("\t", [$name, $options, $date, $avg_depth, $snv_exp, $indel_exp, $snv_sens, $snv_ppv, $snv_f1, $snv_geno, $indel_sens, $indel_ppv, $indel_f1, $indel_geno, $all_sens, $all_f1, $all_ppv, $all_geno])."\n";
+$output[] = implode("\t", [$name, $options, $date, $avg_depth, $cov20x, $snv_exp, $indel_exp, $snv_sens, $snv_ppv, $snv_f1, $snv_geno, $indel_sens, $indel_ppv, $indel_f1, $indel_geno, $all_sens, $all_f1, $all_ppv, $all_geno])."\n";
 file_put_contents($stats, implode("\n", $output)."\n");
 ?>

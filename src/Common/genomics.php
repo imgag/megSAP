@@ -494,7 +494,7 @@ function get_processed_sample_id(&$db_conn, $name, $error_if_not_found=true)
 	{
 		//split name
 		$name = trim($name);
-		$sep_idx = strrpos($name, "_");
+		$sep_idx = strpos($name, "_");
 		if ($sep_idx==false)
 		{
 			$sname = $name;
@@ -503,7 +503,7 @@ function get_processed_sample_id(&$db_conn, $name, $error_if_not_found=true)
 		else
 		{
 			$sname = substr($name, 0, $sep_idx);
-			$id = substr($name, $sep_idx+1);
+			$id = substr($name, $sep_idx+1, 2);
 			$id = ltrim($id, "0");
 		}
 		
@@ -549,28 +549,18 @@ function get_processed_samples_from_run(&$db, $run_id)
 ///Updates normal sample entry for given tumor sample.
 function updateNormalSample(&$db_conn, $ps_tumor, $ps_normal, $overwrite = false)
 {
-	//TUMOR
-	//get processed sample ID
-	list($s, $p) = explode("_", $ps_tumor);
-	$p = (int)$p;
-	$res = $db_conn->executeQuery("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name='$s' and ps.process_id='$p'");
-	$ps_tid = $res[0]['id'];
-	// get normal_id
-	$res = $db_conn->executeQuery("SELECT normal_id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name='$s' and ps.process_id='$p'");
-	$n = $res[0]['normal_id'];
+	//tumor
+	$ps_tid = get_processed_sample_id($db_conn, $ps_tumor);
+	$n = trim($db_conn->getValue("SELECT normal_id FROM processed_sample WHERE id='$ps_tid'"));
 
-	//NORMAL
-	//get processed sample ID
-	list($s, $p) = explode("_", $ps_normal);
-	$p = (int)$p;
-	$res = $db_conn->executeQuery("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name='$s' and ps.process_id='$p'");
-	$ps_nid = $res[0]['id'];
-
-	if(empty($ps_nid) || empty($ps_tid))	trigger_error("Could not find either tumor ($ps_tumor) or normal ($ps_normal) in NGSD.");
-
-	if(!empty($n) && $ps_nid!=$n)	trigger_error("Different normal sample found in NGSD (NGSD-IDs $ps_nid!=$n) for tumor ($ps_tumor).",E_USER_WARNING);
-
-	if(empty($n) || $overwrite)
+	//normal
+	$ps_nid = get_processed_sample_id($db_conn, $ps_normal);
+	
+	//check not set
+	if($n!="" && $ps_nid!=$n) trigger_error("Normal sample for tumor {$ps_tumor} already set in NGSD (ID={$n}) - cannot set {$ps_normal} as normal sample!", E_USER_WARNING);
+	
+	//set
+	if($n=="" || $overwrite)
 	{
 		$db_conn->executeStmt("UPDATE processed_sample SET normal_id='$ps_nid' WHERE id='$ps_tid'");
 		return true;
@@ -1141,7 +1131,7 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	//normal sample name (tumor reference sample)
 	if($info['normal_id']!="")
 	{
-		$info['normal_name'] = $db_conn->getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND ps.id='".$info['normal_id']."'");
+		$info['normal_name'] = processed_sample_name($db_conn, $info['normal_id']);
 	}
 	else
 	{
@@ -1343,8 +1333,7 @@ function analysis_job_info(&$db_conn, $job_id, $error_if_not_found=true)
 	$res = $db_conn->executeQuery("SELECT processed_sample_id, info FROM analysis_job_sample WHERE analysis_job_id=:job_id ORDER BY id ASC", array("job_id"=>$job_id));
 	foreach($res as $row)
 	{
-		$sample = $db_conn->getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND ps.id='".$row['processed_sample_id']."'");
-		$info['samples'][] = $sample."/".$row['info'];
+		$info['samples'][] = processed_sample_name($db_conn, $row['processed_sample_id'])."/".$row['info'];
 	}
 	
 	//extract history
@@ -1617,7 +1606,7 @@ function add_missing_contigs_to_vcf($build, $vcf)
 		$fai_file_path = genome_fasta($build).".fai";
 		if (!file_exists($fai_file_path))
 		{
-			trigger_error("Fasta index file \"${fai_file_path}\" is missing!", E_USER_ERROR);
+			trigger_error("Fasta index file \"{$fai_file_path}\" is missing!", E_USER_ERROR);
 		}
 		$fai_file_content = file($fai_file_path, FILE_IGNORE_NEW_LINES);
 		foreach ($fai_file_content as $line) 
@@ -1633,7 +1622,7 @@ function add_missing_contigs_to_vcf($build, $vcf)
 			}
 			$chr = trim($parts[0]);
 			$len = intval($parts[1]);
-			$new_contigs[] = "##contig=<ID={$chr}, length={$len}>";
+			$new_contigs[] = "##contig=<ID={$chr},length={$len}>";
 		}
 
 		if(empty($new_contigs))
@@ -2506,4 +2495,49 @@ function get_longread_sequencing_platform($name_short)
         return 'ONT';
     }
 }
+
+/**
+	@brief	Determines the number of reads of a set of ORA files
+	@param	array containing ORA file names
+	@return	int number of reads
+*/
+function get_ora_read_count($ora_files)
+{
+	$read_count = 0;
+	foreach ($ora_files as $ora_file) 
+	{
+		$rc_current_file = -1;
+		list($stdout, $stderr, $exit_code) = execApptainer("orad", "orad", "-i {$ora_file}", [$ora_file]);
+		foreach ($stdout as $line) 
+		{
+			if (starts_with($line, "Total number of sequences"))
+			{
+				$rc_current_file = intval(explode(":", $line)[1]);
+				break;
+			}
+		}
+		if ($rc_current_file < 0) trigger_error("Sequences count not found in ORA stats of file '{$ora_file}'!", E_USER_ERROR);
+		$read_count += $rc_current_file;
+	}
+	return $read_count;
+}
+
+/**
+	@brief	Determines the number of reads of a set of FASTQ files
+	@param	array containing FASTQ file names
+	@return	int number of reads
+*/
+function get_fastq_read_count($fastq_files)
+{
+	$read_count = 0;
+	foreach ($fastq_files as $fastq_file) 
+	{
+		$rc_current_file = -1;
+		list($stdout, $stderr, $exit_code) = exec2("zcat -f {$fastq_file} | wc -l");
+		$rc_current_file = intval($stdout[0]) / 4;
+		$read_count += $rc_current_file;
+	}
+	return $read_count;
+}
+
 ?>

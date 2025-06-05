@@ -143,8 +143,6 @@ if (in_array("ma", $steps))
 	$unmapped_pattern = "{$sample_name}_??.mod.unmapped.bam";
 	$unmapped_bam_files = glob("{$folder}/{$unmapped_pattern}");
 	$old_bam_files = array_merge(glob("{$folder}/{$sample_name}_??.bam"), glob("{$folder}/{$sample_name}_??.cram"));
-	$cram_pattern = "{$sample_name}_??.cram";
-	$old_bam_files = array_merge($old_bam_files, glob("{$folder}/{$cram_pattern}"));
 	$fastq_pattern = "{$sample_name}_??*.fastq.gz";
 	$fastq_files = glob("{$folder}/{$fastq_pattern}");
 	// preference:
@@ -186,21 +184,14 @@ if (in_array("ma", $steps))
 	{
 		//move BAMs/CRAMs to subfolder
 		$old_bam_files_moved = array();
-		$mapping_folder = "{$folder}/bams_for_mapping";
+		$mapping_folder = "{$folder}/bams_for_mapping/";
 		$parser->exec("mkdir", $mapping_folder);
+
 		foreach ($old_bam_files as $old_bam) 
 		{
-			$parser->moveFile($old_bam, $mapping_folder."/".basename($old_bam));
-			//move also index
-			if (ends_with(basename($old_bam), ".bam"))
-			{
-				$parser->moveFile($old_bam.".bai", $mapping_folder."/".basename($old_bam).".bai");
-			}
-			else //CRAM
-			{
-				$parser->moveFile($old_bam.".crai", $mapping_folder."/".basename($old_bam).".crai");
-			}
-			$old_bam_files_moved[] = $mapping_folder."/".basename($old_bam);
+			$basename = basename($old_bam);
+			$parser->moveFile($old_bam, $mapping_folder.$basename);
+			$old_bam_files_moved[] = $mapping_folder.$basename;
 		}
 		$mapping_minimap_options[] = "-in_bam " . implode(" ", $old_bam_files_moved);
 	}
@@ -593,7 +584,7 @@ if (in_array("ph", $steps))
 	$tmp_vcf = $parser->tempFile("_var.vcf");
 	$contig_pipeline = array();
 	$contig_pipeline[] = array("zcat", $vcf_file);
-	$contig_pipeline[] = array("egrep", "-v \"##contig=^\" > {$tmp_vcf}");
+	$contig_pipeline[] = array("egrep", "-v \"^##contig=\" > {$tmp_vcf}");
 	$parser->execPipeline($contig_pipeline, "contig removal");
 	add_missing_contigs_to_vcf($sys['build'], $tmp_vcf);
 	$parser->execApptainer("htslib", "bgzip", "-c {$tmp_vcf} > {$vcf_file}", [], [dirname($vcf_file)]);

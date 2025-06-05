@@ -904,8 +904,10 @@ class ToolBase
 			$add_info[] = "parameters          = $parameters";
 			$this->log("Calling external tool '$command' in container '".basename2($container_path)."'", $add_info);
 		}
-/* 		$this->log("DEBUG: Apptainer version: ".$this->extractVersion("apptainer"));
-		$this->log("DEBUG: Apptainer command: ".$apptainer_command); */
+		/*
+		$this->log("DEBUG: Apptainer version: ".$this->extractVersion("apptainer"));
+		$this->log("DEBUG: Apptainer command: ".$apptainer_command); 
+		*/
 		
 		$pid = getmypid();
 		//execute call - pipe stdout/stderr to file

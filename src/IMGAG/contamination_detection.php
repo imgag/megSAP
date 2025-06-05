@@ -227,7 +227,7 @@ foreach($vars_refound as $ps_id => $vars)
 	if ($ol_count<$min_hits) continue;
 	
 	$overlap_perc = number_format(100.0*$ol_count/$c_vars_ngsd, 2);
-	$ps2 = $db->getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND ps.id={$ps_id}");
+	$ps2 = processed_sample_name($db, $ps_id);
 	
 	//skip same samples
 	if (explode("_", $ps)[0]==explode("_", $ps2)[0]) continue;
