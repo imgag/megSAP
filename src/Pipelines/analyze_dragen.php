@@ -42,6 +42,7 @@ foreach($steps as $step)
 }
 
 //determine processing system
+$system_created_from_ngsd = (is_null($system) || $system=="");
 $sys = load_system($system, $name);
 $is_wes = $sys['type']=="WES";
 $is_wgs = $sys['type']=="WGS";
@@ -399,7 +400,7 @@ $parser->exec("rm", "-rf $working_dir");
 
 //parse megSAP parameter
 $megSAP_args = array();
-if ($system != "") $megSAP_args[] = "-system {$system}";
+if (!$system_created_from_ngsd) $megSAP_args[] = "-system {$system}";
 $megSAP_args[] = "-steps ".implode(",", $steps);
 $megSAP_args[] = "-threads {$threads}";
 if ($rna_sample != "") $megSAP_args[] = "-rna_sample {$rna_sample}";
