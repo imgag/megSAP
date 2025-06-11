@@ -260,7 +260,7 @@ function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 function sample_from_ngsd(&$db, $dna_number, $irp, $itp, $ibad)
 {
 	global $parser;
-	$output = array();
+	$output = [];
 	
 	$project_conditions = "(p.type='diagnostic'".($irp ? " OR p.type='research'" : "").($itp ? " OR p.type='test'" : "").")";
 	
@@ -296,18 +296,18 @@ function sample_from_ngsd(&$db, $dna_number, $irp, $itp, $ibad)
 		$sample = $row['name'];
 		$pipeline = [
 			["", $parser->execApptainer("ngs-bits", "NGSDExportSamples", "-sample {$sample} ".($ibad ? "" : "-no_bad_samples")." -run_finished -add_path SAMPLE_FOLDER", [], [], true)],
-			["", $parser->execApptainer("ngs-bits", "TsvSlice", "-cols 'name,project_type,project_name,path,quality'", [], [], true)],
+			["", $parser->execApptainer("ngs-bits", "TsvSlice", "-cols 'name,project_type,project_name,path,quality,system_name_short'", [], [], true)],
 		];
 		list($stdout) = $parser->execPipeline($pipeline, "NGSD sample extraction");
 		foreach($stdout as $line)
 		{
 			$line = trim($line);
 			if ($line=="" || $line[0]=="#") continue;
-			list($ps, $project_type, $project_name, $path, $quality) = explode("\t", $line);
+			list($ps, $project_type, $project_name, $path, $quality, $system) = explode("\t", $line);
 			if ($project_type=="research" && !$irp) continue;
 			if ($project_type=="test" && !$itp) continue;
 			if ($project_name=="RPGR-Ex15") continue;
-			$output[$sample][] = array($ps, $path, $quality);
+			$output[$sample][] = array($ps, $path, $quality, $system);
 		}
 	}
 	
@@ -556,7 +556,7 @@ foreach($file as $line)
 				print "  NGSD sample: {$sample}\n";
 				
 				$bams_found = 0;
-				foreach($ps_data as list($ps, $folder, $quality))
+				foreach($ps_data as list($ps, $folder, $quality, $system))
 				{
 					$bam = realpath("$folder/{$ps}.bam");
 					if (!file_exists($bam)) //fallback to CRAM
@@ -623,7 +623,7 @@ foreach($file as $line)
 						}
 
 						//determine overall match
-						print "    ".basename2($bam)." ".($quality=="bad" ? "(bad)" : "")." kasp:$c_kasp both:$c_both match:$c_match";
+						print "    ".basename2($bam)." sys:{$system}".($quality=="bad" ? " [qualty:bad]" : "")." kasp:$c_kasp both:$c_both match:$c_match";
 						if ($c_both<=6)
 						{
 							$messages[] = "ERROR - too few common SNPs";

@@ -143,8 +143,6 @@ if (in_array("ma", $steps))
 	$unmapped_pattern = "{$sample_name}_??.mod.unmapped.bam";
 	$unmapped_bam_files = glob("{$folder}/{$unmapped_pattern}");
 	$old_bam_files = array_merge(glob("{$folder}/{$sample_name}_??.bam"), glob("{$folder}/{$sample_name}_??.cram"));
-	$cram_pattern = "{$sample_name}_??.cram";
-	$old_bam_files = array_merge($old_bam_files, glob("{$folder}/{$cram_pattern}"));
 	$fastq_pattern = "{$sample_name}_??*.fastq.gz";
 	$fastq_files = glob("{$folder}/{$fastq_pattern}");
 	// preference:
@@ -186,21 +184,14 @@ if (in_array("ma", $steps))
 	{
 		//move BAMs/CRAMs to subfolder
 		$old_bam_files_moved = array();
-		$mapping_folder = "{$folder}/bams_for_mapping";
+		$mapping_folder = "{$folder}/bams_for_mapping/";
 		$parser->exec("mkdir", $mapping_folder);
+
 		foreach ($old_bam_files as $old_bam) 
 		{
-			$parser->moveFile($old_bam, $mapping_folder."/".basename($old_bam));
-			//move also index
-			if (ends_with(basename($old_bam), ".bam"))
-			{
-				$parser->moveFile($old_bam.".bai", $mapping_folder."/".basename($old_bam).".bai");
-			}
-			else //CRAM
-			{
-				$parser->moveFile($old_bam.".crai", $mapping_folder."/".basename($old_bam).".crai");
-			}
-			$old_bam_files_moved[] = $mapping_folder."/".basename($old_bam);
+			$basename = basename($old_bam);
+			$parser->moveFile($old_bam, $mapping_folder.$basename);
+			$old_bam_files_moved[] = $mapping_folder.$basename;
 		}
 		$mapping_minimap_options[] = "-in_bam " . implode(" ", $old_bam_files_moved);
 	}
@@ -401,6 +392,8 @@ if (in_array("vc", $steps))
 		$args[] = "-min_af ".$min_af;
 		$args[] = "-min_mq ".$min_mq;
 		$args[] = "-min_bq ".$min_bq;
+		$args[] = "-add_sample_header";
+		$args[] = "-name ".$name;
 
 		if ($gpu)
 		{
@@ -591,7 +584,7 @@ if (in_array("ph", $steps))
 	$tmp_vcf = $parser->tempFile("_var.vcf");
 	$contig_pipeline = array();
 	$contig_pipeline[] = array("zcat", $vcf_file);
-	$contig_pipeline[] = array("egrep", "-v \"##contig=^\" > {$tmp_vcf}");
+	$contig_pipeline[] = array("egrep", "-v \"^##contig=\" > {$tmp_vcf}");
 	$parser->execPipeline($contig_pipeline, "contig removal");
 	add_missing_contigs_to_vcf($sys['build'], $tmp_vcf);
 	$parser->execApptainer("htslib", "bgzip", "-c {$tmp_vcf} > {$vcf_file}", [], [dirname($vcf_file)]);
@@ -786,7 +779,7 @@ if (in_array("an", $steps))
 		$prs_scoring_files = glob($prs_folder."/*_".$build.".vcf");
 		if (count($prs_scoring_files) > 0)
 		{
-			$parser->execApptainer("ngs-bits", "VcfCalculatePRS", "-in {$vcf_file} -bam {$used_bam_or_cram} -out $prs_file -prs ".implode(" ", $prs_scoring_files)." -ref $genome", [$folder, $genome, $prs_folder]);
+			$parser->execApptainer("ngs-bits", "VcfCalculatePRS", "-in {$vcf_file} -bam {$used_bam_or_cram} -out $prs_file -prs ".implode(" ", $prs_scoring_files)." -ref $genome -long_read", [$folder, $genome, $prs_folder]);
 		}
 
 		//determine ancestry
@@ -963,10 +956,21 @@ if (in_array("an", $steps))
 }
 
 // collect other QC terms - if CNV or SV calling was done
-if ((in_array("cn", $steps) || in_array("sv", $steps) || in_array("an", $steps)))
+if ((in_array("ma", $steps)) || (in_array("cn", $steps) || in_array("sv", $steps) || in_array("an", $steps)))
 {
 	$terms = [];
 	$sources = [];
+
+	//Basecall model
+	if (file_exists($used_bam_or_cram))
+	{
+		$basecall_model = get_basecall_model($used_bam_or_cram);
+		if ($basecall_model != "")
+		{
+			$terms[] = "QC:2000149\t{$basecall_model}";
+			$sources[] = $used_bam_or_cram;
+		}	
+	}
 	
 	//CNVs
 	if (file_exists($cnv_file))
@@ -996,7 +1000,7 @@ if ((in_array("cn", $steps) || in_array("sv", $steps) || in_array("an", $steps))
 			{
 				$parts = explode("\t", $line);
 				$ll = $parts[4];
-				if ($ll>=20)
+				if ($ll>=12) # changed to 12 for long-reads
 				{
 					++$cnv_count_hq;
 					

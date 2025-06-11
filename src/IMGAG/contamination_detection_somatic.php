@@ -101,7 +101,7 @@ foreach($var_refound_by_ps_id as $ps_id => $vars_refound)
 	$overlap_perc = 100.0*$vars_refound / $c_vars_used;
 	if($overlap_perc < $min_overlap_percentage) continue;
 	
-	$ps_name = $db->getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND ps.id={$ps_id}");
+	$ps_name = processed_sample_name($db, $ps_id);
 	if (contains($gsvar, $ps_name)) continue; //skip tumor and normal sample
 		
 	print "{$ps_name}\t ". number_format($overlap_perc, 2) ."\t{$vars_refound}\n";
