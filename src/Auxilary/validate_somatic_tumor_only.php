@@ -16,34 +16,18 @@ $parser->addInfileArray("calls", "Somatic variant call files (VCF.GZ). Sorted in
 $parser->addString("tum_content", "Tumor content in the samples used for the calls given as comma seperated string '5,10,20,40'. If not given tum_content will be approximated from variant af. This may underestimate actual content", true);
 $parser->addOutfile("vars_details", "Output TSV file for variant details.", false);
 $parser->addOutfile("af_details", "Output TSV file for AF-specific output.", false);
+$parser->addEnum("caller", "The caller used to create the vcf files given in '-calls'", false, ["varscan", "deepsomatic"]);
 $parser->addFlag("ignore_filters", "Ignores filter column entries.");
 extract($parser->parse($argv));
-
-//returns if the variant is an InDels
-function is_indel($tag)
-{
-	list($chr, $pos, $ref, $alt) = explode(" ", strtr($tag, ":>", "  "));
-	return strlen($ref) > 1 || strlen($alt) > 1;
-}
-
-//returns the base count of a BED file
-function get_bases($filename)
-{
-	global $parser;
-	
-	list($stdout) = $parser->execApptainer("ngs-bits", "BedInfo", "-in $filename", [$filename]);
-	$hits = array_containing($stdout, "Bases ");
-	$parts = explode(":", $hits[0]);
-	return trim($parts[1]);
-}
 
 //load VCF variants. 'Caller' argument can modify information loaded for different callers (af and depth) and the reference files (genotype)
 function load_vcf($filename, $roi, $caller)
 {
+	global $parser;
 	global $ignore_filters;
 	
 	$output = array();
-	list($lines) = exec2("tabix --regions {$roi} {$filename}");
+	list($lines) = $parser->execApptainer("htslib", "tabix", "--regions {$roi} {$filename}", [$roi], [dirname($filename)]);
 	foreach($lines as $line)
 	{
 		$line = trim($line);
@@ -68,7 +52,17 @@ function load_vcf($filename, $roi, $caller)
 			
 			$output[$tag] = array($af, $dp, $filter);
 		}
+		else if ($caller == "deepsomatic")
+		{
+			list($dp, $af) = vcf_deepvariant($format, $sample);
 
+			//clear filter column
+			$filter_replace = ["PASS"=>"", "freq-tum"=>"", ";"=>""];
+			$filter = trim(strtr($filter, $filter_replace));
+			if ($ignore_filters) $filter = "";
+			
+			$output[$tag] = array($af, $dp, $filter);
+		}
 		else if ($caller == "ref")
 		{
 			
@@ -90,46 +84,6 @@ function load_vcf($filename, $roi, $caller)
 	}
 	return $output;
 }
-
-//checks if the variant type matches
-function type_matches($type, $tag)
-{	
-	if ($type=="SNVs" && is_indel($tag)) return false;
-	if ($type=="InDels" && !is_indel($tag)) return false;
-	
-	return true;
-}
-
-//create a sorted list with all unique variants in the given lists
-function create_unique_variants_list($parser, $details_all)
-{
-	$vars_all = [];
-	$vcf = [];
-	$vcf[] = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
-	foreach($details_all as $name => $file_vars)
-	{
-		foreach($file_vars as $var => $result)
-		{
-			list($chr, $pos, $ref, $alt) = explode(" ", strtr($var, "-:>", "   "));
-			$vcf[] = $chr."\t".$pos."\t.\t".$ref."\t".$alt."\t100\tPASS\t";
-		}
-	}
-	$tmp = $parser->tempFile(".vcf");
-	file_put_contents($tmp, implode("\n", $vcf));
-	$tmp2 = $parser->tempFile(".vcf");
-	list($stdout) = $parser->execApptainer("ngs-bits", "VcfSort", "-in $tmp -out $tmp2 && sort --uniq $tmp2");
-	foreach($stdout as $line)
-	{
-		$line = trim($line);
-		if ($line=="" || $line[0]=="#") continue;
-		list($chr, $pos, $id, $ref, $alt) = explode("\t", $line);
-		$vars_all[] = "$chr:$pos $ref>$alt";
-	}
-	
-	return $vars_all;
-}
-
-
 
 //***** MAIN SCRIPT *****\\
 
@@ -172,7 +126,7 @@ print "#name\texpected\tTP\tTN\tFP\tFN\trecall/sensitivity\tprecision/ppv\tspeci
 foreach($calls as $filename)
 {
 	$name = basename($filename, "_var.vcf.gz");
-	$vars = load_vcf($filename, $roi, "varscan");
+	$vars = load_vcf($filename, $roi, $caller);
 
 	// remove germline variants of 'tumor' sample resulting in the called induced tumor variants
 	foreach($vars as $var => $gt)

@@ -20,7 +20,7 @@ $parser->addString("normal_id", "Sample name for normal sample. If not specified
 $parser->addString("tumor_id", "Sample name for tumor sample. If not specified, will be inferred from the header information from --bam_tumor", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addString("gvcf", "Enable output of gVCF files and define output filepath for gVCF files.", true, "");
-$parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.15);
+$parser->addFloat("min_af", "Minimum allele frequency cutoff used for variant calling.", true, 0.05);
 $parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 20);
 $parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.", true, 10);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
@@ -78,8 +78,7 @@ $parser->execApptainer("deepsomatic", "run_deepsomatic", implode(" ", $args)." -
 
 //filter variants according to variant quality>5
 $pipeline[] = ["zcat", "$vcf_deepvar_out"];
-$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-qual 5 -remove_invalid -ref $genome", [$genome], [], true)];
-/* } */
+#$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-qual 5 -remove_invalid -ref $genome", [$genome], [], true)];
 
 //split complex variants to primitives
 //this step has to be performed before VcfBreakMulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
@@ -122,10 +121,6 @@ if (!$tumor_only)
 	$min_td = 20;
 	$min_taf = 0.05;
 	$min_tsupp = 3;
-	$min_nd = 15;
-	$max_naf_rel = 1/6;
-	$min_call_sq = 5;
-	$min_filter_sq = 17.5;
 
 	//set comments and column names
 	$filter_format = '#FILTER=<ID=%s,Description="%s">';
@@ -148,7 +143,6 @@ if (!$tumor_only)
 		$alt = $row[4];
 		$format = $row[8];
 		$tumor = $row[$colidx_tumor];
-		$normal = $row[$colidx_normal];
 
 		$filters = [];
 		$type = (strlen($row[3]) > 1 || strlen($row[4]) > 1) ? "INDEL" : "SNV";
