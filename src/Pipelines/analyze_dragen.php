@@ -146,6 +146,7 @@ if (count($files_forward) == 0)
 	}	
 }
 
+$input_bam = "";
 if (count($files_forward) == 0)
 {
 	//fallback to BAM/CRAM
@@ -164,6 +165,7 @@ if (count($files_forward) == 0)
 	$parser->moveFile($input_bam, "{$folder}/bams_for_mapping/".basename($input_bam));
 	$input_bam = "{$folder}/bams_for_mapping/".basename($input_bam);
 
+	/*
 	//convert BAM/CRAM to FastQ (don't use temp since it is tiny on DRAGEN)
 	$fastq_r1 = "{$working_dir}/{$name}_BamToFastq_R1_001.fastq.gz";
 	$fastq_r2 = "{$working_dir}/{$name}_BamToFastq_R2_001.fastq.gz";
@@ -171,13 +173,12 @@ if (count($files_forward) == 0)
 	$parser->exec("samtools", "fastq -1 {$fastq_r1} -2 {$fastq_r2} -0 /dev/null -s /dev/null -n {$input_bam} --reference {$genome} -@ 15");
 	$files_forward = array($fastq_r1);
 	$files_reverse = array($fastq_r2);
-
+	*/
 }
 
 //define output files
 $out_cram = $folder."/".$name.".cram";
 $dragen_out_folder = $folder."/dragen_variant_calls/";
-$parser->exec("mkdir", "-p {$dragen_out_folder}");
 $out_vcf = $dragen_out_folder."/".$name."_dragen.vcf.gz";
 $out_gvcf = $dragen_out_folder."/".$name."_dragen.gvcf.gz";
 $out_sv = $dragen_out_folder."/".$name."_dragen_svs.vcf.gz";
@@ -203,8 +204,7 @@ if (!is_writable2($out_cnv_raw)) trigger_error("Output file '{$out_cnv_raw}' is 
 
 // ********************************* call dragen *********************************//
 
-//create FastQ file list
-$fastq_file_list_data = array("RGID,RGSM,RGLB,Lane,Read1File,Read2File,RGDT,RGPL");
+$dragen_parameter = [];
 
 //get library
 $rglb = "UnknownLibrary";
@@ -217,52 +217,92 @@ if(db_is_enabled("NGSD"))
 	$device_type = $psample_info['device_type'];
 }
 
-for ($i=0; $i < count($files_forward); $i++) 
-{ 
-	$fastq_for = $files_forward[$i];
-	$fastq_rev = $files_reverse[$i];
-	
-	//extract lane
-	$lane = 1;
-	$filename_r1 = array_reverse(explode("_", basename2($fastq_for)));
-	$filename_r2 = array_reverse(explode("_", basename2($fastq_rev)));
+if ($input_bam != "")
+{
+	//use BAM/CRAM as input
+	if (ends_with($input_bam, ".cram")) $dragen_parameter[] = "--cram-input {$input_bam}";
+	else $dragen_parameter[] = "--bam-input {$input_bam}";
 
-	//sanity check
-	if (count($filename_r1)!=count($filename_r2)) trigger_error("Found mismatching file name in forward and reverse read file!\n Forward: ".implode("_", $filename_r1)."\n Reverse: ".implode("_", $filename_r2), E_USER_ERROR);
-	
-	for ($j=0; $j < count($filename_r1); $j++) 
+	// $dragen_parameter[] = "--RGID {$name}";
+	// $dragen_parameter[] = "--RGSM {$name}";
+	// $dragen_parameter[] = "--RGDT ".date("c");
+	// $dragen_parameter[] = "--RGPL '{$rglb}'";
+	// $dragen_parameter[] = "--RGLB '{$device_type}'";
+}
+else
+{
+	//concat Fastq files
+	$fastq_r1 = "{$working_dir}/{$name}_merged_R1_001.fastq.gz";
+	$fastq_r2 = "{$working_dir}/{$name}_merged_R2_001.fastq.gz";
+
+	$parser->exec("cat", implode(" ", $files_forward)." > {$fastq_r1}");
+	$parser->exec("cat", implode(" ", $files_reverse)." > {$fastq_r2}");
+
+	/*
+	//create FastQ file list
+	$fastq_file_list_data = array("RGID,RGSM,RGLB,Lane,Read1File,Read2File,RGDT,RGPL");
+
+	for ($i=0; $i < count($files_forward); $i++) 
 	{ 
-		if (starts_with("L0", $filename_r1[$j]))
-		{
-			if (starts_with("L0", $filename_r2[$j]))
-			{
-				//extract lane
-				$lane_r1 = intval(substr($filename_r1[$j], 1));
-				$lane_r2 = intval(substr($filename_r2[$j], 1));
+		$fastq_for = $files_forward[$i];
+		$fastq_rev = $files_reverse[$i];
+		
+		//extract lane
+		$lane = 1;
+		$filename_r1 = array_reverse(explode("_", basename2($fastq_for)));
+		$filename_r2 = array_reverse(explode("_", basename2($fastq_rev)));
 
-				if($lane_r1 == $lane_r2)
-				{
-					$lane = $lane_r1;
-					break;
-				}
-				else
-				{
-					trigger_error("Lane of forward and reverse read file do not match!\n Forward: ".implode("_", $filename_r1)."\n Reverse: ".implode("_", $filename_r2), E_USER_ERROR);
-				}
-			}
-			else 
+		//sanity check
+		if (count($filename_r1)!=count($filename_r2)) trigger_error("Found mismatching file name in forward and reverse read file!\n Forward: ".implode("_", $filename_r1)."\n Reverse: ".implode("_", $filename_r2), E_USER_ERROR);
+		
+		//extract lane
+		for ($j=0; $j < count($filename_r1); $j++) 
+		{ 
+			if (starts_with("L0", $filename_r1[$j]))
 			{
-				trigger_error("Found mismatching file name in forward and reverse read file!\n Forward: ".implode("_", $filename_r1)."\n Reverse: ".implode("_", $filename_r2), E_USER_ERROR);
+				if (starts_with("L0", $filename_r2[$j]))
+				{
+					$lane_r1 = intval(substr($filename_r1[$j], 1));
+					$lane_r2 = intval(substr($filename_r2[$j], 1));
+
+					if($lane_r1 == $lane_r2)
+					{
+						$lane = $lane_r1;
+						break;
+					}
+					else
+					{
+						trigger_error("Lane of forward and reverse read file do not match!\n Forward: ".implode("_", $filename_r1)."\n Reverse: ".implode("_", $filename_r2), E_USER_ERROR);
+					}
+				}
+				else 
+				{
+					trigger_error("Found mismatching file name in forward and reverse read file!\n Forward: ".implode("_", $filename_r1)."\n Reverse: ".implode("_", $filename_r2), E_USER_ERROR);
+				}
 			}
 		}
-	}
 
-	//add line to CSV
-	$fastq_file_list_data[] = "{$name},{$name},{$rglb},{$lane},{$fastq_for},{$fastq_rev},".date("c").",{$device_type}";
+		//add line to CSV
+		$fastq_file_list_data[] = "{$name},{$name},{$rglb},{$lane},{$fastq_for},{$fastq_rev},".date("c").",{$device_type}";
+
+	}
+	$fastq_file_list = $parser->tempFile(".csv");
+	if ($debug) $parser->log("FastQ file list:", $fastq_file_list_data); //debug
+	file_put_contents($fastq_file_list, implode("\n", $fastq_file_list_data));
+
+	//add dragen parameter:
+	$dragen_parameter[] = "--fastq-list ".$fastq_file_list;
+	*/
+
+	$dragen_parameter[] = "-1 ".$fastq_r1;
+	$dragen_parameter[] = "-2 ".$fastq_r2;
+
+	$dragen_parameter[] = "--RGID {$name}";
+	$dragen_parameter[] = "--RGSM {$name}";
+	$dragen_parameter[] = "--RGDT ".date("c");
+	$dragen_parameter[] = "--RGPL '{$rglb}'";
+	$dragen_parameter[] = "--RGLB '{$device_type}'";
 }
-$fastq_file_list = $parser->tempFile(".csv");
-if ($debug) $parser->log("FastQ file list:", $fastq_file_list_data); //debug
-file_put_contents($fastq_file_list, implode("\n", $fastq_file_list_data));
 
 //create target region for exomes/panels
 if ($is_wes || $is_panel)
@@ -288,20 +328,22 @@ if ($is_wes || $is_panel)
 	file_put_contents($target_extended, implode("\n", $target_region_extended));
 }
 
+
+
 //parameters
-$dragen_parameter = [];
 $dragen_parameter[] = "-r ".$dragen_genome_path;
-$dragen_parameter[] = "--fastq-list ".$fastq_file_list;
 $dragen_parameter[] = "--ora-reference ".get_path("data_folder")."/dbs/oradata/";
 $dragen_parameter[] = "--output-directory $working_dir";
 $dragen_parameter[] = "--output-file-prefix {$name}";
 //TODO: test and re-enable with DRAGEN  4.4
-// $dragen_parameter[] = "--output-format CRAM"; //always use CRAM
+$dragen_parameter[] = "--output-format CRAM"; //always use CRAM
 $dragen_parameter[] = "--enable-map-align-output=true";
 $dragen_parameter[] = "--enable-bam-indexing true";
 $dragen_parameter[] = "--enable-rh=false"; //disabled RH special caller because this leads to variants with EVENTTYPE=GENE_CONVERSION that have no DP and AF entry and sometimes are duplicated (same variant twice in the VCF).
+
 if ($is_wgs)
 {
+	//TODO re-enable
 	$dragen_parameter[] = "--enable-cnv true";
 	$dragen_parameter[] = "--cnv-enable-self-normalization true";
 	$dragen_parameter[] = "--vc-ml-enable-recalibration=false"; //disabled because it leads to a sensitivity drop for Twist Exome V2 (see /mnt/storage2/users/ahsturm1/scripts/2025_03_21_megSAP_release_performance)
@@ -362,11 +404,12 @@ else
 {
 	//TODO: test and re-enable with DRAGEN  4.4
 	//copy CRAM/CRAI to sample folder
-	// $parser->log("Copying CRAM/CRAI to output folder");
-	// $parser->copyFile($working_dir.$name.".cram", $out_cram);
-	// $parser->copyFile($working_dir.$name.".cram.crai", $out_cram.".crai");
+	$parser->log("Copying CRAM/CRAI to output folder");
+	$parser->copyFile($working_dir.$name.".cram", $out_cram);
+	$parser->copyFile($working_dir.$name.".cram.crai", $out_cram.".crai");
 
 	//TODO remove if CRAM is working
+	/*
 	//test: convert BAM to CRAM and check read-counts
 	$bam = $working_dir.$name.".bam";
 	$parser->exec("samtools", "view -@ 15 -C -T {$genome} -o {$out_cram} {$bam}");
@@ -385,9 +428,11 @@ else
 		if ($rel_diff > 0.001) trigger_error("Read counts of BAM and CRAM file do not match! \n {$bam_read_count} (BAM) vs. {$cram_read_count} (CRAM)", E_USER_ERROR);
 	}
 	//else: everything is fine
+	*/
 
 	// copy small variant calls to sample folder
 	$parser->log("Copying small variants to output folder");
+	$parser->exec("mkdir", "-p {$dragen_out_folder}");
 	$parser->copyFile($working_dir.$name.".hard-filtered.vcf.gz", $out_vcf);
 	$parser->copyFile($working_dir.$name.".hard-filtered.vcf.gz.tbi", $out_vcf.".tbi");
 	$parser->copyFile($working_dir.$name.".hard-filtered.gvcf.gz", $out_gvcf);
