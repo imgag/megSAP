@@ -194,6 +194,7 @@ foreach ($files_reverse as $in_file)
 {
 	if (!is_readable($in_file)) trigger_error("Input file '{$in_file}' is not readable!", E_USER_ERROR);
 }
+$parser->exec("mkdir", "-p {$dragen_out_folder}");
 if (!is_writable2($out_cram)) trigger_error("Output file '{$out_cram}' is not writable!", E_USER_ERROR);
 if (!is_writable2($out_vcf)) trigger_error("Output file '{$out_vcf}' is not writable!", E_USER_ERROR);
 if (!is_writable2($out_gvcf)) trigger_error("Output file '{$out_gvcf}' is not writable!", E_USER_ERROR);
