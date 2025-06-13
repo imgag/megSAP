@@ -232,14 +232,15 @@ if ($input_bam != "")
 }
 else
 {
+	/*
 	//concat Fastq files
 	$fastq_r1 = "{$working_dir}/{$name}_merged_R1_001.fastq.gz";
 	$fastq_r2 = "{$working_dir}/{$name}_merged_R2_001.fastq.gz";
 
 	$parser->exec("cat", implode(" ", $files_forward)." > {$fastq_r1}");
 	$parser->exec("cat", implode(" ", $files_reverse)." > {$fastq_r2}");
-
-	/*
+	*/
+	
 	//create FastQ file list
 	$fastq_file_list_data = array("RGID,RGSM,RGLB,Lane,Read1File,Read2File,RGDT,RGPL");
 
@@ -293,8 +294,8 @@ else
 
 	//add dragen parameter:
 	$dragen_parameter[] = "--fastq-list ".$fastq_file_list;
-	*/
-
+	
+	/*
 	$dragen_parameter[] = "-1 ".$fastq_r1;
 	$dragen_parameter[] = "-2 ".$fastq_r2;
 
@@ -303,6 +304,7 @@ else
 	$dragen_parameter[] = "--RGDT ".date("c");
 	$dragen_parameter[] = "--RGPL '{$rglb}'";
 	$dragen_parameter[] = "--RGLB '{$device_type}'";
+	*/
 }
 
 //create target region for exomes/panels
@@ -328,8 +330,6 @@ if ($is_wes || $is_panel)
 	}
 	file_put_contents($target_extended, implode("\n", $target_region_extended));
 }
-
-
 
 //parameters
 $dragen_parameter[] = "-r ".$dragen_genome_path;
@@ -481,7 +481,7 @@ if ($no_queuing)
 }
 else 
 {
-	$parser->execTool("Tools/db_queue_analysis.php", "-type 'single sample' -samples {$name} -ignore_running_jobs {$high_priority_str} -args '".implode(" ", $megSAP_args)."'");
+	$parser->execTool("Tools/db_queue_analysis.php", "-user unknown -type 'single sample' -samples {$name} -ignore_running_jobs {$high_priority_str} -args '".implode(" ", $megSAP_args)."'");
 }
 
 //print to STDOUT executed successfully (because there is no exit code from SGE after a job has finished)
