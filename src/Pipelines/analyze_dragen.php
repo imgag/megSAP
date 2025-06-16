@@ -23,6 +23,7 @@ $parser->addFlag("no_queuing", "Do not queue megSAP analysis afterwards.");
 $parser->addFlag("dragen_only", "Perform only DRAGEN analysis and copy all output files without renaming (not compatible with later megSAP analysis).");
 $parser->addFlag("debug", "Add debug output to the log file.");
 $parser->addFlag("high_priority", "Queue megSAP analysis with high priority.");
+$parser->addString("user", "User used to queue megSAP analysis (has to be in the NGSD).", true, "");
 
 extract($parser->parse($argv));
 
@@ -475,13 +476,16 @@ $high_priority_str = ($high_priority)? "-high_priority " : "";
 
 //queue analysis
 
+if ($user == "") $user = "unknown";
+$queuing_params = "-user {$user} -type 'single sample' -samples {$name} -ignore_running_jobs {$high_priority_str} -args '".implode(" ", $megSAP_args)."'";
+
 if ($no_queuing) 
 {
-	trigger_error("megSAP queueing skipped! \nCommand to queue analysis: \n\tphp ".repository_basedir()."/src/Tools/db_queue_analysis.php -type 'single sample' -samples {$name} -ignore_running_jobs {$high_priority_str} -args '".implode(" ", $megSAP_args)."'", E_USER_NOTICE);
+	trigger_error("megSAP queuing skipped! \nCommand to queue analysis: \n\tphp ".repository_basedir()."/src/Tools/db_queue_analysis.php {$queuing_params}", E_USER_NOTICE);
 }
 else 
 {
-	$parser->execTool("Tools/db_queue_analysis.php", "-user unknown -type 'single sample' -samples {$name} -ignore_running_jobs {$high_priority_str} -args '".implode(" ", $megSAP_args)."'");
+	$parser->execTool("Tools/db_queue_analysis.php", $queuing_params);
 }
 
 //print to STDOUT executed successfully (because there is no exit code from SGE after a job has finished)
