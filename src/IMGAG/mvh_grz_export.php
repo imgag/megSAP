@@ -402,7 +402,6 @@ else trigger_error("Unhandled network type '{$network}'!", E_USER_ERROR);
 
 //check seqencing mode
 $seq_mode = $cm_data->seq_mode;
-if ($test && $seq_mode=="") $seq_mode="WES"; //TODO
 if ($seq_mode!="WGS" && $seq_mode!="WES") trigger_error("Unhandled seq_mode '{$seq_mode}'!", E_USER_ERROR);
 
 print "case: {$case_id} (seq_mode: {$seq_mode} / network: {$network})\n";
@@ -440,6 +439,7 @@ if ($seq_mode!="WGS" && $roi=="") trigger_error("Could not determine target regi
 $sub_ids = $db_mvh->getValues("SELECT id FROM `submission_grz` WHERE status='pending' AND case_id='$case_id}'");
 if (count($sub_ids)!=1)  trigger_error(count($sub_ids)." pending GRZ submissions for case {$case_id}. Must be one!", E_USER_ERROR);
 $sub_id = $sub_ids[0];
+print "SUBMISSION ID MVH DB: {$sub_id}\n";
 $tang = $db_mvh->getValue("SELECT tang FROM submission_grz WHERE id='{$sub_id}'");
 
 //determine megSAP version from germline GSvar file
@@ -552,7 +552,6 @@ foreach(explode("\n", $rc_data) as $line)
 	
 	foreach(explode(", ", $provisions) as $provision)
 	{
-		print "prov: ".$provision."\n";
 		if (starts_with($provision, "2.16.840.1.113883.3.1937.777.24.5.3.8/") || starts_with($provision, "2.16.840.1.113883.3.1937.777.24.5.3.1/"))
 		{
 			$research_use_allowed = true;
@@ -679,10 +678,9 @@ if ($exit_code!=0)
 	trigger_error("grz-cli upload failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
 }
 
-//update submission status in database: MVH/submission_grz
+//print submission ID for wrapper script
 $submission_id = trim(implode("", file($stdout)));
-$db_mvh->executeStmt("UPDATE submission_grz SET status='done', submission_id='{$submission_id}' WHERE id='{$sub_id}'");
-//TODO how do we see that the script failed and update MVH database? A wrapper around this script would be best...
+print "SUBMISSION ID GRZ: {$submission_id}\n";
 
 //clean up export folder if successfull
 if (!$test)
