@@ -27,6 +27,26 @@ function get_cm_data($case_id)
 	return simplexml_load_string($lines_not_repeat[0], "SimpleXMLElement", LIBXML_NOCDATA);;
 }
 
+//returns GenLab data as a dictionary
+function get_gl_data($case_id)
+{
+	global $db_mvh;
+
+	$output = [];
+	
+	$lines = explode("\n", $db_mvh->getValue("SELECT gl_data FROM case_data WHERE id='{$case_id}'", ""));
+	foreach($lines as $line)
+	{
+		$line = trim($line);
+		if ($line=="" || !contains($line, ":")) continue;
+		
+		list($key, $value) = explode(": ", $line, 2);
+		$output[$key] = $value;
+	}
+	
+	return $output;
+}
+
 function not_empty($value, $element)
 {
 	if (trim($value)=="") trigger_error("Value '{$value}' of element {$element} must not be empty!", E_USER_ERROR);
@@ -76,6 +96,15 @@ function convert_sequencer_manufacturer($name)
 	if ($name=="PromethION") return "ONT";
 	
 	trigger_error("Unhandled sequencer name '{$name}'!", E_USER_ERROR);
+}
+
+function convert_coverage($accounting_mode)
+{
+	if ($accounting_mode=="Modellvorhaben") $converage_type = "GKV";
+	else if ($accounting_mode=="Privat (GOÄ)") $converage_type = "PKV";
+	else trigger_error("Could not determine coverage type from GenLab accounting mode '{$accounting_mode}'!", E_USER_ERROR);
+	
+	return $converage_type;
 }
 
 function megsap_version($gsvar)
@@ -341,6 +370,9 @@ if ($clear) exec2("rm -rf {$folder} {$qc_folder}");
 //parse case management data
 $cm_data = get_cm_data($case_id);
 
+//parse GenLab data
+$gl_data = get_gl_data($case_id);
+
 //check network > determine KDK and study_subtype
 $network = $cm_data->network_title;
 $kdk = "";
@@ -427,8 +459,9 @@ if ($is_somatic)
 	$read_length_t = get_read_length($ps_t, $info_t);
 }
 
-//TODO add support for lrGS
-//TODO? add support for trio and RNA
+//TODO add support for lrGS (also in run_qc_pipeline)
+//TODO add support for trio
+//TODO add support for RNA
 //create germline raw data (FASTQs + germline VCF)
 $n_bam = $info['ps_bam'];
 $n_fq1 = "{$folder}/files/{$tang}_normal_R1.fastq.gz";
@@ -502,6 +535,51 @@ if ($is_somatic)
 	$lab_data[] = create_lab_data_json($files_t, $info_t, $grz_qc_t, true);
 }
 
+//prepare research consent data - for format see https://www.medizininformatik-initiative.de/Kerndatensatz/KDS_Consent_V2025/MII-IG-Modul-Consent-TechnischeImplementierung-FHIRProfile-Consent.html
+$active_consent_count = 0;
+$research_use_allowed = false;
+$code = "";
+$rc_data = $db_mvh->getValue("SELECT rc_data FROM case_data WHERE id='{$case_id}'");
+foreach(explode("\n", $rc_data) as $line)
+{
+	$line = trim($line);
+	if ($line=="" || !contains($line, ":")) continue;
+	
+	list($base_data, $provisions) = explode(": ", $line, 2);
+	list($date, $status) = explode("/", $base_data);
+	if ($status!="active") continue;
+	++$active_consent_count;
+	
+	foreach(explode(", ", $provisions) as $provision)
+	{
+		print "prov: ".$provision."\n";
+		if (starts_with($provision, "2.16.840.1.113883.3.1937.777.24.5.3.8/") || starts_with($provision, "2.16.840.1.113883.3.1937.777.24.5.3.1/"))
+		{
+			$research_use_allowed = true;
+			$code = explode("/", $provision)[0];
+		}
+	}
+}
+if ($active_consent_count==0) trigger_error("No active consent found in MVH data:\n{$rc_data}", E_USER_ERROR);
+if ($active_consent_count>1) trigger_error("More than one active consent found in MVH data:\n{$rc_data}", E_USER_ERROR);
+$research_consent = [
+	"provision" => [
+		"type" => "deny",
+		"provision" => [
+			[
+				"code" => [
+					"coding" => [
+						[
+							"code" => $code
+						]
+					]
+				],
+				"type" => ($research_use_allowed ? "permit" : "deny")
+			]
+		]
+	]
+];
+
 //create meta data JSON
 print "  creating metadata...\n";
 $json = [];
@@ -511,7 +589,7 @@ $json['submission'] = [
 	"submissionType" => $db_mvh->getValue("SELECT type FROM submission_grz WHERE id='{$sub_id}'"),
 	"tanG" => $tang,
 	"localCaseId" => $patient_id,
-	"coverageType" => "UNK", //TODO get from GenLab
+	"coverageType" => convert_coverage($gl_data["accounting_mode"]),
 	"submitterId" => "260840108",
 	"genomicDataCenterId" => "GRZTUE002",
 	"clinicalDataNodeId" => $kdk,
@@ -550,7 +628,7 @@ $json['donors'] = [
 				0 => [
 					"schemaVersion" => "2025.0.1",
 					"presentationDate" => (string)($cm_data->bc_date),
-					"scope" => ""
+					"scope" => $research_consent
 					]
 			],
 		"labData" => $lab_data		 
