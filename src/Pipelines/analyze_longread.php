@@ -69,6 +69,11 @@ if (db_is_enabled("NGSD"))
 		trigger_error("Skipping step 'sv' - Report configuration with SVs exists in NGSD!", E_USER_NOTICE);
 		if (($key = array_search("sv", $steps)) !== false) unset($steps[$key]);
 	}
+	if (in_array("re", $steps) && $rc_svs_exist)
+	{
+		trigger_error("Skipping step 're' - Report configuration with REs exists in NGSD!", E_USER_NOTICE);
+		if (($key = array_search("re", $steps)) !== false) unset($steps[$key]);
+	}
 }
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
@@ -964,7 +969,7 @@ if ((in_array("ma", $steps)) || (in_array("cn", $steps) || in_array("sv", $steps
 	//Basecall model
 	if (file_exists($used_bam_or_cram))
 	{
-		$basecall_model = get_basecall_model($used_bam_or_cram);
+		$basecall_model = strtr(get_basecall_model($used_bam_or_cram), "_", " ");
 		if ($basecall_model != "")
 		{
 			$terms[] = "QC:2000149\t{$basecall_model}";

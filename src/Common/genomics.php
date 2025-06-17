@@ -1502,10 +1502,11 @@ function report_config(&$db_conn, $name, $error_if_not_found=false)
 	
 	$var_ids = $db_conn->getValues("SELECT id FROM report_configuration_variant WHERE report_configuration_id=".$rc_id);
 	$cnv_ids = $db_conn->getValues("SELECT id FROM report_configuration_cnv WHERE report_configuration_id=".$rc_id);
-	$sv_ids = $db_conn->getValues("SELECT id FROM report_configuration_sv WHERE report_configuration_id=".$rc_id);
+	$sv_ids  = $db_conn->getValues("SELECT id FROM report_configuration_sv WHERE report_configuration_id=".$rc_id);
+	$re_ids  = $db_conn->getValues("SELECT id FROM report_configuration_re WHERE report_configuration_id=".$rc_id);
 	
 	
-	return array($rc_id, count($var_ids)>0, count($cnv_ids)>0, count($sv_ids)>0);
+	return array($rc_id, count($var_ids)>0, count($cnv_ids)>0, count($sv_ids)>0, count($re_ids)>0);
 }
 
 function somatic_report_config(&$db_conn, $t_ps, $n_ps, $error_if_not_found=false)

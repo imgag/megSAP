@@ -56,6 +56,7 @@ for($i = 0; $i < $re_bed->rows(); ++$i)
 	//debug 
 	print $gene."\n";
 
+	/* disabled (switched to +-5kb around repeat)
 	//get gene region
 	$gene_pipeline = array();
 	$gene_pipeline[] = array("echo", $gene);
@@ -67,14 +68,16 @@ for($i = 0; $i < $re_bed->rows(); ++$i)
 
 	//sanity check:
 	if ($re_chr != $gene_chr) trigger_error("Gene chromosome doesn't match chromosome of repeat ({$gene_chr} vs. {$re_chr})!", E_USER_ERROR);
+	*/
+
 
 	$row = array();
 	$row[] = "RepeatExpansion_".$repeat_id;
 	$row[] = "Repeat Expansion ".$repeat_id;
 	$row[] = $gene;
-	$row[] = $gene_chr;
-	$row[] = $gene_start;
-	$row[] = $gene_end;
+	$row[] = $re_chr;
+	$row[] = $re_start - 5000;
+	$row[] = $re_end + 5000;
 	$row[] = $re_start;
 	$row[] = $re_end;
 
