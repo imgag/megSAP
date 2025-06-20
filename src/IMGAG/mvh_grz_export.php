@@ -81,11 +81,12 @@ function convert_system_type($type)
 	trigger_error("Unhandled processing system type '{$type}'!", E_USER_ERROR);
 }
 
-function convert_kit_manufacturer($name)
+function convert_kit_manufacturer($name, $allow_ont=true)
 {
 	if ($name=="TruSeqPCRfree") return "Illumina";
 	if ($name=="twistCustomExomeV2") return "Twist";
 	if ($name=="twistCustomExomeV2Covaris") return "Twist";
+	if ($name=="LR-ONT-SQK-LSK114") return $allow_ont ? "ONT" : "other";
 	
 	trigger_error("Unhandled processing system name '{$name}'!", E_USER_ERROR);
 }
@@ -128,6 +129,7 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 	global $seq_mode;
 	global $is_somatic;
 	global $qc_folder;
+	global $is_lrgs;
 	$qc_wf_folder = "/mnt/storage2/MVH/tools/GRZ_QC_Workflow/";
 	
 	//run mosdepth if necessary
@@ -150,7 +152,7 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 	}
 	else
 	{
-		print "  note: mosdepth results already exist in folder {$mosdepth_folder} - using it\n";
+		print "  note: mosdepth results already exist in folder {$mosdepth_folder} - using them\n";
 	}
 	
 	//run fastp if necessary
@@ -166,18 +168,26 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 		//run fastp
 		$args = [];
 		$args[] = "--thread 10";
-		$args[] = "--in1 ".realpath($fq1);
-		$args[] = "--in2 ".realpath($fq2);
-		$args[] = "--out1 {$fastp_folder}/R1.fastq.gz";
-		$args[] = "--out2 {$fastp_folder}/R2.fastq.gz";
+		if ($is_lrgs)
+		{
+			$args[] = "--in ".realpath($fq1);
+			$args[] = "--out {$fastp_folder}/R1.fastq.gz";
+		}
+		else
+		{
+			$args[] = "--in1 ".realpath($fq1);
+			$args[] = "--in2 ".realpath($fq2);
+			$args[] = "--out1 {$fastp_folder}/R1.fastq.gz";
+			$args[] = "--out2 {$fastp_folder}/R2.fastq.gz";
+			$args[] = "--detect_adapter_for_pe";
+		}
 		$args[] = "--json {$fastp_json}";
 		$args[] = "--html {$fastp_folder}/{$ps}.html";
-		$args[] = "--detect_adapter_for_pe";
-		exec2("/mnt/storage2/MVH/tools/fastp ".implode(" ", $args));
+		exec2("/mnt/storage2/MVH/tools/fastp".($is_lrgs ? "long" : "")." ".implode(" ", $args));
 	}
 	else
 	{
-		print "  note: fastp results already exist in folder {$fastp_folder} - using it\n";
+		print "  note: fastp results already exist in folder {$fastp_folder} - using them\n";
 	}
 	
 	//generate report
@@ -202,11 +212,10 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 	return array_combine($headers, $metrics);
 }
 
-function get_read_length($ps, $info)
+function get_read_length($ps, $sys_type)
 {
 	global $db_ngsd;
 	
-	$sys_type = $info['sys_type'];
 	if ($sys_type=="lrGS")
 	{
 		$read_length = get_processed_sample_qc($db_ngsd, $ps, "QC:2000131");	
@@ -256,7 +265,7 @@ function create_files_json($files_to_submit, $info, $read_length)
 		{
 			$data["readOrder"] = "R2";
 		}
-		if (ends_with($file, "_R1.fastq.gz") || ends_with($file, "_R2.fastq.gz"))
+		if (ends_with($file, "_R1.fastq.gz") || ends_with($file, "_R2.fastq.gz") || ends_with($file, ".bam"))
 		{
 			$data["readLength"] = (int)$read_length;
 			$data["flowcellId"] = $info["run_fcid"];
@@ -295,7 +304,7 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 				"sequencerManufacturer" => convert_sequencer_manufacturer($info["device_type"]),
 				"kitName" => convert_sequencer_manufacturer($info["device_type"])." sequencing kit",
 				"kitManufacturer" => convert_sequencer_manufacturer($info["device_type"]),
-				"enrichmentKitManufacturer" => convert_kit_manufacturer($info['sys_name_short']),
+				"enrichmentKitManufacturer" => convert_kit_manufacturer($info['sys_name_short'], false),
 				"enrichmentKitDescription" => $info["sys_name"],
 				"barcode" => $info["sys_adapter1"]."/".$info["sys_adapter2"],
 				"sequencingLayout" => "paired-end",
@@ -410,9 +419,11 @@ print "case: {$case_id} (seq_mode: {$seq_mode} / network: {$network})\n";
 $ps = $db_mvh->getValue("SELECT ps FROM case_data WHERE id='{$case_id}'");
 $info = get_processed_sample_info($db_ngsd, $ps);
 $sys = $info['sys_name_short'];
+$sys_type = $info['sys_type'];
+$is_lrgs = $sys_type=="lrGS";
 $patient_id = $info['patient_identifier'];
 if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}'!", E_USER_ERROR);
-print "germline sample: {$ps} (system: {$sys})\n";
+print "germline sample: {$ps} (system: {$sys}, type: {$sys_type})\n";
 
 //check germline processed sample is ok
 $ps_t = "";
@@ -453,30 +464,41 @@ exec2("mkdir -p {$folder}/metadata/");
 exec2("mkdir -p {$folder}/logs/");
 
 //determine read length
-$read_length = get_read_length($ps, $info);
+$read_length = get_read_length($ps, $sys_type);
 if ($is_somatic)
 {
-	$read_length_t = get_read_length($ps_t, $info_t);
+	$read_length_t = get_read_length($ps_t, $sys_type);
 }
 
-//TODO add support for lrGS (also in run_qc_pipeline)
 //TODO add support for trio
-//TODO add support for RNA
+//TODO add support for RNA?
 //create germline raw data (FASTQs + germline VCF)
 $n_bam = $info['ps_bam'];
 $n_fq1 = "{$folder}/files/{$tang}_normal_R1.fastq.gz";
-$n_fq2 = "{$folder}/files/{$tang}_normal_R2.fastq.gz";
+$n_fq2 = $is_lrgs ? "" : "{$folder}/files/{$tang}_normal_R2.fastq.gz";
 $n_vcf = "{$folder}/files/{$tang}_normal.vcf";
-if (!file_exists($n_fq1) || !file_exists($n_fq2) || !file_exists($n_vcf))
+$lrgs_bam = "{$folder}/files/{$tang}_normal.bam";
+if ($is_lrgs && !file_exists($lrgs_bam)) //for lrGS we submit BAM: convert CRAM to BAM
 {
+	print "  generating BAM file for germline sample {$ps}...\n";
+	$parser->execTool("Tools/cram_to_bam.php", "-cram {$n_bam} -bam {$lrgs_bam} -threads 10");
+}
+if (!$is_lrgs && (!file_exists($n_fq1) || !file_exists($n_fq2)))
+{
+	print "  generating FASTQ files for germline sample {$ps}...\n";
 	$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$n_bam} -out1 {$n_fq1} -out2 {$n_fq2} -extend {$read_length}", [$n_bam], ["{$folder}/files/"]);
+}
+if ($is_lrgs && !file_exists($n_fq1))
+{
+	print "  generating FASTQ file for germline sample {$ps} (needed for QC only)...\n";
+	$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$lrgs_bam} -out1 {$n_fq1}", [$lrgs_bam], ["{$folder}/files/"]);
+}
+if (!file_exists($n_vcf))
+{
+	print "  generating VCF file for germline sample {$ps}...\n";
 	exec2("zcat ". $info['ps_folder']."/{$ps}_var.vcf.gz > {$n_vcf}");
 }
-else
-{
-	print "  note: FASTQ/VCF for germline {$ps} already exist - using them\n";
-}
-$files_to_submit = [$n_fq1, $n_fq2, $n_vcf];
+$files_to_submit = $is_lrgs ? [$lrgs_bam, $n_vcf] : [$n_fq1, $n_fq2, $n_vcf];
 
 //create tumor raw data (FASTQs, somatic VCF)
 if ($is_somatic)
@@ -485,14 +507,15 @@ if ($is_somatic)
 	$t_fq1 = "{$folder}/files/{$tang}_tumor_R1.fastq.gz";
 	$t_fq2 = "{$folder}/files/{$tang}_tumor_R2.fastq.gz";
 	$tn_vcf = "{$folder}/files/{$tang}_somatic.vcf";
-	if (!file_exists($t_fq1) || !file_exists($t_fq2) || !file_exists($tn_vcf))
+	if (!file_exists($t_fq1) || !file_exists($t_fq2))
 	{
+		print "  generating FASTQ files for tumor sample {$ps_t}...\n";
 		$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$t_bam} -out1 {$t_fq1} -out2 {$t_fq2} -extend {$read_length_t}", [$t_bam], ["{$folder}/files/"]);
-		exec2("zcat ". $info_t['ps_folder']."/../Somatic_{$ps_t}-{$ps}/{$ps_t}-{$ps}_var.vcf.gz > {$tn_vcf}");
 	}
-	else
+	if (!file_exists($tn_vcf))
 	{
-		print "  note: FASTQ/VCF for tumor {$ps_t} already exist - using them\n";
+		print "  generating VCF file for tumor sample {$ps_t}...\n";
+		exec2("zcat ". $info_t['ps_folder']."/../Somatic_{$ps_t}-{$ps}/{$ps_t}-{$ps}_var.vcf.gz > {$tn_vcf}");
 	}
 	$files_to_submit_t = [$t_fq1, $t_fq2, $tn_vcf];
 }
@@ -511,7 +534,7 @@ if ($roi!="")
 //run QC pipeline for germline sample
 exec2("mkdir -p {$qc_folder}/checksums/");
 print "QC folder: {$qc_folder}\n";
-$grz_qc = run_qc_pipeline($ps, $n_bam, $n_fq1, $n_fq2, $roi, false);
+$grz_qc = run_qc_pipeline($ps, $is_lrgs ? $lrgs_bam : $n_bam, $n_fq1, $n_fq2, $roi, false);
 
 //run QC pipeline for somatic sample
 if ($is_somatic)
@@ -707,18 +730,24 @@ if (!$test)
 > wget http://opengene.org/fastp/fastp
 > chmod a+x ./fastp
 
+#Installation of fastplong
+
+> wget http://opengene.org/fastplong/fastplong
+> chmod a+x ./fastplong
+
 #Installation notes GRZ-CLI (see https://github.com/BfArM-MVH/grz-cli):
 
 	- Install miniforge at /mnt/storage2/megSAP/tools/miniforge3/
 		> curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
 		> bash Miniforge3-$(uname)-$(uname -m).sh
 	- Install GRZ-CLI
-		> /mnt/storage2/megSAP/tools/miniforge3/bin/conda create -n grz-tools -c conda-forge -c bioconda "grz-cli"
-		> /mnt/storage2/megSAP/tools/miniforge3/bin/conda activate grz-tools
+		> /mnt/storage2/MVH/tools/miniforge3/bin/conda create -n grz-tools -c conda-forge -c bioconda "grz-cli"
+		> /mnt/storage2/MVH/tools/miniforge3/bin/conda activate grz-tools
 	- Updates with:
-		> /mnt/storage2/megSAP/tools/miniforge3/bin/conda update -n grz-tools "grz-cli"
+		> /mnt/storage2/MVH/tools/miniforge3/bin/conda update -n base -c conda-forge conda
+		> /mnt/storage2/MVH/tools/miniforge3/bin/conda update -n grz-tools "grz-cli"
 	- Activate:
-		> /mnt/storage2/megSAP/tools/miniforge3/bin/conda activate grz-tools
+		> /mnt/storage2/MVH/tools/miniforge3/bin/conda activate grz-tools
 */
 
 ?>

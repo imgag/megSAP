@@ -10,7 +10,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 //parse command line arguments
 $parser = new ToolBase("mvh_wrapper", "Wrapper for GRZ/KDK export.");
 $parser->addInt("case_id", "'id' in 'data_data' of 'MVH' database.", false);
-$parser->addEnum("type", "export type", false, ["GRZ", "KDK"]);
+$parser->addEnum("type", "Export type", false, ["GRZ", "KDK_SE"]);
 $parser->addFlag("clear", "Clear date (passed to export script).");
 $parser->addFlag("test", "Test mode (passed to export script).");
 extract($parser->parse($argv));
