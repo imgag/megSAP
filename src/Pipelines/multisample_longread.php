@@ -120,6 +120,10 @@ foreach($bams as $bam)
 	check_genome_build($bam, $sys['build']);
 }
 
+//check if target region covers whole genome (based on ROI size because pipeline test does not contain all chromosomes)
+$check_chrs = bed_size(realpath($sys['target_file'])) > 3e9;
+		
+
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
 if (!$no_sync)
 {
@@ -207,7 +211,10 @@ if (in_array("an", $steps))
 	{
 		//basic annotation
 		$parser->execTool("Tools/annotate.php", "-out_name $prefix -out_folder $out_folder -system $system -threads $threads -multi");
-
+		
+		//check for truncated output
+		if ($check_chrs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$out_folder}/{$prefix}_var_annotated.vcf.gz -max_missing_perc 5");
+		
 		//update sample entry 
 		update_gsvar_sample_header($gsvar, $status_map);
 	}
@@ -379,6 +386,9 @@ if (in_array("an", $steps))
 
 		//update sample entry 
 		update_gsvar_sample_header($bedpe_out, $status_map);
+		
+		//check for truncated output
+		if ($check_chrs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$bedpe_out}");
 	}
 
 }

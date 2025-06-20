@@ -28,17 +28,6 @@ function is_indel($tag)
 	return strlen($ref) > 1 || strlen($alt) > 1;
 }
 
-//returns the base count of a BED file
-function get_bases($filename)
-{
-	global $parser;
-	
-	list($stdout) = $parser->execApptainer("ngs-bits", "BedInfo", "-in $filename", [$filename]);
-	$hits = array_containing($stdout, "Bases ");
-	$parts = explode(":", $hits[0]);
-	return trim($parts[1]);
-}
-
 //load VCF variants. 'Caller' argument can modify information loaded for different callers (af and depth) and the reference files (genotype)
 function load_vcf($filename, $roi, $caller)
 {
@@ -162,7 +151,7 @@ if ($tum_content != "")
 }
 
 //determine target region size
-$roi_bases = get_bases($roi);
+$roi_bases = bed_size($roi);
 print "##ROI bases: {$roi_bases}\n";
 
 //load germline variants

@@ -252,9 +252,13 @@ function chr_check($chr, $max = 22, $fail_trigger_error = true)
 	@brief Returns the list of all chromosomes.
 	@ingroup genomics
 */
-function chr_list()
+function chr_list($include_chry = true)
 {
-	return preg_filter('/^/', 'chr', array_merge(range(1,22), array("X","Y")));
+	$chrs = range(1,22);
+	$chrs[] = "X";
+	if ($include_chry) $chrs[] = "Y";
+	
+	return preg_filter('/^/', 'chr', $chrs);
 }
 
 //Returns parsed INI file
@@ -2393,34 +2397,6 @@ function update_gsvar_sample_header($file_name, $status_map)
 	}
 	$file_content->setComments($new_comments);
 	$file_content->toTSV(($file_name));
-}
-
-//check for missing chr in VCF/GSvar files
-function check_for_missing_chromosomes($file_name, $throw_error = true)
-{
-	// use array as set
-	$found_chromosomes = array();
-
-	$h = gzopen2($file_name, "r");
-	while(!gzeof($h))
-	{
-		$line = trim(gzgets($h));
-		if ($line=="" || $line[0]=="#") continue;
-		$found_chromosomes[trim(explode("\t", $line)[0])] = true;
-	}
-
-	$missing_chr = array();
-	foreach (chr_list() as $chr) 
-	{
-		//ignore chrY
-		if($chr == "chrY") continue;
-
-		if(!isset($found_chromosomes[$chr])) $missing_chr[] = $chr; 
-	}
-
-	if ($throw_error && count($missing_chr) > 0) trigger_error("Chromosome(s) ".implode(", ", $missing_chr)." not found in file '{$file_name}'!", E_USER_ERROR);
-
-	return count($missing_chr);
 }
 
 //get bam read count

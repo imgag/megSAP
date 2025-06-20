@@ -44,9 +44,7 @@ if (isset($model))
 else
 {
     //check that target BED file has sufficient bases for error modeling
-    $ret = $parser->execApptainer("ngs-bits", "BedInfo", "-in {$target}", [$target]);
-    $n_bases = intval(explode(":", $ret[0][1])[1]);
-    if ($n_bases < 1000)
+    if (bed_size($target) < 1000)
     {
         trigger_error("Target region has to be at least 1,000 bases for reliable error model parameter estimation!", E_USER_WARNING);
     }
