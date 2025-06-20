@@ -15,6 +15,7 @@ $parser->addInfile("roi", "Target region of sequencing experiment (BED format)."
 $parser->addOutfile("stats", "Append statistics to this file.", false);
 //optional
 $parser->addString("name", "Name used in the 'stats' output. If unset, the 'vcf' file base name is used.", true);
+$parser->addString("child_id", "Set to childs processed sample ID when validating trio vcf to ensure the correct sample column is validated.", true, "");
 $parser->addInt("min_dp", "If set, only regions in the 'roi' with at least the given depth are evaluated.", true, 0);
 $parser->addInt("min_qual", "If set, only input variants with QUAL greater or equal to the given value are evaluated.", true, 5);
 $parser->addInt("max_indel", "Maximum indel size (larger indels are ignored). Disabled if set to 0.", true, 50);
@@ -36,7 +37,7 @@ function get_bases($filename)
 }
 
 //returns the variants of a VCF file in the given ROI
-function get_variants($vcf_gz, $roi, $max_indel, $min_qual, &$skipped)
+function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $child_id, &$skipped)
 {
 	global $parser;
 	global $genome;
@@ -52,13 +53,33 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, &$skipped)
 	//put together output
 	$output = array();	
 	$file = file($tmp);
+	$is_trio = false;
 	foreach($file as $line)
 	{
 		$line = trim($line);
+
+		if (starts_with(strtolower($line), "#chrom"))
+		{
+			$header = explode("\t", $line);
+			if (count($header) > 10) 
+			{
+				$is_trio = true;
+				$idx_child = array_search($child_id, $header);
+				if ($idx_child == false) trigger_error("Column for child ID '$child_id' could not be found in $vcf_gz.", E_USER_ERROR);
+			}
+		}
+
 		if ($line=="" || $line[0]=="#") continue;
 
 		//get variant infos
-		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = explode("\t", $line);
+		$columns = explode("\t", $line);
+		if ($is_trio)
+		{
+			list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format) = array_slice($columns, 0, 9);
+			$sample = $columns[$idx_child];
+		}
+		else list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = $columns;
+		
 		if (!starts_with($chr, "chr")) $chr = "chr".$chr;
 		
 		//skip variants from special variant calling in low mappabilty regions
@@ -206,7 +227,7 @@ print "##\n";
 //get reference variants in ROI
 print "##Variant list      : $vcf\n";
 $skipped = [];
-$found = get_variants($vcf, $roi_used, $max_indel, $min_qual, $skipped);
+$found = get_variants($vcf, $roi_used, $max_indel, $min_qual, $child_id, $skipped);
 print "##Variants observed : ".count($found)."\n";
 foreach($skipped as $reason => $count)
 {
@@ -214,7 +235,7 @@ foreach($skipped as $reason => $count)
 	print "##  Skipped '{$reason}' variants: {$count}\n";
 }
 $skipped = [];
-$expected = get_variants($giab_vcfgz, $roi_used, $max_indel, 0, $skipped);
+$expected = get_variants($giab_vcfgz, $roi_used, $max_indel, 0, "", $skipped);
 print "##Variants expected : ".count($expected)."\n";
 foreach($skipped as $reason => $count)
 {
