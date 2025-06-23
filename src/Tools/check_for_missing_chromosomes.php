@@ -80,7 +80,10 @@ if ($max_missing_perc>0)
 		$tmp_covered = temp_file(".bed");
 		file_put_contents($tmp_covered, "{$chr}\t{$from}\t{$to}");
 		$tmp_missing = temp_file(".bed");
-		list($stdout) = exec2("echo '{$chr}\t1\t".$sizes[$chr]."' | BedSubtract -in2 {$tmp_covered} | BedSubtract -in2 ".repository_basedir()."/data/misc/nobase_regions.bed | BedInfo | grep Bases");
+		
+		$bedsubtract = execApptainer("ngs-bits", "BedSubtract", "", [repository_basedir()], [], true);
+		$bedinfo = execApptainer("ngs-bits", "BedInfo", "", [], [], true);		
+		list($stdout) = exec2("echo '{$chr}\t1\t".$sizes[$chr]."' | {$bedsubtract} -in2 {$tmp_covered} | {$bedsubtract} -in2 ".repository_basedir()."/data/misc/nobase_regions.bed | {$bedinfo} | grep Bases");
 		$bases_missing = explode(":", $stdout[0])[1];
 		
 		$bases_missing_perc = number_format(100.0 * $bases_missing / $sizes[$chr], 1);
