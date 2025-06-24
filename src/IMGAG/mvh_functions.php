@@ -15,7 +15,7 @@ function get_cm_data($db_mvh, $case_id)
 	$xml_obj = simplexml_load_string($xml_string, "SimpleXMLElement", LIBXML_NOCDATA);
 	foreach($xml_obj->item as $item)
 	{
-		if ($item->redcap_repeat_instance=="1") continue;
+		if ($item->redcap_repeat_instance!="") continue;
 		
 		$main_item = $item;
 	}
@@ -32,7 +32,7 @@ function get_se_data($db_mvh, $case_id)
 	$xml_obj = simplexml_load_string($xml_string, "SimpleXMLElement", LIBXML_NOCDATA);
 	foreach($xml_obj->item as $item)
 	{
-		if ($item->redcap_repeat_instance=="1") continue;
+		if ($item->redcap_repeat_instance!="") continue;
 		
 		$main_item = $item;
 	}
@@ -55,6 +55,51 @@ function get_rc_data($db_mvh, $case_id)
 	$xml_obj = simplexml_load_string($xml_string, "SimpleXMLElement", LIBXML_NOCDATA);
 	return $xml_obj;
 }
+
+################# XML functions #################
+
+function xml_str($element)
+{
+	return trim((string)$element);
+}
+
+//returns the raw value for a drop-down file (our man query returns the label only)
+function get_raw_value($record_id, $field)
+{
+	$data = array(
+		'token' => get_path("mvh_redcap_token_se"),
+		'content' => 'record',
+		'action' => 'export',
+		'format' => 'xml',
+		'type' => 'flat',
+		'csvDelimiter' => '',
+		'records' => [xml_str($record_id)],
+		'fields' => [$field],
+		'rawOrLabel' => 'raw',
+		'rawOrLabelHeaders' => 'label',
+		'exportCheckboxLabel' => 'false',
+		'exportSurveyFields' => 'false',
+		'exportDataAccessGroups' => 'false',
+		'returnFormat' => 'csv'
+	);
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, 'https://redcap.extern.medizin.uni-tuebingen.de/api/');
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+	curl_setopt($ch, CURLOPT_VERBOSE, 0);
+	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+	curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+	curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
+	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+	curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data, '', '&'));
+	curl_setopt($ch, CURLOPT_PROXY, '');
+	$xml = simplexml_load_string(curl_exec($ch), "SimpleXMLElement", LIBXML_NOCDATA);;
+	curl_close($ch);
+	
+	return xml_str($xml->item->$field);
+}
+
 
 ################# converter functions #################
 
@@ -89,7 +134,7 @@ function convert_tissue($tissue)
 	if ($tissue=="skin") return "BTO:0001253";
 	if ($tissue=="muscle") return "BTO:0000887";
 		
-	trigger_error("Could not convert tissue '{$tissue}' to BTO id!", E_USER_ERROR);
+	trigger_error(__FUNCTION__.": Unhandled tissue '{$tissue}'!", E_USER_ERROR);
 }
 
 function convert_system_type($type)
@@ -98,7 +143,7 @@ function convert_system_type($type)
 	if ($type=="WGS") return "wgs";
 	if ($type=="lrGS") return "wgs_lr";
 		
-	trigger_error("Unhandled processing system type '{$type}'!", E_USER_ERROR);
+	trigger_error(__FUNCTION__.": Unhandled type '{$type}'!", E_USER_ERROR);
 }
 
 function convert_kit_manufacturer($name, $allow_ont=true)
@@ -108,7 +153,7 @@ function convert_kit_manufacturer($name, $allow_ont=true)
 	if ($name=="twistCustomExomeV2Covaris") return "Twist";
 	if ($name=="LR-ONT-SQK-LSK114") return $allow_ont ? "ONT" : "other";
 	
-	trigger_error("Unhandled processing system name '{$name}'!", E_USER_ERROR);
+	trigger_error(__FUNCTION__.": Unhandled name '{$name}'!", E_USER_ERROR);
 }
 
 function convert_sequencer_manufacturer($name)
@@ -116,7 +161,26 @@ function convert_sequencer_manufacturer($name)
 	if ($name=="NovaSeq6000" || $name=="NovaSeqXPlus") return "Illumina";
 	if ($name=="PromethION") return "ONT";
 	
-	trigger_error("Unhandled sequencer name '{$name}'!", E_USER_ERROR);
+	trigger_error(__FUNCTION__.": Unhandled name '{$name}'!", E_USER_ERROR);
+}
+
+function convert_diag_recommendation($name)
+{
+	if ($name=="Einzelgenom") return "single-genome";
+	if ($name=="Duogenom") return "duo-genome";
+	if ($name=="Triogenom") return "trio-genome";
+	
+	trigger_error(__FUNCTION__.": Unhandled name '{$name}'!", E_USER_ERROR);
+}
+
+function convert_diag_status($name)
+{
+	if ($name=="unsolved") return "unconfirmed";
+	if ($name=="unclear" || $name=="3") return "provisional";
+	if ($name=="solved") return "confirmed";
+	if ($name=="partially-solved") return "partial";
+	
+	trigger_error(__FUNCTION__.": Unhandled name '{$name}'!", E_USER_ERROR);
 }
 
 ?>

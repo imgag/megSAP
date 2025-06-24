@@ -518,22 +518,22 @@ $json['donors'] = [
 		"gender" => convert_gender($info["gender"]),
 		"relation" => "index",
 		"mvConsent" => [
-			"presentationDate" => (string)($cm_data->mvconsentpresenteddate),
-			"version" => (string)($cm_data->version_teilnahme),
+			"presentationDate" => xml_str($cm_data->mvconsentpresenteddate),
+			"version" => xml_str($cm_data->version_teilnahme),
 			"scope" => [
 					0 => [
-						"type" => ((string)($cm_data->particip_4)=="Ja" ? "permit" : "deny"),
-						"date" => (string)($cm_data->datum_teilnahme),
+						"type" => (xml_str($cm_data->particip_4)=="Ja" ? "permit" : "deny"),
+						"date" => xml_str($cm_data->datum_teilnahme),
 						"domain" => "mvSequencing"
 						],
 					1 => [
-						"type" => ((string)($cm_data->particip_4_1)=="Ja" ? "permit" : "deny"),
-						"date" => (string)($cm_data->datum_teilnahme),
+						"type" => (xml_str($cm_data->particip_4_1)=="Ja" ? "permit" : "deny"),
+						"date" => xml_str($cm_data->datum_teilnahme),
 						"domain" => "caseIdentification"
 						],
 					2 => [
-						"type" => ((string)($cm_data->particip_4_2)=="Ja" ? "permit" : "deny"),
-						"date" => (string)($cm_data->datum_teilnahme),
+						"type" => (xml_str($cm_data->particip_4_2)=="Ja" ? "permit" : "deny"),
+						"date" => xml_str($cm_data->datum_teilnahme),
 						"domain" => "reIdentification"
 						],
 				]
