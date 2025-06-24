@@ -948,7 +948,7 @@ class ToolBase
 		
 		return array($stdout, $stderr, $return);
 	}
-
+	//TODO Marc/Leon: the exit code seems to be 0 in case of error. See /mnt/storage2/users/ahsturm1/scripts/2025_06_18_missing_variants_in_trio/ and TARGETED workaround in merge_gvcf.php
 	/**
 	 	@brief Executes a list of commands in parallel
 	*/
@@ -961,8 +961,8 @@ class ToolBase
 		$tmp_dir = $this->tempFolder("stdout_stderr");
 		while (true) 
 		{
-			//wait a second
-			sleep(1);
+			//wait 50ms
+			usleep(50000);
 			
 			//all chromosomes have been processed > exit
 			if (count($command_list)==0 && count($running)==0) break;
@@ -1045,7 +1045,7 @@ class ToolBase
 					if($log_output) $this->log("Finshed processing job {$job_id} in ".time_readable(microtime(true)-$start_time), $add_info);
 					
 					//abort if failed
-					if ($job_aborted) trigger_error("Processing of job {$job_id} failed: ".$stderr, (($abort_on_error)?E_USER_ERROR:E_USER_WARNING));
+					if ($job_aborted) trigger_error("Processing of job {$job_id} failed: ".$stderr, $abort_on_error ? E_USER_ERROR : E_USER_WARNING);
 					
 					unset($running[$job_id]);
 				}

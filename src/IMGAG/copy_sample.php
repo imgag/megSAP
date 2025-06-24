@@ -338,7 +338,7 @@ foreach($sample_data as $sample => $sample_infos)
 		$tumor2normal[$sample] = $normal_name;
 	}
 	//check run name (the same for all samples)
-	if($run_name != $sample_infos['run_name']) trigger_error("ERROR: Sequencing run doesn't match sample info ('".$sample_infos['run_name']."')");
+	if($run_name != $sample_infos['run_name']) trigger_error("Sequencing run doesn't match sample info ('".$sample_infos['run_name']."')", E_USER_ERROR);
 }
 $queued_normal_samples = [];
 

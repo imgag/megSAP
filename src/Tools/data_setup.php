@@ -425,7 +425,7 @@ if (get_path("copy_dbs_to_local_data"))
 		$md5_net = "{$network_checksum_folder}{$base}.md5";
 
 		//Check that container exists in network folder
-		if (!file_exists($container_file)) trigger_error("Could not find container $container_file. Make sure your settings.ini is correct and the container exists in $network_folder");
+		if (!file_exists($container_file)) trigger_error("Could not find container $container_file. Make sure your settings.ini is correct and the container exists in $network_folder", E_USER_ERROR);
 
 		//Make sure that md5 checksum for container in network directory is present
 		if (!file_exists($md5_net))

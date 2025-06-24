@@ -356,20 +356,6 @@ check(chr_list(), array("chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", 
 end_test();
 
 //##################################################################################
-start_test("check_for_missing_chromosomes");
-
-check(check_for_missing_chromosomes(data_folder()."/check_for_missing_chromosomes_in1.vcf"), 0);
-check(check_for_missing_chromosomes(data_folder()."/check_for_missing_chromosomes_in2.vcf", false), 2);
-check(check_for_missing_chromosomes(data_folder()."/check_for_missing_chromosomes_in3.tsv"), 0);
-check(check_for_missing_chromosomes(data_folder()."/check_for_missing_chromosomes_in4.tsv", false), 3);
-check(check_for_missing_chromosomes(data_folder()."/check_for_missing_chromosomes_in5.GSvar"), 0);
-check(check_for_missing_chromosomes(data_folder()."/check_for_missing_chromosomes_in6.GSvar", false), 4);
-check(check_for_missing_chromosomes(data_folder()."/check_for_missing_chromosomes_in7.vcf.gz"), 0);
-check(check_for_missing_chromosomes(data_folder()."/check_for_missing_chromosomes_in8.vcf.gz", false), 2);
-
-end_test();
-
-//##################################################################################
 start_test("get_read_counts");
 
 check(get_read_count(data_folder()."/get_read_count_in1.bam"), 1861);

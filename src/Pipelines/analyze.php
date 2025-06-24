@@ -801,6 +801,9 @@ if (in_array("vc", $steps))
 	if ($no_splice) $args[] = "-no_splice";
 	$parser->execTool("Tools/annotate.php", implode(" ", $args));
 
+	//check for truncated output
+	if ($is_wgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$vcffile_annotated} -max_missing_perc 5");
+		
 	//ROH detection
 	if ($is_wes || $is_wgs)
 	{
@@ -1018,6 +1021,9 @@ if (in_array("cn", $steps))
 		{
 			$parser->execApptainer("ngs-bits", "NGSDAnnotateCNV", "-in {$cnvfile} -out {$cnvfile}", [$folder]);
 		}
+		
+		//check for truncated output
+		if ($is_wgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$cnvfile}");
 	}
 	else
 	{
@@ -1220,6 +1226,9 @@ if (in_array("sv", $steps))
 		$bedpe_content->setComments($new_comments);
 		$bedpe_content->toTSV(($bedpe_out));
 	}
+	
+	//check for truncated output
+	if ($is_wgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$bedpe_out}");
 }
 
 //repeat expansions
