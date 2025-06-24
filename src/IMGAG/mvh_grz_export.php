@@ -3,110 +3,9 @@
 	@page mvh_grz_export
 */
 
-require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
+require_once("mvh_functions.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
-
-//returns case management data as XML
-function get_cm_data($case_id)
-{
-	global $db_mvh;
-	
-	$lines = explode("\n", $db_mvh->getValue("SELECT cm_data FROM case_data WHERE id='{$case_id}'", ""));
-	$lines_not_repeat = [];
-	foreach($lines as $line)
-	{
-		$line = trim($line);
-		if ($line=="") continue;
-		if (strpos($line, "<redcap_repeat_instance></redcap_repeat_instance>")===false) continue;
-
-		$lines_not_repeat[] = $line;
-	}
-	if (count($lines_not_repeat)!=1) trigger_error("Could not parse CM data. ".count($lines_not_repeat)." XML items which are not 'redcap_repeat_instance'!", E_USER_ERROR);
-	
-	return simplexml_load_string($lines_not_repeat[0], "SimpleXMLElement", LIBXML_NOCDATA);;
-}
-
-//returns GenLab data as a dictionary
-function get_gl_data($case_id)
-{
-	global $db_mvh;
-
-	$output = [];
-	
-	$lines = explode("\n", $db_mvh->getValue("SELECT gl_data FROM case_data WHERE id='{$case_id}'", ""));
-	foreach($lines as $line)
-	{
-		$line = trim($line);
-		if ($line=="" || !contains($line, ":")) continue;
-		
-		list($key, $value) = explode(": ", $line, 2);
-		$output[$key] = $value;
-	}
-	
-	return $output;
-}
-
-function not_empty($value, $element)
-{
-	if (trim($value)=="") trigger_error("Value '{$value}' of element {$element} must not be empty!", E_USER_ERROR);
-	
-	return $value;
-}
-
-function convert_gender($gender)
-{
-	if ($gender=="n/a") $gender = "unknown";
-	return $gender;
-}
-
-function convert_tissue($tissue)
-{
-	if ($tissue=="blood") return "BTO:0000089";
-	if ($tissue=="buccal mucosa") return "BTO:0003833";
-	if ($tissue=="fibroblast") return "BTO:0000452";
-	if ($tissue=="lymphocyte") return "BTO:0000775";
-	if ($tissue=="skin") return "BTO:0001253";
-	if ($tissue=="muscle") return "BTO:0000887";
-		
-	trigger_error("Could not convert tissue '{$tissue}' to BTO id!", E_USER_ERROR);
-}
-
-function convert_system_type($type)
-{
-	if ($type=="WES") return "wes";
-	if ($type=="WGS") return "wgs";
-	if ($type=="lrGS") return "wgs_lr";
-		
-	trigger_error("Unhandled processing system type '{$type}'!", E_USER_ERROR);
-}
-
-function convert_kit_manufacturer($name, $allow_ont=true)
-{
-	if ($name=="TruSeqPCRfree") return "Illumina";
-	if ($name=="twistCustomExomeV2") return "Twist";
-	if ($name=="twistCustomExomeV2Covaris") return "Twist";
-	if ($name=="LR-ONT-SQK-LSK114") return $allow_ont ? "ONT" : "other";
-	
-	trigger_error("Unhandled processing system name '{$name}'!", E_USER_ERROR);
-}
-
-function convert_sequencer_manufacturer($name)
-{
-	if ($name=="NovaSeq6000" || $name=="NovaSeqXPlus") return "Illumina";
-	if ($name=="PromethION") return "ONT";
-	
-	trigger_error("Unhandled sequencer name '{$name}'!", E_USER_ERROR);
-}
-
-function convert_coverage($accounting_mode)
-{
-	if ($accounting_mode=="Modellvorhaben") $converage_type = "GKV";
-	else if ($accounting_mode=="Privat (GOÄ)") $converage_type = "PKV";
-	else trigger_error("Could not determine coverage type from GenLab accounting mode '{$accounting_mode}'!", E_USER_ERROR);
-	
-	return $converage_type;
-}
 
 function megsap_version($gsvar)
 {
@@ -376,11 +275,9 @@ $folder = realpath($mvh_folder)."/grz_export/{$case_id}/";
 $qc_folder = realpath($mvh_folder)."/grz_qc/{$case_id}/";
 if ($clear) exec2("rm -rf {$folder} {$qc_folder}");
 
-//parse case management data
-$cm_data = get_cm_data($case_id);
-
-//parse GenLab data
-$gl_data = get_gl_data($case_id);
+//get data we need from MVH database
+$cm_data = get_cm_data($db_mvh, $case_id);
+$gl_data = get_gl_data($db_mvh, $case_id);
 
 //check network > determine KDK and study_subtype
 $network = $cm_data->network_title;
@@ -562,23 +459,18 @@ if ($is_somatic)
 $active_consent_count = 0;
 $research_use_allowed = false;
 $code = "";
-$rc_data = $db_mvh->getValue("SELECT rc_data FROM case_data WHERE id='{$case_id}'");
-foreach(explode("\n", $rc_data) as $line)
+$rc_data = get_rc_data($db_mvh, $case_id);
+foreach($rc_data->consent as $consent)
 {
-	$line = trim($line);
-	if ($line=="" || !contains($line, ":")) continue;
-	
-	list($base_data, $provisions) = explode(": ", $line, 2);
-	list($date, $status) = explode("/", $base_data);
-	if ($status!="active") continue;
+	if ($consent->status!="active") continue;
 	++$active_consent_count;
 	
-	foreach(explode(", ", $provisions) as $provision)
+	foreach($consent->permit as $permit)
 	{
-		if (starts_with($provision, "2.16.840.1.113883.3.1937.777.24.5.3.8/") || starts_with($provision, "2.16.840.1.113883.3.1937.777.24.5.3.1/"))
+		if ($permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.8" || $permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.1")
 		{
 			$research_use_allowed = true;
-			$code = explode("/", $provision)[0];
+			$code = $permit->code;
 		}
 	}
 }
@@ -611,7 +503,7 @@ $json['submission'] = [
 	"submissionType" => $db_mvh->getValue("SELECT type FROM submission_grz WHERE id='{$sub_id}'"),
 	"tanG" => $tang,
 	"localCaseId" => $patient_id,
-	"coverageType" => convert_coverage($gl_data["accounting_mode"]),
+	"coverageType" => convert_coverage($gl_data->accounting_mode),
 	"submitterId" => "260840108",
 	"genomicDataCenterId" => "GRZTUE002",
 	"clinicalDataNodeId" => $kdk,
