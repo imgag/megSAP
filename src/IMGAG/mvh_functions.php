@@ -24,19 +24,21 @@ function get_cm_data($db_mvh, $case_id)
 }
 
 //returns SE data as an XML object
-function get_se_data($db_mvh, $case_id)
-{
-	$main_item = null;
-	
+function get_se_data($db_mvh, $case_id, $with_repeat_instances=false)
+{	
 	$xml_string = $db_mvh->getValue("SELECT se_data FROM case_data WHERE id='{$case_id}'", "");
 	$xml_obj = simplexml_load_string($xml_string, "SimpleXMLElement", LIBXML_NOCDATA);
+	
+	if ($with_repeat_instances) return $xml_obj;
+	
+	//determine main item
+	$main_item = null;
 	foreach($xml_obj->item as $item)
 	{
 		if ($item->redcap_repeat_instance!="") continue;
 		
 		$main_item = $item;
 	}
-	
 	return $main_item;
 }
 //returns GenLab data as an XML object

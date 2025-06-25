@@ -96,8 +96,57 @@ function json_diagnoses($se_data)
 				"code" => convert_diag_status(xml_str($se_data->bewertung_gen_diagnostik)),
 				],
 			"codes" => $codes,
-			//TODO? missingCodeReason, notes
+			//missing fields: missingCodeReason, notes
 			];
+	
+	return $output;
+}
+
+function json_hpos($se_data, $se_data_rep)
+{
+	global $db_ngsd;
+	$output = [];
+	
+	$num = 1;
+	foreach($se_data_rep->item as $item)
+	{
+		$hpo = xml_str($item->hpo);
+		if ($hpo=="") continue;
+		
+		//convert HPO name to id
+		$hpo_id = $db_ngsd->getValue("SELECT hpo_id FROM hpo_term WHERE name LIKE '{$hpo}'", "");  
+		if ($hpo_id=="")
+		{
+			trigger_error("Could not convert HPO name '{$hpo}' to ID using the NGSD hpo_term table!", E_USER_WARNING);
+			continue;
+		}
+		
+		//create entry
+		$entry = [
+		"id" => "ID_HPO_{$num}",
+		"patient" => [
+			"id" => "ID_PAT_1",
+			"type" => "Patient"
+			],
+		"recordedOn" => xml_str($se_data->datum_fallkonferenz), //TODO ok so?
+		"value" => [
+			"code" => $hpo_id,
+			"display" => $hpo,
+			"system" => "https://hpo.jax.org",
+			] 
+		//missing fields: status/history
+		];
+		
+		//add optional stuff to entry
+		$onset = substr(xml_str($item->beginn_symptome), 0, 7);
+		if ($onset!="") $entry["onsetDate"] = $onset;
+		
+		$hpo_ver = xml_str($item->version_hpo);
+		if ($hpo_ver!="") $entry["value"]["version"] = $hpo_ver;
+
+		$output[] = $entry;
+		++$num;
+	}
 	
 	return $output;
 }
@@ -130,12 +179,14 @@ $ps = $db_mvh->getValue("SELECT ps FROM case_data WHERE id='{$case_id}'");
 $info = get_processed_sample_info($db_ngsd, $ps);
 $gl_data = get_gl_data($db_mvh, $case_id);
 $se_data = get_se_data($db_mvh, $case_id);
+$se_data_rep = get_se_data($db_mvh, $case_id, true);
 
 //create JSON
 $json = [
 	"patient" => json_patient($info, $gl_data, $se_data),
 	"episodesOfCare" => [ json_episode_of_care($se_data) ],
-	"diagnoses" => [ json_diagnoses($se_data) ]
+	"diagnoses" => [ json_diagnoses($se_data) ],
+	"hpoTerms" => json_hpos($se_data, $se_data_rep),
 	];
 
 //write JSON
