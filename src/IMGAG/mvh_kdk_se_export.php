@@ -174,7 +174,22 @@ function json_gmfcs($se_data_rep)
 		$output[] = $entry;
 		++$num;
 	}
-		
+	
+	if(count($output)==0) return null;
+	return $output;
+}
+
+function json_hospitalization($se_data)
+{
+	$output = [
+		 "numberOfStays" => [
+			"code" => convert_hospitalization_stays($se_data->anzahl_stat_behandlungen_en)
+			],
+		 "numberOfDays" => [
+			"code" => convert_hospitalization_days($se_data->dauer_stat_vortherapie_en)
+			],
+		];
+	
 	return $output;
 }
 
@@ -208,14 +223,21 @@ $gl_data = get_gl_data($db_mvh, $case_id);
 $se_data = get_se_data($db_mvh, $case_id);
 $se_data_rep = get_se_data($db_mvh, $case_id, true);
 
-//create JSON
+//create base JSON
 $json = [
 	"patient" => json_patient($info, $gl_data, $se_data),
 	"episodesOfCare" => [ json_episode_of_care($se_data) ],
 	"diagnoses" => [ json_diagnoses($se_data) ],
 	"hpoTerms" => json_hpos($se_data, $se_data_rep),
-	"gmfcsStatus" => json_gmfcs($se_data_rep),
+	"hospitalization" => json_hospitalization($se_data),
+	
+	//TODO
+	//missing fields: 
 	];
+	
+//add optional parts to JSON
+$gmfcs = json_gmfcs($se_data_rep);
+if (!is_null($gmfcs)) $json["gmfcsStatus"] = $gmfcs;
 
 //write JSON
 file_put_contents("{$folder}/metadata/metadata.json", json_encode($json, JSON_PRETTY_PRINT));

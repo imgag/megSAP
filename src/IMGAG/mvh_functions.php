@@ -185,4 +185,32 @@ function convert_diag_status($name)
 	trigger_error(__FUNCTION__.": Unhandled name '{$name}'!", E_USER_ERROR);
 }
 
+function convert_hospitalization_stays($value)
+{
+	$value = xml_str($value);
+	
+	if ($value=="" || $value=="unbekannt") return "unknown";
+	if ($value=="keine") return "none";
+	if ($value=="bis zu 5") return "up-to-five";
+	if ($value=="bis zu 10") return "up-to-ten";
+	if ($value=="bis zu 15") return "up-to-fifteen";
+	if ($value==">15") return "over-fifteen";
+	
+	trigger_error(__FUNCTION__.": Unhandled value '{$value}'!", E_USER_ERROR);
+}
+	
+function convert_hospitalization_days($value)
+{
+	$value = xml_str($value);
+	
+	if ($value=="" || $value=="unbekannt") return "unknown";
+	if ($value=="keine") return "none";
+	if ($value=="bis zu 5") return "up-to-five";
+	//TODO fix when changed (see Email from 25.06.25: MVH Hospitalization)
+	if ($value=="bis zu 15" || $value=="bis zu 10") return "up-to-fifteen";
+	if ($value==">15") return "up-to-fifty";
+	
+	trigger_error(__FUNCTION__.": Unhandled value '{$value}'!", E_USER_ERROR);
+}
+
 ?>
