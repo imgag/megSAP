@@ -26,14 +26,19 @@ function json_patient($info, $gl_data, $se_data)
 	return $output;
 }
 
+function json_patient_ref()
+{
+	return [
+			"id" => "ID_PAT_1",
+			"type" => "Patient"
+			];
+}
+
 function json_episode_of_care($se_data)
 {
 	$output = [
 			"id"=>"ID_EOC_1",
-			"patient" => [
-				"id" => "ID_PAT_1",
-				"type" => "Patient"
-				],
+			"patient" => json_patient_ref(),
 			"period" => [
 				"start" => xml_str($se_data->datum_kontakt_zse)
 				]
@@ -83,10 +88,7 @@ function json_diagnoses($se_data)
 	
 	$output = [
 			"id"=>"ID_DIAG_1",
-			"patient" => [
-				"id" => "ID_PAT_1",
-				"type" => "Patient"
-				],
+			"patient" => json_patient_ref(),
 			"recordedOn" => xml_str($se_data->datum_fallkonferenz), //TODO ok so?
 			"onsetDate" => "TODO", //TODO min(HPO onset)!?
 			"familyControlLevel" => [
@@ -124,10 +126,7 @@ function json_hpos($se_data, $se_data_rep)
 		//create entry
 		$entry = [
 		"id" => "ID_HPO_{$num}",
-		"patient" => [
-			"id" => "ID_PAT_1",
-			"type" => "Patient"
-			],
+		"patient" => json_patient_ref(),
 		"recordedOn" => xml_str($se_data->datum_fallkonferenz), //TODO ok so?
 		"value" => [
 			"code" => $hpo_id,
@@ -148,6 +147,34 @@ function json_hpos($se_data, $se_data_rep)
 		++$num;
 	}
 	
+	return $output;
+}
+
+function json_gmfcs($se_data_rep)
+{
+	$output = [];
+	$num = 1;
+	
+	foreach($se_data_rep->item as $item)
+	{
+		$gmf = xml_str($item->gmfcs_wiedervorst_aend);
+		if ($gmf=="") continue;
+		
+		$entry = [
+			"id" => "ID_GMFCS_{$num}",
+			"patient" => json_patient_ref(),
+			"effectiveDate" => xml_str($item->datum_wiedervorst),
+			"value" => [
+				"code" => $gmf,
+				"display" => "Level ".$gmf,
+				"system" => "Gross-Motor-Function-Classification-System",			
+				]
+			];
+		
+		$output[] = $entry;
+		++$num;
+	}
+		
 	return $output;
 }
 
@@ -187,6 +214,7 @@ $json = [
 	"episodesOfCare" => [ json_episode_of_care($se_data) ],
 	"diagnoses" => [ json_diagnoses($se_data) ],
 	"hpoTerms" => json_hpos($se_data, $se_data_rep),
+	"gmfcsStatus" => json_gmfcs($se_data_rep),
 	];
 
 //write JSON
