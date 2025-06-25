@@ -459,37 +459,88 @@ if ($is_somatic)
 //prepare research consent data - for format see https://www.medizininformatik-initiative.de/Kerndatensatz/KDS_Consent_V2025/MII-IG-Modul-Consent-TechnischeImplementierung-FHIRProfile-Consent.html
 $active_consent_count = 0;
 $research_use_allowed = false;
-$code = "";
+$date = "";
+$start = "";
+$end = "";
 $rc_data = get_rc_data($db_mvh, $case_id);
 foreach($rc_data->consent as $consent)
 {
 	if ($consent->status!="active") continue;
 	++$active_consent_count;
 	
+	$date = xml_str($consent->date);
+	$start = xml_str($consent->start);
+	$end = xml_str($consent->end);
+	
 	foreach($consent->permit as $permit)
 	{
 		if ($permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.8" || $permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.1")
 		{
 			$research_use_allowed = true;
-			$code = $permit->code;
 		}
 	}
 }
 if ($active_consent_count==0) trigger_error("No active consent found in MVH data:\n{$rc_data}", E_USER_ERROR);
 if ($active_consent_count>1) trigger_error("More than one active consent found in MVH data:\n{$rc_data}", E_USER_ERROR);
 $research_consent = [
+	"status" => "active",
+	"scope" => [
+		"coding" => [
+				0 => [
+					"system" => "http://terminology.hl7.org/CodeSystem/consentscope",
+					"code" => "research"					
+				]
+			]
+		],
+	"category" => [
+			[
+				"coding" => [
+						[
+							"system" => "http://loinc.org",
+							"code" => "57016-8"					
+						]
+					]
+			],
+			[
+				"coding" => [
+						[
+							"system" => "https://www.medizininformatik-initiative.de/fhir/modul-consent/CodeSystem/mii-cs-consent-consent_category",
+							"code" => "2.16.840.1.113883.3.1937.777.24.2.184"					
+						]
+					]
+			]
+		],
+	"patient" => [
+		"reference" => $patient_id
+		],
+	"dateTime" => $date,
+	"policy" => [
+			[
+				"uri" => "urn:oid:2.16.840.1.113883.3.1937.777.24.2.1791"
+			]
+		],
 	"provision" => [
 		"type" => "deny",
+		"period" => [
+			"start" => $start,
+			"end" => $end
+			],
 		"provision" => [
 			[
 				"code" => [
 					"coding" => [
 						[
-							"code" => $code
+							"system" => "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+							"code" => "2.16.840.1.113883.3.1937.777.24.5.3.1",
+							"display" => "PATDAT_erheben_speichern_nutzen"
 						]
 					]
 				],
-				"type" => ($research_use_allowed ? "permit" : "deny")
+				"type" => ($research_use_allowed ? "permit" : "deny"),
+				"period" => [
+					"start" => $start,
+					"end" => $end
+					],
 			]
 		]
 	]
