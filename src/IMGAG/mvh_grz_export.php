@@ -182,6 +182,7 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 	global $megsap_ver;
 	global $db_ngsd;
 	global $test;
+	global $is_lrgs;
 	
 	$output = [
 				"labDataName" => "DNA ".($is_tumor ? "tumor" : "normal"),
@@ -206,7 +207,7 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 				"enrichmentKitManufacturer" => convert_kit_manufacturer($info['sys_name_short'], false),
 				"enrichmentKitDescription" => $info["sys_name"],
 				"barcode" => $info["sys_adapter1"]."/".$info["sys_adapter2"],
-				"sequencingLayout" => "paired-end",
+				"sequencingLayout" => ($is_lrgs ? "single-end" : "paired-end"),
 				"sequenceData"=> [
 						"bioinformaticsPipelineName" => "megSAP",
 						"bioinformaticsPipelineVersion" => $megsap_ver,
