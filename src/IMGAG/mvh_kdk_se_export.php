@@ -193,6 +193,119 @@ function json_hospitalization($se_data)
 	return $output;
 }
 
+function json_care_plan($se_data, $se_data_rep) //'carePlan' is misleading. This object captures the decisions of the "Fallkonferenz".
+{	
+	//prepare therapy recommendattions
+	$therapy_recoms = [];
+	$num = 1;
+	foreach($se_data_rep->item as $item)
+	{
+		$therapy_type = xml_str($item->therapie_art);
+		if ($therapy_type=="") continue;
+		
+		//create entry
+		$entry = [
+		"id" => "ID_THERAPY_{$num}",
+		"patient" => json_patient_ref(),
+		"issuedOn" => xml_str($se_data->datum_fallkonferenz), //TODO ok so?
+		"category" => [
+			"code" => convert_therapy_category($therapy_type),
+			],
+		"type" => [
+			"code" => convert_therapy_type($item->therapie_beschreibung),
+			],
+		//TODO supportingVariants
+		//missing fields: meciation (not in SE data)
+		];
+
+		$therapy_recoms[] = $entry;
+		++$num;
+	}
+	
+	//prepare study enrollment recommendattions
+	$study_recoms = [];
+	$num = 1;
+	foreach($se_data_rep->item as $item)
+	{
+		$study_register = xml_str($item->studien_register);
+		if ($study_register=="") continue;
+		
+		//create entry
+		$entry = [
+		"id" => "ID_STUDY_LEVEL1_{$num}",
+		"patient" => json_patient_ref(),
+		"issuedOn" => xml_str($se_data->datum_fallkonferenz), //TODO ok so?
+		"study" => [
+				[
+					"id" => "ID_STUDY_LEVEL2_{$num}",
+					"system" => convert_study_register($study_register),
+					"type" => "Study",
+				]
+			],
+		//TODO supportingVariants, studien_id (noch nicht in SE:DIP), studienname (noch nicht in SE:DIP)
+		];
+
+		$study_recoms[] = $entry;
+		++$num;
+	}
+	
+	//prepare clinical management recommendattions
+	$clin_recoms = [];
+	$num = 1;
+	foreach($se_data_rep->item as $item)
+	{
+		$clinical_mgmt = xml_str($item->klinisches_management_dr);
+		if ($clinical_mgmt=="") continue;
+		
+		//create entry
+		$entry = [
+		"id" => "ID_THERAPY_{$num}",
+		"patient" => json_patient_ref(),
+		"issuedOn" => xml_str($se_data->datum_fallkonferenz), //TODO ok so?
+		"type" => [
+			"code" => convert_clinincal_management($clinical_mgmt),
+			]
+		];
+
+		$clin_recoms[] = $entry;
+		++$num;
+	}
+	
+	
+	$output = [
+			"id"=>"ID_DIAG_1",
+			"patient" => json_patient_ref(),
+			"issuedOn" => xml_str($se_data->datum_fallkonferenz), //TODO ok so?
+			"therapyRecommendations" => $therapy_recoms,
+			"studyEnrollmentRecommendations" => $study_recoms,
+			"clinicalManagementRecommendation" => $clin_recoms,
+			];
+	
+	//optional stuff
+	$recom_counceling = xml_bool($se_data->empf_hg_beratung, true);
+	if ($recom_counceling!="") $output["geneticCounselingRecommended"] = $recom_counceling;
+	
+	$recom_reeval = xml_bool($se_data->empf_reeval, true);
+	if ($recom_reeval!="") $output["reevaluationRecommended"] = $recom_reeval;
+	
+	
+	
+	return $output;
+}
+
+//TODO: add support for cases without sequencing (see SE RedCAP aufnahme_mvh/fallkonferenz_grund)
+function json_ngs_report($cm_data, $se_data)
+{
+	$output = [
+			"id" => "ID_NGS_REPORT_1",
+			"patient" => json_patient_ref(),
+			"issuedOn" =>  xml_str($cm_data->gen_finding_date),
+			//TODO continue
+		];
+	
+	return $output;
+}
+
 //parse command line arguments
 $parser = new ToolBase("mvh_kdk_se_export", "KDK-SE export for Modellvorhaben.");
 $parser->addInt("case_id", "'id' in 'data_data' of 'MVH' database.", false);
@@ -219,6 +332,7 @@ print "export folder: {$folder}\n";
 //get data
 $ps = $db_mvh->getValue("SELECT ps FROM case_data WHERE id='{$case_id}'");
 $info = get_processed_sample_info($db_ngsd, $ps);
+$cm_data = get_cm_data($db_mvh, $case_id);
 $gl_data = get_gl_data($db_mvh, $case_id);
 $se_data = get_se_data($db_mvh, $case_id);
 $se_data_rep = get_se_data($db_mvh, $case_id, true);
@@ -230,9 +344,10 @@ $json = [
 	"diagnoses" => [ json_diagnoses($se_data) ],
 	"hpoTerms" => json_hpos($se_data, $se_data_rep),
 	"hospitalization" => json_hospitalization($se_data),
+	"carePlans" => [ json_care_plan($se_data, $se_data_rep) ],
+	"ngsReports" => [ json_ngs_report($cm_data, $se_data)],
 	
-	//TODO
-	//missing fields: 
+	//TODO: metadata, followUps, therapies
 	];
 	
 //add optional parts to JSON

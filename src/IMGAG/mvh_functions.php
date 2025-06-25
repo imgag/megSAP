@@ -60,9 +60,19 @@ function get_rc_data($db_mvh, $case_id)
 
 ################# XML functions #################
 
-function xml_str($element)
+function xml_str($value)
 {
-	return trim((string)$element);
+	return trim((string)$value);
+}
+
+function xml_bool($value, $allow_unset)
+{
+	$value = strtolower(xml_str($value));
+	if ($value=="yes") return "true";
+	if ($value=="no") return "false";
+	if ($allow_unset && $value=="") return "";
+	
+	trigger_error(__FUNCTION__.": Unhandled value '{$value}'!", E_USER_ERROR);
 }
 
 //returns the raw value for a drop-down file (our man query returns the label only)
@@ -209,6 +219,55 @@ function convert_hospitalization_days($value)
 	//TODO fix when changed (see Email from 25.06.25: MVH Hospitalization)
 	if ($value=="bis zu 15" || $value=="bis zu 10") return "up-to-fifteen";
 	if ($value==">15") return "up-to-fifty";
+	
+	trigger_error(__FUNCTION__.": Unhandled value '{$value}'!", E_USER_ERROR);
+}
+
+function convert_therapy_category($value)
+{	
+	if ($value=="Symptomatische nicht-medikamentöse Therapie (Fördermaßnahmen)") return "symptomatic";
+	if ($value=="Symptomatische medikamentöse Therapie (bspw. antispastische Medikation)") return "symptomatic";
+	if ($value=="Symptomatische interventionelle Therapie (Operationen, Injektionen)") return "symptomatic";
+	if ($value=="Kausale Therapie (medikamentös)") return "causal";
+	if ($value=="Kausale Therapie (interventionell)") return "causal";
+	
+	trigger_error(__FUNCTION__.": Unhandled value '{$value}'!", E_USER_ERROR);
+}
+
+function convert_therapy_type($value)
+{	
+	if ($value=="medikamentös_systemisch") return "systemic-medication";
+	if ($value=="medikamentös_zielgerichtet") return "targeted-medication";
+	if ($value=="medikamentös_Prävention") return "prevention-medication";
+	if ($value=="Gentherapie") return "genetic";
+	if ($value=="Prophylaxe") return "prophylactic";
+	if ($value=="Früherkennung") return "early-detection";
+	if ($value=="Kombinationstherapie") return "combination";
+	if ($value=="Ernährung") return "nutrition";
+	if ($value=="andere") return "other";
+	
+	trigger_error(__FUNCTION__.": Unhandled value '{$value}'!", E_USER_ERROR);
+}
+
+function convert_study_register($value)
+{	
+	if ($value=="NCT") return "NCT";
+	if ($value=="DRKS") return "DRKS";
+	if ($value=="Eudra-CT") return "Eudra-CT";
+	if ($value=="EUDAMED") return "EUDAMED";
+	
+	trigger_error(__FUNCTION__.": Unhandled value '{$value}'!", E_USER_ERROR);
+}
+
+function convert_clinincal_management($value)
+{	
+	if ($value=="Indikatorerkrankungsspezifische Ambulanz") return "disease-specific-ambulatory-care";
+	if ($value=="Andere Hochschulambulanz") return "university-ambulatory-care";
+	if ($value=="Eigenes ZSE") return "local-crd";
+	if ($value=="Anderes ZSE") return "other-crd";
+	if ($value=="Andere Ambulanz") return "other-ambulatory-care";
+	if ($value=="Hausarzt") return "gp";
+	if ($value=="Niedergelassener Facharzt") return "specialist";
 	
 	trigger_error(__FUNCTION__.": Unhandled value '{$value}'!", E_USER_ERROR);
 }
