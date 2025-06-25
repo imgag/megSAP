@@ -37,6 +37,7 @@ $parser->addFlag("skip_signatures", "Skip calculation of mutational signatures."
 $parser->addFlag("skip_HRD", "Skip calculation HRD.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("use_dragen", "Use Illumina dragen for somatic variant calling.");
+$parser->addFlag("validation", "Option used for analyzing validation samples. Ignores checks: flagging in NGSD, report config, correlation");
 //default cut-offs
 $parser->addFloat("min_correlation", "Minimum correlation for tumor/normal pair.", true, 0.8);
 $parser->addFloat("min_depth_t", "Tumor sample coverage cut-off for low coverage statistics.", true, 60);
@@ -105,6 +106,14 @@ if (in_array("vc", $steps)  && $use_dragen)
 
 
 ###################################### SCRIPT START ######################################
+if($validation)
+{
+	$skip_correlation = true;
+	$skip_contamination_check = true;
+	$skip_signatures = true;
+}
+
+
 if (!file_exists($out_folder))
 {
 	exec2("mkdir -p $out_folder");
@@ -183,7 +192,7 @@ if($roi != $n_sys["target_file"])
 }
 
 //Abort if calling is requested and somatic report config exists in NGSD
-if (db_is_enabled("NGSD"))
+if (db_is_enabled("NGSD") && !$validation)
 {
 	$db = DB::getInstance("NGSD", false);
 	list($config_id, $config_vars_exist, $config_cnvs_exist, $config_svs_exists) = somatic_report_config($db, $t_id, $n_id);
@@ -204,7 +213,7 @@ if (db_is_enabled("NGSD"))
 //sample similarity check
 $bams = array_filter([$t_bam, $n_bam]);
 
-if ($skip_correlation)
+if ($skip_correlation || $validation)
 {
 	trigger_error("Genotype correlation check has been disabled!", E_USER_NOTICE);
 }
@@ -244,7 +253,7 @@ if (!$skip_contamination_check)
 else trigger_error("Skipping check of female tumor sample $t_bam for contamination with male genomic DNA.", E_USER_WARNING);
 
 // Check samples are flagged correctly in NGSD
-if( db_is_enabled("NGSD"))
+if( db_is_enabled("NGSD") && !$validation)
 {
 	$db = DB::getInstance("NGSD");
 	
@@ -369,7 +378,7 @@ if (in_array("vc", $steps))
 		$args = array();
 		$args[] = "-t_bam ".$t_bam_dragen;
 		$args[] = "-out ".$dragen_output_vcf;
-		// $args[] = "-out_sv ".$dragen_output_svs;
+		$args[] = "-out_sv ".$dragen_output_svs;
 		$args[] = "-build ".$sys['build'];
 		$args[] = "--log ".$dragen_log_file;
 		
