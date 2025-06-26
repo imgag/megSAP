@@ -216,9 +216,9 @@ function convert_hospitalization_days($value)
 	if ($value=="" || $value=="unbekannt") return "unknown";
 	if ($value=="keine") return "none";
 	if ($value=="bis zu 5") return "up-to-five";
-	//TODO fix when changed (see Email from 25.06.25: MVH Hospitalization)
-	if ($value=="bis zu 15" || $value=="bis zu 10") return "up-to-fifteen";
-	if ($value==">15") return "up-to-fifty";
+	if ($value=="bis zu 15") return "up-to-fifteen";
+	if ($value=="bis zu 50") return "up-to-fifty";
+	if ($value==">50") return "over-fifty";
 	
 	trigger_error(__FUNCTION__.": Unhandled value '{$value}'!", E_USER_ERROR);
 }
@@ -254,7 +254,7 @@ function convert_study_register($value)
 	if ($value=="NCT") return "NCT";
 	if ($value=="DRKS") return "DRKS";
 	if ($value=="Eudra-CT") return "Eudra-CT";
-	if ($value=="EUDAMED") return "EUDAMED";
+	if ($value=="other") return "other";
 	
 	trigger_error(__FUNCTION__.": Unhandled value '{$value}'!", E_USER_ERROR);
 }
@@ -270,6 +270,22 @@ function convert_clinincal_management($value)
 	if ($value=="Niedergelassener Facharzt") return "specialist";
 	
 	trigger_error(__FUNCTION__.": Unhandled value '{$value}'!", E_USER_ERROR);
+}
+
+function convert_sequencing_platform($name)
+{
+	if ($name=="NovaSeq6000" || $name=="NovaSeqXPlus") return "illu";
+	if ($name=="PromethION") return "ont";
+	
+	trigger_error(__FUNCTION__.": Unhandled name '{$name}'!", E_USER_ERROR);
+}
+function convert_outcome($name)
+{
+	if ($name=="no significant findings" || $name=="significant findings - non-genetic" || $name=="candidate gene" || $name=="significant findings - second method") return "no-pathogenic-variant-detected";
+	if ($name=="uncertain") return "unclear-variant-in-disease";
+	if ($name=="significant findings") return "TODO";
+	
+	trigger_error(__FUNCTION__.": Unhandled name '{$name}'!", E_USER_ERROR);
 }
 
 ?>

@@ -232,17 +232,18 @@ function json_care_plan($se_data, $se_data_rep) //'carePlan' is misleading. This
 		
 		//create entry
 		$entry = [
-		"id" => "ID_STUDY_LEVEL1_{$num}",
+		"id" => "ID_STUDY_{$num}",
 		"patient" => json_patient_ref(),
 		"issuedOn" => xml_str($se_data->datum_fallkonferenz), //TODO ok so?
 		"study" => [
 				[
-					"id" => "ID_STUDY_LEVEL2_{$num}",
+					"id" => xml_str($item->studien_id),
 					"system" => convert_study_register($study_register),
 					"type" => "Study",
+					"display" => xml_str($item->studienname)
 				]
 			],
-		//TODO supportingVariants, studien_id (noch nicht in SE:DIP), studienname (noch nicht in SE:DIP)
+		//TODO supportingVariants
 		];
 
 		$study_recoms[] = $entry;
@@ -294,15 +295,29 @@ function json_care_plan($se_data, $se_data_rep) //'carePlan' is misleading. This
 }
 
 //TODO: add support for cases without sequencing (see SE RedCAP aufnahme_mvh/fallkonferenz_grund)
-function json_ngs_report($cm_data, $se_data)
+function json_ngs_report($cm_data, $se_data, $info)
 {
+	global $is_lrgs;
+	global $db_ngsd;
+	
 	$output = [
 			"id" => "ID_NGS_REPORT_1",
 			"patient" => json_patient_ref(),
 			"issuedOn" =>  xml_str($cm_data->gen_finding_date),
-			//TODO continue
+			"type" => [
+				"code" => ($is_lrgs ? "genome-long-read" : "genome-short-read"),
+				],
+			"sequencingInfo" =>[
+				"platform" => [
+					"code" => convert_sequencing_platform($info["device_type"])
+					],
+				"kit" => $info['sys_name']
+				],
+			"result" => [
+				
+				]
 		];
-	
+	//missing: autozygosity (there is no definition how to calculate it), conclusion (makes no sense at all)
 	return $output;
 }
 
@@ -331,7 +346,9 @@ print "export folder: {$folder}\n";
 
 //get data
 $ps = $db_mvh->getValue("SELECT ps FROM case_data WHERE id='{$case_id}'");
+print "index sample: {$ps}\n";
 $info = get_processed_sample_info($db_ngsd, $ps);
+$is_lrgs = $info['sys_type']=="lrGS";
 $cm_data = get_cm_data($db_mvh, $case_id);
 $gl_data = get_gl_data($db_mvh, $case_id);
 $se_data = get_se_data($db_mvh, $case_id);
@@ -345,7 +362,7 @@ $json = [
 	"hpoTerms" => json_hpos($se_data, $se_data_rep),
 	"hospitalization" => json_hospitalization($se_data),
 	"carePlans" => [ json_care_plan($se_data, $se_data_rep) ],
-	"ngsReports" => [ json_ngs_report($cm_data, $se_data)],
+	"ngsReports" => [ json_ngs_report($cm_data, $se_data, $info)],
 	
 	//TODO: metadata, followUps, therapies
 	];
