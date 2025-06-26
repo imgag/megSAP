@@ -528,11 +528,13 @@ $research_consent = [
 		"provision" => [
 			[
 				"code" => [
-					"coding" => [
-						[
-							"system" => "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
-							"code" => "2.16.840.1.113883.3.1937.777.24.5.3.1",
-							"display" => "PATDAT_erheben_speichern_nutzen"
+					[
+						"coding" => [
+							[
+								"system" => "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+								"code" => "2.16.840.1.113883.3.1937.777.24.5.3.1",
+								"display" => "PATDAT_erheben_speichern_nutzen"
+							]
 						]
 					]
 				],
