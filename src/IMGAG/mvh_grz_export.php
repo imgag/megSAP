@@ -621,8 +621,7 @@ if ($exit_code!=0)
 
 //Encrypt the submission
 print "running grz-cli encrypt...\n";
-$config = ""; //TODO
-if ($test) $config = "/mnt/storage2/MVH/config/config_test_phase.txt";
+$config = "/mnt/storage2/MVH/config/config_".($test ? "test_phase" : "production").".txt";
 $stdout = "{$folder}/logs/grz_cli_encrypt.stdout";
 $stderr = "{$folder}/logs/grz_cli_encrypt.stderr";
 $output = [];
