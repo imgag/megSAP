@@ -378,7 +378,7 @@ if (in_array("vc", $steps))
 		$args = array();
 		$args[] = "-t_bam ".$t_bam_dragen;
 		$args[] = "-out ".$dragen_output_vcf;
-		$args[] = "-out_sv ".$dragen_output_svs;
+		// $args[] = "-out_sv ".$dragen_output_svs;
 		$args[] = "-build ".$sys['build'];
 		$args[] = "--log ".$dragen_log_file;
 		
