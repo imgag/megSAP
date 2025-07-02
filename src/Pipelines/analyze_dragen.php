@@ -24,6 +24,7 @@ $parser->addFlag("dragen_only", "Perform only DRAGEN analysis and copy all outpu
 $parser->addFlag("debug", "Add debug output to the log file.");
 $parser->addFlag("high_priority", "Queue megSAP analysis with high priority.");
 $parser->addString("user", "User used to queue megSAP analysis (has to be in the NGSD).", true, "");
+$parser->addFlag("high_mem", "Run DRAGEN analysis in high memory mode for deep samples. (Also increases timeout to prevent job from being terminated.)");
 
 extract($parser->parse($argv));
 
@@ -166,15 +167,6 @@ if (count($files_forward) == 0)
 	$parser->moveFile($input_bam, "{$folder}/bams_for_mapping/".basename($input_bam));
 	$input_bam = "{$folder}/bams_for_mapping/".basename($input_bam);
 
-	/*
-	//convert BAM/CRAM to FastQ (don't use temp since it is tiny on DRAGEN)
-	$fastq_r1 = "{$working_dir}/{$name}_BamToFastq_R1_001.fastq.gz";
-	$fastq_r2 = "{$working_dir}/{$name}_BamToFastq_R2_001.fastq.gz";
-	//use samtools to avoid requirement of Apptainer
-	$parser->exec("samtools", "fastq -1 {$fastq_r1} -2 {$fastq_r2} -0 /dev/null -s /dev/null -n {$input_bam} --reference {$genome} -@ 15");
-	$files_forward = array($fastq_r1);
-	$files_reverse = array($fastq_r2);
-	*/
 }
 
 //define output files
@@ -224,12 +216,6 @@ if ($input_bam != "")
 	//use BAM/CRAM as input
 	if (ends_with($input_bam, ".cram")) $dragen_parameter[] = "--cram-input {$input_bam}";
 	else $dragen_parameter[] = "--bam-input {$input_bam}";
-
-	// $dragen_parameter[] = "--RGID {$name}";
-	// $dragen_parameter[] = "--RGSM {$name}";
-	// $dragen_parameter[] = "--RGDT ".date("c");
-	// $dragen_parameter[] = "--RGPL '{$rglb}'";
-	// $dragen_parameter[] = "--RGLB '{$device_type}'";
 }
 else
 {
@@ -371,6 +357,15 @@ $dragen_parameter[] = "--vc-enable-vcf-output true";
 //structural variant calling
 $dragen_parameter[] = "--enable-sv true";
 $dragen_parameter[] = "--sv-use-overlap-pair-evidence true"; //TODO Marc re-validate with DRAGEN 4.4
+
+//high memory
+if ($high_mem)
+{
+	$dragen_parameter[] = "--bin_memory 96636764160"; //90GB (default: 20 (GB), max on DRAGEN v4: 90)
+	$dragen_parameter[] = "--vc-max-callable-region-memory-usage 41875931136"; //39GB (default: 13 (GB))
+	$dragen_parameter[] = "--watchdog-active-timeout 3600"; //increase timeout to 1h (default: 10min)
+}
+
 $parser->log("DRAGEN parameters:", $dragen_parameter);
 
 //run
@@ -404,33 +399,10 @@ if ($dragen_only)
 }
 else
 {
-	//TODO: test and re-enable with DRAGEN  4.4
 	//copy CRAM/CRAI to sample folder
 	$parser->log("Copying CRAM/CRAI to output folder");
 	$parser->copyFile($working_dir.$name.".cram", $out_cram);
 	$parser->copyFile($working_dir.$name.".cram.crai", $out_cram.".crai");
-
-	//TODO remove if CRAM is working
-	/*
-	//test: convert BAM to CRAM and check read-counts
-	$bam = $working_dir.$name.".bam";
-	$parser->exec("samtools", "view -@ 15 -C -T {$genome} -o {$out_cram} {$bam}");
-	$parser->exec("samtools", "index -@ 15 {$out_cram}");
-	list($stdout, $stderr, $ec) = $parser->exec("samtools", "view -@ 15 -c {$bam}");
-	$bam_read_count = intval($stdout[0]);
-	list($stdout, $stderr, $ec) = $parser->exec("samtools", "view -@ 15 -c {$out_cram}");
-	$cram_read_count = intval($stdout[0]);
-	trigger_error("Read count BAM: \t{$bam_read_count}\tRead count CRAM: \t{$cram_read_count}", E_USER_NOTICE);
-	if ($bam_read_count != $cram_read_count)
-	{
-		// check relative difference
-		$diff = abs($bam_read_count - $cram_read_count);
-		$rel_diff = $diff /(($bam_read_count + $cram_read_count)/2.0);
-
-		if ($rel_diff > 0.001) trigger_error("Read counts of BAM and CRAM file do not match! \n {$bam_read_count} (BAM) vs. {$cram_read_count} (CRAM)", E_USER_ERROR);
-	}
-	//else: everything is fine
-	*/
 
 	// copy small variant calls to sample folder
 	$parser->log("Copying small variants to output folder");
