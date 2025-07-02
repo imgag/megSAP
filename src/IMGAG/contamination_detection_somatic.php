@@ -49,7 +49,7 @@ while(!feof($handle))
 			{
 				if($parts[$i] == "gnomAD") $i_gnomad  = $i;
 			}
-			if ($i_gnomad==-1) trigger_error("Column 'gnomAD' not found in tumor/normal GSvar file!");
+			if ($i_gnomad==-1) trigger_error("Column 'gnomAD' not found in tumor/normal GSvar file!", E_USER_ERROR);
 		}
 	
 		continue;

@@ -25,17 +25,6 @@ $parser->addFlag("matches", "Do not only show variants that were missed (-), are
 $parser->addFlag("skip_depth_calculation", "Do not calculate depth of missed variants to speed up calculation.");
 extract($parser->parse($argv));
 
-//returns the base count of a BED file
-function get_bases($filename)
-{
-	global $parser;
-	
-	list($stdout) = $parser->execApptainer("ngs-bits", "BedInfo", "-in $filename", [$filename]);
-	$hits = array_containing($stdout, "Bases ");
-	$parts = explode(":", $hits[0]);
-	return trim($parts[1]);
-}
-
 //returns the variants of a VCF file in the given ROI
 function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $child_id, &$skipped)
 {
@@ -195,7 +184,7 @@ if (!file_exists($giab_vcfgz)) trigger_error("GiaB {$ref_sample} VCF file missin
 
 //Target region base statistics
 print "##Target region     : $roi\n";
-$bases = get_bases($roi);
+$bases = bed_size($roi);
 print "##Bases             : $bases\n";
 //sort and merge $roi_hc after intersect - MH
 $roi_hc = $parser->tempFile(".bed");
@@ -204,7 +193,7 @@ $pipeline[] = array("", $parser->execApptainer("ngs-bits", "BedIntersect", "-in 
 $pipeline[] = array("", $parser->execApptainer("ngs-bits", "BedSort", "", [], [], true));
 $pipeline[] = array("", $parser->execApptainer("ngs-bits", "BedMerge", "-out $roi_hc", [], [], true));
 $parser->execPipeline($pipeline, "high-conf ROI");
-$bases_hc = get_bases($roi_hc);
+$bases_hc = bed_size($roi_hc);
 print "##High-conf bases   : $bases_hc (".number_format(100*$bases_hc/$bases, 2)."%)\n";
 $roi_used = $roi_hc;
 $bases_used = $bases_hc;
@@ -215,7 +204,7 @@ if ($min_dp>0)
 	$roi_high_dp = $parser->tempFile(".bed");
 	$parser->execApptainer("ngs-bits", "BedSubtract", "-in {$roi_hc} -in2 {$roi_low_dp} -out {$roi_high_dp}");
 	
-	$bases_high_dp = get_bases($roi_high_dp);
+	$bases_high_dp = bed_size($roi_high_dp);
 	print "##High-depth bases  : $bases_high_dp (".number_format(100*$bases_high_dp/$bases, 2)."%)\n";
 	
 	$roi_used = $roi_high_dp;

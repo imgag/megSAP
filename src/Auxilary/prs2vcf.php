@@ -274,12 +274,12 @@ else
 	}
 
 	//check if all required header items are parsed:
-	if(!isset($pgs_id)) trigger_error("PGS ID missing in PRS file!");
-	if(!isset($trait)) trigger_error("Reported Trait missing in PRS file!");
-	if(!isset($build_prs)) trigger_error("Original Genome Build missing in PRS file!");
-	if(!isset($n_var)) trigger_error("Number of Variants missing in PRS file!");
-	if(!isset($pgp_id)) trigger_error("PGP ID missing in PRS file!");
-	if(!isset($citation)) trigger_error("Citation missing in PRS file!");
+	if(!isset($pgs_id)) trigger_error("PGS ID missing in PRS file!", E_USER_WARNING);
+	if(!isset($trait)) trigger_error("Reported Trait missing in PRS file!", E_USER_WARNING);
+	if(!isset($build_prs)) trigger_error("Original Genome Build missing in PRS file!", E_USER_WARNING);
+	if(!isset($n_var)) trigger_error("Number of Variants missing in PRS file!", E_USER_WARNING);
+	if(!isset($pgp_id)) trigger_error("PGP ID missing in PRS file!", E_USER_WARNING);
+	if(!isset($citation)) trigger_error("Citation missing in PRS file!", E_USER_WARNING);
 
 	// set input file for left normalization
 	$input_vcf = $vcf;

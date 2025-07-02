@@ -323,15 +323,12 @@ $dragen_parameter[] = "-r ".$dragen_genome_path;
 $dragen_parameter[] = "--ora-reference ".get_path("data_folder")."/dbs/oradata/";
 $dragen_parameter[] = "--output-directory $working_dir";
 $dragen_parameter[] = "--output-file-prefix {$name}";
-//TODO: test and re-enable with DRAGEN  4.4
 $dragen_parameter[] = "--output-format CRAM"; //always use CRAM
 $dragen_parameter[] = "--enable-map-align-output=true";
 $dragen_parameter[] = "--enable-bam-indexing true";
 $dragen_parameter[] = "--enable-rh=false"; //disabled RH special caller because this leads to variants with EVENTTYPE=GENE_CONVERSION that have no DP and AF entry and sometimes are duplicated (same variant twice in the VCF).
-
 if ($is_wgs)
 {
-	//TODO re-enable
 	$dragen_parameter[] = "--enable-cnv true";
 	$dragen_parameter[] = "--cnv-enable-self-normalization true";
 	$dragen_parameter[] = "--vc-ml-enable-recalibration=false"; //disabled because it leads to a sensitivity drop for Twist Exome V2 (see /mnt/storage2/users/ahsturm1/scripts/2025_03_21_megSAP_release_performance)
