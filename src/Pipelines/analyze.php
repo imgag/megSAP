@@ -87,6 +87,11 @@ if (in_array("sv", $steps) && $is_wgs_shallow)
 	trigger_error("Skipping step 'sv' - Structural variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
 	if (($key = array_search("sv", $steps)) !== false) unset($steps[$key]);
 }
+if (in_array("re", $steps) && $is_wgs_shallow)
+{
+	trigger_error("Skipping step 're' - Repeat expansion calling is not supported for shallow WGS samples!", E_USER_NOTICE);
+	if (($key = array_search("re", $steps)) !== false) unset($steps[$key]);
+}
 
 if (db_is_enabled("NGSD") && !$annotation_only)
 {

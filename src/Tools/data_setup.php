@@ -122,7 +122,7 @@ foreach($files as $file)
 }
 
 //copy samtools ref_cache folder
-$ref_cache = "{$genome_folder}/samtools_ref_cache/";
+$ref_cache = "{$genome_folder}/samtools_ref_cache";
 if (file_exists($ref_cache))
 {
 	print "Copying samtools ref cache...\n";

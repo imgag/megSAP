@@ -368,9 +368,9 @@ foreach([0.05, 0.075, 0.1, 0.125, 0.15, 0.2] as $min_af)
 			}
 		}
 
-		$recall = ($tp+$fn==0) ? "n/a" : number_format($tp/($tp+$fn),5);
-		$precision = ($tp+$fp==0) ? "n/a" : number_format($tp/($tp+$fp),5);
-		$output_af[] = implode("\t", [ trim("{$min_af} {$curr_type}"), $tp+$fn, $tp, $fp, $fn, $recall, $precision ]);
+		$recall = ($tp+$fn==0) ? "n/a" : number_format($tp/($tp+$fn) * 100,2);
+		$precision = ($tp+$fp==0) ? "n/a" : number_format($tp/($tp+$fp) * 100,2);
+		$output_af[] = implode("\t", [ trim("{$min_af}% {$curr_type}"), $tp+$fn, $tp, $fp, $fn, $recall."%", $precision."%" ]);
 	}
 }
 file_put_contents($af_details, implode("\n", $output_af));

@@ -24,6 +24,7 @@ $parser->addFlag("dragen_only", "Perform only DRAGEN analysis and copy all outpu
 $parser->addFlag("debug", "Add debug output to the log file.");
 $parser->addFlag("high_priority", "Queue megSAP analysis with high priority.");
 $parser->addString("user", "User used to queue megSAP analysis (has to be in the NGSD).", true, "");
+$parser->addFlag("high_mem", "Run DRAGEN analysis in high memory mode for deep samples. (Also increases timeout to prevent job from being terminated.)");
 
 extract($parser->parse($argv));
 
@@ -166,15 +167,6 @@ if (count($files_forward) == 0)
 	$parser->moveFile($input_bam, "{$folder}/bams_for_mapping/".basename($input_bam));
 	$input_bam = "{$folder}/bams_for_mapping/".basename($input_bam);
 
-	/*
-	//convert BAM/CRAM to FastQ (don't use temp since it is tiny on DRAGEN)
-	$fastq_r1 = "{$working_dir}/{$name}_BamToFastq_R1_001.fastq.gz";
-	$fastq_r2 = "{$working_dir}/{$name}_BamToFastq_R2_001.fastq.gz";
-	//use samtools to avoid requirement of Apptainer
-	$parser->exec("samtools", "fastq -1 {$fastq_r1} -2 {$fastq_r2} -0 /dev/null -s /dev/null -n {$input_bam} --reference {$genome} -@ 15");
-	$files_forward = array($fastq_r1);
-	$files_reverse = array($fastq_r2);
-	*/
 }
 
 //define output files
@@ -224,12 +216,6 @@ if ($input_bam != "")
 	//use BAM/CRAM as input
 	if (ends_with($input_bam, ".cram")) $dragen_parameter[] = "--cram-input {$input_bam}";
 	else $dragen_parameter[] = "--bam-input {$input_bam}";
-
-	// $dragen_parameter[] = "--RGID {$name}";
-	// $dragen_parameter[] = "--RGSM {$name}";
-	// $dragen_parameter[] = "--RGDT ".date("c");
-	// $dragen_parameter[] = "--RGPL '{$rglb}'";
-	// $dragen_parameter[] = "--RGLB '{$device_type}'";
 }
 else
 {
@@ -368,6 +354,15 @@ $dragen_parameter[] = "--vc-enable-vcf-output true";
 //structural variant calling
 $dragen_parameter[] = "--enable-sv true";
 $dragen_parameter[] = "--sv-use-overlap-pair-evidence true"; //TODO Marc re-validate with DRAGEN 4.4
+
+//high memory
+if ($high_mem)
+{
+	$dragen_parameter[] = "--bin_memory 96636764160"; //90GB (default: 20 (GB), max on DRAGEN v4: 90)
+	$dragen_parameter[] = "--vc-max-callable-region-memory-usage 41875931136"; //39GB (default: 13 (GB))
+	$dragen_parameter[] = "--watchdog-active-timeout 3600"; //increase timeout to 1h (default: 10min)
+}
+
 $parser->log("DRAGEN parameters:", $dragen_parameter);
 
 //run

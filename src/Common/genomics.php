@@ -132,24 +132,34 @@ function get_ref_seq($build, $chr, $start, $end, $cache_size=0, $use_local_data=
 			// get sequence
 			$output = array();
 			$samtools_command = execApptainer("samtools", "samtools faidx", genome_fasta($build, $use_local_data)." $chr:{$cache_start}-{$cache_end} 2>&1", [genome_fasta($build, $use_local_data)], [], true);
+
 			exec($samtools_command, $output, $ret);
 			if ($ret!=0)
 			{
 				trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
 			}
-			
-			// check if chr range exceeds chr end:
-			if (starts_with($output[0], "[faidx] Truncated sequence:"))
+
+			$cache_sequence = "";
+			foreach ($output as $line) 
 			{
-				//skip warning
-				$cache_sequence = trim(implode("", array_slice($output, 2)));
-				// correct cached end position, if cache exceeds chr end
-				$cache_end = $cache_start + strlen($cache_sequence);
+				//skip header line
+				if (starts_with($line, ">")) continue;
+				
+				//skip truncation warning
+				if (starts_with($line, "[faidx] Truncated sequence:")) continue;
+
+				//report but skip warnings
+				if (starts_with($line, "WARNING:"))
+				{
+					trigger_error($line, E_USER_WARNING);
+					continue;
+				}
+
+				$cache_sequence .= $line;
+
 			}
-			else
-			{
-				$cache_sequence = trim(implode("", array_slice($output, 1)));
-			}
+			//update cached end position, if cache exceeds chr end
+			$cache_end = $cache_start + strlen($cache_sequence);
 
 			// return requested interval
 			return substr($cache_sequence, $start - $cache_start, $end - $start + 1);
@@ -168,8 +178,32 @@ function get_ref_seq($build, $chr, $start, $end, $cache_size=0, $use_local_data=
 		{
 			trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
 		}
-		
-		return implode("", array_slice($output, 1));
+
+		$sequence = "";
+		foreach ($output as $line) 
+		{
+			//skip header line
+			if (starts_with($line, ">")) continue;
+			
+			//skip truncation warning
+			if (starts_with($line, "[faidx] Truncated sequence:")) 
+			{
+				trigger_error($line, E_USER_WARNING);
+				continue;
+			}
+			
+			//report but skip warnings
+			if (starts_with($line, "WARNING:"))
+			{
+				trigger_error($line, E_USER_WARNING);
+				continue;
+			}
+
+			$sequence .= $line;
+
+		}
+				
+		return $sequence;
 	}
 	
 	
