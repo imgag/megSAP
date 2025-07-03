@@ -20,7 +20,7 @@ $args = [];
 $args[] = "-case_id {$case_id}";
 if ($clear) $args[] = "-clear";
 if ($test) $args[] = "-test";
-$script = dirname(realpath($_SERVER['SCRIPT_FILENAME']))."/mvh_".strtoupper($type)."_export.php";
+$script = dirname(realpath($_SERVER['SCRIPT_FILENAME']))."/mvh_".strtolower($type)."_export.php";
 $command = "php {$script} ".implode(" ", $args)." 2>&1";
 list($stdout, , $exit_code) = exec2($command);
 	
@@ -45,7 +45,7 @@ foreach($stdout as $line)
 //update submission status in MVH database
 $status = $exit_code==0 ? "done" : "failed";
 $db_mvh = DB::getInstance("MVH");
-$hash = $db_mvh->prepare("UPDATE submission_".strtoupper($type)." SET status=:status, submission_id=:id_sub, output=:output WHERE id=:id");
+$hash = $db_mvh->prepare("UPDATE submission_".strtolower($type)." SET status=:status, submission_id=:id_sub, output=:output WHERE id=:id");
 $db_mvh->bind($hash, "status", $status);
 $db_mvh->bind($hash, "submission_id", $id_sub);
 $db_mvh->bind($hash, "output", $output);
