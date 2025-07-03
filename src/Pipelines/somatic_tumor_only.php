@@ -167,8 +167,11 @@ if (in_array("vc", $steps))
 		$args[] = "-build ".$sys['build'];
 		$args[] = "-threads ".$threads;
 		$args[] = "-tumor_id {$t_id}";
-		$args[] = "-min_af $min_af";
+		$args[] = "-min_af_indels $min_af";
+		$args[] = "-min_af_snps $min_af";
 		$args[] = "-tumor_only";
+		$args[] = "-min_mq 15"; //taken from vc_varscan2.php
+		$args[] = "-min_bq 30"; //taken from vc_varscan2.php
 
 		if (!empty($roi))
 		{

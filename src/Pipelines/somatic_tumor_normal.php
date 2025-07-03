@@ -550,7 +550,7 @@ if (in_array("vc", $steps))
 		{
 			$args[] = "-target {$roi}";
 		}
-		$args[] = "-allow_empty_examples";
+		#$args[] = "-allow_empty_examples";
 
 		$parser->execTool("Tools/vc_deepsomatic.php", implode(" ", $args));
 	}
