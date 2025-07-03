@@ -282,7 +282,7 @@ $cm_data = get_cm_data($db_mvh, $case_id);
 $gl_data = get_gl_data($db_mvh, $case_id);
 
 //check network > determine KDK and study_subtype
-$network = $cm_data->network_title;
+$network = xml_str($cm_data->network_title);
 $kdk = "";
 $study_subtype = "";
 $disease_type = "";
@@ -309,11 +309,11 @@ else if ($network=="Deutsches Konsortium Familiärer Brust- und Eierstockkrebs")
 else trigger_error("Unhandled network type '{$network}'!", E_USER_ERROR); 
 
 //check seqencing mode
-$seq_mode = $cm_data->seq_mode;
+$seq_mode = xml_str($cm_data->seq_mode);
 if ($seq_mode!="WGS" && $seq_mode!="WES") trigger_error("Unhandled seq_mode '{$seq_mode}'!", E_USER_ERROR);
 
-//get patient identifer (pseudonym from case management)
-$patient_id = $cm_data->psn;
+//get patient identifer (pseudonym from case management) - this is the ID that is used to identify submissions from the same case by GRZ/KDK
+$patient_id = xml_str($cm_data->psn);
 if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}'!", E_USER_ERROR);
 
 print "case: {$case_id} (CM ID: {$cm_id} / CM pseudonym: {$patient_id} / seq_mode: {$seq_mode} / network: {$network})\n";
@@ -599,7 +599,7 @@ $json['donors'] = [
 		"researchConsents" => [
 				0 => [
 					"schemaVersion" => "2025.0.1",
-					"presentationDate" => (string)($cm_data->bc_date),
+					"presentationDate" => xml_str($cm_data->bc_date),
 					"scope" => $research_consent
 					]
 			],
