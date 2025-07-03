@@ -352,15 +352,6 @@ All benchmarks were performed on GIAB high-confidence regions **with at least 15
 		<td>99.21%</td>
 	</tr>
 	<tr>
-		<td>long-read WGS (high accuracy)</td>
-		<td>98.83%</td>
-		<td>95.78%</td>
-		<td>99.77%</td>
-		<td>65.92%</td>
-		<td>86.58%</td>
-		<td>99.21%</td>
-	</tr>
-	<tr>
 		<td>long-read WGS (super accuracy)</td>
 		<td>98.76%</td>
 		<td>96.39%</td>

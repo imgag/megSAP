@@ -16,7 +16,7 @@ If you are interested to join the effort, please contact [Marc Sturm](https://gi
 ## Obtaining megSAP
 
 General remarks:
-- Only GRCh38 is supported. There is a [branch](https://github.com/imgag/megSAP/tree/GRCh37) for GRCh37, but is is not updated or maintained since December 2021 anymore.
+- Only GRCh38 is supported.
 - The installation of megSAP is quite time-consuming because large databases for annotation of variants need to be downloaded and converted.
 
 The default way of using megSAP is cloning the megSAP repository and calling the analysis pipelines from there.

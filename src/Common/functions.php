@@ -509,12 +509,6 @@ function array_subset($values /*, $index1, index 2, ...*/)
 	return $output;
 }
 
-///Returns an array with all elements of @p heystack that contain @p needle.
-function array_containing($haystack, $needle)
-{
-	return array_values(array_filter($haystack, function($var) use ($needle){ return strpos($var, $needle) !== false;}));
-}
-
 /*
 	@brief Loads a tab-separated file without newline characters, empty lines and comment lines.
 */

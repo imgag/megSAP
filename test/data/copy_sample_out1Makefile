@@ -19,7 +19,7 @@ Sample_DX180049_01:
 	chmod -R 775 /test/project/folder/Sample_DX180049_01
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_DX180049_01
 	#queue
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX180049_01 -use_dragen
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX180049_01
 
 Sample_DX180050_02:
 	#copy
@@ -27,7 +27,7 @@ Sample_DX180050_02:
 	chmod -R 775 /test/project/folder/Sample_DX180050_02
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_DX180050_02
 	#queue
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX180050_02 -use_dragen
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX180050_02
 
 Sample_FO180004_01:
 	#copy

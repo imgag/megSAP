@@ -87,6 +87,11 @@ if (in_array("sv", $steps) && $is_wgs_shallow)
 	trigger_error("Skipping step 'sv' - Structural variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
 	if (($key = array_search("sv", $steps)) !== false) unset($steps[$key]);
 }
+if (in_array("re", $steps) && $is_wgs_shallow)
+{
+	trigger_error("Skipping step 're' - Repeat expansion calling is not supported for shallow WGS samples!", E_USER_NOTICE);
+	if (($key = array_search("re", $steps)) !== false) unset($steps[$key]);
+}
 
 if (db_is_enabled("NGSD") && !$annotation_only)
 {
@@ -377,7 +382,7 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 
 	}
 
-	//low-coverage regions for samples mapped/called on NovaSeq X
+	//low-coverage regions for samples mapped/called on NovaSeq X / DRAGEN server
 	if(!file_exists($lowcov_file))
 	{
 		if ($has_roi && !$is_wgs_shallow)
@@ -801,6 +806,9 @@ if (in_array("vc", $steps))
 	if ($no_splice) $args[] = "-no_splice";
 	$parser->execTool("Tools/annotate.php", implode(" ", $args));
 
+	//check for truncated output
+	if ($is_wgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$vcffile_annotated} -max_missing_perc 5");
+		
 	//ROH detection
 	if ($is_wes || $is_wgs)
 	{
@@ -1018,6 +1026,9 @@ if (in_array("cn", $steps))
 		{
 			$parser->execApptainer("ngs-bits", "NGSDAnnotateCNV", "-in {$cnvfile} -out {$cnvfile}", [$folder]);
 		}
+		
+		//check for truncated output
+		if ($is_wgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$cnvfile}");
 	}
 	else
 	{
@@ -1220,6 +1231,9 @@ if (in_array("sv", $steps))
 		$bedpe_content->setComments($new_comments);
 		$bedpe_content->toTSV(($bedpe_out));
 	}
+	
+	//check for truncated output
+	if ($is_wgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$bedpe_out}");
 }
 
 //repeat expansions

@@ -69,6 +69,11 @@ if (db_is_enabled("NGSD"))
 		trigger_error("Skipping step 'sv' - Report configuration with SVs exists in NGSD!", E_USER_NOTICE);
 		if (($key = array_search("sv", $steps)) !== false) unset($steps[$key]);
 	}
+	if (in_array("re", $steps) && $rc_svs_exist)
+	{
+		trigger_error("Skipping step 're' - Report configuration with REs exists in NGSD!", E_USER_NOTICE);
+		if (($key = array_search("re", $steps)) !== false) unset($steps[$key]);
+	}
 }
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
@@ -121,20 +126,9 @@ $sample_name = $name_sample_ps[0];
 
 if(!$sys['target_file']) trigger_error("Target region is missing in processing system config.", E_USER_NOTICE);
 
-//check if target region covers whole genome
-list($stdout, $stderr, $ec) = $parser->execApptainer("ngs-bits", "BedInfo", "-in ".realpath($sys['target_file']), [$sys['target_file']]);
-$is_wgs = false;
-foreach($stdout as $line)
-{
-	if( starts_with($line, "Bases"))
-	{
-		$target_size = (int) explode(":", $line)[1];
-		trigger_error("Taget region size: {$target_size} bp");
-		$is_wgs = ($target_size > 3e9);
-		break;
-	}
-}
-if(!$is_wgs) trigger_error("Target region does not cover whole genome. Cannot check for missing chromosomes in variant calls.", E_USER_NOTICE);
+//check if target region covers whole genome (based on ROI size because pipeline test does not contain all chromosomes)
+$check_chrs = bed_size(realpath($sys['target_file'])) > 3e9;
+if(!$check_chrs) trigger_error("Target region does not cover whole genome. Cannot check for missing chromosomes in variant calls.", E_USER_NOTICE);
 
 //mapping
 if (in_array("ma", $steps))
@@ -471,9 +465,6 @@ if (in_array("vc", $steps))
 		$parser->execTool("Tools/vc_clair.php", implode(" ", $args));
 	}
 
-	//check for truncated VCF file
-	if ($is_wgs) check_for_missing_chromosomes($vcf_file);
-
 	//create b-allele frequency file
 	$params = array();
 	$params[] = "-vcf {$vcf_file}";
@@ -574,7 +565,6 @@ if (in_array("sv", $steps))
 {
 	//run Sniffles
 	$parser->execTool("Tools/vc_sniffles.php", "-bam {$used_bam_or_cram} -sample_ids {$name} -out {$sv_vcf_file} -threads {$threads} -build {$build} --log ".$parser->getLogFile());
-				
 }
 
 //phasing
@@ -640,9 +630,6 @@ if (in_array("ph", $steps))
 		$parser->execApptainer("htslib", "bgzip", "-c $phased_sv_tmp > {$sv_vcf_file}", [], [dirname($sv_vcf_file)]);
 		$parser->execApptainer("htslib", "tabix", "-f -p vcf $sv_vcf_file", [], [dirname($sv_vcf_file)]);
 	}
-
-	//check for truncated VCF file
-	if ($is_wgs) check_for_missing_chromosomes($vcf_file);
 
 	//tag BAM file 
 	$args = array();
@@ -752,11 +739,9 @@ if (in_array("an", $steps))
 		//run annotation pipeline
 		$parser->execTool("Tools/annotate.php", implode(" ", $args));
 
-		//check for truncated VCF file
-		if ($is_wgs) check_for_missing_chromosomes($vcf_file_annotated);
-		if ($is_wgs) check_for_missing_chromosomes($var_file);
-
-
+		//check for truncated output
+		if ($check_chrs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$vcf_file_annotated} -max_missing_perc 5");
+		
 		//ROH detection
 		$in_files = [];
 		$in_files[] = $folder;
@@ -822,8 +807,8 @@ if (in_array("an", $steps))
 			$parser->execApptainer("ngs-bits", "NGSDAnnotateCNV", "-in {$cnv_file} -out {$cnv_file}", [$folder]);
 		}
 
-		//check for truncated VCF file
-		if ($is_wgs) check_for_missing_chromosomes($cnv_file);
+		//check for truncated output
+		if ($check_chrs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$cnv_file}");
 	}
 	else
 	{
@@ -949,10 +934,9 @@ if (in_array("an", $steps))
 		//update sample entry 
 		update_gsvar_sample_header($bedpe_file, array($name=>"Affected"));	
 		
-		//check for truncated VCF file
-		if ($is_wgs) check_for_missing_chromosomes($bedpe_file);
+		//check for truncated output
+		if ($check_chrs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$bedpe_file}");
 	}
-
 }
 
 // collect other QC terms - if CNV or SV calling was done
@@ -964,7 +948,7 @@ if ((in_array("ma", $steps)) || (in_array("cn", $steps) || in_array("sv", $steps
 	//Basecall model
 	if (file_exists($used_bam_or_cram))
 	{
-		$basecall_model = get_basecall_model($used_bam_or_cram);
+		$basecall_model = strtr(get_basecall_model($used_bam_or_cram), "_", " ");
 		if ($basecall_model != "")
 		{
 			$terms[] = "QC:2000149\t{$basecall_model}";

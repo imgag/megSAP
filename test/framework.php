@@ -180,6 +180,54 @@ function check_file_exists($in_file)
 	print "  - $file:$line $result\n";
 }
 
+
+///Checks whether a expression evaluates to true
+function check_true($expression)
+{
+	check_test_started();
+
+	if($expression)
+	{
+		$result = "PASSED";
+		++$GLOBALS["passed"];
+	}
+	else
+	{
+		$result = "FAILED";
+		++$GLOBALS["failed"];
+	}
+	
+	$bt = debug_backtrace();
+	$caller = array_shift($bt);
+	$file = basename($caller["file"]);
+	$line = $caller["line"];
+	print "  - $file:$line $result\n";
+}
+
+///Checks whether a string contains a substring
+function check_contains($haystack, $needle)
+{
+	check_test_started();
+
+	if(contains($haystack, $needle))
+	{
+		$result = "PASSED";
+		++$GLOBALS["passed"];
+	}
+	else
+	{
+		$result = "FAILED";
+		++$GLOBALS["failed"];
+		if ($GLOBALS["debug"]) print "    '{$needle}' not contained in '{$haystack}'\n";
+	}
+	
+	$bt = debug_backtrace();
+	$caller = array_shift($bt);
+	$file = basename($caller["file"]);
+	$line = $caller["line"];
+	print "  - $file:$line $result\n";
+}
+
 //checks whether column with a certain name (that is: entry in 1st row) exists in a TSV file
 function check_column_exists($filename,$col_names)
 {

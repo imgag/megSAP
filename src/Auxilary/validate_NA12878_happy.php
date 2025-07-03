@@ -19,17 +19,6 @@ $parser->addString("ref_sample", "Reference sample to use for validation.", true
 extract($parser->parse($argv));
 
 //returns the base count of a BED file
-function get_bases($filename)
-{
-	global $parser;
-	
-	list($stdout) = $parser->execApptainer("ngs-bits", "BedInfo", "-in $filename", [$filename]);
-	$hits = array_containing($stdout, "Bases ");
-	$parts = explode(":", $hits[0]);
-	return trim($parts[1]);
-}
-
-//returns the base count of a BED file
 function get_variants($vcf)
 {
 	list($stdout) = exec2("cat $vcf | egrep -v \"^#\" | wc -l");
@@ -59,7 +48,7 @@ if (!file_exists($giab_vcfgz)) trigger_error("GiaB {$ref_sample} VCF file missin
 
 //target region handling
 print "##Target region  : $roi\n";
-$bases = get_bases($roi);
+$bases = bed_size($roi);
 print "##Bases          : $bases\n";
 //sort and merge $roi_hc after intersect - MH
 $roi_hc = $tmp_folder."/roi_hc.bed";
@@ -68,7 +57,7 @@ $pipeline[] = ["", $parser->execApptainer("ngs-bits", "BedIntersect", "-in $roi 
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "BedSort", "", [], [], true)];
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "BedMerge", "-out $roi_hc", [], [], true)];
 $parser->execPipeline($pipeline, "high-conf ROI");
-$bases_hc = get_bases($roi_hc);
+$bases_hc = bed_size($roi_hc);
 print "##High-conf region: $roi_hc\n";
 print "##High-conf bases: $bases_hc (".number_format(100*$bases_hc/$bases, 2)."%)\n";
 print "##Notice: Reference variants in the above region are evaluated!\n";

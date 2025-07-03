@@ -122,7 +122,7 @@ foreach($files as $file)
 }
 
 //copy samtools ref_cache folder
-$ref_cache = "{$genome_folder}/samtools_ref_cache/";
+$ref_cache = "{$genome_folder}/samtools_ref_cache";
 if (file_exists($ref_cache))
 {
 	print "Copying samtools ref cache...\n";
@@ -378,12 +378,16 @@ if (get_path("copy_dbs_to_local_data"))
 	}
 
 	// Copy apptainer containers from network folder to local data
-	//Get list of apptainer containers from megSAP master settings.ini.default
-	$tmp_ini = temp_file(".ini");
-	exec2("wget --no-check-certificate https://raw.githubusercontent.com/imgag/megSAP/refs/heads/master/settings.ini.default -O $tmp_ini -o /dev/null");
-	$tmp_ini_content = parse_ini_file($tmp_ini);
-	$ini = get_ini();
 
+	//TODO: reactivate when fixed
+	//Get list of apptainer containers from megSAP master settings.ini.default
+	//$tmp_ini = temp_file(".ini");
+	//exec2("wget --no-check-certificate https://raw.githubusercontent.com/imgag/megSAP/refs/heads/master/settings.ini.default -O $tmp_ini -o /dev/null");
+	//$tmp_ini_content = parse_ini_file($tmp_ini);
+
+	$ini = get_ini();
+	//TODO: reactivate when fixed
+	/*
 	//Check if container present in branch is missing in local repo
 	foreach ($tmp_ini_content as $tmp_key => $tmp_value)
 	{
@@ -394,13 +398,15 @@ if (get_path("copy_dbs_to_local_data"))
 			trigger_error("Container entry '{$tmp_key}={$tmp_value}' is present in megSAP branch 'master' but missing from your settings.ini. You may want to add it if it's relevant to your analysis.", E_USER_NOTICE);
 		}
 	}
+	 */
 
 	//Get list of apptainer containers to transfer from settings file
 	foreach($ini as $key => $value)
 	{
 		if (!starts_with($key, "container_")) continue;
 		if ($key=="container_folder") continue;
-		
+		//TODO: reactivate when fixed
+		/*
 		//Check if different container version is available
 		if (!array_key_exists($key, $tmp_ini_content))
 		{
@@ -410,6 +416,7 @@ if (get_path("copy_dbs_to_local_data"))
 		{
 			trigger_error("Different version '".$tmp_ini_content[$key]."' for container '".substr($key, 10)."' found in megSAP branch 'master'. Your version: '$value'. To update your container update your settings.ini and re-run download_container.sh", E_USER_NOTICE);
 		}
+		*/
 
 		$container_file = $network_folder."/".substr($key, 10)."_".$value.".sif";
 		$base = basename($container_file);
@@ -418,7 +425,7 @@ if (get_path("copy_dbs_to_local_data"))
 		$md5_net = "{$network_checksum_folder}{$base}.md5";
 
 		//Check that container exists in network folder
-		if (!file_exists($container_file)) trigger_error("Could not find container $container_file. Make sure your settings.ini is correct and the container exists in $network_folder");
+		if (!file_exists($container_file)) trigger_error("Could not find container $container_file. Make sure your settings.ini is correct and the container exists in $network_folder", E_USER_ERROR);
 
 		//Make sure that md5 checksum for container in network directory is present
 		if (!file_exists($md5_net))

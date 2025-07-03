@@ -179,105 +179,128 @@ if (in_array("ma", $steps))
 
 	$parser->execApptainer("ngs-bits", "SeqPurge", implode(" ", $seqpurge_params), [$folder], [$out_folder]);
 
-	}
-	if (in_array("ma", $steps))
+	//cut off Twist UMIs
+	if (in_array($sys['umi_type'], ["Twist"]))
 	{
-		if ($filter_hb)
-		{
-			$kraken_tmpdir = $parser->tempFolder("kraken2_filter_hb");
-			$filtered = "{$kraken_tmpdir}/filtered#.fastq";
-			$filtered1 = "{$kraken_tmpdir}/filtered_1.fastq";
-			$filtered2 = "{$kraken_tmpdir}/filtered_2.fastq";
+		$cut1 = 5;
+		$cut2 = 5;
+		
+		$fastq_trimmed1_bc = $parser->tempFile("_trimmed1_bc.fastq.gz");
+		$fastq_trimmed2_bc = $parser->tempFile("_trimmed2_bc.fastq.gz");
+		$parser->execApptainer("ngs-bits", "FastqExtractUMI", "-in1 {$fastq_trimmed1} -in2 {$fastq_trimmed2} -out1 {$fastq_trimmed1_bc} -out2 {$fastq_trimmed2_bc} -cut1 {$cut1} -cut2 {$cut2}");
 
- 			$kraken_args = [
-				"-threads {$threads}",
-				"-output -",
-				"-paired",
-				"-gzip_compressed",
-				"-unclassified_out {$kraken_tmpdir}/filtered#.fastq",
-				"-in $fastq_trimmed1 $fastq_trimmed2"
-			];
+		$parser->deleteTempFile($fastq_trimmed1);
+		$parser->deleteTempFile($fastq_trimmed2);
 
-			$parser->execTool("Tools/filter_kraken2.php", implode(" ", $kraken_args));
+		//special handling of Twist UMIs: cut off first and last 2bp
+		$fastq_trimmed1_bc_cut = $parser->tempFile("_trimmed1_bc.fastq.gz");
+		$fastq_trimmed2_bc_cut = $parser->tempFile("_trimmed2_bc.fastq.gz");
+		$parser->execApptainer("ngs-bits", "FastqTrim", "-in {$fastq_trimmed1_bc} -out {$fastq_trimmed1_bc_cut} -start 2");
+		$parser->execApptainer("ngs-bits", "FastqTrim", "-in {$fastq_trimmed2_bc} -out {$fastq_trimmed2_bc_cut} -start 2");
 
-			$parser->exec("gzip", "-1 {$filtered1}");
-			$parser->exec("gzip", "-1 {$filtered2}");
-
-			$fastq_trimmed1 = "{$filtered1}.gz";
-			$fastq_trimmed2 = "{$filtered2}.gz";
-		}
-		//mapping
-		$tmp_aligned = $parser->tempFile("aligned.bam");
-		$args = array(
-			"-out", $tmp_aligned,
-			"-threads", $threads,
-			"-in1", $fastq_trimmed1,
-			"-in2", $fastq_trimmed2,
-			"-genome", $genome,
-			"-out_splicing", $out_splicing,
-			"-out_chimeric", $out_chimeric,
-			"--log", $parser->getLogFile()
-		);
-
-		//skip duplicate marking if requested, or for UMIs (will be handled later)
-		if ($skip_dedup || $umi) $args[] = "-skip_dedup";
-
-		$parser->execTool("Tools/mapping_star.php", implode(" ", $args));
-
-		if ($umi && !$skip_dedup)
-		{
-			//UMI-based duplicate flagging
-			$pipeline = [];
-			//UMI-tools group alignments (coordinate sorted)
-			$pipeline[] = ["", $parser->execApptainer("umi-tools", "umi_tools group", "--stdin {$tmp_aligned} --output-bam --log2stderr --paired --no-sort-output --umi-separator=':' --compresslevel 0 --unmapped-reads use", [], [], true)];
-			$tmp_for_sorting1 = $parser->tempFile();
-			//sort by query name
-			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools sort", "-n -T {$tmp_for_sorting1} -m 2G -@ {$threads}", [], [], true)];
-			//use fixmate to add mate scores
-			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools fixmate", "-@ {$threads} -u -m - -", [], [], true)];
-			$tmp_for_sorting2 = $parser->tempFile();
-			//sort by coordinate
-			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools sort", "-T {$tmp_for_sorting2} -m 2G -@ {$threads}", [], [], true)];
-			$tmp_for_markdup = $parser->tempFile();
-			//mark duplicates by UG tag (unique group from umi_tools group)
-			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools markdup", "-T {$tmp_for_markdup} -c --barcode-tag UG -s -@ {$threads} - {$final_bam}", [], [$out_folder], true)];
-			$parser->execPipeline($pipeline, "umi-tools dedup pipeline");
-
-			//index
-			$parser->indexBam($final_bam, $threads);
-		}
-		else
-		{
-			$parser->moveFile($tmp_aligned, $final_bam);
-			$parser->moveFile("{$tmp_aligned}.bai", "{$final_bam}.bai");
-		}
-
-		//mapping QC
-		$in_files = array();
-		$mappingqc_params = array(
-			"-in ".$final_bam,
-			"-out ".$qc_map,
-			"-ref ".genome_fasta($sys['build']),
-			"-build ".ngsbits_build($sys['build'])
-		);
-		$in_files[] = $out_folder;
-		$in_files[] = genome_fasta($sys['build']);
-
-		if (isset($target_file) && $target_file != "")
-		{
-			$mappingqc_params[] = "-roi {$target_file}";
-			$in_files[] = $target_file;
-
-		}
-		else
-		{
-			$mappingqc_params[] = "-rna";
-		}
-
-		if ($build!="GRCh38") $mappingqc_params[] = "-no_cont";
-
-		$parser->execApptainer("ngs-bits", "MappingQC", implode(" ", $mappingqc_params), $in_files);
+		$parser->deleteTempFile($fastq_trimmed1_bc);
+		$parser->deleteTempFile($fastq_trimmed2_bc);
+		$fastq_trimmed1 = $fastq_trimmed1_bc_cut;
+		$fastq_trimmed2 = $fastq_trimmed2_bc_cut;
 	}
+
+
+	if ($filter_hb)
+	{
+		$kraken_tmpdir = $parser->tempFolder("kraken2_filter_hb");
+		$filtered = "{$kraken_tmpdir}/filtered#.fastq";
+		$filtered1 = "{$kraken_tmpdir}/filtered_1.fastq";
+		$filtered2 = "{$kraken_tmpdir}/filtered_2.fastq";
+
+		$kraken_args = [
+			"-threads {$threads}",
+			"-output -",
+			"-paired",
+			"-gzip_compressed",
+			"-unclassified_out {$kraken_tmpdir}/filtered#.fastq",
+			"-in $fastq_trimmed1 $fastq_trimmed2"
+		];
+
+		$parser->execTool("Tools/filter_kraken2.php", implode(" ", $kraken_args));
+
+		$parser->exec("gzip", "-1 {$filtered1}");
+		$parser->exec("gzip", "-1 {$filtered2}");
+
+		$fastq_trimmed1 = "{$filtered1}.gz";
+		$fastq_trimmed2 = "{$filtered2}.gz";
+	}
+	//mapping
+	$tmp_aligned = $parser->tempFile("aligned.bam");
+	$args = array(
+		"-out", $tmp_aligned,
+		"-threads", $threads,
+		"-in1", $fastq_trimmed1,
+		"-in2", $fastq_trimmed2,
+		"-genome", $genome,
+		"-out_splicing", $out_splicing,
+		"-out_chimeric", $out_chimeric,
+		"--log", $parser->getLogFile()
+	);
+
+	//skip duplicate marking if requested, or for UMIs (will be handled later)
+	if ($skip_dedup || $umi) $args[] = "-skip_dedup";
+
+	$parser->execTool("Tools/mapping_star.php", implode(" ", $args));
+
+	if ($umi && !$skip_dedup)
+	{
+		//UMI-based duplicate flagging
+		$pipeline = [];
+		//UMI-tools group alignments (coordinate sorted)
+		$pipeline[] = ["", $parser->execApptainer("umi-tools", "umi_tools group", "--stdin {$tmp_aligned} --output-bam --log2stderr --paired --no-sort-output --umi-separator=':' --compresslevel 0 --unmapped-reads use", [], [], true)];
+		$tmp_for_sorting1 = $parser->tempFile();
+		//sort by query name
+		$pipeline[] = ["", $parser->execApptainer("samtools", "samtools sort", "-n -T {$tmp_for_sorting1} -m 2G -@ {$threads}", [], [], true)];
+		//use fixmate to add mate scores
+		$pipeline[] = ["", $parser->execApptainer("samtools", "samtools fixmate", "-@ {$threads} -u -m - -", [], [], true)];
+		$tmp_for_sorting2 = $parser->tempFile();
+		//sort by coordinate
+		$pipeline[] = ["", $parser->execApptainer("samtools", "samtools sort", "-T {$tmp_for_sorting2} -m 2G -@ {$threads}", [], [], true)];
+		$tmp_for_markdup = $parser->tempFile();
+		//mark duplicates by UG tag (unique group from umi_tools group)
+		$pipeline[] = ["", $parser->execApptainer("samtools", "samtools markdup", "-T {$tmp_for_markdup} -c --barcode-tag UG -s -@ {$threads} - {$final_bam}", [], [$out_folder], true)];
+		$parser->execPipeline($pipeline, "umi-tools dedup pipeline");
+
+		//index
+		$parser->indexBam($final_bam, $threads);
+	}
+	else
+	{
+		$parser->moveFile($tmp_aligned, $final_bam);
+		$parser->moveFile("{$tmp_aligned}.bai", "{$final_bam}.bai");
+	}
+
+	//mapping QC
+	$in_files = array();
+	$mappingqc_params = array(
+		"-in ".$final_bam,
+		"-out ".$qc_map,
+		"-ref ".genome_fasta($sys['build']),
+		"-build ".ngsbits_build($sys['build'])
+	);
+	$in_files[] = $out_folder;
+	$in_files[] = genome_fasta($sys['build']);
+
+	if (isset($target_file) && $target_file != "")
+	{
+		$mappingqc_params[] = "-roi {$target_file}";
+		$in_files[] = $target_file;
+
+	}
+	else
+	{
+		$mappingqc_params[] = "-rna";
+	}
+
+	if ($build!="GRCh38") $mappingqc_params[] = "-no_cont";
+
+	$parser->execApptainer("ngs-bits", "MappingQC", implode(" ", $mappingqc_params), $in_files);
+}
 
 //read counting
 $counts_raw = $prefix."_counts_raw.tsv";

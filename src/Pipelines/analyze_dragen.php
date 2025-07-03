@@ -22,6 +22,9 @@ $parser->addString("rna_sample", "Processed sample name of the RNA sample which 
 $parser->addFlag("no_queuing", "Do not queue megSAP analysis afterwards.");
 $parser->addFlag("dragen_only", "Perform only DRAGEN analysis and copy all output files without renaming (not compatible with later megSAP analysis).");
 $parser->addFlag("debug", "Add debug output to the log file.");
+$parser->addFlag("high_priority", "Queue megSAP analysis with high priority.");
+$parser->addString("user", "User used to queue megSAP analysis (has to be in the NGSD).", true, "");
+$parser->addFlag("high_mem", "Run DRAGEN analysis in high memory mode for deep samples. (Also increases timeout to prevent job from being terminated.)");
 
 extract($parser->parse($argv));
 
@@ -41,6 +44,7 @@ foreach($steps as $step)
 }
 
 //determine processing system
+$system_created_from_ngsd = (is_null($system) || $system=="");
 $sys = load_system($system, $name);
 $is_wes = $sys['type']=="WES";
 $is_wgs = $sys['type']=="WGS";
@@ -144,6 +148,7 @@ if (count($files_forward) == 0)
 	}	
 }
 
+$input_bam = "";
 if (count($files_forward) == 0)
 {
 	//fallback to BAM/CRAM
@@ -162,21 +167,11 @@ if (count($files_forward) == 0)
 	$parser->moveFile($input_bam, "{$folder}/bams_for_mapping/".basename($input_bam));
 	$input_bam = "{$folder}/bams_for_mapping/".basename($input_bam);
 
-	//convert BAM/CRAM to FastQ (don't use temp since it is tiny on DRAGEN)
-	$fastq_r1 = "{$working_dir}/{$name}_BamToFastq_R1_001.fastq.gz";
-	$fastq_r2 = "{$working_dir}/{$name}_BamToFastq_R2_001.fastq.gz";
-	//use samtools to avoid requirement of Apptainer
-	$parser->exec("samtools", "fastq -1 {$fastq_r1} -2 {$fastq_r2} -0 /dev/null -s /dev/null -n {$input_bam} --reference {$genome} -@ 15");
-	// $parser->execApptainer("ngs-bits", "BamToFastq", "-in {$input_bam} -ref {$genome} -out1 {$fastq_r1} -out2 {$fastq_r2}", [$genome, $folder]);
-	$files_forward = array($fastq_r1);
-	$files_reverse = array($fastq_r2);
-
 }
 
 //define output files
 $out_cram = $folder."/".$name.".cram";
 $dragen_out_folder = $folder."/dragen_variant_calls/";
-$parser->exec("mkdir", "-p {$dragen_out_folder}");
 $out_vcf = $dragen_out_folder."/".$name."_dragen.vcf.gz";
 $out_gvcf = $dragen_out_folder."/".$name."_dragen.gvcf.gz";
 $out_sv = $dragen_out_folder."/".$name."_dragen_svs.vcf.gz";
@@ -192,6 +187,7 @@ foreach ($files_reverse as $in_file)
 {
 	if (!is_readable($in_file)) trigger_error("Input file '{$in_file}' is not readable!", E_USER_ERROR);
 }
+$parser->exec("mkdir", "-p {$dragen_out_folder}");
 if (!is_writable2($out_cram)) trigger_error("Output file '{$out_cram}' is not writable!", E_USER_ERROR);
 if (!is_writable2($out_vcf)) trigger_error("Output file '{$out_vcf}' is not writable!", E_USER_ERROR);
 if (!is_writable2($out_gvcf)) trigger_error("Output file '{$out_gvcf}' is not writable!", E_USER_ERROR);
@@ -202,8 +198,7 @@ if (!is_writable2($out_cnv_raw)) trigger_error("Output file '{$out_cnv_raw}' is 
 
 // ********************************* call dragen *********************************//
 
-//create FastQ file list
-$fastq_file_list_data = array("RGID,RGSM,RGLB,Lane,Read1File,Read2File,RGDT,RGPL");
+$dragen_parameter = [];
 
 //get library
 $rglb = "UnknownLibrary";
@@ -216,52 +211,88 @@ if(db_is_enabled("NGSD"))
 	$device_type = $psample_info['device_type'];
 }
 
-for ($i=0; $i < count($files_forward); $i++) 
-{ 
-	$fastq_for = $files_forward[$i];
-	$fastq_rev = $files_reverse[$i];
-	
-	//extract lane
-	$lane = 1;
-	$filename_r1 = array_reverse(explode("_", basename2($fastq_for)));
-	$filename_r2 = array_reverse(explode("_", basename2($fastq_rev)));
+if ($input_bam != "")
+{
+	//use BAM/CRAM as input
+	if (ends_with($input_bam, ".cram")) $dragen_parameter[] = "--cram-input {$input_bam}";
+	else $dragen_parameter[] = "--bam-input {$input_bam}";
+}
+else
+{
+	/*
+	//concat Fastq files
+	$fastq_r1 = "{$working_dir}/{$name}_merged_R1_001.fastq.gz";
+	$fastq_r2 = "{$working_dir}/{$name}_merged_R2_001.fastq.gz";
 
-	//sanity check
-	if (count($filename_r1)!=count($filename_r2)) trigger_error("Found mismatching file name in forward and reverse read file!\n Forward: ".implode("_", $filename_r1)."\n Reverse: ".implode("_", $filename_r2), E_USER_ERROR);
+	$parser->exec("cat", implode(" ", $files_forward)." > {$fastq_r1}");
+	$parser->exec("cat", implode(" ", $files_reverse)." > {$fastq_r2}");
+	*/
 	
-	for ($j=0; $j < count($filename_r1); $j++) 
+	//create FastQ file list
+	$fastq_file_list_data = array("RGID,RGSM,RGLB,Lane,Read1File,Read2File,RGDT,RGPL");
+
+	for ($i=0; $i < count($files_forward); $i++) 
 	{ 
-		if (starts_with("L0", $filename_r1[$j]))
-		{
-			if (starts_with("L0", $filename_r2[$j]))
-			{
-				//extract lane
-				$lane_r1 = intval(substr($filename_r1[$j], 1));
-				$lane_r2 = intval(substr($filename_r2[$j], 1));
+		$fastq_for = $files_forward[$i];
+		$fastq_rev = $files_reverse[$i];
+		
+		//extract lane
+		$lane = 1;
+		$filename_r1 = array_reverse(explode("_", basename2($fastq_for)));
+		$filename_r2 = array_reverse(explode("_", basename2($fastq_rev)));
 
-				if($lane_r1 == $lane_r2)
-				{
-					$lane = $lane_r1;
-					break;
-				}
-				else
-				{
-					trigger_error("Lane of forward and reverse read file do not match!\n Forward: ".implode("_", $filename_r1)."\n Reverse: ".implode("_", $filename_r2), E_USER_ERROR);
-				}
-			}
-			else 
+		//sanity check
+		if (count($filename_r1)!=count($filename_r2)) trigger_error("Found mismatching file name in forward and reverse read file!\n Forward: ".implode("_", $filename_r1)."\n Reverse: ".implode("_", $filename_r2), E_USER_ERROR);
+		
+		//extract lane
+		for ($j=0; $j < count($filename_r1); $j++) 
+		{ 
+			if (starts_with("L0", $filename_r1[$j]))
 			{
-				trigger_error("Found mismatching file name in forward and reverse read file!\n Forward: ".implode("_", $filename_r1)."\n Reverse: ".implode("_", $filename_r2), E_USER_ERROR);
+				if (starts_with("L0", $filename_r2[$j]))
+				{
+					$lane_r1 = intval(substr($filename_r1[$j], 1));
+					$lane_r2 = intval(substr($filename_r2[$j], 1));
+
+					if($lane_r1 == $lane_r2)
+					{
+						$lane = $lane_r1;
+						break;
+					}
+					else
+					{
+						trigger_error("Lane of forward and reverse read file do not match!\n Forward: ".implode("_", $filename_r1)."\n Reverse: ".implode("_", $filename_r2), E_USER_ERROR);
+					}
+				}
+				else 
+				{
+					trigger_error("Found mismatching file name in forward and reverse read file!\n Forward: ".implode("_", $filename_r1)."\n Reverse: ".implode("_", $filename_r2), E_USER_ERROR);
+				}
 			}
 		}
-	}
 
-	//add line to CSV
-	$fastq_file_list_data[] = "{$name},{$name},{$rglb},{$lane},{$fastq_for},{$fastq_rev},".date("c").",{$device_type}";
+		//add line to CSV
+		$fastq_file_list_data[] = "{$name},{$name},{$rglb},{$lane},{$fastq_for},{$fastq_rev},".date("c").",{$device_type}";
+
+	}
+	$fastq_file_list = $parser->tempFile(".csv");
+	if ($debug) $parser->log("FastQ file list:", $fastq_file_list_data); //debug
+	file_put_contents($fastq_file_list, implode("\n", $fastq_file_list_data));
+
+	//add dragen parameter:
+	$dragen_parameter[] = "--fastq-list ".$fastq_file_list;
+	
+	/*
+	$dragen_parameter[] = "-1 ".$fastq_r1;
+	$dragen_parameter[] = "-2 ".$fastq_r2;
+
+	$dragen_parameter[] = "--RGID {$name}";
+	$dragen_parameter[] = "--RGSM {$name}";
+	$dragen_parameter[] = "--RGDT ".date("c");
+	$dragen_parameter[] = "--RGPL '{$rglb}'";
+	$dragen_parameter[] = "--RGLB '{$device_type}'";
+	*/
 }
-$fastq_file_list = $parser->tempFile(".csv");
-if ($debug) $parser->log("FastQ file list:", $fastq_file_list_data); //debug
-file_put_contents($fastq_file_list, implode("\n", $fastq_file_list_data));
 
 //create target region for exomes/panels
 if ($is_wes || $is_panel)
@@ -288,9 +319,7 @@ if ($is_wes || $is_panel)
 }
 
 //parameters
-$dragen_parameter = [];
 $dragen_parameter[] = "-r ".$dragen_genome_path;
-$dragen_parameter[] = "--fastq-list ".$fastq_file_list;
 $dragen_parameter[] = "--ora-reference ".get_path("data_folder")."/dbs/oradata/";
 $dragen_parameter[] = "--output-directory $working_dir";
 $dragen_parameter[] = "--output-file-prefix {$name}";
@@ -325,6 +354,15 @@ $dragen_parameter[] = "--vc-enable-vcf-output true";
 //structural variant calling
 $dragen_parameter[] = "--enable-sv true";
 $dragen_parameter[] = "--sv-use-overlap-pair-evidence true"; //TODO Marc re-validate with DRAGEN 4.4
+
+//high memory
+if ($high_mem)
+{
+	$dragen_parameter[] = "--bin_memory 96636764160"; //90GB (default: 20 (GB), max on DRAGEN v4: 90)
+	$dragen_parameter[] = "--vc-max-callable-region-memory-usage 41875931136"; //39GB (default: 13 (GB))
+	$dragen_parameter[] = "--watchdog-active-timeout 3600"; //increase timeout to 1h (default: 10min)
+}
+
 $parser->log("DRAGEN parameters:", $dragen_parameter);
 
 //run
@@ -343,7 +381,7 @@ foreach (glob("{$working_dir}/{$name}_BamToFastq_R?_00?.fastq.gz") as $tmp_fastq
 	unlink($tmp_fastq_file);
 }
 
-// ********************************* copy data back *********************************//
+// ********************************* copy data to Sample folder *********************************//
 
 if ($dragen_only)
 {
@@ -365,6 +403,7 @@ else
 
 	// copy small variant calls to sample folder
 	$parser->log("Copying small variants to output folder");
+	$parser->exec("mkdir", "-p {$dragen_out_folder}");
 	$parser->copyFile($working_dir.$name.".hard-filtered.vcf.gz", $out_vcf);
 	$parser->copyFile($working_dir.$name.".hard-filtered.vcf.gz.tbi", $out_vcf.".tbi");
 	$parser->copyFile($working_dir.$name.".hard-filtered.gvcf.gz", $out_gvcf);
@@ -398,20 +437,24 @@ $parser->exec("rm", "-rf $working_dir");
 
 //parse megSAP parameter
 $megSAP_args = array();
-if ($system != "") $megSAP_args[] = "-system {$system}";
+if (!$system_created_from_ngsd) $megSAP_args[] = "-system {$system}";
 $megSAP_args[] = "-steps ".implode(",", $steps);
 $megSAP_args[] = "-threads {$threads}";
 if ($rna_sample != "") $megSAP_args[] = "-rna_sample {$rna_sample}";
+$high_priority_str = ($high_priority)? "-high_priority " : ""; 
 
 //queue analysis
 
+if ($user == "") $user = "unknown";
+$queuing_params = "-user {$user} -type 'single sample' -samples {$name} -ignore_running_jobs {$high_priority_str} -args '".implode(" ", $megSAP_args)."'";
+
 if ($no_queuing) 
 {
-	trigger_error("megSAP queueing skipped! \nCommand to queue analysis: \n\tphp ".repository_basedir()."/src/Tools/queue_analysis.php -type 'single sample' -samples {$name} -args '".implode(" ", $megSAP_args)."'", E_USER_NOTICE);
+	trigger_error("megSAP queuing skipped! \nCommand to queue analysis: \n\tphp ".repository_basedir()."/src/Tools/db_queue_analysis.php {$queuing_params}", E_USER_NOTICE);
 }
 else 
 {
-	$parser->execTool("Tools/queue_analysis.php", "-type 'single sample' -samples {$name} -args '".implode(" ", $megSAP_args)."'");
+	$parser->execTool("Tools/db_queue_analysis.php", $queuing_params);
 }
 
 //print to STDOUT executed successfully (because there is no exit code from SGE after a job has finished)

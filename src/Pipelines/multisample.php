@@ -480,6 +480,9 @@ if (in_array("vc", $steps))
 	//basic annotation
 	$parser->execTool("Tools/annotate.php", "-out_name {$prefix} -out_folder {$out_folder} -system {$system} -threads {$threads} -multi");
 
+	//check for truncated output
+	if ($is_wgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$out_folder}/{$prefix}_var_annotated.vcf.gz -max_missing_perc 5");
+
 	//update sample entry 
 	$status_map = array();
 	foreach ($status as $bam => $disease_status) 
@@ -923,7 +926,10 @@ if (in_array("sv", $steps))
 	{
 		$status_map[basename2($bam)] = $disease_status;
 	}
-	update_gsvar_sample_header($bedpe_out, $status_map);
+	update_gsvar_sample_header($bedpe_out, $status_map);	
+
+	//check for truncated output
+	if ($is_wgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$bedpe_out}");
 }
 
 //NGSD import

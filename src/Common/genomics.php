@@ -132,24 +132,34 @@ function get_ref_seq($build, $chr, $start, $end, $cache_size=0, $use_local_data=
 			// get sequence
 			$output = array();
 			$samtools_command = execApptainer("samtools", "samtools faidx", genome_fasta($build, $use_local_data)." $chr:{$cache_start}-{$cache_end} 2>&1", [genome_fasta($build, $use_local_data)], [], true);
+
 			exec($samtools_command, $output, $ret);
 			if ($ret!=0)
 			{
 				trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
 			}
-			
-			// check if chr range exceeds chr end:
-			if (starts_with($output[0], "[faidx] Truncated sequence:"))
+
+			$cache_sequence = "";
+			foreach ($output as $line) 
 			{
-				//skip warning
-				$cache_sequence = trim(implode("", array_slice($output, 2)));
-				// correct cached end position, if cache exceeds chr end
-				$cache_end = $cache_start + strlen($cache_sequence);
+				//skip header line
+				if (starts_with($line, ">")) continue;
+				
+				//skip truncation warning
+				if (starts_with($line, "[faidx] Truncated sequence:")) continue;
+
+				//report but skip warnings
+				if (starts_with($line, "WARNING:"))
+				{
+					trigger_error($line, E_USER_WARNING);
+					continue;
+				}
+
+				$cache_sequence .= $line;
+
 			}
-			else
-			{
-				$cache_sequence = trim(implode("", array_slice($output, 1)));
-			}
+			//update cached end position, if cache exceeds chr end
+			$cache_end = $cache_start + strlen($cache_sequence);
 
 			// return requested interval
 			return substr($cache_sequence, $start - $cache_start, $end - $start + 1);
@@ -168,8 +178,32 @@ function get_ref_seq($build, $chr, $start, $end, $cache_size=0, $use_local_data=
 		{
 			trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
 		}
-		
-		return implode("", array_slice($output, 1));
+
+		$sequence = "";
+		foreach ($output as $line) 
+		{
+			//skip header line
+			if (starts_with($line, ">")) continue;
+			
+			//skip truncation warning
+			if (starts_with($line, "[faidx] Truncated sequence:")) 
+			{
+				trigger_error($line, E_USER_WARNING);
+				continue;
+			}
+			
+			//report but skip warnings
+			if (starts_with($line, "WARNING:"))
+			{
+				trigger_error($line, E_USER_WARNING);
+				continue;
+			}
+
+			$sequence .= $line;
+
+		}
+				
+		return $sequence;
 	}
 	
 	
@@ -252,9 +286,13 @@ function chr_check($chr, $max = 22, $fail_trigger_error = true)
 	@brief Returns the list of all chromosomes.
 	@ingroup genomics
 */
-function chr_list()
+function chr_list($include_chry = true)
 {
-	return preg_filter('/^/', 'chr', array_merge(range(1,22), array("X","Y")));
+	$chrs = range(1,22);
+	$chrs[] = "X";
+	if ($include_chry) $chrs[] = "Y";
+	
+	return preg_filter('/^/', 'chr', $chrs);
 }
 
 //Returns parsed INI file
@@ -1502,10 +1540,11 @@ function report_config(&$db_conn, $name, $error_if_not_found=false)
 	
 	$var_ids = $db_conn->getValues("SELECT id FROM report_configuration_variant WHERE report_configuration_id=".$rc_id);
 	$cnv_ids = $db_conn->getValues("SELECT id FROM report_configuration_cnv WHERE report_configuration_id=".$rc_id);
-	$sv_ids = $db_conn->getValues("SELECT id FROM report_configuration_sv WHERE report_configuration_id=".$rc_id);
+	$sv_ids  = $db_conn->getValues("SELECT id FROM report_configuration_sv WHERE report_configuration_id=".$rc_id);
+	$re_ids  = $db_conn->getValues("SELECT id FROM report_configuration_re WHERE report_configuration_id=".$rc_id);
 	
 	
-	return array($rc_id, count($var_ids)>0, count($cnv_ids)>0, count($sv_ids)>0);
+	return array($rc_id, count($var_ids)>0, count($cnv_ids)>0, count($sv_ids)>0, count($re_ids)>0);
 }
 
 function somatic_report_config(&$db_conn, $t_ps, $n_ps, $error_if_not_found=false)
@@ -2392,34 +2431,6 @@ function update_gsvar_sample_header($file_name, $status_map)
 	}
 	$file_content->setComments($new_comments);
 	$file_content->toTSV(($file_name));
-}
-
-//check for missing chr in VCF/GSvar files
-function check_for_missing_chromosomes($file_name, $throw_error = true)
-{
-	// use array as set
-	$found_chromosomes = array();
-
-	$h = gzopen2($file_name, "r");
-	while(!gzeof($h))
-	{
-		$line = trim(gzgets($h));
-		if ($line=="" || $line[0]=="#") continue;
-		$found_chromosomes[trim(explode("\t", $line)[0])] = true;
-	}
-
-	$missing_chr = array();
-	foreach (chr_list() as $chr) 
-	{
-		//ignore chrY
-		if($chr == "chrY") continue;
-
-		if(!isset($found_chromosomes[$chr])) $missing_chr[] = $chr; 
-	}
-
-	if ($throw_error && count($missing_chr) > 0) trigger_error("Chromosome(s) ".implode(", ", $missing_chr)." not found in file '{$file_name}'!", E_USER_ERROR);
-
-	return count($missing_chr);
 }
 
 //get bam read count
