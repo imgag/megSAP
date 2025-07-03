@@ -54,8 +54,14 @@ function get_gl_data($db_mvh, $case_id)
 function get_rc_data($db_mvh, $case_id)
 {
 	$xml_string = $db_mvh->getValue("SELECT rc_data FROM case_data WHERE id='{$case_id}'", "");
-	$xml_obj = simplexml_load_string($xml_string, "SimpleXMLElement", LIBXML_NOCDATA);
-	return $xml_obj;
+	return simplexml_load_string($xml_string, "SimpleXMLElement", LIBXML_NOCDATA);
+}
+
+//returns research consent data as an JSON object
+function get_rc_data_json($db_mvh, $case_id)
+{
+	$json_string = $db_mvh->getValue("SELECT rc_data_json FROM case_data WHERE id='{$case_id}'", "");
+	return json_decode($json_string, true);
 }
 
 ################# XML functions #################
@@ -68,9 +74,9 @@ function xml_str($value)
 function xml_bool($value, $allow_unset)
 {
 	$value = strtolower(xml_str($value));
-	if ($value=="yes") return "true";
-	if ($value=="no") return "false";
-	if ($allow_unset && $value=="") return "";
+	if ($value=="yes" || $value=="checked") return true;
+	if ($value=="no") return false;
+	if ($allow_unset && $value=="") return null;
 	
 	trigger_error(__FUNCTION__.": Unhandled value '{$value}'!", E_USER_ERROR);
 }
@@ -187,10 +193,10 @@ function convert_diag_recommendation($name)
 
 function convert_diag_status($name)
 {
-	if ($name=="unsolved") return "unconfirmed";
-	if ($name=="unclear" || $name=="3") return "provisional";
-	if ($name=="solved") return "confirmed";
-	if ($name=="partially-solved") return "partial";
+	if ($name=="keine genetische Diagnosestellung") return "unconfirmed";
+	if ($name=="Genetische Verdachtsdiagnose" || $name=="3") return "provisional";
+	if ($name=="Genetische Diagnose gesichert") return "confirmed";
+	if ($name=="klinischer Phänotyp nur partiell gelöst") return "partial";
 	
 	trigger_error(__FUNCTION__.": Unhandled name '{$name}'!", E_USER_ERROR);
 }
