@@ -257,7 +257,7 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 
 //parse command line arguments
 $parser = new ToolBase("mvh_grz_export", "GRZ export for Modellvorhaben.");
-$parser->addInt("case_id", "'id' in 'data_data' of 'MVH' database.", false);
+$parser->addInt("case_id", "'id' in 'case_data' of 'MVH' database.", false);
 $parser->addFlag("clear", "Clear export and QC folder before running this script.");
 $parser->addFlag("test", "Test mode.");
 extract($parser->parse($argv));
@@ -269,7 +269,7 @@ $mvh_folder = get_path("mvh_folder");
 
 //check that case ID is valid
 $id = $db_mvh->getValue("SELECT id FROM case_data WHERE id='{$case_id}'");
-if ($id=="") trigger_error("No case with id '{$case}' in MVH database!", E_USER_ERROR);
+if ($id=="") trigger_error("No case with id '{$case_id}' in MVH database!", E_USER_ERROR);
 
 //clear
 $folder = realpath($mvh_folder)."/grz_export/{$case_id}/";
@@ -311,7 +311,7 @@ else trigger_error("Unhandled network type '{$network}'!", E_USER_ERROR);
 $seq_mode = $cm_data->seq_mode;
 if ($seq_mode!="WGS" && $seq_mode!="WES") trigger_error("Unhandled seq_mode '{$seq_mode}'!", E_USER_ERROR);
 
-print "case: {$case_id} (seq_mode: {$seq_mode} / network: {$network})\n";
+print "case: {$case_id} (CM ID: {$cm_id} / seq_mode: {$seq_mode} / network: {$network})\n";
 
 //check germline processed sample is ok
 $ps = $db_mvh->getValue("SELECT ps FROM case_data WHERE id='{$case_id}'");
@@ -319,7 +319,7 @@ $info = get_processed_sample_info($db_ngsd, $ps);
 $sys = $info['sys_name_short'];
 $sys_type = $info['sys_type'];
 $is_lrgs = $sys_type=="lrGS";
-$patient_id = $info['patient_identifier'];
+$patient_id = $info['patient_identifier']; //this is the SAP ID
 if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}'!", E_USER_ERROR);
 print "germline sample: {$ps} (system: {$sys}, type: {$sys_type})\n";
 
@@ -345,11 +345,12 @@ if ($sys=="twistCustomExomeV2" || $sys=="twistCustomExomeV2Covaris") $roi = "{$m
 if ($seq_mode!="WGS" && $roi=="") trigger_error("Could not determine target region for sample '{$ps}' with processing system '{$sys}'!", E_USER_ERROR);
 
 //determine tanG==VNg
-$sub_ids = $db_mvh->getValues("SELECT id FROM `submission_grz` WHERE status='pending' AND case_id='$case_id}'");
+$sub_ids = $db_mvh->getValues("SELECT id FROM `submission_grz` WHERE status='pending' AND case_id='{$case_id}'");
 if (count($sub_ids)!=1)  trigger_error(count($sub_ids)." pending GRZ submissions for case {$case_id}. Must be one!", E_USER_ERROR);
 $sub_id = $sub_ids[0];
-print "SUBMISSION ID MVH DB: {$sub_id}\n";
-$tang = $db_mvh->getValue("SELECT tang FROM submission_grz WHERE id='{$sub_id}'");
+print "ID in submission_grz table: {$sub_id}\n";
+$tan_g = $db_mvh->getValue("SELECT tang FROM submission_grz WHERE id='{$sub_id}'");
+print "TAN: {$tan_g}\n";
 
 //determine megSAP version from germline GSvar file
 $megsap_ver = megsap_version($info['ps_folder']."/{$ps}.GSvar");
@@ -372,10 +373,10 @@ if ($is_somatic)
 //TODO add support for RNA?
 //create germline raw data (FASTQs + germline VCF)
 $n_bam = $info['ps_bam'];
-$n_fq1 = "{$folder}/files/{$tang}_normal_R1.fastq.gz";
-$n_fq2 = $is_lrgs ? "" : "{$folder}/files/{$tang}_normal_R2.fastq.gz";
-$n_vcf = "{$folder}/files/{$tang}_normal.vcf";
-$lrgs_bam = "{$folder}/files/{$tang}_normal.bam";
+$n_fq1 = "{$folder}/files/{$tan_g}_normal_R1.fastq.gz";
+$n_fq2 = $is_lrgs ? "" : "{$folder}/files/{$tan_g}_normal_R2.fastq.gz";
+$n_vcf = "{$folder}/files/{$tan_g}_normal.vcf";
+$lrgs_bam = "{$folder}/files/{$tan_g}_normal.bam";
 if ($is_lrgs && !file_exists($lrgs_bam)) //for lrGS we submit BAM: convert CRAM to BAM
 {
 	print "  generating BAM file for germline sample {$ps}...\n";
@@ -402,9 +403,9 @@ $files_to_submit = $is_lrgs ? [$lrgs_bam, $n_vcf] : [$n_fq1, $n_fq2, $n_vcf];
 if ($is_somatic)
 {
 	$t_bam = $info_t['ps_bam'];
-	$t_fq1 = "{$folder}/files/{$tang}_tumor_R1.fastq.gz";
-	$t_fq2 = "{$folder}/files/{$tang}_tumor_R2.fastq.gz";
-	$tn_vcf = "{$folder}/files/{$tang}_somatic.vcf";
+	$t_fq1 = "{$folder}/files/{$tan_g}_tumor_R1.fastq.gz";
+	$t_fq2 = "{$folder}/files/{$tan_g}_tumor_R2.fastq.gz";
+	$tn_vcf = "{$folder}/files/{$tan_g}_somatic.vcf";
 	if (!file_exists($t_fq1) || !file_exists($t_fq2))
 	{
 		print "  generating FASTQ files for tumor sample {$ps_t}...\n";
@@ -555,8 +556,8 @@ $json['$schema'] = "https://raw.githubusercontent.com/BfArM-MVH/MVGenomseq/refs/
 $json['submission'] = [
 	"submissionDate" => $db_mvh->getValue("SELECT date FROM submission_grz WHERE id='{$sub_id}'"),
 	"submissionType" => $db_mvh->getValue("SELECT type FROM submission_grz WHERE id='{$sub_id}'"),
-	"tanG" => $tang,
-	"localCaseId" => $patient_id,
+	"tanG" => $tan_g,
+	"localCaseId" => $patient_id, //TODO change to CM base ID (PSN field)? > wait for feedback from Mila/Travis
 	"coverageType" => convert_coverage($gl_data->accounting_mode),
 	"submitterId" => "260840108",
 	"genomicDataCenterId" => "GRZTUE002",
@@ -568,7 +569,7 @@ $json['submission'] = [
 ];
 $json['donors'] = [
 	0 => [
-		"donorPseudonym" => $tang,
+		"donorPseudonym" => $tan_g,
 		"gender" => convert_gender($info["gender"]),
 		"relation" => "index",
 		"mvConsent" => [
