@@ -270,6 +270,7 @@ $mvh_folder = get_path("mvh_folder");
 //check that case ID is valid
 $id = $db_mvh->getValue("SELECT id FROM case_data WHERE id='{$case_id}'");
 if ($id=="") trigger_error("No case with id '{$case_id}' in MVH database!", E_USER_ERROR);
+$cm_id = $db_mvh->getValue("SELECT cm_id FROM case_data WHERE id='{$case_id}'");
 
 //clear
 $folder = realpath($mvh_folder)."/grz_export/{$case_id}/";
@@ -311,7 +312,11 @@ else trigger_error("Unhandled network type '{$network}'!", E_USER_ERROR);
 $seq_mode = $cm_data->seq_mode;
 if ($seq_mode!="WGS" && $seq_mode!="WES") trigger_error("Unhandled seq_mode '{$seq_mode}'!", E_USER_ERROR);
 
-print "case: {$case_id} (CM ID: {$cm_id} / seq_mode: {$seq_mode} / network: {$network})\n";
+//get patient identifer (pseudonym from case management)
+$patient_id = $cm_data->psn;
+if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}'!", E_USER_ERROR);
+
+print "case: {$case_id} (CM ID: {$cm_id} / CM pseudonym: {$patient_id} / seq_mode: {$seq_mode} / network: {$network})\n";
 
 //check germline processed sample is ok
 $ps = $db_mvh->getValue("SELECT ps FROM case_data WHERE id='{$case_id}'");
@@ -319,8 +324,6 @@ $info = get_processed_sample_info($db_ngsd, $ps);
 $sys = $info['sys_name_short'];
 $sys_type = $info['sys_type'];
 $is_lrgs = $sys_type=="lrGS";
-$patient_id = $info['patient_identifier']; //this is the SAP ID
-if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}'!", E_USER_ERROR);
 print "germline sample: {$ps} (system: {$sys}, type: {$sys_type})\n";
 
 //check germline processed sample is ok
@@ -557,7 +560,7 @@ $json['submission'] = [
 	"submissionDate" => $db_mvh->getValue("SELECT date FROM submission_grz WHERE id='{$sub_id}'"),
 	"submissionType" => $db_mvh->getValue("SELECT type FROM submission_grz WHERE id='{$sub_id}'"),
 	"tanG" => $tan_g,
-	"localCaseId" => $patient_id, //TODO change to CM base ID (PSN field)? > wait for feedback from Mila/Travis
+	"localCaseId" => $patient_id,
 	"coverageType" => convert_coverage($gl_data->accounting_mode),
 	"submitterId" => "260840108",
 	"genomicDataCenterId" => "GRZTUE002",
