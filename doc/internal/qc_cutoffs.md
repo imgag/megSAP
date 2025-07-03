@@ -33,6 +33,14 @@ see <https://vswliscurator01.ukt.ad.local/web/0/intra/index.php?art_id=dc_2021_0
 
 see <https://vswliscurator01.ukt.ad.local/web/0/intra/index.php?art_id=dc_2021_09_24_c4e4ec2d1b5b118a21>
 
+### WGS tumor
+
+| QC value                 | good           | medium           | bad             |
+|--------------------------|----------------|------------------|-----------------|
+| target region read depth | > 120x         | 100-120x         | < 100x          |
+| 20x coverage             | > 98%          | 95-98%           | < 95%           |
+
+
 ### WES tumor
 
 | QC value                 | good           | medium          | bad             |

@@ -28,17 +28,6 @@ function is_indel($tag)
 	return strlen($ref) > 1 || strlen($alt) > 1;
 }
 
-//returns the base count of a BED file
-function get_bases($filename)
-{
-	global $parser;
-	
-	list($stdout) = $parser->execApptainer("ngs-bits", "BedInfo", "-in $filename", [$filename]);
-	$hits = array_containing($stdout, "Bases ");
-	$parts = explode(":", $hits[0]);
-	return trim($parts[1]);
-}
-
 //load VCF variants. 'Caller' argument can modify information loaded for different callers (af and depth) and the reference files (genotype)
 function load_vcf($filename, $roi, $caller)
 {
@@ -173,7 +162,7 @@ if ($tum_content != "")
 }
 
 //determine target region size
-$roi_bases = get_bases($roi);
+$roi_bases = bed_size($roi);
 print "##ROI bases: {$roi_bases}\n";
 
 //load germline variants
@@ -390,9 +379,9 @@ foreach([0.05, 0.075, 0.1, 0.125, 0.15, 0.2] as $min_af)
 			}
 		}
 
-		$recall = ($tp+$fn==0) ? "n/a" : number_format($tp/($tp+$fn),5);
-		$precision = ($tp+$fp==0) ? "n/a" : number_format($tp/($tp+$fp),5);
-		$output_af[] = implode("\t", [ trim("{$min_af} {$curr_type}"), $tp+$fn, $tp, $fp, $fn, $recall, $precision ]);
+		$recall = ($tp+$fn==0) ? "n/a" : number_format($tp/($tp+$fn) * 100,2);
+		$precision = ($tp+$fp==0) ? "n/a" : number_format($tp/($tp+$fp) * 100,2);
+		$output_af[] = implode("\t", [ trim("{$min_af}% {$curr_type}"), $tp+$fn, $tp, $fp, $fn, $recall."%", $precision."%" ]);
 	}
 }
 file_put_contents($af_details, implode("\n", $output_af));

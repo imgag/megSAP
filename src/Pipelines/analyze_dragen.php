@@ -23,6 +23,8 @@ $parser->addFlag("no_queuing", "Do not queue megSAP analysis afterwards.");
 $parser->addFlag("dragen_only", "Perform only DRAGEN analysis and copy all output files without renaming (not compatible with later megSAP analysis).");
 $parser->addFlag("debug", "Add debug output to the log file.");
 $parser->addFlag("high_priority", "Queue megSAP analysis with high priority.");
+$parser->addString("user", "User used to queue megSAP analysis (has to be in the NGSD).", true, "");
+$parser->addFlag("high_mem", "Run DRAGEN analysis in high memory mode for deep samples. (Also increases timeout to prevent job from being terminated.)");
 
 extract($parser->parse($argv));
 
@@ -165,15 +167,6 @@ if (count($files_forward) == 0)
 	$parser->moveFile($input_bam, "{$folder}/bams_for_mapping/".basename($input_bam));
 	$input_bam = "{$folder}/bams_for_mapping/".basename($input_bam);
 
-	/*
-	//convert BAM/CRAM to FastQ (don't use temp since it is tiny on DRAGEN)
-	$fastq_r1 = "{$working_dir}/{$name}_BamToFastq_R1_001.fastq.gz";
-	$fastq_r2 = "{$working_dir}/{$name}_BamToFastq_R2_001.fastq.gz";
-	//use samtools to avoid requirement of Apptainer
-	$parser->exec("samtools", "fastq -1 {$fastq_r1} -2 {$fastq_r2} -0 /dev/null -s /dev/null -n {$input_bam} --reference {$genome} -@ 15");
-	$files_forward = array($fastq_r1);
-	$files_reverse = array($fastq_r2);
-	*/
 }
 
 //define output files
@@ -194,6 +187,7 @@ foreach ($files_reverse as $in_file)
 {
 	if (!is_readable($in_file)) trigger_error("Input file '{$in_file}' is not readable!", E_USER_ERROR);
 }
+$parser->exec("mkdir", "-p {$dragen_out_folder}");
 if (!is_writable2($out_cram)) trigger_error("Output file '{$out_cram}' is not writable!", E_USER_ERROR);
 if (!is_writable2($out_vcf)) trigger_error("Output file '{$out_vcf}' is not writable!", E_USER_ERROR);
 if (!is_writable2($out_gvcf)) trigger_error("Output file '{$out_gvcf}' is not writable!", E_USER_ERROR);
@@ -222,23 +216,18 @@ if ($input_bam != "")
 	//use BAM/CRAM as input
 	if (ends_with($input_bam, ".cram")) $dragen_parameter[] = "--cram-input {$input_bam}";
 	else $dragen_parameter[] = "--bam-input {$input_bam}";
-
-	// $dragen_parameter[] = "--RGID {$name}";
-	// $dragen_parameter[] = "--RGSM {$name}";
-	// $dragen_parameter[] = "--RGDT ".date("c");
-	// $dragen_parameter[] = "--RGPL '{$rglb}'";
-	// $dragen_parameter[] = "--RGLB '{$device_type}'";
 }
 else
 {
+	/*
 	//concat Fastq files
 	$fastq_r1 = "{$working_dir}/{$name}_merged_R1_001.fastq.gz";
 	$fastq_r2 = "{$working_dir}/{$name}_merged_R2_001.fastq.gz";
 
 	$parser->exec("cat", implode(" ", $files_forward)." > {$fastq_r1}");
 	$parser->exec("cat", implode(" ", $files_reverse)." > {$fastq_r2}");
-
-	/*
+	*/
+	
 	//create FastQ file list
 	$fastq_file_list_data = array("RGID,RGSM,RGLB,Lane,Read1File,Read2File,RGDT,RGPL");
 
@@ -292,8 +281,8 @@ else
 
 	//add dragen parameter:
 	$dragen_parameter[] = "--fastq-list ".$fastq_file_list;
-	*/
-
+	
+	/*
 	$dragen_parameter[] = "-1 ".$fastq_r1;
 	$dragen_parameter[] = "-2 ".$fastq_r2;
 
@@ -302,6 +291,7 @@ else
 	$dragen_parameter[] = "--RGDT ".date("c");
 	$dragen_parameter[] = "--RGPL '{$rglb}'";
 	$dragen_parameter[] = "--RGLB '{$device_type}'";
+	*/
 }
 
 //create target region for exomes/panels
@@ -328,22 +318,17 @@ if ($is_wes || $is_panel)
 	file_put_contents($target_extended, implode("\n", $target_region_extended));
 }
 
-
-
 //parameters
 $dragen_parameter[] = "-r ".$dragen_genome_path;
 $dragen_parameter[] = "--ora-reference ".get_path("data_folder")."/dbs/oradata/";
 $dragen_parameter[] = "--output-directory $working_dir";
 $dragen_parameter[] = "--output-file-prefix {$name}";
-//TODO: test and re-enable with DRAGEN  4.4
 $dragen_parameter[] = "--output-format CRAM"; //always use CRAM
 $dragen_parameter[] = "--enable-map-align-output=true";
 $dragen_parameter[] = "--enable-bam-indexing true";
 $dragen_parameter[] = "--enable-rh=false"; //disabled RH special caller because this leads to variants with EVENTTYPE=GENE_CONVERSION that have no DP and AF entry and sometimes are duplicated (same variant twice in the VCF).
-
 if ($is_wgs)
 {
-	//TODO re-enable
 	$dragen_parameter[] = "--enable-cnv true";
 	$dragen_parameter[] = "--cnv-enable-self-normalization true";
 	$dragen_parameter[] = "--vc-ml-enable-recalibration=false"; //disabled because it leads to a sensitivity drop for Twist Exome V2 (see /mnt/storage2/users/ahsturm1/scripts/2025_03_21_megSAP_release_performance)
@@ -369,6 +354,15 @@ $dragen_parameter[] = "--vc-enable-vcf-output true";
 //structural variant calling
 $dragen_parameter[] = "--enable-sv true";
 $dragen_parameter[] = "--sv-use-overlap-pair-evidence true"; //TODO Marc re-validate with DRAGEN 4.4
+
+//high memory
+if ($high_mem)
+{
+	$dragen_parameter[] = "--bin_memory 96636764160"; //90GB (default: 20 (GB), max on DRAGEN v4: 90)
+	$dragen_parameter[] = "--vc-max-callable-region-memory-usage 41875931136"; //39GB (default: 13 (GB))
+	$dragen_parameter[] = "--watchdog-active-timeout 3600"; //increase timeout to 1h (default: 10min)
+}
+
 $parser->log("DRAGEN parameters:", $dragen_parameter);
 
 //run
@@ -402,33 +396,10 @@ if ($dragen_only)
 }
 else
 {
-	//TODO: test and re-enable with DRAGEN  4.4
 	//copy CRAM/CRAI to sample folder
 	$parser->log("Copying CRAM/CRAI to output folder");
 	$parser->copyFile($working_dir.$name.".cram", $out_cram);
 	$parser->copyFile($working_dir.$name.".cram.crai", $out_cram.".crai");
-
-	//TODO remove if CRAM is working
-	/*
-	//test: convert BAM to CRAM and check read-counts
-	$bam = $working_dir.$name.".bam";
-	$parser->exec("samtools", "view -@ 15 -C -T {$genome} -o {$out_cram} {$bam}");
-	$parser->exec("samtools", "index -@ 15 {$out_cram}");
-	list($stdout, $stderr, $ec) = $parser->exec("samtools", "view -@ 15 -c {$bam}");
-	$bam_read_count = intval($stdout[0]);
-	list($stdout, $stderr, $ec) = $parser->exec("samtools", "view -@ 15 -c {$out_cram}");
-	$cram_read_count = intval($stdout[0]);
-	trigger_error("Read count BAM: \t{$bam_read_count}\tRead count CRAM: \t{$cram_read_count}", E_USER_NOTICE);
-	if ($bam_read_count != $cram_read_count)
-	{
-		// check relative difference
-		$diff = abs($bam_read_count - $cram_read_count);
-		$rel_diff = $diff /(($bam_read_count + $cram_read_count)/2.0);
-
-		if ($rel_diff > 0.001) trigger_error("Read counts of BAM and CRAM file do not match! \n {$bam_read_count} (BAM) vs. {$cram_read_count} (CRAM)", E_USER_ERROR);
-	}
-	//else: everything is fine
-	*/
 
 	// copy small variant calls to sample folder
 	$parser->log("Copying small variants to output folder");
@@ -474,13 +445,16 @@ $high_priority_str = ($high_priority)? "-high_priority " : "";
 
 //queue analysis
 
+if ($user == "") $user = "unknown";
+$queuing_params = "-user {$user} -type 'single sample' -samples {$name} -ignore_running_jobs {$high_priority_str} -args '".implode(" ", $megSAP_args)."'";
+
 if ($no_queuing) 
 {
-	trigger_error("megSAP queueing skipped! \nCommand to queue analysis: \n\tphp ".repository_basedir()."/src/Tools/db_queue_analysis.php -type 'single sample' -samples {$name} -ignore_running_jobs {$high_priority_str} -args '".implode(" ", $megSAP_args)."'", E_USER_NOTICE);
+	trigger_error("megSAP queuing skipped! \nCommand to queue analysis: \n\tphp ".repository_basedir()."/src/Tools/db_queue_analysis.php {$queuing_params}", E_USER_NOTICE);
 }
 else 
 {
-	$parser->execTool("Tools/db_queue_analysis.php", "-type 'single sample' -samples {$name} -ignore_running_jobs {$high_priority_str} -args '".implode(" ", $megSAP_args)."'");
+	$parser->execTool("Tools/db_queue_analysis.php", $queuing_params);
 }
 
 //print to STDOUT executed successfully (because there is no exit code from SGE after a job has finished)

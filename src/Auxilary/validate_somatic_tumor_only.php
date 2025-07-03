@@ -20,6 +20,7 @@ $parser->addEnum("caller", "The caller used to create the vcf files given in '-c
 $parser->addFlag("ignore_filters", "Ignores filter column entries.");
 extract($parser->parse($argv));
 
+
 //load VCF variants. 'Caller' argument can modify information loaded for different callers (af and depth) and the reference files (genotype)
 function load_vcf($filename, $roi, $caller)
 {
@@ -101,7 +102,7 @@ if ($tum_content != "")
 }
 
 //determine target region size
-$roi_bases = get_bases($roi);
+$roi_bases = bed_size($roi);
 print "##ROI bases: {$roi_bases}\n";
 
 //load expected germline variants of sample used to induce simulated tumor

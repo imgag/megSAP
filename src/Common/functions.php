@@ -509,12 +509,6 @@ function array_subset($values /*, $index1, index 2, ...*/)
 	return $output;
 }
 
-///Returns an array with all elements of @p heystack that contain @p needle.
-function array_containing($haystack, $needle)
-{
-	return array_values(array_filter($haystack, function($var) use ($needle){ return strpos($var, $needle) !== false;}));
-}
-
 /*
 	@brief Loads a tab-separated file without newline characters, empty lines and comment lines.
 */
@@ -730,15 +724,12 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 	$apptainer_args = [];
 	$apptainer_args[] = "--no-mount home,cwd";
 	$apptainer_args[] = "--cleanenv";
+	$apptainer_args[] = "--pwd=/tmp"; // Set working directory to avoid Apptainer's chdir warning and ensure tools (e.g. subread) can write temp files to cwd
+
 	if ($container=="samtools" || $container=="methylartist" || $container=="straglrOn") //samtools (and methylartist, straglrOn) need REF_CACHE/REF_PATH to avoid re-initializing the reference cache inside the container every call: http://www.htslib.org/doc/samtools.html#ENVIRONMENT_VARIABLES, https://www.htslib.org/workflow/cram.html#The%20REF_PATH%20and%20REF_CACHE 
 	{
 		$apptainer_args[] = "--env REF_CACHE=".get_path("local_data")."/samtools_ref_cache/%2s/%2s/%s";
 		$apptainer_args[] = "--env REF_PATH=".get_path("local_data")."/samtools_ref_cache/%2s/%2s/%s:http://www.ebi.ac.uk/ena/cram/md5/%s";
-	}
-
-	if ($container=="subread") //subread repair needs access to the cwd to save intermediate files. Therefore we set the cwd in the container to /tmp when executing it
-	{
-		$apptainer_args[] = "--pwd=/tmp";
 	}
 
 	if ($container=="deepvariant-gpu") //to run a gpu supported apptainer container you need the --nv flag
