@@ -663,12 +663,12 @@ if (!$test)
 /*
 //TODO:
 - run on SRV005 as bioinf when updated to Ubuntu 24.04
-- store schema of MVH DB
+- remove test data when no longer needed:
+	- WGS: NA12878x3_20 - 99999
+	- WES T/N: NA12878x3_44 / NA12877_32 - 99998
+	- lrGS: 24067LRa008_01
 
-#Test samples
-- WGS: NA12878x3_20 - 99999
-- WES T/N: NA12878x3_44 / NA12877_32 - 99998
-- lrGS: 24067LRa008_01
+#################### DOCU: Installation of tools #####################
 
 #Installation of mosdepth
 
@@ -697,6 +697,53 @@ if (!$test)
 		> /mnt/storage2/MVH/tools/miniforge3/bin/conda update -n grz-tools "grz-cli"
 	- Activate:
 		> /mnt/storage2/MVH/tools/miniforge3/bin/conda activate grz-tools
+
+
+##################### DOCU: SQL database #####################
+
+CREATE TABLE `case_data` (
+ `id` int(11) NOT NULL AUTO_INCREMENT,
+ `cm_id` varchar(20) NOT NULL,
+ `cm_data` text NOT NULL COMMENT 'case managment data in XML format as proviced by the RedCap API',
+ `se_id` text DEFAULT NULL COMMENT 'ID in SE RedCap',
+ `se_data` text DEFAULT NULL COMMENT 'Entries in SE RedCap (several are possible)',
+ `rc_data` text DEFAULT NULL COMMENT 'Research consent data from meDIC converted to XML',
+ `rc_data_json` text DEFAULT NULL COMMENT 'Research consent data in JSON format as provided by meDIC',
+ `gl_data` text DEFAULT NULL COMMENT 'GenLab data',
+ `sap_id` varchar(20) NOT NULL,
+ `ps` varchar(23) DEFAULT NULL COMMENT 'germline sample',
+ `ps_t` varchar(23) DEFAULT NULL COMMENT 'tumor sample for tumor-normal',
+ PRIMARY KEY (`id`),
+ UNIQUE KEY `cm_id` (`cm_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=134673 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+CREATE TABLE `submission_grz` (
+ `id` int(11) NOT NULL AUTO_INCREMENT,
+ `case_id` int(11) NOT NULL,
+ `date` date NOT NULL,
+ `type` enum('initial','followup','addition','correction') NOT NULL,
+ `tang` varchar(64) NOT NULL,
+ `status` enum('pending','done','failed') NOT NULL,
+ `submission_id` text DEFAULT NULL,
+ `submission_output` text DEFAULT NULL,
+ PRIMARY KEY (`id`),
+ KEY `case_id` (`case_id`),
+ CONSTRAINT `submission_grz_ibfk_1` FOREIGN KEY (`case_id`) REFERENCES `case_data` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+
+CREATE TABLE `submission_kdk_se` (
+ `id` int(11) NOT NULL AUTO_INCREMENT,
+ `case_id` int(11) NOT NULL,
+ `date` date NOT NULL,
+ `type` enum('initial','followup','addition','correction') NOT NULL,
+ `tank` varchar(64) NOT NULL,
+ `status` enum('pending','done','failed') NOT NULL,
+ `submission_id` text DEFAULT NULL,
+ `submission_output` text DEFAULT NULL,
+ PRIMARY KEY (`id`),
+ KEY `case_id` (`case_id`),
+ CONSTRAINT `submission_kdk_se_ibfk_1` FOREIGN KEY (`case_id`) REFERENCES `case_data` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
 */
 
 ?>

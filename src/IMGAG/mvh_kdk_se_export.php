@@ -9,6 +9,9 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 function json_metadata($cm_data, $tan_k, $rc_data_json)
 {
+	//add entry section to suppress PHP warning below
+	if (!isset($rc_data_json["entry"])) $rc_data_json["entry"] = [];
+	
 	$active_rcs = [];
 	foreach($rc_data_json["entry"] as $entry)
 	{
@@ -24,8 +27,8 @@ function json_metadata($cm_data, $tan_k, $rc_data_json)
 		
 		$active_rcs[] = $entry;
 	}
-	if (count($active_rcs)==0) trigger_error("No consent resources found!", E_USER_ERROR);
-	if (count($active_rcs)>1) trigger_error("Several consent resources found!", E_USER_ERROR);
+	if (count($active_rcs)==0) trigger_error("No active consent resources found!", E_USER_ERROR);
+	if (count($active_rcs)>1) trigger_error("Several active consent resources found!", E_USER_ERROR);
 	
 	$te_date = xml_str($cm_data->datum_teilnahme);
 	
@@ -127,7 +130,7 @@ function json_diagnoses($se_data, $se_data_rep)
 	{
 		$codes[] = [
 			"code" => get_raw_value($se_data->psn, "diag_orphacode"),
-			"display" => $orpha,
+			"display" => "ORPHA:".$orpha,
 			"system" => "https://www.orpha.net",
 			"version" => $orpha_ver
 		];
@@ -135,7 +138,7 @@ function json_diagnoses($se_data, $se_data_rep)
 	if (xml_bool($se_data->orphacode_undiagnostiziert___1, false))
 	{
 		$codes[] = [
-			"code" => "616874",
+			"code" => "ORPHA:616874",
 			"display" => "Fully investigated rare disorder without a determined diagnosis",
 			"system" => "https://www.orpha.net",
 		];
@@ -177,8 +180,17 @@ function json_diagnoses($se_data, $se_data_rep)
 				"code" => convert_diag_status(xml_str($se_data->bewertung_gen_diagnostik)),
 				],
 			"codes" => $codes,
-			//missing fields: missingCodeReason, notes
+			//missing fields: notes
 			];
+	
+	if (count($codes)!=3)
+	{
+		$output["missingCodeReason"] = [
+        "code" => "no-matching-code",
+        "display" => "Kein geeigneter Code (ICD-10-GM, ORDO, Alpha-ID-SE) verfügbar",
+        "system" => "dnpm-dip/rd/diagnosis/missing-code-reason"
+		];
+	}
 	
 	return $output;
 }
@@ -492,15 +504,52 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 $result = curl_exec($ch);
 curl_close($ch);
 
+//parse/show validation result
 print "exit code: ".curl_getinfo($ch, CURLINFO_HTTP_CODE)."\n";
+print "\n";
+$validation_error = false;
 foreach(json_decode($result)->issues as $issue)
 {
 	if ($issue->message=="Fehlende Angabe 'Krankenkassen-IK'") continue;
 	
-	print strtoupper($issue->severity).": ".$issue->message."\n";
+	$type = strtoupper($issue->severity);
+	if ($type=="ERROR") $validation_error = true;
+	print "{$type}: ".$issue->message."\n";
 	print "  PATH: ".$issue->path."\n";
 	print "\n";
 }
+if ($validation_error) trigger_error("Validation failed!", E_USER_ERROR);
+
+//upload JSON
+print "\n";
+print "### uploading JSON ###\n";
+
+$url = "https://".($test ? "preview.dnpm-dip.net" : "dnpm-dip-p.med.uni-tuebingen.de")."/api/rd/etl/patient-record";
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_POST, true);
+curl_setopt($ch, CURLOPT_URL, $url);
+curl_setopt($ch, CURLOPT_POSTFIELDS, file_get_contents($json_file));
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$result = curl_exec($ch);
+curl_close($ch);
+
+
+//parse/show upload result
+$exit_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+print "exit code: {$exit_code}\n";
+print "\n";
+foreach(json_decode($result)->issues as $issue)
+{
+	if ($issue->message=="Fehlende Angabe 'Krankenkassen-IK'") continue;
+	
+	$type = strtoupper($issue->severity);
+	if ($type=="ERROR") $validation_error = true;
+	print "{$type}: ".$issue->message."\n";
+	print "  PATH: ".$issue->path."\n";
+	print "\n";
+}
+if ($exit_code!="201") trigger_error("Upload failed!", E_USER_ERROR);
+
 
 
 ?>
