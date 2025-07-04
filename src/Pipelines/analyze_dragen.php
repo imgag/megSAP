@@ -216,18 +216,12 @@ if ($input_bam != "")
 	//use BAM/CRAM as input
 	if (ends_with($input_bam, ".cram")) $dragen_parameter[] = "--cram-input {$input_bam}";
 	else $dragen_parameter[] = "--bam-input {$input_bam}";
+	$dragen_parameter[] = "--RGID {$name}";
+	$dragen_parameter[] = "--RGSM {$name}";
+	$dragen_parameter[] = "--RGDT ".date("c");
 }
 else
-{
-	/*
-	//concat Fastq files
-	$fastq_r1 = "{$working_dir}/{$name}_merged_R1_001.fastq.gz";
-	$fastq_r2 = "{$working_dir}/{$name}_merged_R2_001.fastq.gz";
-
-	$parser->exec("cat", implode(" ", $files_forward)." > {$fastq_r1}");
-	$parser->exec("cat", implode(" ", $files_reverse)." > {$fastq_r2}");
-	*/
-	
+{	
 	//create FastQ file list
 	$fastq_file_list_data = array("RGID,RGSM,RGLB,Lane,Read1File,Read2File,RGDT,RGPL");
 
@@ -281,17 +275,6 @@ else
 
 	//add dragen parameter:
 	$dragen_parameter[] = "--fastq-list ".$fastq_file_list;
-	
-	/*
-	$dragen_parameter[] = "-1 ".$fastq_r1;
-	$dragen_parameter[] = "-2 ".$fastq_r2;
-
-	$dragen_parameter[] = "--RGID {$name}";
-	$dragen_parameter[] = "--RGSM {$name}";
-	$dragen_parameter[] = "--RGDT ".date("c");
-	$dragen_parameter[] = "--RGPL '{$rglb}'";
-	$dragen_parameter[] = "--RGLB '{$device_type}'";
-	*/
 }
 
 //create target region for exomes/panels
