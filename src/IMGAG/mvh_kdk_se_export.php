@@ -443,7 +443,7 @@ $patient_id = xml_str($cm_data->psn);
 if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}'!", E_USER_ERROR);
 
 //create export folder
-print "case: {$case_id} (CM ID: {$cm_id} / CM pseudonym: {$patient_id})\n";
+print "MVH DB id: {$case_id} (CM ID: {$cm_id} / CM pseudonym: {$patient_id})\n";
 $folder = realpath($mvh_folder)."/kdk_se_export/{$case_id}/";
 if ($clear) exec2("rm -rf {$folder}");
 exec2("mkdir -p {$folder}/metadata/");

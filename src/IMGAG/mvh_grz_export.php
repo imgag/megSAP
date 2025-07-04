@@ -316,7 +316,7 @@ if ($seq_mode!="WGS" && $seq_mode!="WES") trigger_error("Unhandled seq_mode '{$s
 $patient_id = xml_str($cm_data->psn);
 if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}'!", E_USER_ERROR);
 
-print "case: {$case_id} (CM ID: {$cm_id} / CM pseudonym: {$patient_id} / seq_mode: {$seq_mode} / network: {$network})\n";
+print "MVH DB id: {$case_id} (CM ID: {$cm_id} / CM pseudonym: {$patient_id} / seq_mode: {$seq_mode} / network: {$network})\n";
 
 //check germline processed sample is ok
 $ps = $db_mvh->getValue("SELECT ps FROM case_data WHERE id='{$case_id}'");
@@ -666,7 +666,7 @@ if (!$test)
 - remove test data when no longer needed:
 	- WGS: NA12878x3_20 - 99999
 	- WES T/N: NA12878x3_44 / NA12877_32 - 99998
-	- lrGS: 24067LRa008_01
+	- lrGS: 24067LRa008_02 - 99997
 
 #################### DOCU: Installation of tools #####################
 
@@ -695,6 +695,7 @@ if (!$test)
 	- Updates with:
 		> /mnt/storage2/MVH/tools/miniforge3/bin/conda update -n base -c conda-forge conda
 		> /mnt/storage2/MVH/tools/miniforge3/bin/conda update -n grz-tools "grz-cli"
+		> cd /mnt/storage2/MVH/tools/GRZ_QC_Workflow && git pull
 	- Activate:
 		> /mnt/storage2/MVH/tools/miniforge3/bin/conda activate grz-tools
 
