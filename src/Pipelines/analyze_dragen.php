@@ -216,7 +216,7 @@ if ($input_bam != "")
 	//use BAM/CRAM as input
 	if (ends_with($input_bam, ".cram")) $dragen_parameter[] = "--cram-input {$input_bam}";
 	else $dragen_parameter[] = "--bam-input {$input_bam}";
-	//TODO find a way to replace the sample name - wait for answer from tech support (ticket 04321987)
+	//TODO find a way to replace the sample name - wait for answer from tech support (ticket 04321987). If not possible, convert BAM TO FASTQ...
 	/*
 	$dragen_parameter[] = "--RGID {$name}";
 	$dragen_parameter[] = "--RGSM {$name}";
