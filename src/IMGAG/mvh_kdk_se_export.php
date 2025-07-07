@@ -118,7 +118,7 @@ function json_diagnoses($se_data, $se_data_rep)
 		$codes[] = [
 			"code" => get_raw_value($se_data->psn, "diag_icd10"),
 			"display" => $icd10,
-			"system" => "https://www.bfarm.de/DE/Kodiersysteme/Terminologien/ICD-10-GM",
+			"system" => "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
 			"version" => $icd10_ver
 			
 			
@@ -155,23 +155,23 @@ function json_diagnoses($se_data, $se_data_rep)
 	}
 	if (count($codes)==0) trigger_error("No disease code found in case-management data!", E_USER_ERROR);
 	
-	//get onset date from HPO terms
+	//determine onset date from HPO terms
 	$onset_date = [];
 	foreach($se_data_rep->item as $item)
 	{		
 		$onset = substr(xml_str($item->beginn_symptome), 0, 7);
-		if ($onset=="") continue;
+		if ($onset=="" || $onset=="0000-01") continue;
 
 		$onset_date[] = $onset;
 	}
-	if (count($onset_date)==0) trigger_error("No HPO onset date found in SE meta data! It is needed for the diagnosis onset!", E_USER_ERROR);
+	if (count($onset_date)==0) $onset_date[] = "0000-01"; //no onset known (see page 39 of https://www.bfarm.de/SharedDocs/Downloads/DE/Forschung/modellvorhaben-genomsequenzierung/Techn-spezifikation-datensatz-mvgenomseq.pdf?__blob=publicationFile )
 	asort($onset_date);
 	$onset_date = $onset_date[0];
 	
 	$output = [
 			"id"=>"ID_DIAG_1",
 			"patient" => json_patient_ref(),
-			"recordedOn" => xml_str($se_data->datum_fallkonferenz), //TODO ok so?
+			"recordedOn" => xml_str($se_data->datum_fallkonferenz),
 			"onsetDate" => $onset_date,
 			"familyControlLevel" => [
 				"code" => convert_diag_recommendation(xml_str($se_data->diagnostik_empfehlung)),
@@ -218,7 +218,7 @@ function json_hpos($se_data, $se_data_rep)
 		$entry = [
 		"id" => "ID_HPO_{$num}",
 		"patient" => json_patient_ref(),
-		"recordedOn" => xml_str($se_data->datum_fallkonferenz), //TODO ok so?
+		"recordedOn" => xml_str($se_data->datum_fallkonferenz),
 		"value" => [
 			"code" => $hpo_id,
 			"display" => $hpo,
@@ -298,7 +298,7 @@ function json_care_plan($se_data, $se_data_rep) //'carePlan' is misleading. This
 		$entry = [
 		"id" => "ID_THERAPY_{$num}",
 		"patient" => json_patient_ref(),
-		"issuedOn" => xml_str($se_data->klin_datum_fallkonferenz), //TODO ok so?
+		"issuedOn" => xml_str($se_data->klin_datum_fallkonferenz),
 		"category" => [
 			"code" => convert_therapy_category($therapy_type),
 			],
@@ -325,7 +325,7 @@ function json_care_plan($se_data, $se_data_rep) //'carePlan' is misleading. This
 		$entry = [
 		"id" => "ID_STUDY_{$num}",
 		"patient" => json_patient_ref(),
-		"issuedOn" => xml_str($se_data->klin_datum_fallkonferenz), //TODO ok so?
+		"issuedOn" => xml_str($se_data->klin_datum_fallkonferenz),
 		"study" => [
 				[
 					"id" => xml_str($item->studien_id),
@@ -353,7 +353,7 @@ function json_care_plan($se_data, $se_data_rep) //'carePlan' is misleading. This
 		$entry = [
 		"id" => "ID_THERAPY_{$num}",
 		"patient" => json_patient_ref(),
-		"issuedOn" => xml_str($se_data->klin_datum_fallkonferenz), //TODO ok so?
+		"issuedOn" => xml_str($se_data->klin_datum_fallkonferenz),
 		"type" => [
 			"code" => convert_clinincal_management($clinical_mgmt),
 			]
@@ -367,7 +367,7 @@ function json_care_plan($se_data, $se_data_rep) //'carePlan' is misleading. This
 	$output = [
 			"id"=>"ID_CARE_PLAN_1",
 			"patient" => json_patient_ref(),
-			"issuedOn" => xml_str($se_data->klin_datum_fallkonferenz), //TODO ok so?
+			"issuedOn" => xml_str($se_data->klin_datum_fallkonferenz),
 			"therapyRecommendations" => $therapy_recoms,
 			"studyEnrollmentRecommendations" => $study_recoms,
 			];
@@ -496,6 +496,7 @@ print "\n";
 print "### validating JSON ###\n";
 
 $url = "https://".($test ? "preview.dnpm-dip.net" : "dnpm-dip-p.med.uni-tuebingen.de")."/api/rd/etl/patient-record:validate";
+print "URL: {$url}\n";
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_URL, $url);
@@ -510,12 +511,11 @@ print "\n";
 $validation_error = false;
 foreach(json_decode($result)->issues as $issue)
 {
-	if ($issue->message=="Fehlende Angabe 'Krankenkassen-IK'") continue;
+	if (isset($issue->message) && contains($issue->message, "Fehlende Angabe 'Krankenkassen-IK'")) continue;
 	
 	$type = strtoupper($issue->severity);
 	if ($type=="ERROR") $validation_error = true;
-	print "{$type}: ".$issue->message."\n";
-	print "  PATH: ".$issue->path."\n";
+	print "{$type}: ".(isset($issue->details) ? $issue->details : $issue->path.":".$issue->message)."\n";
 	print "\n";
 }
 if ($validation_error) trigger_error("Validation failed!", E_USER_ERROR);
@@ -525,6 +525,7 @@ print "\n";
 print "### uploading JSON ###\n";
 
 $url = "https://".($test ? "preview.dnpm-dip.net" : "dnpm-dip-p.med.uni-tuebingen.de")."/api/rd/etl/patient-record";
+print "URL: {$url}\n";
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_URL, $url);
@@ -540,12 +541,11 @@ print "exit code: {$exit_code}\n";
 print "\n";
 foreach(json_decode($result)->issues as $issue)
 {
-	if ($issue->message=="Fehlende Angabe 'Krankenkassen-IK'") continue;
+	if (isset($issue->message) && contains($issue->message, "Fehlende Angabe 'Krankenkassen-IK'")) continue;
 	
 	$type = strtoupper($issue->severity);
 	if ($type=="ERROR") $validation_error = true;
-	print "{$type}: ".$issue->message."\n";
-	print "  PATH: ".$issue->path."\n";
+	print "{$type}: ".(isset($issue->details) ? $issue->details : $issue->path.":".$issue->message)."\n";
 	print "\n";
 }
 if ($exit_code!="201") trigger_error("Upload failed!", E_USER_ERROR);

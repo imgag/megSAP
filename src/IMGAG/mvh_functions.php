@@ -75,7 +75,7 @@ function xml_bool($value, $allow_unset)
 {
 	$value = strtolower(xml_str($value));
 	if ($value=="yes" || $value=="checked") return true;
-	if ($value=="no") return false;
+	if ($value=="no" || $value=="unchecked") return false;
 	if ($allow_unset && $value=="") return null;
 	
 	trigger_error(__FUNCTION__.": Unhandled value '{$value}'!", E_USER_ERROR);

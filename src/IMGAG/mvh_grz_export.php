@@ -29,6 +29,7 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 	global $is_somatic;
 	global $qc_folder;
 	global $is_lrgs;
+	global $patient_id;
 	$qc_wf_folder = "/mnt/storage2/MVH/tools/GRZ_QC_Workflow/";
 	
 	//run mosdepth if necessary
@@ -92,17 +93,20 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 	//generate report
 	$report = "{$qc_folder}/{$ps}_report.csv";
 	$args = [];
+	$args[] = "--donorPseudonym '{$patient_id}'";
 	$args[] = "--sample_id '{$ps}'";
 	$args[] = "--labDataName 'blood DNA'";
-	$args[] = "--libraryType ".strtolower($seq_mode);
+	$args[] = "--libraryType ".($is_lrgs ? "wgs_lr" : strtolower($seq_mode));
 	$args[] = "--sequenceSubtype ".($is_tumor ? "somatic" : "germline");
 	$args[] = "--genomicStudySubtype ".($is_somatic ? "tumor+germline" : "germline-only");
 	$args[] = "--fastp_json {$fastp_json}";
 	$args[] = "--mosdepth_global_summary {$mosdepth_summary}";
 	$args[] = "--mosdepth_target_regions_bed {$mosdepth_regions}";
-	$args[] = " --thresholds {$qc_wf_folder}/assets/default_files/thresholds.json";
 	$args[] = "--output {$report}";
-	exec2("python3 {$qc_wf_folder}/bin/compare_threshold.py ".implode(" ", $args));
+	$args[] = "--meanDepthOfCoverage 1"; //dummy value, not used on our case
+	$args[] = "--targetedRegionsAboveMinCoverage 1"; //dummy value, not used on our case
+	$args[] = "--percentBasesAboveQualityThreshold 1"; //dummy value, not used on our case
+	exec2("/mnt/storage2/MVH/tools/python3/bin/python3 {$qc_wf_folder}/bin/compare_threshold.py ".implode(" ", $args));
 	
 	//parse QC report
 	$file = file($report);
@@ -127,7 +131,6 @@ function get_read_length($ps, $sys_type)
 	
 	return $read_length;
 }
-
 
 function create_files_json($files_to_submit, $info, $read_length)
 {
@@ -572,7 +575,7 @@ $json['submission'] = [
 ];
 $json['donors'] = [
 	0 => [
-		"donorPseudonym" => $tan_g,
+		"donorPseudonym" => $patient_id,
 		"gender" => convert_gender($info["gender"]),
 		"relation" => "index",
 		"mvConsent" => [
@@ -662,13 +665,13 @@ if (!$test)
 
 /*
 //TODO:
-- run on SRV005 as bioinf when updated to Ubuntu 24.04
+- add tests when first final version is done
 - remove test data when no longer needed:
 	- WGS: NA12878x3_20 - 99999
 	- WES T/N: NA12878x3_44 / NA12877_32 - 99998
 	- lrGS: 24067LRa008_02 - 99997
 
-#################### DOCU: Installation of tools #####################
+#################### DOCU: Installation of tools (for running this script without GRZ QC workflow) #####################
 
 #Installation of mosdepth
 
@@ -699,6 +702,28 @@ if (!$test)
 	- Activate:
 		> /mnt/storage2/MVH/tools/miniforge3/bin/conda activate grz-tools
 
+#Installation of python3
+
+> python3 -m venv /mnt/storage2/MVH/tools/python
+> /mnt/storage2/MVH/tools/python3/bin/pip install grz-pydantic-models pandas argparse importlib
+
+
+#################### DOCU: Installation of GRZ QC workflow #####################
+
+#Installation nexflow
+
+> cd /mnt/storage2/MVH/tools/nextflow
+> curl -s https://get.nextflow.io | bash
+
+#Installation of nf-core tools
+
+> pipx install nf-core
+
+#Installation of GRZ QC pipeline
+
+> export PATH=$PATH:/mnt/storage2/MVH/tools/nextflow/
+> nf-core pipelines download BfArM-MVH/GRZ_QC_Workflow --container-system singularity
+> nextflow plugin install nf-schema@2.1.1
 
 ##################### DOCU: SQL database #####################
 
