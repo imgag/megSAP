@@ -184,6 +184,7 @@ if (in_array("ma", $steps))
 	{
 		$cut1 = 5;
 		$cut2 = 5;
+		$end_trim = 7;
 		
 		$fastq_trimmed1_bc = $parser->tempFile("_trimmed1_bc.fastq.gz");
 		$fastq_trimmed2_bc = $parser->tempFile("_trimmed2_bc.fastq.gz");
@@ -192,14 +193,16 @@ if (in_array("ma", $steps))
 		$parser->deleteTempFile($fastq_trimmed1);
 		$parser->deleteTempFile($fastq_trimmed2);
 
-		//special handling of Twist UMIs: cut off first and last 2bp
-		$fastq_trimmed1_bc_cut = $parser->tempFile("_trimmed1_bc.fastq.gz");
-		$fastq_trimmed2_bc_cut = $parser->tempFile("_trimmed2_bc.fastq.gz");
-		$parser->execApptainer("ngs-bits", "FastqTrim", "-in {$fastq_trimmed1_bc} -out {$fastq_trimmed1_bc_cut} -start 2");
-		$parser->execApptainer("ngs-bits", "FastqTrim", "-in {$fastq_trimmed2_bc} -out {$fastq_trimmed2_bc_cut} -start 2");
-
+		//special handling of Twist UMIs: cut off first 2bp and last 7bp.
+		//trim all ends by 7 bases to remove UMIs from reads with an insert size < read_length
+		$fastq_trimmed1_bc_cut = $parser->tempFile("_trimmed1_bc_cut.fastq.gz");
+		$fastq_trimmed2_bc_cut = $parser->tempFile("_trimmed2_bc_cut.fastq.gz");
+		$parser->execApptainer("ngs-bits", "FastqTrim", "-in {$fastq_trimmed1_bc} -out {$fastq_trimmed1_bc_cut} -start 2 -end $end_trim");
+		$parser->execApptainer("ngs-bits", "FastqTrim", "-in {$fastq_trimmed2_bc} -out {$fastq_trimmed2_bc_cut} -start 2 -end $end_trim");
+		
 		$parser->deleteTempFile($fastq_trimmed1_bc);
 		$parser->deleteTempFile($fastq_trimmed2_bc);
+		
 		$fastq_trimmed1 = $fastq_trimmed1_bc_cut;
 		$fastq_trimmed2 = $fastq_trimmed2_bc_cut;
 	}
