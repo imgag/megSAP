@@ -164,15 +164,20 @@ function json_diagnoses($se_data, $se_data_rep)
 
 		$onset_date[] = $onset;
 	}
-	if (count($onset_date)==0) $onset_date[] = "0000-01"; //no onset known (see page 39 of https://www.bfarm.de/SharedDocs/Downloads/DE/Forschung/modellvorhaben-genomsequenzierung/Techn-spezifikation-datensatz-mvgenomseq.pdf?__blob=publicationFile )
-	asort($onset_date);
-	$onset_date = $onset_date[0];
+	if (count($onset_date)==0)
+	{
+		$onset_date = "";
+	}
+	else
+	{
+		asort($onset_date);
+		$onset_date = $onset_date[0];
+	}
 	
 	$output = [
 			"id"=>"ID_DIAG_1",
 			"patient" => json_patient_ref(),
 			"recordedOn" => xml_str($se_data->datum_fallkonferenz),
-			"onsetDate" => $onset_date,
 			"familyControlLevel" => [
 				"code" => convert_diag_recommendation(xml_str($se_data->diagnostik_empfehlung)),
 				],
@@ -182,6 +187,7 @@ function json_diagnoses($se_data, $se_data_rep)
 			"codes" => $codes,
 			//missing fields: notes
 			];
+	if ($onset_date!="") $output["onsetDate"] = $onset_date;
 	
 	if (count($codes)!=3)
 	{
