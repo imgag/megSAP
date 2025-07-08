@@ -501,14 +501,20 @@ file_put_contents($json_file, json_encode($json, JSON_PRETTY_PRINT));
 print "\n";
 print "### validating JSON ###\n";
 
-$url = "https://".($test ? "preview.dnpm-dip.net" : "dnpm-dip-p.med.uni-tuebingen.de")."/api/rd/etl/patient-record:validate";
+$url = "https://".($test ? "preview.dnpm-dip.net" : "vsldiam15.med.uni-tuebingen.de")."/api/rd/etl/patient-record:validate";
 print "URL: {$url}\n";
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_URL, $url);
 curl_setopt($ch, CURLOPT_POSTFIELDS, file_get_contents($json_file));
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+if (!$test) //production server is in UKT network
+{
+	curl_setopt($ch, CURLOPT_PROXY, '');
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); //TODO: re-enable SSL verification when certificate is fixed
+}
 $result = curl_exec($ch);
+if ($result===false) trigger_error('CURL ERROR: '.curl_error($ch), E_USER_ERROR);
 curl_close($ch);
 
 //parse/show validation result
@@ -530,14 +536,20 @@ if ($validation_error) trigger_error("Validation failed!", E_USER_ERROR);
 print "\n";
 print "### uploading JSON ###\n";
 
-$url = "https://".($test ? "preview.dnpm-dip.net" : "dnpm-dip-p.med.uni-tuebingen.de")."/api/rd/etl/patient-record";
+$url = "https://".($test ? "preview.dnpm-dip.net" : "vsldiam15.med.uni-tuebingen.de")."/api/rd/etl/patient-record";
 print "URL: {$url}\n";
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_POST, true);
 curl_setopt($ch, CURLOPT_URL, $url);
 curl_setopt($ch, CURLOPT_POSTFIELDS, file_get_contents($json_file));
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+if (!$test) //production server is in UKT network
+{
+	curl_setopt($ch, CURLOPT_PROXY, '');
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); //TODO: re-enable SSL verification when certificate is fixed
+}
 $result = curl_exec($ch);
+if ($result===false) trigger_error('CURL ERROR: '.curl_error($ch), E_USER_ERROR);
 curl_close($ch);
 
 
@@ -554,8 +566,6 @@ foreach(json_decode($result)->issues as $issue)
 	print "{$type}: ".(isset($issue->details) ? $issue->details : $issue->path.":".$issue->message)."\n";
 	print "\n";
 }
-if ($exit_code!="201") trigger_error("Upload failed!", E_USER_ERROR);
-
-
+if ($exit_code!="200" && $exit_code!="201") trigger_error("Upload failed!", E_USER_ERROR);
 
 ?>
