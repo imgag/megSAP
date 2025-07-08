@@ -129,13 +129,12 @@ if (count($files_forward)!=count($files_reverse))
 	trigger_error("Found mismatching forward and reverse read file count!\n Forward: {$folder}/*_L00[0-9]_R1_00[0-9].fastq.ora\n Reverse: {$folder}/*_L00[0-9]_R2_00[0-9].fastq.ora.", E_USER_ERROR);
 }
 
+//fallback to FASTQ
 if (count($files_forward) == 0)
 {
-	//fallback to FastQs
 	//get FastQ files
 	$files_forward = glob("{$folder}/*_R1_00[0-9].fastq.gz");
 	$files_reverse = glob("{$folder}/*_R2_00[0-9].fastq.gz");
-	
 
 	//check for UMI index files
 	$files_index = glob("{$folder}/*_index_*.fastq.gz");
@@ -148,25 +147,32 @@ if (count($files_forward) == 0)
 	}	
 }
 
-$input_bam = "";
+//fallback to BAM/CRAM
 if (count($files_forward) == 0)
 {
-	//fallback to BAM/CRAM
 	$input_bam = $folder."/".$name.".cram";
+	$input_index = $folder."/".$name.".cram.crai";
 	if (!file_exists($input_bam))
 	{
 		$input_bam = $folder."/".$name.".bam";
+		$input_index = $folder."/".$name.".bam.bai";
 		if (!file_exists($input_bam))
 		{
-			trigger_error("Neither ORA, FastQ, CRAM nor BAM file found in sample folder! Cannot perform analysis!", E_USER_ERROR);
+			trigger_error("Neither ORA, FASTQ, CRAM nor BAM file found in sample folder! Cannot perform analysis!", E_USER_ERROR);
 		}
 	}
-	//move BAM/CRAM to temp folder 
-	if (file_exists("{$folder}/bams_for_mapping")) $parser->exec("rm", "-rf {$folder}/bams_for_mapping");
-	$parser->exec("mkdir", "{$folder}/bams_for_mapping");
-	$parser->moveFile($input_bam, "{$folder}/bams_for_mapping/".basename($input_bam));
-	$input_bam = "{$folder}/bams_for_mapping/".basename($input_bam);
-
+	
+	//convert BAM/CRAM to FASTQ
+	//NOTE: it is not possible to override the sample ID when using BAM/CRAM as input, so external samples get the wrong sample IDs, which end up in the VCF files and cause errors in subsequent secondary analyses, e.g. trio analysis. The workround for this problem is to convert the data to FASTQ.
+	$in_fq_for = $folder."/{$name}_BamToFastq_R1_001.fastq.gz";
+	$in_fq_rev = $folder."/{$name}_BamToFastq_R2_001.fastq.gz";
+	$tmp1 = $working_dir."/{$name}_BamToFastq_R1_001.fastq.gz";
+	$tmp2 = $working_dir."/{$name}_BamToFastq_R2_001.fastq.gz";
+	$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$input_bam} -ref {$genome} -out1 {$tmp1} -out2 {$tmp2}", [$genome, $folder]);
+	$parser->moveFile($tmp1, $in_fq_for);
+	$parser->moveFile($tmp2, $in_fq_rev);
+	$files_forward = [$in_fq_for];
+	$files_reverse = [$in_fq_rev];
 }
 
 //define output files
@@ -211,74 +217,54 @@ if(db_is_enabled("NGSD"))
 	$device_type = $psample_info['device_type'];
 }
 
-if ($input_bam != "")
-{
-	//use BAM/CRAM as input
-	if (ends_with($input_bam, ".cram")) $dragen_parameter[] = "--cram-input {$input_bam}";
-	else $dragen_parameter[] = "--bam-input {$input_bam}";
-	//TODO find a way to replace the sample name - wait for answer from tech support (ticket 04321987). If not possible, convert BAM TO FASTQ...
-	/*
-	$dragen_parameter[] = "--RGID {$name}";
-	$dragen_parameter[] = "--RGSM {$name}";
-	$dragen_parameter[] = "--RGDT ".date("c");
-	*/
-}
-else
-{	
-	//create FastQ file list
-	$fastq_file_list_data = array("RGID,RGSM,RGLB,Lane,Read1File,Read2File,RGDT,RGPL");
+//create FASTQ file list
+$fastq_file_list_data = array("RGID,RGSM,RGLB,Lane,Read1File,Read2File,RGDT,RGPL");
+for ($i=0; $i < count($files_forward); $i++) 
+{ 
+	$fastq_for = $files_forward[$i];
+	$fastq_rev = $files_reverse[$i];
+	
+	//extract lane
+	$lane = 1;
+	$filename_r1 = array_reverse(explode("_", basename2($fastq_for)));
+	$filename_r2 = array_reverse(explode("_", basename2($fastq_rev)));
 
-	for ($i=0; $i < count($files_forward); $i++) 
+	//sanity check
+	if (count($filename_r1)!=count($filename_r2)) trigger_error("Found mismatching file name in forward and reverse read file!\n Forward: ".implode("_", $filename_r1)."\n Reverse: ".implode("_", $filename_r2), E_USER_ERROR);
+	
+	//extract lane
+	for ($j=0; $j < count($filename_r1); $j++) 
 	{ 
-		$fastq_for = $files_forward[$i];
-		$fastq_rev = $files_reverse[$i];
-		
-		//extract lane
-		$lane = 1;
-		$filename_r1 = array_reverse(explode("_", basename2($fastq_for)));
-		$filename_r2 = array_reverse(explode("_", basename2($fastq_rev)));
-
-		//sanity check
-		if (count($filename_r1)!=count($filename_r2)) trigger_error("Found mismatching file name in forward and reverse read file!\n Forward: ".implode("_", $filename_r1)."\n Reverse: ".implode("_", $filename_r2), E_USER_ERROR);
-		
-		//extract lane
-		for ($j=0; $j < count($filename_r1); $j++) 
-		{ 
-			if (starts_with("L0", $filename_r1[$j]))
+		if (starts_with("L0", $filename_r1[$j]))
+		{
+			if (starts_with("L0", $filename_r2[$j]))
 			{
-				if (starts_with("L0", $filename_r2[$j]))
-				{
-					$lane_r1 = intval(substr($filename_r1[$j], 1));
-					$lane_r2 = intval(substr($filename_r2[$j], 1));
+				$lane_r1 = intval(substr($filename_r1[$j], 1));
+				$lane_r2 = intval(substr($filename_r2[$j], 1));
 
-					if($lane_r1 == $lane_r2)
-					{
-						$lane = $lane_r1;
-						break;
-					}
-					else
-					{
-						trigger_error("Lane of forward and reverse read file do not match!\n Forward: ".implode("_", $filename_r1)."\n Reverse: ".implode("_", $filename_r2), E_USER_ERROR);
-					}
-				}
-				else 
+				if($lane_r1 == $lane_r2)
 				{
-					trigger_error("Found mismatching file name in forward and reverse read file!\n Forward: ".implode("_", $filename_r1)."\n Reverse: ".implode("_", $filename_r2), E_USER_ERROR);
+					$lane = $lane_r1;
+					break;
+				}
+				else
+				{
+					trigger_error("Lane of forward and reverse read file do not match!\n Forward: ".implode("_", $filename_r1)."\n Reverse: ".implode("_", $filename_r2), E_USER_ERROR);
 				}
 			}
+			else 
+			{
+				trigger_error("Found mismatching file name in forward and reverse read file!\n Forward: ".implode("_", $filename_r1)."\n Reverse: ".implode("_", $filename_r2), E_USER_ERROR);
+			}
 		}
-
-		//add line to CSV
-		$fastq_file_list_data[] = "{$name},{$name},{$rglb},{$lane},{$fastq_for},{$fastq_rev},".date("c").",{$device_type}";
-
 	}
-	$fastq_file_list = $parser->tempFile(".csv");
-	if ($debug) $parser->log("FastQ file list:", $fastq_file_list_data); //debug
-	file_put_contents($fastq_file_list, implode("\n", $fastq_file_list_data));
 
-	//add dragen parameter:
-	$dragen_parameter[] = "--fastq-list ".$fastq_file_list;
+	$fastq_file_list_data[] = "{$name},{$name},{$rglb},{$lane},{$fastq_for},{$fastq_rev},".date("c").",{$device_type}";
 }
+$fastq_file_list = $parser->tempFile(".csv");
+if ($debug) $parser->log("FastQ file list:", $fastq_file_list_data); //debug
+file_put_contents($fastq_file_list, implode("\n", $fastq_file_list_data));
+$dragen_parameter[] = "--fastq-list ".$fastq_file_list;
 
 //create target region for exomes/panels
 if ($is_wes || $is_panel)
