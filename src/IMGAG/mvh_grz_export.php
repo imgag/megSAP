@@ -687,17 +687,17 @@ if (!$test)
 > wget http://opengene.org/fastplong/fastplong
 > chmod a+x ./fastplong
 
-#Installation notes GRZ-CLI (see https://github.com/BfArM-MVH/grz-cli):
+#Installation notes GRZ-CLI (see https://github.com/BfArM-MVH/grz-tools/blob/main/packages/grz-cli/README.md):
 
 	- Install miniforge at /mnt/storage2/megSAP/tools/miniforge3/
 		> curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
 		> bash Miniforge3-$(uname)-$(uname -m).sh
-	- Install GRZ-CLI
+	- Install GRZ-CLI		
 		> /mnt/storage2/MVH/tools/miniforge3/bin/conda create -n grz-tools -c conda-forge -c bioconda "grz-cli"
 		> /mnt/storage2/MVH/tools/miniforge3/bin/conda activate grz-tools
 	- Updates with:
 		> /mnt/storage2/MVH/tools/miniforge3/bin/conda update -n base -c conda-forge conda
-		> /mnt/storage2/MVH/tools/miniforge3/bin/conda update -n grz-tools "grz-cli"
+		> /mnt/storage2/MVH/tools/miniforge3/bin/conda update -n grz-tools -c conda-forge -c bioconda grz-cli
 		> cd /mnt/storage2/MVH/tools/GRZ_QC_Workflow && git pull
 	- Activate:
 		> /mnt/storage2/MVH/tools/miniforge3/bin/conda activate grz-tools
