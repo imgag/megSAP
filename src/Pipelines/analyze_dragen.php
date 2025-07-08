@@ -168,7 +168,7 @@ if (count($files_forward) == 0)
 	$in_fq_rev = $folder."/{$name}_BamToFastq_R2_001.fastq.gz";
 	$tmp1 = $working_dir."/{$name}_BamToFastq_R1_001.fastq.gz";
 	$tmp2 = $working_dir."/{$name}_BamToFastq_R2_001.fastq.gz";
-	$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$input_bam} -ref {$genome} -out1 {$tmp1} -out2 {$tmp2}", [$genome, $folder]);
+	$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$input_bam} -ref {$genome} -out1 {$tmp1} -out2 {$tmp2}", [$genome, $folder, $working_dir]);
 	$parser->moveFile($tmp1, $in_fq_for);
 	$parser->moveFile($tmp2, $in_fq_rev);
 	$files_forward = [$in_fq_for];
