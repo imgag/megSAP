@@ -296,9 +296,8 @@ if (in_array("ma", $steps))
 					if ($rel_diff < 0.0001) trigger_error("Read count of mapped and unmapped BAM(s) in allowed tolerance (<0.01%) (".($rel_diff*100)."%). Deleting unmapped BAM(s)...", E_USER_NOTICE);
 					foreach ($unmapped_bam_files as $unmapped_bam_file) 
 					{
-						//TODO: remove
-						trigger_error("Unmapped BAM file would be removed!", E_USER_NOTICE);
-						// unlink($unmapped_bam_file);
+						unlink($unmapped_bam_file);
+						trigger_error("Unmapped BAM file removed!", E_USER_NOTICE);
 					}
 				}
 				else
@@ -333,9 +332,8 @@ if (in_array("ma", $steps))
 					if ($rel_diff < 0.0001) trigger_error("Read count of mapped BAM and FastQ(s) in allows tolerance (<0.01%) (".($rel_diff*100)."%). Deleting FastQ(s)...", E_USER_NOTICE);
 					foreach ($fastq_files as $fastq_file) 
 					{
-						//TODO: remove
-						trigger_error("FastQ file would be removed!", E_USER_NOTICE);
-						// unlink($fastq_file);
+						unlink($fastq_file);
+						trigger_error("FastQ file removed!", E_USER_NOTICE);
 					}
 				}
 				else
