@@ -71,9 +71,9 @@ CONDA_DEFAULT_ENV=umivar
 # Download and setup umiVar2
 mkdir -p /opt/umiVar2
 cd /opt/umiVar2
-git clone https://github.com/imgag/umiVar2.git umiVar2_2024_11
-cd umiVar2_2024_11
-git checkout 2024_11
+git clone https://github.com/imgag/umiVar2.git umiVar2_2025_07
+cd umiVar2_2025_07
+git checkout 2025_07
 rm -rf Test/
 
 # Refactor settings.default to settings.ini with correct paths
@@ -83,8 +83,8 @@ sed -i 's|samtools = \[PATH_TO_samtools\]/samtools|samtools = /root/miniconda3/e
 mv settings.default settings.ini
 
 # Add shebang to all .py scripts
-sed -i '1i#!/root/miniconda3/envs/umivar/bin/python3' /opt/umiVar2/umiVar2_2024_11/*.py
-chmod +x /opt/umiVar2/umiVar2_2024_11/*.py
+sed -i '1i#!/root/miniconda3/envs/umivar/bin/python3' /opt/umiVar2/umiVar2_2025_07/*.py
+chmod +x /opt/umiVar2/umiVar2_2025_07/*.py
 
 # Clean up
 cd /
@@ -95,4 +95,4 @@ apt-get clean && \
 rm -rf /var/lib/apt/lists/*
 
 %environment
-export PATH=/opt/umiVar2/umiVar2_2024_11:/root/miniconda3/envs/umivar/bin:$PATH
+export PATH=/opt/umiVar2/umiVar2_2025_07:/root/miniconda3/envs/umivar/bin:$PATH
