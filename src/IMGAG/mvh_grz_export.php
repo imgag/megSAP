@@ -316,7 +316,7 @@ $seq_mode = xml_str($cm_data->seq_mode);
 if ($seq_mode!="WGS" && $seq_mode!="WES") trigger_error("Unhandled seq_mode '{$seq_mode}'!", E_USER_ERROR);
 
 //get patient identifer (pseudonym from case management) - this is the ID that is used to identify submissions from the same case by GRZ/KDK
-$patient_id = xml_str($cm_data->psn);
+$patient_id = xml_str($cm_data->psn); //TODO change to CM Fallnummer and pseudonymize via meDIC
 if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}'!", E_USER_ERROR);
 
 print "MVH DB id: {$case_id} (CM ID: {$cm_id} / CM pseudonym: {$patient_id} / seq_mode: {$seq_mode} / network: {$network})\n";
