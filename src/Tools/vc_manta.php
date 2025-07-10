@@ -166,8 +166,8 @@ else
 }
 
 //zip and index output file
-$parser->exec("bgzip", "-c $vcf_filtered > $out", true);
-$parser->exec("tabix", "-p vcf $out", true);
+$parser->execApptainer("htslib", "bgzip", "-c $vcf_filtered > $out", [], [dirname($out)]);
+$parser->execApptainer("htslib", "tabix", "-p vcf $out", [], [dirname($out)]);
 
 //Copy evidence bams in case of somatic/ tumor only sample
 if(isset($evid_dir))

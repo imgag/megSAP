@@ -132,24 +132,34 @@ function get_ref_seq($build, $chr, $start, $end, $cache_size=0, $use_local_data=
 			// get sequence
 			$output = array();
 			$samtools_command = execApptainer("samtools", "samtools faidx", genome_fasta($build, $use_local_data)." $chr:{$cache_start}-{$cache_end} 2>&1", [genome_fasta($build, $use_local_data)], [], true);
+
 			exec($samtools_command, $output, $ret);
 			if ($ret!=0)
 			{
 				trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
 			}
-			
-			// check if chr range exceeds chr end:
-			if (starts_with($output[0], "[faidx] Truncated sequence:"))
+
+			$cache_sequence = "";
+			foreach ($output as $line) 
 			{
-				//skip warning
-				$cache_sequence = trim(implode("", array_slice($output, 2)));
-				// correct cached end position, if cache exceeds chr end
-				$cache_end = $cache_start + strlen($cache_sequence);
+				//skip header line
+				if (starts_with($line, ">")) continue;
+				
+				//skip truncation warning
+				if (starts_with($line, "[faidx] Truncated sequence:")) continue;
+
+				//report but skip warnings
+				if (starts_with($line, "WARNING:"))
+				{
+					trigger_error($line, E_USER_WARNING);
+					continue;
+				}
+
+				$cache_sequence .= $line;
+
 			}
-			else
-			{
-				$cache_sequence = trim(implode("", array_slice($output, 1)));
-			}
+			//update cached end position, if cache exceeds chr end
+			$cache_end = $cache_start + strlen($cache_sequence);
 
 			// return requested interval
 			return substr($cache_sequence, $start - $cache_start, $end - $start + 1);
@@ -168,8 +178,32 @@ function get_ref_seq($build, $chr, $start, $end, $cache_size=0, $use_local_data=
 		{
 			trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
 		}
-		
-		return implode("", array_slice($output, 1));
+
+		$sequence = "";
+		foreach ($output as $line) 
+		{
+			//skip header line
+			if (starts_with($line, ">")) continue;
+			
+			//skip truncation warning
+			if (starts_with($line, "[faidx] Truncated sequence:")) 
+			{
+				trigger_error($line, E_USER_WARNING);
+				continue;
+			}
+			
+			//report but skip warnings
+			if (starts_with($line, "WARNING:"))
+			{
+				trigger_error($line, E_USER_WARNING);
+				continue;
+			}
+
+			$sequence .= $line;
+
+		}
+				
+		return $sequence;
 	}
 	
 	
@@ -252,9 +286,13 @@ function chr_check($chr, $max = 22, $fail_trigger_error = true)
 	@brief Returns the list of all chromosomes.
 	@ingroup genomics
 */
-function chr_list()
+function chr_list($include_chry = true)
 {
-	return preg_filter('/^/', 'chr', array_merge(range(1,22), array("X","Y")));
+	$chrs = range(1,22);
+	$chrs[] = "X";
+	if ($include_chry) $chrs[] = "Y";
+	
+	return preg_filter('/^/', 'chr', $chrs);
 }
 
 //Returns parsed INI file
@@ -494,7 +532,7 @@ function get_processed_sample_id(&$db_conn, $name, $error_if_not_found=true)
 	{
 		//split name
 		$name = trim($name);
-		$sep_idx = strrpos($name, "_");
+		$sep_idx = strpos($name, "_");
 		if ($sep_idx==false)
 		{
 			$sname = $name;
@@ -503,7 +541,7 @@ function get_processed_sample_id(&$db_conn, $name, $error_if_not_found=true)
 		else
 		{
 			$sname = substr($name, 0, $sep_idx);
-			$id = substr($name, $sep_idx+1);
+			$id = substr($name, $sep_idx+1, 2);
 			$id = ltrim($id, "0");
 		}
 		
@@ -549,28 +587,18 @@ function get_processed_samples_from_run(&$db, $run_id)
 ///Updates normal sample entry for given tumor sample.
 function updateNormalSample(&$db_conn, $ps_tumor, $ps_normal, $overwrite = false)
 {
-	//TUMOR
-	//get processed sample ID
-	list($s, $p) = explode("_", $ps_tumor);
-	$p = (int)$p;
-	$res = $db_conn->executeQuery("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name='$s' and ps.process_id='$p'");
-	$ps_tid = $res[0]['id'];
-	// get normal_id
-	$res = $db_conn->executeQuery("SELECT normal_id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name='$s' and ps.process_id='$p'");
-	$n = $res[0]['normal_id'];
+	//tumor
+	$ps_tid = get_processed_sample_id($db_conn, $ps_tumor);
+	$n = trim($db_conn->getValue("SELECT normal_id FROM processed_sample WHERE id='$ps_tid'"));
 
-	//NORMAL
-	//get processed sample ID
-	list($s, $p) = explode("_", $ps_normal);
-	$p = (int)$p;
-	$res = $db_conn->executeQuery("SELECT ps.id FROM processed_sample ps, sample s WHERE ps.sample_id=s.id AND s.name='$s' and ps.process_id='$p'");
-	$ps_nid = $res[0]['id'];
-
-	if(empty($ps_nid) || empty($ps_tid))	trigger_error("Could not find either tumor ($ps_tumor) or normal ($ps_normal) in NGSD.");
-
-	if(!empty($n) && $ps_nid!=$n)	trigger_error("Different normal sample found in NGSD (NGSD-IDs $ps_nid!=$n) for tumor ($ps_tumor).",E_USER_WARNING);
-
-	if(empty($n) || $overwrite)
+	//normal
+	$ps_nid = get_processed_sample_id($db_conn, $ps_normal);
+	
+	//check not set
+	if($n!="" && $ps_nid!=$n) trigger_error("Normal sample for tumor {$ps_tumor} already set in NGSD (ID={$n}) - cannot set {$ps_normal} as normal sample!", E_USER_WARNING);
+	
+	//set
+	if($n=="" || $overwrite)
 	{
 		$db_conn->executeStmt("UPDATE processed_sample SET normal_id='$ps_nid' WHERE id='$ps_tid'");
 		return true;
@@ -1115,7 +1143,7 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	//get info from NGSD
 	$ps_name = trim($ps_name);
 	list($sample_name, $process_id) = explode("_", $ps_name."_");
-	$res = $db_conn->executeQuery("SELECT p.name as project_name, p.type as project_type, p.analysis as project_analysis, p.preserve_fastqs as preserve_fastqs, p.id as project_id, ps.id as ps_id, r.name as run_name, d.type as device_type, r.id as run_id, ps.normal_id as normal_id, s.sample_type as sample_type, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, s.disease_status as disease_status, s.tissue as tissue, s.comment as s_comments, sys.id as sys_id, sys.type as sys_type, sys.target_file as sys_target, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, sys.adapter1_p5 as sys_adapter1, sys.adapter2_p7 as sys_adapter2, g.build as sys_build, s.name_external as name_external, ps.comment as ps_comments, ps.lane as ps_lanes, r.recipe as run_recipe, r.fcid as run_fcid, ps.mid1_i7 as ps_mid1, ps.mid2_i5 as ps_mid2, sp.id as species_id, sp.name as species, s.id as s_id, ps.quality as ps_quality, ps.processing_input, d.name as device_name, psa.population as ancestry, ps.urgent ".
+	$res = $db_conn->executeQuery("SELECT p.name as project_name, p.type as project_type, p.analysis as project_analysis, p.preserve_fastqs as preserve_fastqs, p.id as project_id, ps.id as ps_id, r.name as run_name, d.type as device_type, r.id as run_id, ps.normal_id as normal_id, s.sample_type as sample_type, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, s.disease_status as disease_status, s.tissue as tissue, s.comment as s_comments, s.year_of_birth, s.order_date, sys.id as sys_id, sys.type as sys_type, sys.target_file as sys_target, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, sys.adapter1_p5 as sys_adapter1, sys.adapter2_p7 as sys_adapter2, sys.umi_type as sys_umi_type, g.build as sys_build, s.name_external as name_external, ps.comment as ps_comments, ps.lane as ps_lanes, r.recipe as run_recipe, r.fcid as run_fcid, ps.mid1_i7 as ps_mid1, ps.mid2_i5 as ps_mid2, sp.id as species_id, sp.name as species, s.id as s_id, ps.quality as ps_quality, ps.processing_input, d.name as device_name, psa.population as ancestry, ps.urgent ".
 									"FROM project p, sample s, processing_system as sys, processed_sample ps LEFT JOIN sequencing_run as r ON ps.sequencing_run_id=r.id LEFT JOIN device as d ON r.device_id=d.id LEFT JOIN processed_sample_ancestry as psa ON ps.id=psa.processed_sample_id, species sp, genome g ".
 									"WHERE ps.project_id=p.id AND ps.sample_id=s.id AND s.name='$sample_name' AND ps.processing_system_id=sys.id AND sys.genome_id=g.id AND s.species_id=sp.id AND ps.process_id='".(int)$process_id."'");
 	if (count($res)!=1)
@@ -1141,7 +1169,7 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	//normal sample name (tumor reference sample)
 	if($info['normal_id']!="")
 	{
-		$info['normal_name'] = $db_conn->getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND ps.id='".$info['normal_id']."'");
+		$info['normal_name'] = processed_sample_name($db_conn, $info['normal_id']);
 	}
 	else
 	{
@@ -1343,8 +1371,7 @@ function analysis_job_info(&$db_conn, $job_id, $error_if_not_found=true)
 	$res = $db_conn->executeQuery("SELECT processed_sample_id, info FROM analysis_job_sample WHERE analysis_job_id=:job_id ORDER BY id ASC", array("job_id"=>$job_id));
 	foreach($res as $row)
 	{
-		$sample = $db_conn->getValue("SELECT CONCAT(s.name,'_',LPAD(ps.process_id,2,'0')) FROM processed_sample as ps, sample as s WHERE ps.sample_id = s.id AND ps.id='".$row['processed_sample_id']."'");
-		$info['samples'][] = $sample."/".$row['info'];
+		$info['samples'][] = processed_sample_name($db_conn, $row['processed_sample_id'])."/".$row['info'];
 	}
 	
 	//extract history
@@ -1513,10 +1540,11 @@ function report_config(&$db_conn, $name, $error_if_not_found=false)
 	
 	$var_ids = $db_conn->getValues("SELECT id FROM report_configuration_variant WHERE report_configuration_id=".$rc_id);
 	$cnv_ids = $db_conn->getValues("SELECT id FROM report_configuration_cnv WHERE report_configuration_id=".$rc_id);
-	$sv_ids = $db_conn->getValues("SELECT id FROM report_configuration_sv WHERE report_configuration_id=".$rc_id);
+	$sv_ids  = $db_conn->getValues("SELECT id FROM report_configuration_sv WHERE report_configuration_id=".$rc_id);
+	$re_ids  = $db_conn->getValues("SELECT id FROM report_configuration_re WHERE report_configuration_id=".$rc_id);
 	
 	
-	return array($rc_id, count($var_ids)>0, count($cnv_ids)>0, count($sv_ids)>0);
+	return array($rc_id, count($var_ids)>0, count($cnv_ids)>0, count($sv_ids)>0, count($re_ids)>0);
 }
 
 function somatic_report_config(&$db_conn, $t_ps, $n_ps, $error_if_not_found=false)
@@ -1617,7 +1645,7 @@ function add_missing_contigs_to_vcf($build, $vcf)
 		$fai_file_path = genome_fasta($build).".fai";
 		if (!file_exists($fai_file_path))
 		{
-			trigger_error("Fasta index file \"${fai_file_path}\" is missing!", E_USER_ERROR);
+			trigger_error("Fasta index file \"{$fai_file_path}\" is missing!", E_USER_ERROR);
 		}
 		$fai_file_content = file($fai_file_path, FILE_IGNORE_NEW_LINES);
 		foreach ($fai_file_content as $line) 
@@ -1633,7 +1661,7 @@ function add_missing_contigs_to_vcf($build, $vcf)
 			}
 			$chr = trim($parts[0]);
 			$len = intval($parts[1]);
-			$new_contigs[] = "##contig=<ID={$chr}, length={$len}>";
+			$new_contigs[] = "##contig=<ID={$chr},length={$len}>";
 		}
 
 		if(empty($new_contigs))
@@ -2405,34 +2433,6 @@ function update_gsvar_sample_header($file_name, $status_map)
 	$file_content->toTSV(($file_name));
 }
 
-//check for missing chr in VCF/GSvar files
-function check_for_missing_chromosomes($file_name, $throw_error = true)
-{
-	// use array as set
-	$found_chromosomes = array();
-
-	$h = gzopen2($file_name, "r");
-	while(!gzeof($h))
-	{
-		$line = trim(gzgets($h));
-		if ($line=="" || $line[0]=="#") continue;
-		$found_chromosomes[trim(explode("\t", $line)[0])] = true;
-	}
-
-	$missing_chr = array();
-	foreach (chr_list() as $chr) 
-	{
-		//ignore chrY
-		if($chr == "chrY") continue;
-
-		if(!isset($found_chromosomes[$chr])) $missing_chr[] = $chr; 
-	}
-
-	if ($throw_error && count($missing_chr) > 0) trigger_error("Chromosome(s) ".implode(", ", $missing_chr)." not found in file '{$file_name}'!", E_USER_ERROR);
-
-	return count($missing_chr);
-}
-
 //get bam read count
 function get_read_count($bam_file, $threads = 4, $samtools_params = array(), $build = "GRCh38", $region = "")
 {
@@ -2490,6 +2490,65 @@ function compare_bam_read_count($bam_file1, $bam_file2, $threads = 4, $throw_err
 		if ($throw_error) trigger_error("Bam file read count do not match! ({$read_count1} vs. {$read_count2} reads)", E_USER_ERROR);
 		return false;
 	}
+}
+
+/**
+    @brief Determines the sequencing platform type for a processing system.
+    @param string $name_short Short name of the processing system.
+    @return string 'PB', 'ONT'.
+*/
+function get_longread_sequencing_platform($name_short)
+{
+	//TODO: use better way than short name comparison
+    if (starts_with($name_short, 'LR-PB-')) {
+        return 'PB';
+    } else {
+        return 'ONT';
+    }
+}
+
+/**
+	@brief	Determines the number of reads of a set of ORA files
+	@param	array containing ORA file names
+	@return	int number of reads
+*/
+function get_ora_read_count($ora_files)
+{
+	$read_count = 0;
+	foreach ($ora_files as $ora_file) 
+	{
+		$rc_current_file = -1;
+		list($stdout, $stderr, $exit_code) = execApptainer("orad", "orad", "-i {$ora_file}", [$ora_file]);
+		foreach ($stdout as $line) 
+		{
+			if (starts_with($line, "Total number of sequences"))
+			{
+				$rc_current_file = intval(explode(":", $line)[1]);
+				break;
+			}
+		}
+		if ($rc_current_file < 0) trigger_error("Sequences count not found in ORA stats of file '{$ora_file}'!", E_USER_ERROR);
+		$read_count += $rc_current_file;
+	}
+	return $read_count;
+}
+
+/**
+	@brief	Determines the number of reads of a set of FASTQ files
+	@param	array containing FASTQ file names
+	@return	int number of reads
+*/
+function get_fastq_read_count($fastq_files)
+{
+	$read_count = 0;
+	foreach ($fastq_files as $fastq_file) 
+	{
+		$rc_current_file = -1;
+		list($stdout, $stderr, $exit_code) = exec2("zcat -f {$fastq_file} | wc -l");
+		$rc_current_file = intval($stdout[0]) / 4;
+		$read_count += $rc_current_file;
+	}
+	return $read_count;
 }
 
 ?>

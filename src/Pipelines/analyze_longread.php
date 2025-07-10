@@ -20,6 +20,10 @@ $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to th
 $parser->addFlag("no_gender_check", "Skip gender check (done between mapping and variant calling).");
 $parser->addFlag("skip_wgs_check", "Skip the similarity check with a related short-read WGS sample.");
 $parser->addFlag("bam_output", "Output file format for mapping is BAM instead of CRAM.");
+$parser->addFlag("gpu", "Use GPU supported tools where possible (currently DeepVariant in step 'vc').");
+$parser->addFloat("min_af", "Minimum VAF cutoff used for variant calling (DeepVariant 'min-alternate-fraction' parameter).", true, 0.1);
+$parser->addFloat("min_bq", "Minimum base quality used for variant calling (DeepVariant 'min-base-quality' parameter).", true, 10);
+$parser->addFloat("min_mq", "Minimum mapping quality used for variant calling (DeepVariant 'min-mapping-quality' parameter).", true, 20);
 extract($parser->parse($argv));
 
 // create logfile in output folder if no filepath is provided:
@@ -37,6 +41,7 @@ $parser->logServerEnvronment();
 //determine processing system
 $sys = load_system($system, $name);
 $build = $sys['build'];
+$platform = get_longread_sequencing_platform($sys['name_short']);
 
 //check steps
 $steps = explode(",", $steps);
@@ -63,6 +68,11 @@ if (db_is_enabled("NGSD"))
 	{
 		trigger_error("Skipping step 'sv' - Report configuration with SVs exists in NGSD!", E_USER_NOTICE);
 		if (($key = array_search("sv", $steps)) !== false) unset($steps[$key]);
+	}
+	if (in_array("re", $steps) && $rc_svs_exist)
+	{
+		trigger_error("Skipping step 're' - Report configuration with REs exists in NGSD!", E_USER_NOTICE);
+		if (($key = array_search("re", $steps)) !== false) unset($steps[$key]);
 	}
 }
 
@@ -114,21 +124,11 @@ $qc_other  = $folder."/".$name."_stats_other.qcML";
 $name_sample_ps = explode("_", $name, 2);
 $sample_name = $name_sample_ps[0];
 
-//check if target region covers whole genome
-list($stdout, $stderr, $ec) = $parser->execApptainer("ngs-bits", "BedInfo", "-in ".realpath($sys['target_file']), [$sys['target_file']]);
-$is_wgs = false;
-foreach($stdout as $line)
-{
-	if( starts_with($line, "Bases"))
-	{
-		$target_size = (int) explode(":", $line)[1];
-		trigger_error("Taget region size: {$target_size} bp");
-		$is_wgs = ($target_size > 3e9);
-		break;
-	}
-}
-if(!$is_wgs) trigger_error("Target region does not cover whole genome. Cannot check for missing chromosomes in variant calls.", E_USER_NOTICE);
+if(!$sys['target_file']) trigger_error("Target region is missing in processing system config.", E_USER_NOTICE);
 
+//check if target region covers whole genome (based on ROI size because pipeline test does not contain all chromosomes)
+$check_chrs = bed_size(realpath($sys['target_file'])) > 3e9;
+if(!$check_chrs) trigger_error("Target region does not cover whole genome. Cannot check for missing chromosomes in variant calls.", E_USER_NOTICE);
 
 //mapping
 if (in_array("ma", $steps))
@@ -137,8 +137,6 @@ if (in_array("ma", $steps))
 	$unmapped_pattern = "{$sample_name}_??.mod.unmapped.bam";
 	$unmapped_bam_files = glob("{$folder}/{$unmapped_pattern}");
 	$old_bam_files = array_merge(glob("{$folder}/{$sample_name}_??.bam"), glob("{$folder}/{$sample_name}_??.cram"));
-	$cram_pattern = "{$sample_name}_??.cram";
-	$old_bam_files = array_merge($old_bam_files, glob("{$folder}/{$cram_pattern}"));
 	$fastq_pattern = "{$sample_name}_??*.fastq.gz";
 	$fastq_files = glob("{$folder}/{$fastq_pattern}");
 	// preference:
@@ -180,21 +178,14 @@ if (in_array("ma", $steps))
 	{
 		//move BAMs/CRAMs to subfolder
 		$old_bam_files_moved = array();
-		$mapping_folder = "{$folder}/bams_for_mapping";
+		$mapping_folder = "{$folder}/bams_for_mapping/";
 		$parser->exec("mkdir", $mapping_folder);
+
 		foreach ($old_bam_files as $old_bam) 
 		{
-			$parser->moveFile($old_bam, $mapping_folder."/".basename($old_bam));
-			//move also index
-			if (ends_with(basename($old_bam), ".bam"))
-			{
-				$parser->moveFile($old_bam.".bai", $mapping_folder."/".basename($old_bam).".bai");
-			}
-			else //CRAM
-			{
-				$parser->moveFile($old_bam.".crai", $mapping_folder."/".basename($old_bam).".crai");
-			}
-			$old_bam_files_moved[] = $mapping_folder."/".basename($old_bam);
+			$basename = basename($old_bam);
+			$parser->moveFile($old_bam, $mapping_folder.$basename);
+			$old_bam_files_moved[] = $mapping_folder.$basename;
 		}
 		$mapping_minimap_options[] = "-in_bam " . implode(" ", $old_bam_files_moved);
 	}
@@ -305,9 +296,8 @@ if (in_array("ma", $steps))
 					if ($rel_diff < 0.0001) trigger_error("Read count of mapped and unmapped BAM(s) in allowed tolerance (<0.01%) (".($rel_diff*100)."%). Deleting unmapped BAM(s)...", E_USER_NOTICE);
 					foreach ($unmapped_bam_files as $unmapped_bam_file) 
 					{
-						//TODO: remove
-						trigger_error("Unmapped BAM file would be removed!", E_USER_NOTICE);
-						// unlink($unmapped_bam_file);
+						unlink($unmapped_bam_file);
+						trigger_error("Unmapped BAM file removed!", E_USER_NOTICE);
 					}
 				}
 				else
@@ -342,9 +332,8 @@ if (in_array("ma", $steps))
 					if ($rel_diff < 0.0001) trigger_error("Read count of mapped BAM and FastQ(s) in allows tolerance (<0.01%) (".($rel_diff*100)."%). Deleting FastQ(s)...", E_USER_NOTICE);
 					foreach ($fastq_files as $fastq_file) 
 					{
-						//TODO: remove
-						trigger_error("FastQ file would be removed!", E_USER_NOTICE);
-						// unlink($fastq_file);
+						unlink($fastq_file);
+						trigger_error("FastQ file removed!", E_USER_NOTICE);
 					}
 				}
 				else
@@ -382,73 +371,97 @@ if(db_is_enabled("NGSD") && !$no_gender_check)
 //variant calling
 if (in_array("vc", $steps))
 {
-	//determine basecall model
-	$basecall_model = get_basecall_model($used_bam_or_cram);
-	$basecall_model_path = "";
-
-	if ($basecall_model == "")
+	if ($platform == "PB")
 	{
-		//if no entry in BAM header -> use default model
-		if (($sys["name_short"] == "SQK-LSK114") || ($sys["name_short"] == "LR-ONT-SQK-LSK114"))
+		$args = [];
+		$args[] = "-model_type PACBIO";
+		$args[] = "-bam ".$used_bam_or_cram;
+		$args[] = "-out ".$vcf_file;
+		$args[] = "-build ".$build;
+		$args[] = "-threads ".$threads;
+		$args[] = "-target ".$sys['target_file'];
+		$args[] = "-target_extend 200";
+		$args[] = "-min_af ".$min_af;
+		$args[] = "-min_mq ".$min_mq;
+		$args[] = "-min_bq ".$min_bq;
+		$args[] = "-add_sample_header";
+		$args[] = "-name ".$name;
+
+		if ($gpu)
+		{
+			$args[] = "-gpu";
+		}
+
+		$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
+	}
+	else
+	{
+
+		//determine basecall model
+		$basecall_model = get_basecall_model($used_bam_or_cram);
+		$basecall_model_path = "";
+
+		if ($basecall_model == "")
+		{
+			//if no entry in BAM header -> use default model
+			if (($sys["name_short"] == "SQK-LSK114") || ($sys["name_short"] == "LR-ONT-SQK-LSK114"))
+			{
+				$basecall_model_path = get_path("clair3_models")."/r1041_e82_400bps_hac_g632/";
+			}
+			else if ($sys["name_short"] == "SQK-LSK109")
+			{
+				$basecall_model_path = get_path("clair3_models")."/r941_prom_hac_g360+g422/";
+			}
+			else if ($sys["name_short"] == "LR-ONT-SQK-LSK114-SUP")
+			{
+				$basecall_model_path = get_path("clair3_models")."/r1041_e82_400bps_sup_v500/";
+			}
+			else
+			{
+				trigger_error("Unsupported processing system '".$sys["shortname"]."' provided!", E_USER_ERROR);
+			}
+
+			trigger_error("No basecall info found in BAM file. Using default model at '{$basecall_model_path}'.", E_USER_NOTICE);
+		}
+		//special handling of old models
+		else if ($basecall_model == "dna_r10.4.1_e8.2_400bps_hac@v3.5.2")
 		{
 			$basecall_model_path = get_path("clair3_models")."/r1041_e82_400bps_hac_g632/";
-		}
-		else if ($sys["name_short"] == "SQK-LSK109")
+
+			trigger_error("Basecall info found in BAM file ('{$basecall_model}'). Using model at '{$basecall_model_path}' (special case).", E_USER_NOTICE);
+		} 
+		else if ($basecall_model == "dna_r9.4.1_e8_hac@v3.3")
 		{
 			$basecall_model_path = get_path("clair3_models")."/r941_prom_hac_g360+g422/";
-		}
-		else if ($sys["name_short"] == "LR-ONT-SQK-LSK114-SUP")
+
+			trigger_error("Basecall info found in BAM file ('{$basecall_model}'). Using model at '{$basecall_model_path}' (special case).", E_USER_NOTICE);
+		} 
+		//all new models can be directly derived
+		else 
 		{
-			$basecall_model_path = get_path("clair3_models")."/r1041_e82_400bps_sup_v500/";
+			$reformated_model_str = strtr($basecall_model, array("dna_" => "", "." => "", "@" => "_"));
+			$basecall_model_path = get_path("clair3_models")."/".$reformated_model_str."/";
+
+			trigger_error("Basecall info found in BAM file ('{$basecall_model}'). Using model at '{$basecall_model_path}' (automatically derived).", E_USER_NOTICE);
 		}
-		else
-		{
-			trigger_error("Unsupported processing system '".$sys["shortname"]."' provided!", E_USER_ERROR);
-		}
 
-		trigger_error("No basecall info found in BAM file. Using default model at '{$basecall_model_path}'.", E_USER_NOTICE);
+		//check if selected model is available
+		if (!file_exists($basecall_model_path)) trigger_error("Basecall model at '{$basecall_model_path}' not found!", E_USER_ERROR);
+
+		//prepare clair command
+		$args = [];
+		$args[] = "-bam ".$used_bam_or_cram;
+		$args[] = "-folder ".$folder;
+		$args[] = "-name ".$name;
+		$args[] = "-target ".$sys['target_file'];
+		$args[] = "-target_extend 200";
+		$args[] = "-threads ".$threads;
+		$args[] = "-build ".$build;
+		$args[] = "--log ".$parser->getLogFile();
+		$args[] = "-model ".$basecall_model_path;
+		
+		$parser->execTool("Tools/vc_clair.php", implode(" ", $args));
 	}
-	//special handling of old models
-	else if ($basecall_model == "dna_r10.4.1_e8.2_400bps_hac@v3.5.2")
-	{
-		$basecall_model_path = get_path("clair3_models")."/r1041_e82_400bps_hac_g632/";
-
-		trigger_error("Basecall info found in BAM file ('{$basecall_model}'). Using model at '{$basecall_model_path}' (special case).", E_USER_NOTICE);
-	} 
-	else if ($basecall_model == "dna_r9.4.1_e8_hac@v3.3")
-	{
-		$basecall_model_path = get_path("clair3_models")."/r941_prom_hac_g360+g422/";
-
-		trigger_error("Basecall info found in BAM file ('{$basecall_model}'). Using model at '{$basecall_model_path}' (special case).", E_USER_NOTICE);
-	} 
-	//all new models can be directly derived
-	else 
-	{
-		$reformated_model_str = strtr($basecall_model, array("dna_" => "", "." => "", "@" => "_"));
-		$basecall_model_path = get_path("clair3_models")."/".$reformated_model_str."/";
-
-		trigger_error("Basecall info found in BAM file ('{$basecall_model}'). Using model at '{$basecall_model_path}' (automatically derived).", E_USER_NOTICE);
-	}
-
-	//check if selected model is available
-	if (!file_exists($basecall_model_path)) trigger_error("Basecall model at '{$basecall_model_path}' not found!", E_USER_ERROR);
-
-	//prepare clair command
-	$args = [];
-	$args[] = "-bam ".$used_bam_or_cram;
-	$args[] = "-folder ".$folder;
-	$args[] = "-name ".$name;
-	$args[] = "-target ".$sys['target_file'];
-	$args[] = "-target_extend 200";
-	$args[] = "-threads ".$threads;
-	$args[] = "-build ".$build;
-	$args[] = "--log ".$parser->getLogFile();
-	$args[] = "-model ".$basecall_model_path;
-	
-	$parser->execTool("Tools/vc_clair.php", implode(" ", $args));	
-
-	//check for truncated VCF file
-	if ($is_wgs) check_for_missing_chromosomes($vcf_file);
 
 	//create b-allele frequency file
 	$params = array();
@@ -456,7 +469,9 @@ if (in_array("vc", $steps))
 	$params[] = "-name {$name}";
 	$params[] = "-out {$baf_file}";
 	$params[] = "-downsample 100";
-	$parser->execTool("Tools/baf_germline.php", implode(" ", $params));}
+	$parser->execTool("Tools/baf_germline.php", implode(" ", $params));
+}
+
 
 //copy-number analysis
 if (in_array("cn", $steps))
@@ -548,7 +563,6 @@ if (in_array("sv", $steps))
 {
 	//run Sniffles
 	$parser->execTool("Tools/vc_sniffles.php", "-bam {$used_bam_or_cram} -sample_ids {$name} -out {$sv_vcf_file} -threads {$threads} -build {$build} --log ".$parser->getLogFile());
-				
 }
 
 //phasing
@@ -558,11 +572,11 @@ if (in_array("ph", $steps))
 	$tmp_vcf = $parser->tempFile("_var.vcf");
 	$contig_pipeline = array();
 	$contig_pipeline[] = array("zcat", $vcf_file);
-	$contig_pipeline[] = array("egrep", "-v \"##contig=^\" > {$tmp_vcf}");
+	$contig_pipeline[] = array("egrep", "-v \"^##contig=\" > {$tmp_vcf}");
 	$parser->execPipeline($contig_pipeline, "contig removal");
 	add_missing_contigs_to_vcf($sys['build'], $tmp_vcf);
-	$parser->exec("bgzip", "-c {$tmp_vcf} > {$vcf_file}");
-	$parser->exec("tabix", "-f -p vcf {$vcf_file}", false); //no output logging, because Toolbase::extractVersion() does not return
+	$parser->execApptainer("htslib", "bgzip", "-c {$tmp_vcf} > {$vcf_file}", [], [dirname($vcf_file)]);
+	$parser->execApptainer("htslib", "tabix", "-f -p vcf {$vcf_file}", [], [dirname($vcf_file)]);
 	
 	//check for methylation
 	$contains_methylation = contains_methylation($used_bam_or_cram);
@@ -607,16 +621,13 @@ if (in_array("ph", $steps))
 	$parser->execApptainer("longphase", "longphase", implode(" ", $args), [$folder, $genome], [$folder]);
 	
 	//create compressed file and index
-	$parser->exec("bgzip", "-c $phased_tmp > {$vcf_file}", false);
-	$parser->exec("tabix", "-f -p vcf $vcf_file", false);
+	$parser->execApptainer("htslib", "bgzip", "-c $phased_tmp > {$vcf_file}", [], [dirname($vcf_file)]);
+	$parser->execApptainer("htslib", "tabix", "-f -p vcf $vcf_file", [], [dirname($vcf_file)]);
 	if (file_exists($sv_vcf_file))
 	{
-		$parser->exec("bgzip", "-c $phased_sv_tmp > {$sv_vcf_file}", false);
-		$parser->exec("tabix", "-f -p vcf $sv_vcf_file", false);
+		$parser->execApptainer("htslib", "bgzip", "-c $phased_sv_tmp > {$sv_vcf_file}", [], [dirname($sv_vcf_file)]);
+		$parser->execApptainer("htslib", "tabix", "-f -p vcf $sv_vcf_file", [], [dirname($sv_vcf_file)]);
 	}
-
-	//check for truncated VCF file
-	if ($is_wgs) check_for_missing_chromosomes($vcf_file);
 
 	//tag BAM file 
 	$args = array();
@@ -726,11 +737,9 @@ if (in_array("an", $steps))
 		//run annotation pipeline
 		$parser->execTool("Tools/annotate.php", implode(" ", $args));
 
-		//check for truncated VCF file
-		if ($is_wgs) check_for_missing_chromosomes($vcf_file_annotated);
-		if ($is_wgs) check_for_missing_chromosomes($var_file);
-
-
+		//check for truncated output
+		if ($check_chrs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$vcf_file_annotated} -max_missing_perc 5");
+		
 		//ROH detection
 		$in_files = [];
 		$in_files[] = $folder;
@@ -753,7 +762,7 @@ if (in_array("an", $steps))
 		$prs_scoring_files = glob($prs_folder."/*_".$build.".vcf");
 		if (count($prs_scoring_files) > 0)
 		{
-			$parser->execApptainer("ngs-bits", "VcfCalculatePRS", "-in {$vcf_file} -bam {$used_bam_or_cram} -out $prs_file -prs ".implode(" ", $prs_scoring_files)." -ref $genome", [$folder, $genome, $prs_folder]);
+			$parser->execApptainer("ngs-bits", "VcfCalculatePRS", "-in {$vcf_file} -bam {$used_bam_or_cram} -out $prs_file -prs ".implode(" ", $prs_scoring_files)." -ref $genome -long_read", [$folder, $genome, $prs_folder]);
 		}
 
 		//determine ancestry
@@ -796,8 +805,8 @@ if (in_array("an", $steps))
 			$parser->execApptainer("ngs-bits", "NGSDAnnotateCNV", "-in {$cnv_file} -out {$cnv_file}", [$folder]);
 		}
 
-		//check for truncated VCF file
-		if ($is_wgs) check_for_missing_chromosomes($cnv_file);
+		//check for truncated output
+		if ($check_chrs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$cnv_file}");
 	}
 	else
 	{
@@ -923,17 +932,27 @@ if (in_array("an", $steps))
 		//update sample entry 
 		update_gsvar_sample_header($bedpe_file, array($name=>"Affected"));	
 		
-		//check for truncated VCF file
-		if ($is_wgs) check_for_missing_chromosomes($bedpe_file);
+		//check for truncated output
+		if ($check_chrs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$bedpe_file}");
 	}
-
 }
 
 // collect other QC terms - if CNV or SV calling was done
-if ((in_array("cn", $steps) || in_array("sv", $steps) || in_array("an", $steps)))
+if ((in_array("ma", $steps)) || (in_array("cn", $steps) || in_array("sv", $steps) || in_array("an", $steps)))
 {
 	$terms = [];
 	$sources = [];
+
+	//Basecall model
+	if (file_exists($used_bam_or_cram))
+	{
+		$basecall_model = strtr(get_basecall_model($used_bam_or_cram), "_", " ");
+		if ($basecall_model != "")
+		{
+			$terms[] = "QC:2000149\t{$basecall_model}";
+			$sources[] = $used_bam_or_cram;
+		}	
+	}
 	
 	//CNVs
 	if (file_exists($cnv_file))
@@ -963,7 +982,7 @@ if ((in_array("cn", $steps) || in_array("sv", $steps) || in_array("an", $steps))
 			{
 				$parts = explode("\t", $line);
 				$ll = $parts[4];
-				if ($ll>=20)
+				if ($ll>=12) # changed to 12 for long-reads
 				{
 					++$cnv_count_hq;
 					

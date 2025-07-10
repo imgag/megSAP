@@ -19,7 +19,7 @@ $genome = genome_fasta($build);
 
 
 $vcf = $parser->tempFile("_unpacked.vcf");
-$parser->exec("bgzip", "-d -c $in > $vcf", true);
+$parser->execApptainer("htslib", "bgzip", "-d -c $in > $vcf", [$in]);
 
 //left-align
 $vcf_aligned = $parser->tempFile("_aligned.vcf");
@@ -172,7 +172,7 @@ if (!empty($target))
 	if (file_exists($artefact_vcf))
 	{
 		$vcf_with_artefacts = dirname($out)."/".basename($out, ".vcf.gz")."_with_enzymatic_artefacts.vcf.gz";
-		$parser->exec("bgzip", "-c $final > $vcf_with_artefacts", true);
+		$parser->execApptainer("htslib", "bgzip", "-c $final > $vcf_with_artefacts", [], [dirname($vcf_with_artefacts)]);
 		$vcf_no_artefacts = $parser->tempFile("_filtered_no_artefacts.vcf");
 		$parser->execApptainer("ngs-bits", "VcfSubtract", "-in $final -in2 $artefact_vcf -out $vcf_no_artefacts", [$artefact_vcf]);
 		$final = $vcf_no_artefacts;
@@ -180,8 +180,7 @@ if (!empty($target))
 }
 
 //zip and index output file
-$parser->exec("bgzip", "-c $final > $out", true);
-$parser->exec("tabix", "-p vcf $out", true);
-
+$parser->execApptainer("htslib", "bgzip", "-c $final > $out", [], [dirname($out)]);
+$parser->execApptainer("htslib", "tabix", "-p vcf $out", [], [dirname($out)]);
 
 ?>

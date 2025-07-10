@@ -212,8 +212,8 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	//sort, zip and index scored variants to make them usable with VcfAnnotateFromVcf
 	$tmp2 = $parser->tempFile("_spliceai_new_annotations.vcf.gz");
 	$parser->execApptainer("ngs-bits", "VcfSort", "-in {$tmp1} -out {$tmp1}");
-	$parser->exec("bgzip", "-c $tmp1 > $tmp2");
-	$parser->exec("tabix", "-f -p vcf $tmp2");
+	$parser->execApptainer("htslib", "bgzip", "-c $tmp1 > $tmp2");
+	$parser->execApptainer("htslib", "tabix", "-f -p vcf $tmp2");
 	
 	//annotate variants in input with scored variants
 	$tmp3 = $in;
@@ -247,7 +247,7 @@ $tmp_fields = $parser->tempFile("spliceai_tmp_fields.txt");
 $tmp_prefixed = $parser->tempFile("spliceai_tmp_prefixed.txt");
 $spliceai_regions = $parser->tempFile("spliceai_scoring_regions.bed");
 
-$spliceai_parameters = "-f 2,4,5 -d'\t' /opt/spliceai/splice_env/lib/python3.6/site-packages/spliceai/annotations/".strtolower($build).".txt > {$tmp_fields}";
+$spliceai_parameters = "-f 2,4,5 -d'\t' /opt/spliceai/splice_env/lib/python3.8/site-packages/spliceai/annotations/".strtolower($build).".txt > {$tmp_fields}";
 $parser->execApptainer("spliceai", "cut", $spliceai_parameters);
 
 $spliceai_parameters = "'s/^/chr/' {$tmp_fields} > {$tmp_prefixed}";

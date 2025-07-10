@@ -32,6 +32,7 @@ foreach($genes as $gene)
 	}
 }
 
+$ref_genome = genome_fasta($build);
 
 //Execute hla-genotyper
 $outdir = temp_folder();
@@ -41,9 +42,10 @@ $args = array(
 	"-r", ($build == "GRCh38" ? "38" : "37"),
 	"-s", $name,
 	"-g", implode(",", $genes),
-	"--{$type}"
+	"--{$type}",
+	"--ref_fasta", $ref_genome
 );
-$parser->execApptainer("hla-genotyper", "genotyper.py", implode(" ", $args) . " $bam", [$bam]);
+$parser->execApptainer("hla-genotyper", "genotyper.py", implode(" ", $args) . " $bam", [$bam, $ref_genome]);
 
 //Print output
 $res_prefix = "{$outdir}/hla.{$ethnicity}.{$name}.{$type}";

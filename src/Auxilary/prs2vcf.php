@@ -14,7 +14,9 @@ $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addFlag("skip_percentiles", "Skip percentile computation");
 $parser->addString("exclude_disease_group", "Name of a disease group which should be excluded for percentile calculation", true, "");
 $parser->addString("processing_system", "Processing system short name to which the percentile calculation should be limited to.", true, "");
+$parser->addInfile("custom_sample_table", "Custom table which should be used for cohort. Must contain columns 'name' and 'path', does no filtering of the table.", true, "");
 $parser->addFlag("add_tsv", "Add an additional tsv output");
+$parser->addFlag("use_gnomAD_af", "Ignore (missing) allelefrequency_effect column and use gnomAD af (gnomADg_NFE) instead.");
 extract($parser->parse($argv));
 
 //init
@@ -134,8 +136,12 @@ if (isset($pgs))
 				if($effect_idx  === false) trigger_error("Mandatory column 'effect_allele' is missing in input file!", E_USER_ERROR);
 				$weight_idx = array_search("effect_weight", $column_headers);
 				if($weight_idx  === false) trigger_error("Mandatory column 'effect_weight' is missing in input file!", E_USER_ERROR);
-				$popaf_idx = array_search("allelefrequency_effect", $column_headers);
-				if($popaf_idx  === false) trigger_error("Mandatory column 'allelefrequency_effect' is missing in input file!", E_USER_ERROR);
+				if(!$use_gnomAD_af)
+				{
+					$popaf_idx = array_search("allelefrequency_effect", $column_headers);
+					if($popaf_idx  === false) trigger_error("Mandatory column 'allelefrequency_effect' is missing in input file!", E_USER_ERROR);
+				}
+				
 
 				//add info columns
 				fwrite($out_h, "##INFO=<ID=WEIGHT,Number=1,Type=Float,Description=\"PRS weight of this variant.\">\n");
@@ -178,11 +184,24 @@ if (isset($pgs))
 				$info_annotation = ";REF_IS_EFFECT_ALLELE";
 			}
 			$weight = $data_line[$weight_idx];
-			$popaf = $data_line[$popaf_idx];
 
-			// write VCF line
-			if ($other == $ref) fwrite($out_h, "$chr\t$pos\t.\t$ref\t$alt\t.\t.\tPOP_AF={$popaf};WEIGHT={$weight}{$info_annotation}\n");
-			else fwrite($out_h, "$chr\t$pos\t.\t$ref\t$alt\t.\t.\tPOP_AF={$popaf};WEIGHT={$weight};OTHER_ALLELE={$other}{$info_annotation}\n");
+			if(!$use_gnomAD_af)
+			{
+				//use POP_AF from PGS
+				$popaf = $data_line[$popaf_idx];
+
+				// write VCF line
+				if ($other == $ref) fwrite($out_h, "$chr\t$pos\t.\t$ref\t$alt\t.\t.\tPOP_AF={$popaf};WEIGHT={$weight}{$info_annotation}\n");
+				else fwrite($out_h, "$chr\t$pos\t.\t$ref\t$alt\t.\t.\tPOP_AF={$popaf};WEIGHT={$weight};OTHER_ALLELE={$other}{$info_annotation}\n");
+			}
+			else
+			{
+				//use POP_AF from gnomAD
+				// write VCF line
+				if ($other == $ref) fwrite($out_h, "$chr\t$pos\t.\t$ref\t$alt\t.\t.\tWEIGHT={$weight}{$info_annotation}\n");
+				else fwrite($out_h, "$chr\t$pos\t.\t$ref\t$alt\t.\t.\tWEIGHT={$weight};OTHER_ALLELE={$other}{$info_annotation}\n");
+			}
+			
 
 		}
 		
@@ -255,12 +274,12 @@ else
 	}
 
 	//check if all required header items are parsed:
-	if(!isset($pgs_id)) trigger_error("PGS ID missing in PRS file!");
-	if(!isset($trait)) trigger_error("Reported Trait missing in PRS file!");
-	if(!isset($build_prs)) trigger_error("Original Genome Build missing in PRS file!");
-	if(!isset($n_var)) trigger_error("Number of Variants missing in PRS file!");
-	if(!isset($pgp_id)) trigger_error("PGP ID missing in PRS file!");
-	if(!isset($citation)) trigger_error("Citation missing in PRS file!");
+	if(!isset($pgs_id)) trigger_error("PGS ID missing in PRS file!", E_USER_WARNING);
+	if(!isset($trait)) trigger_error("Reported Trait missing in PRS file!", E_USER_WARNING);
+	if(!isset($build_prs)) trigger_error("Original Genome Build missing in PRS file!", E_USER_WARNING);
+	if(!isset($n_var)) trigger_error("Number of Variants missing in PRS file!", E_USER_WARNING);
+	if(!isset($pgp_id)) trigger_error("PGP ID missing in PRS file!", E_USER_WARNING);
+	if(!isset($citation)) trigger_error("Citation missing in PRS file!", E_USER_WARNING);
 
 	// set input file for left normalization
 	$input_vcf = $vcf;
@@ -303,7 +322,7 @@ if ($annotate_gnomad_af)
 		if (starts_with($line, "#"))
 		{
 			// add info comment before header
-			$vcf_out_content[] = "##INFO=<ID=AF_DIFF,Number=1,Type=String,Description=\"Absolute difference between gnomadAF (gnomADg_NFE_AF) and population AF (POP_AF).\">\n";
+			if(!$use_gnomAD_af) $vcf_out_content[] = "##INFO=<ID=AF_DIFF,Number=1,Type=String,Description=\"Absolute difference between gnomadAF (gnomADg_NFE_AF) and population AF (POP_AF).\">\n";
 			$vcf_out_content[] = $line;
 			continue;
 		}
@@ -318,8 +337,9 @@ if ($annotate_gnomad_af)
 		$columns = explode("\t", $line);
 		$info_values = explode(";", trim($columns[7]));
 		//extract af
-		$gnomad_af = 0;
-		$pop_af = 0;
+		$gnomad_af = 0.0;
+		$pop_af = 0.0;
+		$invert_gnomad = false;
 		foreach ($info_values as $info_value) 
 		{
 			if (starts_with($info_value, "POP_AF="))
@@ -329,20 +349,43 @@ if ($annotate_gnomad_af)
 			}
 			if (starts_with($info_value, "gnomADg_NFE_AF="))
 			{
-				$gnomad_af = (float) explode("=", $info_value)[1];
+				if (explode("=", $info_value)[1] != "") $gnomad_af = (float) explode("=", $info_value)[1];
+				continue;
+			}
+			if (starts_with($info_value, "REF_IS_EFFECT_ALLELE"))
+			{
+				//invert gnomAD af if effect allele is reference
+				$invert_gnomad = true;
 				continue;
 			}
 		}
-		$diff = abs($gnomad_af-$pop_af);
-		$info_values[] = "AF_DIFF=".$diff;
+		//invert gnomAD af
+		if ($invert_gnomad) $gnomad_af = 1 - $gnomad_af;
 
-		if ($diff > 0.1) trigger_error("The given population AF of the PRS variant ".$columns[0].":".$columns[1]." ".$columns[3].">".$columns[4]." differs more than 0.1 ({$diff}) from the gnomAD AF!", E_USER_WARNING);
+		if(!$use_gnomAD_af)
+		{
+			//compare with gnomAD
+			$diff = abs($gnomad_af-$pop_af);
+			$info_values[] = "AF_DIFF=".$diff;
+	
+			if ($diff > 0.1) trigger_error("The given population AF of the PRS variant ".$columns[0].":".$columns[1]." ".$columns[3].">".$columns[4]." differs more than 0.1 ({$diff}) from the ".(($invert_gnomad)?"inverted ":"")."gnomAD AF!", E_USER_WARNING);	
+		}
+		else
+		{
+			//use gnomAD as POP_AF
+			if ($gnomad_af == 0) array_unshift($info_values, "POP_AF=0.0");
+			else array_unshift($info_values, "POP_AF=".$gnomad_af);
+		}
+
 
 		$columns[7] = implode(";", $info_values);
 		$vcf_out_content[] = implode("\t", $columns)."\n";
 	}
 
 	file_put_contents($normalize_out, $vcf_out_content);
+
+	//use created output file as input for percentile calculation:
+		$input_vcf = $normalize_out;
 
 }
 
@@ -352,7 +395,21 @@ if(!$skip_percentiles)
 {
 	//calculate PRS for all WGS samples of the NGSD and calculate distribution (percentiles)
 	$distribution_file = $parser->tempFile("_distribution.tsv");
-	$parser->execTool("Tools/calculate_prs_distribution.php", "-in $input_vcf -out $distribution_file".(($exclude_disease_group == "")?"":" -exclude_disease_group ".$exclude_disease_group).(($processing_system == "")?"":" -processing_system ".$processing_system));
+
+	$args_dist = array();
+	$args_dist[] = "-in $input_vcf";
+	$args_dist[] = "-out $distribution_file";
+	if ($custom_sample_table != "")
+	{
+		$args_dist[] = "-custom_sample_table ".$custom_sample_table;
+	}
+	else
+	{
+		if ($exclude_disease_group != "") $args_dist[] = "-exclude_disease_group ".$exclude_disease_group;
+		if ($processing_system != "") $args_dist[] = "-processing_system ".$processing_system;
+	}
+
+	$parser->execTool("Auxilary/calculate_prs_distribution.php", implode(" ", $args_dist));
 
 	// parse distribution file
 	$distribution = Matrix::fromTSV($distribution_file);

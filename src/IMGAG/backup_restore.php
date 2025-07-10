@@ -79,7 +79,7 @@ if ($executingUser != "root")
 	trigger_error("This script can only be run as root (sudo).", E_USER_ERROR);
 }
 
-if(! is_dir($out)) trigger_error("Given out path '$out' does not exist or is not a directory.");
+if(!is_dir($out)) trigger_error("Given out path '$out' does not exist or is not a directory.", E_USER_ERROR);
 
 $filename = basename($file, ".log");
 if (! ends_with(".tar.gz", $file)) $filename .= ".tar.gz";

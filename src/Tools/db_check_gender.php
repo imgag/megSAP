@@ -30,7 +30,7 @@ function sry_in_target($parser, $sys_roi)
 	return false;
 }
 
-function check_gender($gender, $gender2, $method)
+function check_gender($gender, $gender2, $method, $in)
 {
 	if (starts_with($gender2, "unknown"))
 	{
@@ -58,14 +58,8 @@ $method = "hetx";
 $args = "";
 $sys_roi = "";
 
-if (!isset($gender))
+if (db_is_enabled("NGSD"))
 {
-	if (! db_is_enabled("NGSD"))
-	{
-		trigger_error("Could not determine gender for processed sample '{$pid}': NGSD is not enabled.", E_USER_WARNING);
-		exit(0);
-	}
-	
 	//get sample info from DB
 	$db = DB::getInstance($db);
 	$ps_id = get_processed_sample_id($db, $pid, false);
@@ -75,7 +69,7 @@ if (!isset($gender))
 		exit(0);
 	}
 	$info = get_processed_sample_info($db, $pid);
-	$gender = $info['gender'];
+	if (!isset($gender)) $gender = $info['gender'];
 	$sys_type = $info['sys_type'];
 	$sys_roi = trim(realpath($info["sys_target"]));
 
@@ -110,7 +104,7 @@ if (!isset($gender))
 	else if ($sys_type=="lrGS")
 	{
 		$method = "hetx";
-		$args = "-include_single_end_reads";
+		$args = "-long_read";
 	}
 	else
 	{
@@ -127,7 +121,7 @@ $genome = genome_fasta($build);
 list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-in {$in} -method {$method} {$args} -build ".ngsbits_build($build)." -ref {$genome}", [$in, $genome]);
 $gender2 = explode("\t", $stdout[1])[1];
 
-check_gender($gender, $gender2, $method);
+check_gender($gender, $gender2, $method, $in);
 
 if ($check_sry_cov && $method != "sry")
 {
@@ -136,7 +130,7 @@ if ($check_sry_cov && $method != "sry")
 		list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-in {$in} -method sry -sry_cov {$sry_cov} -build ".ngsbits_build($build)." -ref {$genome}", [$in, $genome]);
 		$gender_sry = explode("\t", $stdout[1])[1];
 	
-		check_gender($gender, $gender_sry, $method);
+		check_gender($gender, $gender_sry, $method, $in);
 	}
 	
 	trigger_error("Flag 'check_sry_cov' given but target region of the processed sample {$pid} doesn't include SRY.", E_USER_WARNING);

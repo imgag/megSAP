@@ -128,14 +128,14 @@ if ($target_extend>0)
 {
 	$tmp = $parser->tempFile(".vcf");
 	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $uncompressed_vcf -mark off-target -reg $target -out $tmp", [$target]);
-	$parser->exec("bgzip", "-c $tmp > $out", false);
+	$parser->execApptainer("htslib", "bgzip", "-c $tmp > $out", [], [dirname($out)]);
 }
 else
 {
-	$parser->exec("bgzip", "-c $uncompressed_vcf > $out", false);
+	$parser->execApptainer("htslib", "bgzip", "-c $uncompressed_vcf > $out", [], [dirname($out)]);
 }
 
 //index output file
-$parser->exec("tabix", "-f -p vcf $out", false); //no output logging, because Toolbase::extractVersion() does not return
+$parser->execApptainer("htslib", "tabix", "-f -p vcf $out", [], [dirname($out)]);
 
 ?>

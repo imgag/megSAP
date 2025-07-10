@@ -21,6 +21,25 @@ if (file_exists($bam))
 	//test also checking SRY coverage
 	$log_file = output_folder().$name."_out3.log";
 	check_exec("php ".src_folder()."/Tools/db_check_gender.php -in $bam -pid GS140127_01 -gender male -check_sry_cov --log $log_file");
+
+	//check failing
+	$log_file = output_folder().$name."_out4.log";
+	check_exec("php ".src_folder()."/Tools/db_check_gender.php -in $bam -pid GS140127_01 -gender female --log $log_file", false);
+	
+	$error_found = false;
+	$lines = file($log_file);
+	foreach($lines as $line)
+	{
+		if (strpos($line, "Expected gender 'female', but determined gender 'male' using method hetx on BAM file") !== false)
+		{
+			$error_found = true;
+		}
+	}
+
+	check($error_found, true);
+	
+
+
 }
 
 end_test();

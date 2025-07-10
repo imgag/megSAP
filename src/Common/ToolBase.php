@@ -783,13 +783,13 @@ class ToolBase
 	{
 		$add_info = array();
 		$parts = array();
-		$stderr_files = array();
+		$stderr_files = [];
 		foreach($commands_params as $call)
 		{
 			list($command, $params) = $call;
 			
 			$stderr_file = $this->tempFile(".stderr");
-			$parts[] = "$command $params 2>$stderr_file";
+			$parts[] = "{$command} {$params} 2>{$stderr_file}";
 			$stderr_files[] = $stderr_file;
 			$add_info[] = "command ".count($parts)."  = $command";
 			if (!isset($call[2]) || $call[2]==true)
@@ -797,7 +797,6 @@ class ToolBase
 				$add_info[] = "version    = ".$this->extractVersion($command);
 			}
 			$add_info[] = "parameters = $params";	
-			
 		}
 			
 		//log call
@@ -819,10 +818,13 @@ class ToolBase
 		//log stderr
 		if($log_output || $return!=0)
 		{
-			$stderr = array();
+			$stderr = [];
 			foreach($stderr_files as $stderr_file)
 			{
-				$stderr += file($stderr_file);
+				foreach(file($stderr_file) as $line)
+				{
+					if (trim($line)!="") $stderr[] = $line;
+				}
 			}
 			if (count($stderr)>0)
 			{
@@ -883,6 +885,7 @@ class ToolBase
 		//log call
 		if($log_output)
 		{
+			$version_command = "apptainer exec $container_path $command";
 			$add_info = array();
 			foreach($in_files as $in_file)
 			{
@@ -897,12 +900,14 @@ class ToolBase
 				$add_info[] = "bind path           = ".$bind_path;
 			}
 			$add_info[] = "container path      = ".$container_path;
-			$add_info[] = "tool version        = ".$this->extractVersion($command);
+			$add_info[] = "tool version        = ".$this->extractVersion($version_command);
 			$add_info[] = "parameters          = $parameters";
 			$this->log("Calling external tool '$command' in container '".basename2($container_path)."'", $add_info);
 		}
-/* 		$this->log("DEBUG: Apptainer version: ".$this->extractVersion("apptainer"));
-		$this->log("DEBUG: Apptainer command: ".$apptainer_command); */
+		/*
+		$this->log("DEBUG: Apptainer version: ".$this->extractVersion("apptainer"));
+		$this->log("DEBUG: Apptainer command: ".$apptainer_command); 
+		*/
 		
 		$pid = getmypid();
 		//execute call - pipe stdout/stderr to file
@@ -943,7 +948,7 @@ class ToolBase
 		
 		return array($stdout, $stderr, $return);
 	}
-
+	//TODO Marc/Leon: the exit code seems to be 0 in case of error. See /mnt/storage2/users/ahsturm1/scripts/2025_06_18_missing_variants_in_trio/ and TARGETED workaround in merge_gvcf.php
 	/**
 	 	@brief Executes a list of commands in parallel
 	*/
@@ -956,8 +961,8 @@ class ToolBase
 		$tmp_dir = $this->tempFolder("stdout_stderr");
 		while (true) 
 		{
-			//wait a second
-			sleep(1);
+			//wait 50ms
+			usleep(50000);
 			
 			//all chromosomes have been processed > exit
 			if (count($command_list)==0 && count($running)==0) break;
@@ -1040,7 +1045,7 @@ class ToolBase
 					if($log_output) $this->log("Finshed processing job {$job_id} in ".time_readable(microtime(true)-$start_time), $add_info);
 					
 					//abort if failed
-					if ($job_aborted) trigger_error("Processing of job {$job_id} failed: ".$stderr, (($abort_on_error)?E_USER_ERROR:E_USER_WARNING));
+					if ($job_aborted) trigger_error("Processing of job {$job_id} failed: ".$stderr, $abort_on_error ? E_USER_ERROR : E_USER_WARNING);
 					
 					unset($running[$job_id]);
 				}

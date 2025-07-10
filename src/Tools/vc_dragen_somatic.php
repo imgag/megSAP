@@ -80,12 +80,34 @@ if (!mkdir($working_dir, 0777))
 //parameters
 $dragen_parameter = [];
 $dragen_parameter[] = "-r ".$dragen_genome_path;
-$dragen_parameter[] = "--tumor-bam-input ".$t_bam;
-if ($n_bam != "") $dragen_parameter[] = "--bam-input ".$n_bam;
+if (ends_with($t_bam, ".bam"))
+{
+	$dragen_parameter[] = "--tumor-bam-input ".$t_bam;
+}
+else if (ends_with($t_bam, ".cram"))
+{
+	$dragen_parameter[] = "--tumor-cram-input ".$t_bam;
+}
+if ($n_bam != "")
+{
+	if (ends_with($n_bam, ".bam"))
+	{
+		$dragen_parameter[] = "--bam-input ".$n_bam;
+	}
+	else if (ends_with($n_bam, ".cram"))
+	{
+		$dragen_parameter[] = "--cram-input ".$n_bam;
+	}
+}
 $dragen_parameter[] = "--output-directory $working_dir";
 $dragen_parameter[] = "--output-file-prefix output";
 $dragen_parameter[] = "--enable-map-align false"; # cannot map multiple (tumor, normal) inputs at once
 $dragen_parameter[] = "--pair-by-name true";
+
+//parameters for  high memory mode
+// $dragen_parameter[] = "--bin_memory 85899345920"; //80GB (default: 20 (GB), max on DRAGEN v4: 90)
+// $dragen_parameter[] = "--vc-max-callable-region-memory-usage 27917287424"; //26GB (default: 13 (GB))
+
 
 //small variant calling
 $dragen_parameter[] = "--enable-variant-caller true";

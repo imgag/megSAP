@@ -253,9 +253,11 @@ while(!feof($h_in))
 			{
 				$af = $sample['AF'];
 				if (contains($af, ",")) list($af) = explode(",", $af);
+				if ($af==".") $af=0.0;
 				$af_last = $sample_last['AF'];
 				if (contains($af_last, ",")) list($af_last) = explode(",", $af_last);
-				$af = min($dp, $af + $af_last);
+				if ($af_last==".") $af_last=0.0;
+				$af = min(1.0, floatval($af) + floatval($af_last));
 			}
 			else
 			{

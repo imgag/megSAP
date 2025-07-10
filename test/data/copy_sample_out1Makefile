@@ -1,4 +1,4 @@
-all: chmod import_runqc import_read_counts copy_Exome_Diagnostik_diagnostic copy_IVac_research queue_Exome_Diagnostik_diagnostic email_IVac
+all: chmod import_runqc import_read_counts Sample_DX180049_01 Sample_DX180050_02 Sample_FO180004_01 Sample_FO180005_01 email_IVac
 
 chmod:
 	chmod -R 775 Unaligned
@@ -9,29 +9,37 @@ import_runqc:
 import_read_counts:
 	php /mnt/storage2/megSAP/pipeline/src/IMGAG/import_sample_read_counts.php -stats Unaligned/Stats/Stats.json -db NGSD_TEST 
 
-copy_Exome_Diagnostik_diagnostic:
+create_project_folder:
 	mkdir -p /test/project/folder/
 	chmod 775 /test/project/folder/
+
+Sample_DX180049_01:
+	#copy
 	mv Unaligned/Exome_Diagnostik/Sample_DX180049_01/ /test/project/folder/
 	chmod -R 775 /test/project/folder/Sample_DX180049_01
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_DX180049_01
+	#queue
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX180049_01
+
+Sample_DX180050_02:
+	#copy
 	mv Unaligned/Exome_Diagnostik/Sample_DX180050_02/ /test/project/folder/
 	chmod -R 775 /test/project/folder/Sample_DX180050_02
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_DX180050_02
+	#queue
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX180050_02
 
-copy_IVac_research:
-	mkdir -p /test/project/folder/
-	chmod 775 /test/project/folder/
+Sample_FO180004_01:
+	#copy
 	mv Unaligned/IVac/Sample_FO180004_01/ /test/project/folder/
 	chmod -R 775 /test/project/folder/Sample_FO180004_01
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_FO180004_01
+
+Sample_FO180005_01:
+	#copy
 	mv Unaligned/IVac/Sample_FO180005_01/ /test/project/folder/
 	chmod -R 775 /test/project/folder/Sample_FO180005_01
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_FO180005_01
-
-queue_Exome_Diagnostik_diagnostic:
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX180049_01
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX180050_02
 
 email_IVac:
 	php -r 'mail("no_valid@email2.de","Neue Daten fuer IVac", "Hallo GenLab import,\n\ndie FASTQ-Dateien der folgenden Proben des Projekts IVac liegen vor:\n\nFO180004_01\nFO180005_01\n\nViele Gruesse\n\n  die Bioinformatik","Reply-To: no-reply@med.uni-tuebingen.de");'

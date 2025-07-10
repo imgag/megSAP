@@ -509,12 +509,6 @@ function array_subset($values /*, $index1, index 2, ...*/)
 	return $output;
 }
 
-///Returns an array with all elements of @p heystack that contain @p needle.
-function array_containing($haystack, $needle)
-{
-	return array_values(array_filter($haystack, function($var) use ($needle){ return strpos($var, $needle) !== false;}));
-}
-
 /*
 	@brief Loads a tab-separated file without newline characters, empty lines and comment lines.
 */
@@ -730,15 +724,15 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 	$apptainer_args = [];
 	$apptainer_args[] = "--no-mount home,cwd";
 	$apptainer_args[] = "--cleanenv";
-	if ($container=="samtools" || $container=="methylartist") //samtools needs REF_CACHE to avoid re-initializing the reference cache inside the container every call: http://www.htslib.org/doc/samtools.html#ENVIRONMENT_VARIABLES
+
+	if ($container=="samtools" || $container=="methylartist" || $container=="straglrOn") //samtools (and methylartist, straglrOn) need REF_CACHE/REF_PATH to avoid re-initializing the reference cache inside the container every call: http://www.htslib.org/doc/samtools.html#ENVIRONMENT_VARIABLES, https://www.htslib.org/workflow/cram.html#The%20REF_PATH%20and%20REF_CACHE 
 	{
 		$apptainer_args[] = "--env REF_CACHE=".get_path("local_data")."/samtools_ref_cache/%2s/%2s/%s";
+		$apptainer_args[] = "--env REF_PATH=".get_path("local_data")."/samtools_ref_cache/%2s/%2s/%s:http://www.ebi.ac.uk/ena/cram/md5/%s";
 	}
 
-	if ($container=="subread") //subread repair needs access to the cwd to save intermediate files. Therefore we set the cwd in the container to /tmp when executing it
-	{
-		$apptainer_args[] = "--pwd=/tmp";
-	}
+	if ($container=="subread") $apptainer_args[] = "--pwd=/tmp";
+
 	if ($container=="deepvariant-gpu") //to run a gpu supported apptainer container you need the --nv flag
 	{
 		$apptainer_args[] = "--nv";
@@ -873,8 +867,8 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 	{
 		$templates_dir = temp_folder();
 		$cosmic_templates_dir = temp_folder();
-		$templates_bind_path = "{$templates_dir}:/usr/local/lib/python3.8/site-packages/sigProfilerPlotting/templates/";
-		$cosmic_templates_bind_path = "{$cosmic_templates_dir}:/usr/local/lib/python3.8/site-packages/SigProfilerAssignment/DecompositionPlots/CosmicTemplates";
+		$templates_bind_path = "{$templates_dir}:/opt/Python3.8.10/lib/python3.8/site-packages/sigProfilerPlotting/templates/";
+		$cosmic_templates_bind_path = "{$cosmic_templates_dir}:/opt/Python3.8.10/lib/python3.8/site-packages/SigProfilerAssignment/DecompositionPlots/CosmicTemplates";
 
 		if (get_path("megSAP_container_used"))
 		{
@@ -917,10 +911,16 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 
 	//compose Apptainer command
 	$apptainer_command = "apptainer exec ".implode(" ", $apptainer_args)." {$container_path} {$command} {$parameters}";
+
+	if ($container=="deepvariant" || $container=="deepvariant-gpu")
+	{
+		$apptainer_command = "TF_CPP_MIN_LOG_LEVEL=2 $apptainer_command";
+	}
 	
 	//if command only option is true, only the apptainer command is being return, without execution
 	if($command_only) 
 	{
+		$apptainer_command = "apptainer -q exec ".implode(" ", $apptainer_args)." {$container_path} {$command} {$parameters}";
 		return $apptainer_command;
 	}
 
