@@ -382,13 +382,14 @@ if (in_array("vc", $steps))
 		$args[] = "-build ".$sys['build'];
 		$args[] = "--log ".$dragen_log_file;
 		
-		$dragen_normal_vcf = $n_folder."/dragen_variant_calls/{$n_id}_dragen.vcf.gz";
-		if ($sys['type'] == "WGS" && is_file($dragen_normal_vcf))
-		{
+		//TODO again in Dragen 4.4 - Test sample: DNA2506018A1_01-DNA2504724A1_01 or DNA2505658A1_01-DNA2504802A1_01
+		// $dragen_normal_vcf = $n_folder."/dragen_variant_calls/{$n_id}_dragen.vcf.gz";
+		// if ($sys['type'] == "WGS" && is_file($dragen_normal_vcf))
+		// {
 			//calc dragen CNVs for WGS samples to compare results to clincnv
-			$args[] = "-out_cnv ".$dragen_output_cnvs;
-			$args[] = "-normal_snvs ".$dragen_normal_vcf;
-		}
+			// $args[] = "-out_cnv ".$dragen_output_cnvs;
+			// $args[] = "-normal_snvs ".$dragen_normal_vcf;
+		// }
 		
 		$args[] = "-n_bam ".$n_bam_dragen;
 		
