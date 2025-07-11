@@ -23,6 +23,7 @@ extract($parser->parse($argv));
 $ref_genome = genome_fasta($build);
 exec2("mkdir -p {$folder}/methylartist");
 $gtf = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.112.gtf.gz";
+$cram_input = false;
 
 if ($local_bam != "")
 {
@@ -37,8 +38,14 @@ else
         $bam = $folder."/".$name.".bam";
         if (!file_exists($bam)) trigger_error("BAM/CRAM file not found!", E_USER_ERROR);
     }
+    else
+    {
+        $cram_input = true;
+    }
 }
 
+//create temp folder for bam
+if ($cram_input) $bam_tmp_folder = $parser->tempFolder("bam");
 
 $regions_table = Matrix::fromTSV($regions);
 
@@ -56,11 +63,24 @@ $jobs_plotting = array();
 for($r=0; $r<$regions_table->rows(); ++$r)
 {
     $row = $regions_table->getRow($r);
+    if ($cram_input)
+    {
+        //create tmp bam file for modkit if input is cram
+        $tmp_bam = "{$bam_tmp_folder}/{$name}.bam";
+        $parser->execApptainer("samtools", "samtools view", "-o {$tmp_bam} -T {$ref_genome} -u --use-index -@ {$threads} {$bam} {$row[3]}:{$row[6]}-{$row[7]}", [$ref_genome, $bam]);
+        $parser->indexBam($tmp_bam, $threads);
+    }
+    else
+    {
+        //use bam directly
+        $tmp_bam = $bam;
+    }
+
     if (!$skip_plot)
     {
         $args = [
             "locus",
-            "--bams", $bam,
+            "--bams", $tmp_bam,
             "--interval", "{$row[3]}:{$row[4]}-{$row[5]}",
             "--highlight", "{$row[6]}-{$row[7]}",
             "--ref", $ref_genome,
@@ -78,7 +98,7 @@ for($r=0; $r<$regions_table->rows(); ++$r)
         //optional parameters
         if ($skip_align_plot) $args[] = "--skip_align_plot";
         
-        $in_files = array($bam, $ref_genome, $gtf);
+        $in_files = array($tmp_bam, $ref_genome, $gtf);
         $out_files = array("{$folder}/methylartist/");
         $jobs_plotting[] = array("Plotting_".$row[0], $parser->execApptainer("methylartist", "methylartist", implode(" ", $args), $in_files, $out_files, true));
         
@@ -96,10 +116,10 @@ for($r=0; $r<$regions_table->rows(); ++$r)
         "--partition-tag", "HP",
         "--prefix", "haplotyped",
         "--threads", $threads,
-        $bam,
+        $tmp_bam,
         $pileup_out . "/",
     ];
-    $parser->execApptainer("modkit", "modkit", implode(" ", $args_modkit), [$ref_genome, $bam], [$pileup_out]);
+    $parser->execApptainer("modkit", "modkit", implode(" ", $args_modkit), [$ref_genome, $tmp_bam], [$pileup_out]);
     
     $haplotypes = [1, 2, "ungrouped"];
     $modified = [];
@@ -139,11 +159,11 @@ for($r=0; $r<$regions_table->rows(); ++$r)
             "--tag", "HP:{$hp}",
             "-F", "SECONDARY,SUPPLEMENTARY",
             "-@", $threads,
-            $bam,
+            $tmp_bam,
             "{$row[3]}:{$row[6]}-{$row[7]}",
 			"-T {$ref_genome}"
         ];       
-        $parser->execApptainer("samtools", "samtools view", implode(" ", $args_samtools_view), [$ref_genome, $bam]);
+        $parser->execApptainer("samtools", "samtools view", implode(" ", $args_samtools_view), [$ref_genome, $tmp_bam]);
         $parser->indexBam($hap_bams[$hp], $threads);
     }
 
@@ -151,7 +171,7 @@ for($r=0; $r<$regions_table->rows(); ++$r)
     $target_bed = $parser->tempFile(".bed", "hap");
     $coord_start = $row[6]-1;
     file_put_contents($target_bed, "{$row[3]}\t{$coord_start}\t{$row[7]}");
-    $result = $parser->execApptainer("ngs-bits", "BedCoverage", "-threads {$threads} -random_access -decimals 6 -bam {$hap_bams[1]} {$hap_bams[2]} {$bam} -in {$target_bed} -clear -ref {$ref_genome}", [$bam, $ref_genome]);
+    $result = $parser->execApptainer("ngs-bits", "BedCoverage", "-threads {$threads} -random_access -decimals 6 -bam {$hap_bams[1]} {$hap_bams[2]} {$tmp_bam} -in {$target_bed} -clear -ref {$ref_genome}", [$tmp_bam, $ref_genome]);
     $result_parts = explode("\t", $result[0][1]);
     $average_coverage = array_map("floatval", array_slice($result_parts, 3, 3));
 
