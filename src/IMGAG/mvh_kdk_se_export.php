@@ -419,10 +419,17 @@ function json_ngs_report($cm_data, $se_data, $info)
 				"kit" => $info['sys_name']
 				],
 			"result" => [
-				
 				]
 		];
-	//missing: autozygosity (there is no definition how to calculate it), conclusion (makes no sense at all)
+		
+	//outcome (only for unsolved - if a case is solved, is documented in "diagnoses>verificationStatus")
+	$outcome = convert_outcome($db_ngsd->getValue("SELECT outcome FROM diag_status WHERE processed_sample_id='".$info['ps_id']."'"));
+	if ($outcome!="")
+	{
+		$output["conclusion"] = ["code"=>$outcome];
+	}
+	
+	//missing: autozygosity (there is no definition how to calculate it)
 	return $output;
 }
 
@@ -445,11 +452,11 @@ $cm_id = $db_mvh->getValue("SELECT cm_id FROM case_data WHERE id='{$case_id}'");
 
 //get patient identifer (pseudonym from case management) - this is the ID that is used to identify submissions from the same case by GRZ/KDK
 $cm_data = get_cm_data($db_mvh, $case_id);
-$patient_id = xml_str($cm_data->psn); //TODO change to CM Fallnummer and pseudonymize via meDIC
+$patient_id = xml_str($cm_data->case_id); //TODO pseudonymize via meDIC when clear what Entici instance to use
 if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}'!", E_USER_ERROR);
 
 //create export folder
-print "MVH DB id: {$case_id} (CM ID: {$cm_id} / CM pseudonym: {$patient_id})\n";
+print "MVH DB id: {$case_id} (CM ID: {$cm_id} / CM Fallnummer: {$patient_id})\n";
 $folder = realpath($mvh_folder)."/kdk_se_export/{$case_id}/";
 if ($clear) exec2("rm -rf {$folder}");
 exec2("mkdir -p {$folder}/metadata/");
@@ -567,5 +574,8 @@ foreach(json_decode($result)->issues as $issue)
 	print "\n";
 }
 if ($exit_code!="200" && $exit_code!="201") trigger_error("Upload failed!", E_USER_ERROR);
+
+//if upload successfull, add 'Pruefbericht' to CM RedCap
+add_submission_to_redcap($cm_id, "K", $tan_k, $gl_data->accounting_mode);
 
 ?>

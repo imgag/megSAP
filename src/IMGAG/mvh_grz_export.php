@@ -316,10 +316,10 @@ $seq_mode = xml_str($cm_data->seq_mode);
 if ($seq_mode!="WGS" && $seq_mode!="WES") trigger_error("Unhandled seq_mode '{$seq_mode}'!", E_USER_ERROR);
 
 //get patient identifer (pseudonym from case management) - this is the ID that is used to identify submissions from the same case by GRZ/KDK
-$patient_id = xml_str($cm_data->psn); //TODO change to CM Fallnummer and pseudonymize via meDIC
+$patient_id = xml_str($cm_data->case_id); //TODO pseudonymize via meDIC when clear what Entici instance to use
 if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}'!", E_USER_ERROR);
 
-print "MVH DB id: {$case_id} (CM ID: {$cm_id} / CM pseudonym: {$patient_id} / seq_mode: {$seq_mode} / network: {$network})\n";
+print "MVH DB id: {$case_id} (CM ID: {$cm_id} / CM Fallnummer: {$patient_id} / seq_mode: {$seq_mode} / network: {$network})\n";
 
 //check germline processed sample is ok
 $ps = $db_mvh->getValue("SELECT ps FROM case_data WHERE id='{$case_id}'");
@@ -653,9 +653,12 @@ if ($exit_code!=0)
 	trigger_error("grz-cli upload failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
 }
 
-//print submission ID for wrapper script
+//print submission ID (used by wrapper script when updating status in MVH db)
 $submission_id = trim(implode("", file($stdout)));
 print "SUBMISSION ID GRZ: {$submission_id}\n";
+
+//if upload successfull, add 'Pruefbericht' to CM RedCap
+add_submission_to_redcap($cm_id, "G", $tan_g, $gl_data->accounting_mode);
 
 //clean up export folder if successfull
 if (!$test)

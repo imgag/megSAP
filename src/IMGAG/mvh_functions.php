@@ -112,12 +112,65 @@ function get_raw_value($record_id, $field)
 	curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
 	curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data, '', '&'));
 	curl_setopt($ch, CURLOPT_PROXY, '');
-	$xml = simplexml_load_string(curl_exec($ch), "SimpleXMLElement", LIBXML_NOCDATA);;
+	$result = curl_exec($ch);
 	curl_close($ch);
+	if ($result===false) trigger_error('CURL ERROR: '.curl_error($ch), E_USER_ERROR);
+	$exit_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+	if ($exit_code!="200") trigger_error("get_raw_value: Invalid exit code '{$exit_code}'", E_USER_ERROR);
 	
+	$xml = simplexml_load_string($result, "SimpleXMLElement", LIBXML_NOCDATA);
 	return xml_str($xml->item->$field);
 }
 
+//returns the raw value for a drop-down file (our man query returns the label only)
+function add_submission_to_redcap($record_id, $data_type, $tan, $accounting_mode)
+{
+	//input checks
+	if ($data_type!="G" && $data_type!="K") trigger_error("Invalid type '{$data_type}'", E_USER_ERROR);
+	
+	//TODO implement other types (report_type)
+	$xml = "<records>
+				<item>
+					<record_id><![CDATA[{$record_id}]]></record_id>
+					<redcap_repeat_instrument><![CDATA[pruefbericht]]></redcap_repeat_instrument>
+					<redcap_repeat_instance><![CDATA[new]]></redcap_repeat_instance>  <psn/>
+					<report_t_vn><![CDATA[{$tan}]]></report_t_vn>
+					<report_data_type><![CDATA[{$data_type}]]></report_data_type>
+					<report_type><![CDATA[0]]></report_type>
+					<coveragetype><![CDATA[".convert_coverage($accounting_mode)."]]></coveragetype>
+					<report_date><![CDATA[".date("Y-m-d")."]]></report_date>
+				</item>
+			</records>";
+	print_r($xml);
+
+	$data = array(
+		'token' => get_path("mvh_redcap_token_cm"),
+		'content' => 'record',
+		'format' => 'xml',
+		'type' => 'flat',
+		'data' => $xml,
+	);
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, 'https://redcap.extern.medizin.uni-tuebingen.de/api/');
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+	curl_setopt($ch, CURLOPT_VERBOSE, 0);
+	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+	curl_setopt($ch, CURLOPT_AUTOREFERER, true);
+	curl_setopt($ch, CURLOPT_MAXREDIRS, 10);
+	curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+	curl_setopt($ch, CURLOPT_FRESH_CONNECT, 1);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($data, '', '&'));
+	curl_setopt($ch, CURLOPT_PROXY, '');
+	$result = curl_exec($ch);
+	curl_close($ch);
+	if ($result===false) trigger_error('CURL ERROR: '.curl_error($ch), E_USER_ERROR);
+	$exit_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+	if ($exit_code!="200")
+	{
+		trigger_error("get_raw_value: Invalid exit code '{$exit_code}' - result: {$result}", E_USER_ERROR);
+	}
+}
 
 ################# converter functions #################
 
@@ -288,10 +341,8 @@ function convert_sequencing_platform($name)
 function convert_outcome($name)
 {
 	if ($name=="no significant findings" || $name=="significant findings - non-genetic" || $name=="candidate gene" || $name=="significant findings - second method") return "no-pathogenic-variant-detected";
-	if ($name=="uncertain") return "unclear-variant-in-disease";
-	if ($name=="significant findings") return "TODO";
 	
-	trigger_error(__FUNCTION__.": Unhandled name '{$name}'!", E_USER_ERROR);
+	return "";
 }
 
 ?>
