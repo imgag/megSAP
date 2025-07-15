@@ -610,7 +610,7 @@ if (in_array("ph", $steps))
 	$args[] = "-r {$genome}";
 	$args[] = "-t {$threads}";
 	$args[] = "-o ".substr($phased_tmp, 0, -4);
-	$args[] = "--ont";
+	$args[] = $platform == "PB" ? "--pb" : "--ont";
 	$args[] = "--indels";
 	if (file_exists($sv_vcf_file))
 	{
