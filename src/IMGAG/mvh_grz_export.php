@@ -658,7 +658,11 @@ $submission_id = trim(implode("", file($stdout)));
 print "SUBMISSION ID GRZ: {$submission_id}\n";
 
 //if upload successfull, add 'Pruefbericht' to CM RedCap
-add_submission_to_redcap($cm_id, "G", $tan_g, $gl_data->accounting_mode);
+if (!$test)
+{
+	print "Adding Pruefbericht to CM RedCap...\n";
+	add_submission_to_redcap($cm_id, "G", $tan_g, $gl_data->accounting_mode);
+}
 
 //clean up export folder if successfull
 if (!$test)
@@ -669,6 +673,8 @@ if (!$test)
 /*
 //TODO:
 - add tests when first final version is done
+	- KDK-SE: WGS, lrGS, no_seq
+	- GRZ: SE WGS, SE lrGS, SE WGS trio, T/N
 - remove test data when no longer needed:
 	- WGS: NA12878x3_20 - 99999
 	- WES T/N: NA12878x3_44 / NA12877_32 - 99998

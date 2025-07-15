@@ -133,7 +133,7 @@ function add_submission_to_redcap($record_id, $data_type, $tan, $accounting_mode
 				<item>
 					<record_id><![CDATA[{$record_id}]]></record_id>
 					<redcap_repeat_instrument><![CDATA[pruefbericht]]></redcap_repeat_instrument>
-					<redcap_repeat_instance><![CDATA[new]]></redcap_repeat_instance>  <psn/>
+					<redcap_repeat_instance><![CDATA[new]]></redcap_repeat_instance>
 					<report_t_vn><![CDATA[{$tan}]]></report_t_vn>
 					<report_data_type><![CDATA[{$data_type}]]></report_data_type>
 					<report_type><![CDATA[0]]></report_type>
@@ -141,7 +141,6 @@ function add_submission_to_redcap($record_id, $data_type, $tan, $accounting_mode
 					<report_date><![CDATA[".date("Y-m-d")."]]></report_date>
 				</item>
 			</records>";
-	print_r($xml);
 
 	$data = array(
 		'token' => get_path("mvh_redcap_token_cm"),
@@ -338,11 +337,24 @@ function convert_sequencing_platform($name)
 	
 	trigger_error(__FUNCTION__.": Unhandled name '{$name}'!", E_USER_ERROR);
 }
+
 function convert_outcome($name)
 {
 	if ($name=="no significant findings" || $name=="significant findings - non-genetic" || $name=="candidate gene" || $name=="significant findings - second method") return "no-pathogenic-variant-detected";
 	
 	return "";
 }
+
+function convert_noseq_reason($name)
+{
+	if ($name=="Zieldiagnostik empfohlen") return "targeted-diagnostics-recommended";
+	if ($name=="wahrscheinlich psychosomatische Erkrankung") return "psychosomatic";
+	if ($name=="wahrscheinlich häufige Erkrankung") return "not-rare-disease";
+	if ($name=="wahrscheinlich nicht genetische Ursache") return "non-genetic-cause";
+	if ($name=="anderer Grund") return "other";
+	
+	trigger_error(__FUNCTION__.": Unhandled name '{$name}'!", E_USER_ERROR);
+}
+
 
 ?>

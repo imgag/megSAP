@@ -9,6 +9,9 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 function json_metadata($cm_data, $tan_k, $rc_data_json)
 {
+	global $db_mvh;
+	global $sub_id;
+	
 	//add entry section to suppress PHP warning below
 	if (!isset($rc_data_json["entry"])) $rc_data_json["entry"] = [];
 	
@@ -33,7 +36,7 @@ function json_metadata($cm_data, $tan_k, $rc_data_json)
 	$te_date = xml_str($cm_data->datum_teilnahme);
 	
 	$output = [
-			"type"=>"initial", //TODO implement other types
+			"type" => $db_mvh->getValue("SELECT type FROM submission_kdk_se WHERE id='{$sub_id}'"),
 			"transferTAN" => $tan_k,
 			"modelProjectConsent" => [
 				"version" => "",
@@ -291,7 +294,9 @@ function json_hospitalization($se_data)
 }
 
 function json_care_plan($se_data, $se_data_rep) //'carePlan' is misleading. This object captures the decisions of the second "Fallkonferenz".
-{	
+{
+	global $no_seq;
+	
 	//prepare therapy recommendations
 	$therapy_recoms = [];
 	$num = 1;
@@ -312,7 +317,7 @@ function json_care_plan($se_data, $se_data_rep) //'carePlan' is misleading. This
 			"code" => convert_therapy_type($item->therapie_beschreibung),
 			],
 		//TODO supportingVariants
-		//missing fields: meciation (not in SE data)
+		//missing fields: medication (not in SE data)
 		];
 
 		$therapy_recoms[] = $entry;
@@ -396,10 +401,15 @@ function json_care_plan($se_data, $se_data_rep) //'carePlan' is misleading. This
 		$output["clinicalManagementRecommendation"] = $clin_recoms[0];
 	}
 	
-	return $output;
+	if ($no_seq)
+	{
+		$output["noSequencingPerformedReason"] = [ "code" => convert_noseq_reason($se_data->fallkonferenz_grund)];
+	}
+	//missing: notes
+	
+	return $output;	
 }
 
-//TODO: add support for cases without sequencing (see SE RedCAP aufnahme_mvh/fallkonferenz_grund)
 function json_ngs_report($cm_data, $se_data, $info)
 {
 	global $is_lrgs;
@@ -455,6 +465,9 @@ $cm_data = get_cm_data($db_mvh, $case_id);
 $patient_id = xml_str($cm_data->case_id); //TODO pseudonymize via meDIC when clear what Entici instance to use
 if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}'!", E_USER_ERROR);
 
+//check if sequencing was performed
+$no_seq = xml_str($cm_data->seq_mode)=="Keine";
+
 //create export folder
 print "MVH DB id: {$case_id} (CM ID: {$cm_id} / CM Fallnummer: {$patient_id})\n";
 $folder = realpath($mvh_folder)."/kdk_se_export/{$case_id}/";
@@ -492,13 +505,19 @@ $json = [
 	"hpoTerms" => json_hpos($se_data, $se_data_rep),
 	"hospitalization" => json_hospitalization($se_data),
 	"carePlans" => [ json_care_plan($se_data, $se_data_rep) ],
-	"ngsReports" => [ json_ngs_report($cm_data, $se_data, $info)],
 	//TODO: followUps, therapies
 	];
 	
 //add optional parts to JSON
+if (!$no_seq)
+{
+	$json["ngsReports"] = [ json_ngs_report($cm_data, $se_data, $info)];
+}
 $gmfcs = json_gmfcs($se_data_rep);
-if (!is_null($gmfcs)) $json["gmfcsStatus"] = $gmfcs;
+if (!is_null($gmfcs))
+{
+	$json["gmfcsStatus"] = $gmfcs;
+}
 
 //write JSON
 $json_file = "{$folder}/metadata/metadata.json";
@@ -518,7 +537,6 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 if (!$test) //production server is in UKT network
 {
 	curl_setopt($ch, CURLOPT_PROXY, '');
-	//curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); //TODO: remove if working with dnpm-dip.med.uni-tuebingen.de
 }
 $result = curl_exec($ch);
 if ($result===false) trigger_error('CURL ERROR: '.curl_error($ch), E_USER_ERROR);
@@ -543,7 +561,7 @@ if ($validation_error) trigger_error("Validation failed!", E_USER_ERROR);
 print "\n";
 print "### uploading JSON ###\n";
 
-$url = "https://".($test ? "preview.dnpm-dip.net" : "vsldiam15.med.uni-tuebingen.de")."/api/rd/etl/patient-record";
+$url = "https://".($test ? "preview.dnpm-dip.net" : "dnpm-dip.med.uni-tuebingen.de")."/api/rd/etl/patient-record";
 print "URL: {$url}\n";
 $ch = curl_init();
 curl_setopt($ch, CURLOPT_POST, true);
@@ -553,7 +571,6 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 if (!$test) //production server is in UKT network
 {
 	curl_setopt($ch, CURLOPT_PROXY, '');
-	//curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0); //TODO: remove if working with dnpm-dip.med.uni-tuebingen.de
 }
 $result = curl_exec($ch);
 if ($result===false) trigger_error('CURL ERROR: '.curl_error($ch), E_USER_ERROR);
@@ -576,6 +593,10 @@ foreach(json_decode($result)->issues as $issue)
 if ($exit_code!="200" && $exit_code!="201") trigger_error("Upload failed!", E_USER_ERROR);
 
 //if upload successfull, add 'Pruefbericht' to CM RedCap
-add_submission_to_redcap($cm_id, "K", $tan_k, $gl_data->accounting_mode);
+if (!$test)
+{
+	print "Adding Pruefbericht to CM RedCap...\n";
+	add_submission_to_redcap($cm_id, "K", $tan_k, $gl_data->accounting_mode);
+}
 
 ?>
