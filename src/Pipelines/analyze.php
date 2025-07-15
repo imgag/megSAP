@@ -1375,15 +1375,13 @@ if (in_array("db", $steps))
 	$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps $name -files ".implode(" ", $qc_files)." -force", [$folder]);
 	
 	//import variants
-	$args = ["-ps {$name}"];
-	$import = false;
+	$args = [];
 	if (file_exists($varfile) && !$is_wgs_shallow)
 	{
 		//check genome build
 		check_genome_build($varfile, $build);
 		
 		$args[] = "-var {$varfile}";
-		$import = true;
 	}
 	if (file_exists($cnvfile))
 	{
@@ -1391,7 +1389,6 @@ if (in_array("db", $steps))
 		//this is not possible for CNVs because the file does not contain any information about it
 		
 		$args[] = "-cnv {$cnvfile}";
-		$import = true;
 	}
 	if (file_exists($bedpe_out))
 	{
@@ -1399,16 +1396,14 @@ if (in_array("db", $steps))
 		check_genome_build($bedpe_out, $build);
 		
 		$args[] = "-sv {$bedpe_out}";
-		$import = true;
 	}
 	if (file_exists($expansion_hunter_file))
 	{
 		$args[] = "-re {$expansion_hunter_file}";
-		$import = true;
 	}
-	if ($import)
+	if (count($args)>0)
 	{
-		$args[] = "-force";
+		$args[] = "-ps {$name}";
 		$parser->execApptainer("ngs-bits", "NGSDAddVariantsGermline", implode(" ", $args), [$folder]);
 	}
 }
