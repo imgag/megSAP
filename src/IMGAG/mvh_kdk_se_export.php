@@ -80,11 +80,16 @@ function json_patient($info, $gl_data, $se_data)
 				"type" => [
 					"code"=> convert_coverage($gl_data->accounting_mode)
 					]
-				],
-		    "address" => [
-				"municipalityCode" => get_raw_value($se_data->psn, "ags"),
-				],
+				]
 			];
+	
+	//optional
+	$ags = get_raw_value($se_data->psn, "ags");
+	if ($ags!="")
+	{
+		$output["address"] = [ "municipalityCode" => $ags ];
+	}
+			
 	return $output;
 }
 
