@@ -164,6 +164,7 @@ if (count($files_forward) == 0)
 	
 	//convert BAM/CRAM to FASTQ
 	//NOTE: it is not possible to override the sample ID when using BAM/CRAM as input, so external samples get the wrong sample IDs, which end up in the VCF files and cause errors in subsequent secondary analyses, e.g. trio analysis. The workround for this problem is to convert the data to FASTQ.
+	trigger_error("Converting BAM/CRAM to FASTQ. This is slow and should not be done on the DRAGEN server. If possible, do the conversion before calling this script!", E_USER_NOTICE);
 	$in_fq_for = $folder."/{$name}_BamToFastq_R1_001.fastq.gz";
 	$in_fq_rev = $folder."/{$name}_BamToFastq_R2_001.fastq.gz";
 	$tmp1 = $working_dir."/{$name}_BamToFastq_R1_001.fastq.gz";
