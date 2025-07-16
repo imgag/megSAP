@@ -44,7 +44,7 @@ Sample_DX181279_01:
 	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181279_01 -args '-steps ma,db -somatic'
 
 queue_somatic:
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181277_01 -args '-steps ma,vc,cn,db -somatic'
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181277_01 -args '-steps ma,vc,cn,sv,db -somatic'
 	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'somatic' -samples DX181280_01 DX181277_01 -info tumor normal -use_dragen
 	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'somatic' -samples DX181278_01 DX181277_01 -info tumor normal -use_dragen
 	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'somatic' -samples DX181279_01 -info tumor
