@@ -487,8 +487,8 @@ foreach($rc_data->consent as $consent)
 		}
 	}
 }
-if ($active_consent_count==0) trigger_error("No active consent found in MVH data:\n{$rc_data}", E_USER_ERROR);
 if ($active_consent_count>1) trigger_error("More than one active consent found in MVH data:\n{$rc_data}", E_USER_ERROR);
+
 $research_consent = [
 	"status" => "active",
 	"scope" => [
@@ -599,16 +599,21 @@ $json['donors'] = [
 						],
 				]
 			],
-		"researchConsents" => [
-				0 => [
-					"schemaVersion" => "2025.0.1",
-					"presentationDate" => xml_str($cm_data->bc_date),
-					"scope" => $research_consent
-					]
-			],
+		"researchConsents" => [],
 		"labData" => $lab_data		 
 		]
 	];
+
+
+//add optional data
+if ($active_consent_count>0)
+{
+	$json['donors'][0]['researchConsents'][] = [
+					"schemaVersion" => "2025.0.1",
+					"presentationDate" => xml_str($cm_data->bc_date),
+					"scope" => $research_consent
+					];
+}
 
 //write meta data JSON
 file_put_contents("{$folder}/metadata/metadata.json", json_encode($json, JSON_PRETTY_PRINT));

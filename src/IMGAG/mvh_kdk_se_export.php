@@ -30,7 +30,6 @@ function json_metadata($cm_data, $tan_k, $rc_data_json)
 		
 		$active_rcs[] = $entry;
 	}
-	if (count($active_rcs)==0) trigger_error("No active consent resources found!", E_USER_ERROR);
 	if (count($active_rcs)>1) trigger_error("Several active consent resources found!", E_USER_ERROR);
 	
 	$te_date = xml_str($cm_data->datum_teilnahme);
@@ -60,10 +59,13 @@ function json_metadata($cm_data, $tan_k, $rc_data_json)
 					]
 				],
 			],
-			"researchConsents" => [
-				$active_rcs[0]
-				]
 		];
+	
+	//add optional data
+	if (count($active_rcs)>0)
+	{
+		$output["researchConsents"] = [ $active_rcs[0] ];
+	}
 			
 	return $output;
 }
