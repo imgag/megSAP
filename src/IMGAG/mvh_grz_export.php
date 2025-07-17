@@ -282,7 +282,6 @@ if ($clear) exec2("rm -rf {$folder} {$qc_folder}");
 
 //get data we need from MVH database
 $cm_data = get_cm_data($db_mvh, $case_id);
-$gl_data = get_gl_data($db_mvh, $case_id);
 
 //check network > determine KDK and study_subtype
 $network = xml_str($cm_data->network_title);
@@ -391,7 +390,7 @@ if ($is_lrgs && !file_exists($lrgs_bam)) //for lrGS we submit BAM: convert CRAM 
 if (!$is_lrgs && (!file_exists($n_fq1) || !file_exists($n_fq2)))
 {
 	print "  generating FASTQ files for germline sample {$ps}...\n";
-	$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$n_bam} -out1 {$n_fq1} -out2 {$n_fq2} -extend {$read_length}", [$n_bam], ["{$folder}/files/"]);
+	$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$n_bam} -out1 {$n_fq1} -out2 {$n_fq2} -extend {$read_length}", [$n_bam], ["{$folder}/files/"]); //TODO remove extension when not needed anymore
 }
 if ($is_lrgs && !file_exists($n_fq1))
 {
@@ -415,7 +414,7 @@ if ($is_somatic)
 	if (!file_exists($t_fq1) || !file_exists($t_fq2))
 	{
 		print "  generating FASTQ files for tumor sample {$ps_t}...\n";
-		$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$t_bam} -out1 {$t_fq1} -out2 {$t_fq2} -extend {$read_length_t}", [$t_bam], ["{$folder}/files/"]);
+		$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$t_bam} -out1 {$t_fq1} -out2 {$t_fq2} -extend {$read_length_t}", [$t_bam], ["{$folder}/files/"]); //TODO remove extension when not needed anymore
 	}
 	if (!file_exists($tn_vcf))
 	{
@@ -564,7 +563,7 @@ $json['submission'] = [
 	"submissionType" => $db_mvh->getValue("SELECT type FROM submission_grz WHERE id='{$sub_id}'"),
 	"tanG" => $tan_g,
 	"localCaseId" => $patient_id,
-	"coverageType" => convert_coverage($gl_data->accounting_mode),
+	"coverageType" => convert_coverage($cm_data->coveragetype),
 	"submitterId" => "260840108",
 	"genomicDataCenterId" => "GRZTUE002",
 	"clinicalDataNodeId" => $kdk,
@@ -666,7 +665,7 @@ print "SUBMISSION ID GRZ: {$submission_id}\n";
 if (!$test)
 {
 	print "Adding Pruefbericht to CM RedCap...\n";
-	add_submission_to_redcap($cm_id, "G", $tan_g, $gl_data->accounting_mode);
+	add_submission_to_redcap($cm_id, "G", $tan_g);
 }
 
 //clean up export folder if successfull
@@ -680,11 +679,8 @@ if (!$test)
 - add tests when first final version is done
 	- KDK-SE: WGS, lrGS, no_seq
 	- GRZ: SE WGS, SE lrGS, SE WGS trio, T/N
-- remove test data when no longer needed:
-	- WGS: NA12878x3_20 - 99999
-	- WES T/N: NA12878x3_44 / NA12877_32 - 99998
-	- lrGS: 24067LRa008_02 - 99997
-
+- remove gl_data from MVH database if not needed when production mode starts
+ 
 #################### DOCU: Installation of tools (for running this script without GRZ QC workflow) #####################
 
 #Installation of mosdepth
@@ -710,7 +706,7 @@ if (!$test)
 		> /mnt/storage2/MVH/tools/miniforge3/bin/conda create -n grz-tools -c conda-forge -c bioconda "grz-cli"
 		> /mnt/storage2/MVH/tools/miniforge3/bin/conda activate grz-tools
 	- Updates with:
-		> /mnt/storage2/MVH/tools/miniforge3/bin/conda update -n base -c conda-forge conda
+		> /mnt/storage2/MVH/tools/miniforge3/bin/conda update -n base -c conda-forge conda -c bioconda
 		> /mnt/storage2/MVH/tools/miniforge3/bin/conda update -n grz-tools -c conda-forge -c bioconda grz-cli
 		> cd /mnt/storage2/MVH/tools/GRZ_QC_Workflow && git pull
 	- Activate:

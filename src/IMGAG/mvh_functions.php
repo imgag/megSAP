@@ -123,7 +123,7 @@ function get_raw_value($record_id, $field)
 }
 
 //returns the raw value for a drop-down file (our man query returns the label only)
-function add_submission_to_redcap($record_id, $data_type, $tan, $accounting_mode)
+function add_submission_to_redcap($record_id, $data_type, $tan)
 {
 	//input checks
 	if ($data_type!="G" && $data_type!="K") trigger_error("Invalid type '{$data_type}'", E_USER_ERROR);
@@ -137,7 +137,6 @@ function add_submission_to_redcap($record_id, $data_type, $tan, $accounting_mode
 					<report_t_vn><![CDATA[{$tan}]]></report_t_vn>
 					<report_data_type><![CDATA[{$data_type}]]></report_data_type>
 					<report_type><![CDATA[0]]></report_type>
-					<coveragetype><![CDATA[".convert_coverage($accounting_mode)."]]></coveragetype>
 					<report_date><![CDATA[".date("Y-m-d")."]]></report_date>
 				</item>
 			</records>";
@@ -188,8 +187,16 @@ function convert_gender($gender)
 
 function convert_coverage($accounting_mode)
 {
-	if ($accounting_mode=="Modellvorhaben") $converage_type = "GKV";
-	else if ($accounting_mode=="Privat (GOÄ)") $converage_type = "PKV";
+	if ($accounting_mode=="gesetzliche Krankenversicherung") $converage_type = "GKV";
+	else if ($accounting_mode=="private Krankenversicherung") $converage_type = "PKV";
+	else if ($accounting_mode=="Berufsgenossenschaft") $converage_type = "BG";
+	else if ($accounting_mode=="Selbstzahler") $converage_type = "SEL";
+	else if ($accounting_mode=="Sozialamt") $converage_type = "SOZ";
+	else if ($accounting_mode=="gesetzliche Pflegeversicherung") $converage_type = "GPV";
+	else if ($accounting_mode=="private Pflegeversicherung") $converage_type = "PPV";
+	else if ($accounting_mode=="Beihilfe") $converage_type = "Beihilfe";
+	else if ($accounting_mode=="sonstiger Kostenträger") $converage_type = "SKT";
+	else if ($accounting_mode=="unknown") $converage_type = "UNK";
 	else trigger_error("Could not determine coverage type from GenLab accounting mode '{$accounting_mode}'!", E_USER_ERROR);
 	
 	return $converage_type;

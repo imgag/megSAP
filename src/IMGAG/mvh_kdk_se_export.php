@@ -31,6 +31,7 @@ function json_metadata($cm_data, $tan_k, $rc_data_json)
 		$active_rcs[] = $entry;
 	}
 	if (count($active_rcs)>1) trigger_error("Several active consent resources found!", E_USER_ERROR);
+	//TODO THROW error if bc_signed is true and count($active_rcs)==0
 	
 	$te_date = xml_str($cm_data->datum_teilnahme);
 	
@@ -70,7 +71,7 @@ function json_metadata($cm_data, $tan_k, $rc_data_json)
 	return $output;
 }
 
-function json_patient($info, $gl_data, $se_data)
+function json_patient($info, $cm_data, $se_data)
 {
 	global $patient_id;
 	
@@ -80,7 +81,7 @@ function json_patient($info, $gl_data, $se_data)
 			"birthDate" => xml_str($se_data->birthdate),
 			"healthInsurance" => [
 				"type" => [
-					"code"=> convert_coverage($gl_data->accounting_mode)
+					"code"=> convert_coverage($cm_data->coveragetype)
 					]
 				]
 			];
@@ -483,7 +484,7 @@ exec2("mkdir -p {$folder}/metadata/");
 print "export folder: {$folder}\n";
 
 //determine tanG==VNg
-$sub_ids = $db_mvh->getValues("SELECT id FROM `submission_kdk_se` WHERE status='pending' AND case_id='{$case_id}'");
+$sub_ids = $db_mvh->getValues("SELECT id FROM `submission_kdk_se` WHERE ".($test ? "" : "status='pending' AND")." case_id='{$case_id}'");
 if (count($sub_ids)!=1)  trigger_error(count($sub_ids)." pending KDK-SE submissions for case {$case_id}. Must be one!", E_USER_ERROR);
 $sub_id = $sub_ids[0];
 print "ID in submission_kdk_se table: {$sub_id}\n";
@@ -495,7 +496,6 @@ $ps = $db_mvh->getValue("SELECT ps FROM case_data WHERE id='{$case_id}'");
 print "index sample: {$ps}\n";
 $info = get_processed_sample_info($db_ngsd, $ps);
 $is_lrgs = $info['sys_type']=="lrGS";
-$gl_data = get_gl_data($db_mvh, $case_id);
 $se_data = get_se_data($db_mvh, $case_id);
 $se_data_rep = get_se_data($db_mvh, $case_id, true);
 $rc_data_json = get_rc_data_json($db_mvh, $case_id);
@@ -506,7 +506,7 @@ print "### creating JSON ###\n";
 
 $json = [
 	"metadata" => json_metadata($cm_data, $tan_k, $rc_data_json),
-	"patient" => json_patient($info, $gl_data, $se_data),
+	"patient" => json_patient($info, $cm_data, $se_data),
 	"episodesOfCare" => [ json_episode_of_care($se_data) ],
 	"diagnoses" => [ json_diagnoses($se_data, $se_data_rep) ],
 	"hpoTerms" => json_hpos($se_data, $se_data_rep),
@@ -603,7 +603,7 @@ if ($exit_code!="200" && $exit_code!="201") trigger_error("Upload failed!", E_US
 if (!$test)
 {
 	print "Adding Pruefbericht to CM RedCap...\n";
-	add_submission_to_redcap($cm_id, "K", $tan_k, $gl_data->accounting_mode);
+	add_submission_to_redcap($cm_id, "K", $tan_k);
 }
 
 ?>
