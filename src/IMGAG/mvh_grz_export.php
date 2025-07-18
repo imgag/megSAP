@@ -557,7 +557,7 @@ $research_consent = [
 //create meta data JSON
 print "  creating metadata...\n";
 $json = [];
-$json['$schema'] = "https://raw.githubusercontent.com/BfArM-MVH/MVGenomseq/refs/tags/v1.1.7/GRZ/grz-schema.json";
+$json['$schema'] = "https://raw.githubusercontent.com/BfArM-MVH/MVGenomseq/refs/tags/v1.2.1/GRZ/grz-schema.json";
 $json['submission'] = [
 	"submissionDate" => $db_mvh->getValue("SELECT date FROM submission_grz WHERE id='{$sub_id}'"),
 	"submissionType" => $db_mvh->getValue("SELECT type FROM submission_grz WHERE id='{$sub_id}'"),
@@ -709,8 +709,8 @@ if (!$test)
 		> /mnt/storage2/MVH/tools/miniforge3/bin/conda update -n base -c conda-forge conda -c bioconda
 		> /mnt/storage2/MVH/tools/miniforge3/bin/conda update -n grz-tools -c conda-forge -c bioconda grz-cli
 		> cd /mnt/storage2/MVH/tools/GRZ_QC_Workflow && git pull
-	- Activate:
-		> /mnt/storage2/MVH/tools/miniforge3/bin/conda activate grz-tools
+	- List all package versions:
+		> /mnt/storage2/MVH/tools/miniforge3/bin/conda list -n grz-tools 
 
 #Installation of python3
 
