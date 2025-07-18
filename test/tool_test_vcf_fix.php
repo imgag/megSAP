@@ -20,10 +20,15 @@ $out_file3 = output_folder().$name."_out3.vcf";
 check_exec("cat ".data_folder().$name."_in1.vcf | php ".src_folder()."/Tools/{$name}.php --mosaic_mode  > $out_file3");
 check_file($out_file3, data_folder().$name."_out3.vcf");
 
-//longread mode
+//clair3 mode
 $out_file4 = output_folder().$name."_out4.vcf";
-check_exec("cat ".data_folder().$name."_in3.vcf | php ".src_folder()."/Tools/{$name}.php --longread_mode  > $out_file4");
+check_exec("cat ".data_folder().$name."_in3.vcf | php ".src_folder()."/Tools/{$name}.php --clair3_mode  > $out_file4");
 check_file($out_file4, data_folder().$name."_out4.vcf");
+
+//DeepVariant mode
+$out_file5 = output_folder().$name."_out5.vcf";
+check_exec("cat ".data_folder().$name."_in4.vcf | php ".src_folder()."/Tools/{$name}.php --deepvariant_mode  > $out_file5");
+check_file($out_file5, data_folder().$name."_out5.vcf");
 
 end_test();
 

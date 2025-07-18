@@ -9,12 +9,12 @@ start_test($name);
 
 # longread - single-threaded
 $inputs_lr = array(data_folder().$name."_in1.gvcf.gz", data_folder().$name."_in2.gvcf.gz", data_folder().$name."_in3.gvcf.gz");
-check_exec("php ".src_folder()."/Tools/{$name}.php -gvcfs ".implode(" ", $inputs_lr)." -out ".output_folder().$name."_out1.vcf.gz -status affected control control -threads 1 -mode longread --log ".output_folder().$name."_out1.log");
+check_exec("php ".src_folder()."/Tools/{$name}.php -gvcfs ".implode(" ", $inputs_lr)." -out ".output_folder().$name."_out1.vcf.gz -status affected control control -threads 1 -mode clair3 --log ".output_folder().$name."_out1.log");
 check_file(output_folder().$name."_out1.vcf.gz", data_folder().$name."_out1.vcf.gz");
 check_file(output_folder().$name."_out1.gvcf.gz", data_folder().$name."_out1.gvcf.gz");
 
 # longread - multi-threaded
-check_exec("php ".src_folder()."/Tools/{$name}.php -gvcfs ".implode(" ", $inputs_lr)." -out ".output_folder().$name."_out2.vcf.gz -status affected control control -threads 4 -mode longread --log ".output_folder().$name."_out2.log");
+check_exec("php ".src_folder()."/Tools/{$name}.php -gvcfs ".implode(" ", $inputs_lr)." -out ".output_folder().$name."_out2.vcf.gz -status affected control control -threads 4 -mode clair3 --log ".output_folder().$name."_out2.log");
 check_file(output_folder().$name."_out2.vcf.gz", data_folder().$name."_out1.vcf.gz");
 check_file(output_folder().$name."_out2.gvcf.gz", data_folder().$name."_out1.gvcf.gz");
 
