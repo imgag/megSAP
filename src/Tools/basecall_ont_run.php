@@ -17,6 +17,7 @@ $parser->addInt("min_qscore", "Minimal read qScore for basecalling", true, 9);
 $parser->addFlag("queue_sample", "Queue analysis of the sample.");
 $parser->addFlag("skipped_only", "Use already basecalled BAMs and recall only skipped POD5s.");
 $parser->addFlag("copy_pod5", "Copy pod5 files to /tmp to reduce IO/network load.");
+$parser->addFlag("file_based_calling", "Call each POD5 file separately.");
 
 extract($parser->parse($argv));
 
@@ -80,33 +81,50 @@ $pod5_location_pattern = "{$run_dir}/*/pod5*/";
 if ($skipped_only) $pod5_location_pattern = "{$run_dir}/*/pod5_skip/";
 
 //copy POD5s
+$pod5_files = glob($pod5_location_pattern."*.pod5");
 if ($copy_pod5)
 {
 	$pod5_temp = $parser->tempFolder("pod5_temp");
-	$pod5_files = glob($pod5_location_pattern."*.pod5");
 	foreach($pod5_files as $file)
 	{
 		$parser->copyFile($file, $pod5_temp."/".basename($file));
 	}
 
 	$pod5_location = [$pod5_temp];
+	$pod5_files = glob($pod5_temp."/*.pod5"); //use copied pod5s 
 }
 else
 {
 	$pod5_location = glob($pod5_location_pattern);
 }
 
+if (count($pod5_location) < 1) trigger_error("No POD5 files found in '{$pod5_location_pattern}'!", E_USER_ERROR);
+
 
 //TODO: create container
 // perform basecalling
 $bams_to_merge = [];
 $dorado_model_path = get_path("dorado_model_path");
-foreach ($pod5_location as $folder) 
+
+if ($file_based_calling)
 {
-	$tmp_bam = $parser->tempFile(".mod.unmapped.bam");
-	$parser->exec(get_path("dorado"), "basecaller --models-directory {$dorado_model_path} -r {$basecall_model} {$folder} --min-qscore {$min_qscore} > {$tmp_bam}");
-	$bams_to_merge[] = $tmp_bam;
+	foreach ($pod5_files as $pod5_file) 
+	{
+		$tmp_bam = $parser->tempFile(basename2($pod5_file).".mod.unmapped.bam");
+		$parser->exec(get_path("dorado"), "basecaller --models-directory {$dorado_model_path} {$basecall_model} {$pod5_file} --min-qscore {$min_qscore} > {$tmp_bam}");
+		$bams_to_merge[] = $tmp_bam;
+	}
 }
+else
+{
+	foreach ($pod5_location as $folder) 
+	{
+		$tmp_bam = $parser->tempFile(".mod.unmapped.bam");
+		$parser->exec(get_path("dorado"), "basecaller --models-directory {$dorado_model_path} -r {$basecall_model} {$folder} --min-qscore {$min_qscore} > {$tmp_bam}");
+		$bams_to_merge[] = $tmp_bam;
+	}
+}
+
 
 
 

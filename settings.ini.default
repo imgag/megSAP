@@ -6,12 +6,15 @@
 
 [tools]
 interop = [path]/data/tools/interop-1.2.4-Linux-GNU/bin/summary
+dorado = [path]/data/tools/dorado-1.0.0-linux-x64/bin/dorado
 ngs-bits_local =
 
 [tools-data]
 vep_data = [path]/data/dbs/ensembl-vep-112/
 clincnv_cohorts = [path]/data/ClinCNV-cohorts/
 clair3_models = [path]/data/tools/Clair3-v1.0.10/models
+dorado_model_version = v5.2.0
+dorado_model_path = [path]/data/dbs/dorado_basecall_models/
 
 [apptainer-container]
 container_abra2 = v2.23
