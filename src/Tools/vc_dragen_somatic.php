@@ -104,6 +104,11 @@ $dragen_parameter[] = "--output-file-prefix output";
 $dragen_parameter[] = "--enable-map-align false"; # cannot map multiple (tumor, normal) inputs at once
 $dragen_parameter[] = "--pair-by-name true";
 
+//parameters for  high memory mode
+// $dragen_parameter[] = "--bin_memory 85899345920"; //80GB (default: 20 (GB), max on DRAGEN v4: 90)
+// $dragen_parameter[] = "--vc-max-callable-region-memory-usage 27917287424"; //26GB (default: 13 (GB))
+
+
 //small variant calling
 $dragen_parameter[] = "--enable-variant-caller true";
 $dragen_parameter[] = "--vc-min-tumor-read-qual 3"; #default 3 for t-n, 20 for t-only 

@@ -296,9 +296,8 @@ if (in_array("ma", $steps))
 					if ($rel_diff < 0.0001) trigger_error("Read count of mapped and unmapped BAM(s) in allowed tolerance (<0.01%) (".($rel_diff*100)."%). Deleting unmapped BAM(s)...", E_USER_NOTICE);
 					foreach ($unmapped_bam_files as $unmapped_bam_file) 
 					{
-						//TODO: remove
-						trigger_error("Unmapped BAM file would be removed!", E_USER_NOTICE);
-						// unlink($unmapped_bam_file);
+						unlink($unmapped_bam_file);
+						trigger_error("Unmapped BAM file removed!", E_USER_NOTICE);
 					}
 				}
 				else
@@ -333,9 +332,8 @@ if (in_array("ma", $steps))
 					if ($rel_diff < 0.0001) trigger_error("Read count of mapped BAM and FastQ(s) in allows tolerance (<0.01%) (".($rel_diff*100)."%). Deleting FastQ(s)...", E_USER_NOTICE);
 					foreach ($fastq_files as $fastq_file) 
 					{
-						//TODO: remove
-						trigger_error("FastQ file would be removed!", E_USER_NOTICE);
-						// unlink($fastq_file);
+						unlink($fastq_file);
+						trigger_error("FastQ file removed!", E_USER_NOTICE);
 					}
 				}
 				else
@@ -610,7 +608,7 @@ if (in_array("ph", $steps))
 	$args[] = "-r {$genome}";
 	$args[] = "-t {$threads}";
 	$args[] = "-o ".substr($phased_tmp, 0, -4);
-	$args[] = "--ont";
+	$args[] = $platform == "PB" ? "--pb" : "--ont";
 	$args[] = "--indels";
 	if (file_exists($sv_vcf_file))
 	{
@@ -1142,18 +1140,14 @@ if (in_array("db", $steps))
 		}
 	}
 	
-
 	//import variants
-	$args = ["-ps {$name}"];
-	$import = false;
-	$args[] = "-force";
+	$args = [];
 	if (file_exists($var_file))
 	{
 		//check genome build
 		check_genome_build($var_file, $build);
 		
 		$args[] = "-var {$var_file}";
-		$import = true;
 	}
 	if (file_exists($cnv_file))
 	{
@@ -1161,7 +1155,6 @@ if (in_array("db", $steps))
 		//this is not possible for CNVs because the file does not contain any information about it
 		
 		$args[] = "-cnv {$cnv_file}";
-		$import = true;
 	}
 	if (file_exists($bedpe_file))
 	{
@@ -1169,7 +1162,6 @@ if (in_array("db", $steps))
 		check_genome_build($bedpe_file, $build);
 		
 		$args[] = "-sv {$bedpe_file}";
-		$import = true;
 	}
 	if (file_exists($straglr_file))
 	{
@@ -1177,10 +1169,10 @@ if (in_array("db", $steps))
 		check_genome_build($straglr_file, $build);
 		
 		$args[] = "-re {$straglr_file}";
-		$import = true;
 	}
-	if ($import)
+	if (count($args)>0)
 	{
+		$args[] = "-ps {$name}";
 		$parser->execApptainer("ngs-bits", "NGSDAddVariantsGermline", implode(" ", $args), [$folder]);
 	}
 }

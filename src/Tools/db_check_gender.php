@@ -58,7 +58,7 @@ $method = "hetx";
 $args = "";
 $sys_roi = "";
 
-if (db_is_enabled("NGSD"))
+if (db_is_enabled($db))
 {
 	//get sample info from DB
 	$db = DB::getInstance($db);
