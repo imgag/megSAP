@@ -203,10 +203,8 @@ if (in_array("vi", $steps))
 			"-in_qcml ".$t_bam_map_qc,
 			"-threads ".$threads
 		];
-		if ($dedup_used)
-		{
-			$vc_viral_args[] = "-barcode_correction";
-		}
+		if ($dedup_used) $vc_viral_args[] = "-barcode_correction";
+		if ($no_sync) $vc_viral_args[] = "no_sync";
 		$parser->execTool("Tools/vc_viral_load.php", implode(" ", $vc_viral_args));
 	}
 }
