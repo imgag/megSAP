@@ -204,7 +204,7 @@ if (in_array("vi", $steps))
 			"-threads ".$threads
 		];
 		if ($dedup_used) $vc_viral_args[] = "-barcode_correction";
-		if ($no_sync) $vc_viral_args[] = "no_sync";
+		if ($no_sync) $vc_viral_args[] = "-no_sync";
 		$parser->execTool("Tools/vc_viral_load.php", implode(" ", $vc_viral_args));
 	}
 }
