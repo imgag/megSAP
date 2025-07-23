@@ -31,6 +31,7 @@ $parser->addInfile("system", "Processing system file used for tumor DNA sample (
 $parser->addFlag("skip_contamination_check", "Skips check of female tumor sample for male SRY DNA.");
 $parser->addFlag("skip_correlation", "Skip sample correlation check.");
 $parser->addFlag("skip_low_cov", "Skip low coverage statistics.");
+$parser->addFlag("use_deepsomatic", "Use DeepSomatic for somatic variant calling.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 
 //default cut-offs
@@ -156,8 +157,8 @@ if (in_array("vc", $steps))
 		}
 	}
 	
-	//Varscan2 calling
-	if (get_path("use_deepsomatic"))
+	//DeepSomatic calling
+	if ($use_deepsomatic)
 	{
 		$args = [];
 
@@ -181,6 +182,7 @@ if (in_array("vc", $steps))
 
 		$parser->execTool("Tools/vc_deepsomatic.php", implode(" ", $args));
 	}
+	//Varscan2 calling
 	else
 	{
 		$parser->execTool("Tools/vc_varscan2.php", "-bam $t_bam -out $variants -build " .$sys['build']. " -target ". $roi. " -name $t_id -min_af $min_af");

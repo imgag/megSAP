@@ -37,6 +37,7 @@ $parser->addFlag("skip_signatures", "Skip calculation of mutational signatures."
 $parser->addFlag("skip_HRD", "Skip calculation HRD.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("use_dragen", "Use Illumina dragen for somatic variant calling.");
+$parser->addFlag("use_deepsomatic", "Use DeepSomatic for somatic variant calling.");
 $parser->addFlag("validation", "Option used for analyzing validation samples. Ignores checks: flagging in NGSD, report config, correlation");
 //default cut-offs
 $parser->addFloat("min_correlation", "Minimum correlation for tumor/normal pair.", true, 0.8);
@@ -540,7 +541,7 @@ if (in_array("vc", $steps))
 		}
 		
 	}
-	elseif(get_path("use_deepsomatic"))
+	elseif($use_deepsomatic)
 	{
 		$args = [];
 

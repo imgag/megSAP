@@ -20,6 +20,20 @@ $parser->addEnum("caller", "The caller used to create the vcf files given in '-c
 $parser->addFlag("ignore_filters", "Ignores filter column entries.");
 extract($parser->parse($argv));
 
+//checks if the variant type matches
+function type_matches($type, $tag)
+{	
+	if ($type=="SNVs" && is_indel($tag)) return false;
+	if ($type=="InDels" && !is_indel($tag)) return false;
+	
+	return true;
+}
+
+function is_indel($tag)
+{
+	list($chr, $pos, $ref, $alt) = explode(" ", strtr($tag, ":>", "  "));
+	return strlen($ref) > 1 || strlen($alt) > 1;
+}
 
 //load VCF variants. 'Caller' argument can modify information loaded for different callers (af and depth) and the reference files (genotype)
 function load_vcf($filename, $roi, $caller)
@@ -84,6 +98,35 @@ function load_vcf($filename, $roi, $caller)
 		}
 	}
 	return $output;
+}
+
+//create a sorted list with all unique variants in the given lists
+function create_unique_variants_list($parser, $details_all)
+{
+	$vars_all = [];
+	$vcf = [];
+	$vcf[] = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
+	foreach($details_all as $name => $file_vars)
+	{
+		foreach($file_vars as $var => $result)
+		{
+			list($chr, $pos, $ref, $alt) = explode(" ", strtr($var, "-:>", "   "));
+			$vcf[] = $chr."\t".$pos."\t.\t".$ref."\t".$alt."\t100\tPASS\t";
+		}
+	}
+	$tmp = $parser->tempFile(".vcf");
+	file_put_contents($tmp, implode("\n", $vcf));
+	$tmp2 = $parser->tempFile(".vcf");
+	list($stdout) = $parser->execApptainer("ngs-bits", "VcfSort", "-in $tmp -out $tmp2 && sort --uniq $tmp2");
+	foreach($stdout as $line)
+	{
+		$line = trim($line);
+		if ($line=="" || $line[0]=="#") continue;
+		list($chr, $pos, $id, $ref, $alt) = explode("\t", $line);
+		$vars_all[] = "$chr:$pos $ref>$alt";
+	}
+	
+	return $vars_all;
 }
 
 //***** MAIN SCRIPT *****\\
