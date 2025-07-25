@@ -378,10 +378,10 @@ if ($is_somatic)
 //TODO add support for RNA?
 //create germline raw data (FASTQs + germline VCF)
 $n_bam = $info['ps_bam'];
-$n_fq1 = "{$folder}/files/{$tan_g}_normal_R1.fastq.gz";
-$n_fq2 = $is_lrgs ? "" : "{$folder}/files/{$tan_g}_normal_R2.fastq.gz";
-$n_vcf = "{$folder}/files/{$tan_g}_normal.vcf";
-$lrgs_bam = "{$folder}/files/{$tan_g}_normal.bam";
+$n_fq1 = "{$folder}/files/normal_R1.fastq.gz";
+$n_fq2 = $is_lrgs ? "" : "{$folder}/files/normal_R2.fastq.gz";
+$n_vcf = "{$folder}/files/normal.vcf";
+$lrgs_bam = "{$folder}/files/normal.bam";
 if ($is_lrgs && !file_exists($lrgs_bam)) //for lrGS we submit BAM: convert CRAM to BAM
 {
 	print "  generating BAM file for germline sample {$ps}...\n";
@@ -408,9 +408,9 @@ $files_to_submit = $is_lrgs ? [$lrgs_bam, $n_vcf] : [$n_fq1, $n_fq2, $n_vcf];
 if ($is_somatic)
 {
 	$t_bam = $info_t['ps_bam'];
-	$t_fq1 = "{$folder}/files/{$tan_g}_tumor_R1.fastq.gz";
-	$t_fq2 = "{$folder}/files/{$tan_g}_tumor_R2.fastq.gz";
-	$tn_vcf = "{$folder}/files/{$tan_g}_somatic.vcf";
+	$t_fq1 = "{$folder}/files/tumor_R1.fastq.gz";
+	$t_fq2 = "{$folder}/files/tumor_R2.fastq.gz";
+	$tn_vcf = "{$folder}/files/somatic.vcf";
 	if (!file_exists($t_fq1) || !file_exists($t_fq2))
 	{
 		print "  generating FASTQ files for tumor sample {$ps_t}...\n";
