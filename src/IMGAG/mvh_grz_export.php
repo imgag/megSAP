@@ -390,7 +390,7 @@ if ($is_lrgs && !file_exists($lrgs_bam)) //for lrGS we submit BAM: convert CRAM 
 if (!$is_lrgs && (!file_exists($n_fq1) || !file_exists($n_fq2)))
 {
 	print "  generating FASTQ files for germline sample {$ps}...\n";
-	$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$n_bam} -out1 {$n_fq1} -out2 {$n_fq2} -extend {$read_length}", [$n_bam], ["{$folder}/files/"]); //TODO remove extension when not needed anymore
+	$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$n_bam} -out1 {$n_fq1} -out2 {$n_fq2}", [$n_bam], ["{$folder}/files/"]);
 }
 if ($is_lrgs && !file_exists($n_fq1))
 {
@@ -414,7 +414,7 @@ if ($is_somatic)
 	if (!file_exists($t_fq1) || !file_exists($t_fq2))
 	{
 		print "  generating FASTQ files for tumor sample {$ps_t}...\n";
-		$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$t_bam} -out1 {$t_fq1} -out2 {$t_fq2} -extend {$read_length_t}", [$t_bam], ["{$folder}/files/"]); //TODO remove extension when not needed anymore
+		$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$t_bam} -out1 {$t_fq1} -out2 {$t_fq2}", [$t_bam], ["{$folder}/files/"]);
 	}
 	if (!file_exists($tn_vcf))
 	{
@@ -618,13 +618,19 @@ if ($active_consent_count>0)
 file_put_contents("{$folder}/metadata/metadata.json", json_encode($json, JSON_PRETTY_PRINT));
 
 
+//print grz-cli version info
+$grz_cli = "/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/bin/grz-cli";
+list($stdout) = exec2("{$grz_cli} --version");
+print "grz-cli version: ".trim(implode("", $stdout))."\n";
+print "\n";
+
 //validate the submission
 print "running grz-cli validate...\n";
 $output = [];
 $exit_code = null;
 $stdout = "{$folder}/logs/grz_cli_validate.stdout";
 $stderr = "{$folder}/logs/grz_cli_validate.stderr";
-exec2("/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/bin/grz-cli validate --submission-dir {$folder} > {$stdout} 2> {$stderr}", $output, $exit_code); //when using exec2 the process hangs indefinitely sometimes
+exec2("{$grz_cli} validate --submission-dir {$folder} > {$stdout} 2> {$stderr}", $output, $exit_code); //when using exec2 the process hangs indefinitely sometimes
 if ($exit_code!=0)
 {
 	trigger_error("grz-cli validate failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
@@ -637,7 +643,7 @@ $stdout = "{$folder}/logs/grz_cli_encrypt.stdout";
 $stderr = "{$folder}/logs/grz_cli_encrypt.stderr";
 $output = [];
 $exit_code = null;
-exec("/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/bin/grz-cli encrypt --submission-dir {$folder} --config-file {$config} > {$stdout} 2> {$stderr}", $output, $exit_code); //when using exec2 the process hangs indefinitely sometimes
+exec("{$grz_cli} encrypt --submission-dir {$folder} --config-file {$config} > {$stdout} 2> {$stderr}", $output, $exit_code); //when using exec2 the process hangs indefinitely sometimes
 if ($exit_code!=0)
 {
 	print_r($output);
@@ -650,7 +656,7 @@ $stdout = "{$folder}/logs/grz_cli_upload.stdout";
 $stderr = "{$folder}/logs/grz_cli_upload.stderr";
 $output = [];
 $exit_code = null;
-exec("/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/bin/grz-cli upload --submission-dir {$folder} --config-file {$config} > {$stdout} 2> {$stderr}", $output, $exit_code); //when using exec2 the process hangs indefinitely sometimes
+exec("{$grz_cli} upload --submission-dir {$folder} --config-file {$config} > {$stdout} 2> {$stderr}", $output, $exit_code); //when using exec2 the process hangs indefinitely sometimes
 if ($exit_code!=0)
 {
 	print_r($output);
