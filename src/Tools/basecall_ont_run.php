@@ -18,6 +18,8 @@ $parser->addFlag("queue_sample", "Queue analysis of the sample.");
 $parser->addFlag("skipped_only", "Use already basecalled BAMs and recall only skipped POD5s.");
 $parser->addFlag("copy_pod5", "Copy pod5 files to /tmp to reduce IO/network load.");
 $parser->addFlag("file_based_calling", "Call each POD5 file separately.");
+$parser->addOutfile("secondary_output", "Folder to store a (additional) copy of the basecalled files (e.g. for backup)", true);
+$parser->addFlag("rename_skip_folder", "Rename the 'pod5_skip' folder(s) after basecalling.");
 
 extract($parser->parse($argv));
 
@@ -69,8 +71,8 @@ if ($skipped_only)
 		$idx = random_int(0, count($bam_files));
 		$model = get_basecall_model($bam_files[$idx]);
 
-		if (starts_with($basecall_model, "hac") && !starts_with($model, "hac")) trigger_error("Run should be basecalled with high accuracy, but already basecalled BAMs are not!" , E_USER_ERROR);
-		if (starts_with($basecall_model, "sup") && !starts_with($model, "sup")) trigger_error("Run should be basecalled with super accuracy, but already basecalled BAMs are not!" , E_USER_ERROR);
+		if (str_contains($basecall_model, "hac") && !str_contains($model, "hac")) trigger_error("Run should be basecalled with high accuracy, but already basecalled BAMs are not!" , E_USER_ERROR);
+		if (str_contains($basecall_model, "sup") && !str_contains($model, "sup")) trigger_error("Run should be basecalled with super accuracy, but already basecalled BAMs are not!" , E_USER_ERROR);
 	}
 
 }
@@ -126,10 +128,17 @@ else
 }
 
 
-
-
 if ($skipped_only)
 {
+	if (isset($secondary_output) && ($secondary_output != ""))
+	{
+		//copy BAMs to secondary output
+		foreach ($bams_to_merge as $bam_file) 
+		{
+			$parser->copyFile($bam_file, $secondary_output);
+		}
+
+	}
 	//add already basecalled bams
 	list($stdout, $stderr, $ec) = $parser->exec("find", "{$run_dir}/*/bam_pass/*.bam -name '*.bam' -type f");
 
@@ -149,13 +158,31 @@ if (count($bams_to_merge) > 1)
 	
 	//copy output
 	$parser->copyFile($merged_bam, $out_bam);
+	if (isset($secondary_output) && ($secondary_output != "") && !$skipped_only)
+	{
+		$parser->copyFile($merged_bam, $secondary_output."/".basename($out_bam));
+	}
+
 }
 else
 {
 	//only copy necessary
 	$parser->copyFile($bams_to_merge[0], $out_bam);
+	if (isset($secondary_output) && ($secondary_output != "") && !$skipped_only)
+	{
+		$parser->copyFile($bams_to_merge[0], $secondary_output."/".basename($out_bam));
+	}
 }
 
+//move pod5_skip folder
+if ($skipped_only && $rename_skip_folder)
+{
+	$skip_folder = glob("{$run_dir}/*/pod5_skip", GLOB_ONLYDIR);
+	foreach ($skip_folder as $folder) 
+	{
+		$parser->moveFile($folder, $folder."_done");
+	}
+}
 
 
 //queue sample
