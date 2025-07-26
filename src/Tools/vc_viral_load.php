@@ -16,7 +16,6 @@ $parser->addOutfile("viral_cov", "Output file in TSV format.", false);
 
 $parser->addInfile("in_qcml", "Mapping statistics of input data in qcML format for relative coverage values.", true);
 $parser->addFlag("barcode_correction", "Run UMI-specific deduplication steps.");
-$parser->addFlag("no_sync", "Skip syncing viral genome to local data.");
 $parser->addStringArray("viral_chrs", "Viral chromosome names or region specifiers in original alignment, i.e. for HHV-4.", true, ["chrNC_007605"]);
 
 $parser->addString("build_viral", "Build name of viral references.", true, "somatic_viral");
@@ -34,9 +33,6 @@ if (file_exists($viral_genome) && !file_exists($viral_genome.".bwt.2bit.64"))
 {
 	$parser->execTool("Install/index_genome.php", "-in {$viral_genome}");
 }
-
-//copy genome to local data folder
-if (!$no_sync) $parser->execTool("Tools/data_setup.php", "-build {$build_viral}");
 
 //target file for viral sequences
 $viral_enrichment = get_path("data_folder") . "/enrichment/{$build_viral}.bed";
