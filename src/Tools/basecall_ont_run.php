@@ -18,7 +18,7 @@ $parser->addFlag("queue_sample", "Queue analysis of the sample.");
 $parser->addFlag("skipped_only", "Use already basecalled BAMs and recall only skipped POD5s.");
 $parser->addFlag("copy_pod5", "Copy pod5 files to /tmp to reduce IO/network load.");
 $parser->addFlag("file_based_calling", "Call each POD5 file separately.");
-$parser->addOutfile("secondary_output", "Folder to store a (additional) copy of the basecalled files (e.g. for backup)", true);
+$parser->addString("secondary_output", "Folder to store a (additional) copy of the basecalled files (e.g. for backup)", true);
 $parser->addFlag("rename_skip_folder", "Rename the 'pod5_skip' folder(s) after basecalling.");
 
 extract($parser->parse($argv));
@@ -43,6 +43,19 @@ else
 }
 //set ulimit
 exec2("ulimit -n 10000");
+
+//check secondary output
+if (isset($secondary_output) && ($secondary_output != ""))
+{
+	if (file_exists($secondary_output))
+	{
+		if (!is_dir($secondary_output)) trigger_error("Secondary output '{$secondary_output}' is not a directory!", E_USER_ERROR);
+	}
+	else
+	{
+		mkdir($secondary_output);
+	}
+}
 
 
 //find subdirectory in run directory
@@ -135,7 +148,7 @@ if ($skipped_only)
 		//copy BAMs to secondary output
 		foreach ($bams_to_merge as $bam_file) 
 		{
-			$parser->copyFile($bam_file, $secondary_output);
+			$parser->exec("cp", "{$bam_file} $secondary_output");
 		}
 
 	}
@@ -160,7 +173,7 @@ if (count($bams_to_merge) > 1)
 	$parser->copyFile($merged_bam, $out_bam);
 	if (isset($secondary_output) && ($secondary_output != "") && !$skipped_only)
 	{
-		$parser->copyFile($merged_bam, $secondary_output."/".basename($out_bam));
+		$parser->exec("cp", "{$merged_bam} $secondary_output");
 	}
 
 }
@@ -170,7 +183,7 @@ else
 	$parser->copyFile($bams_to_merge[0], $out_bam);
 	if (isset($secondary_output) && ($secondary_output != "") && !$skipped_only)
 	{
-		$parser->copyFile($bams_to_merge[0], $secondary_output."/".basename($out_bam));
+		$parser->exec("cp", $bams_to_merge[0]." $secondary_output");
 	}
 }
 

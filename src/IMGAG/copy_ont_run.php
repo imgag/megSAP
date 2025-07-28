@@ -159,7 +159,8 @@ function create_basecall_command($run_dir, $out_bam, $basecall_model, $min_qscor
 	if($queue_sample) $args[] = "-queue_sample";
 	if($skipped_only) $args[] = "-skipped_only";
 	$args[] = "-rename_skip_folder";
-
+	$args[] = "--log ".dirname($run_dir)."/basecall_ont_run_".basename($run_dir)."_".date("YmdHis").".log";
+	
 	return "php ".realpath(repository_basedir())."/src/Tools/basecall_ont_run.php ".implode(" ", $args);
 }
 
@@ -178,6 +179,7 @@ function create_gpu_qsub_cmd($cmd_to_queue, $working_directory, $job_name)
 	$sge_args[] = "-o ".get_path("gpu_log")."/$sge_logfile.out"; // stdout
 	$sge_args[] = "-q ".get_path("queues_gpu"); // define queue
 	$sge_args[] = "-N {$job_name}"; // set name
+	$sge_args[] = "-pe smp 2"; //set slots
 	$qsub_command_args = implode(" ", $sge_args)." ".$cmd_to_queue;
 
 	return array("qsub", $qsub_command_args);
@@ -185,6 +187,10 @@ function create_gpu_qsub_cmd($cmd_to_queue, $working_directory, $job_name)
 }
 
 /******** init ********/
+
+//create log file in output folder if none is provided
+if ($parser->getLogFile()=="") $parser->setLogFile(dirname($run_dir)."/copy_ont_run_".basename($run_dir)."_".date("YmdHis").".log");
+
 
 //absolute path
 $run_dir = realpath($run_dir);
