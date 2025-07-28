@@ -509,12 +509,6 @@ function array_subset($values /*, $index1, index 2, ...*/)
 	return $output;
 }
 
-///Returns an array with all elements of @p heystack that contain @p needle.
-function array_containing($haystack, $needle)
-{
-	return array_values(array_filter($haystack, function($var) use ($needle){ return strpos($var, $needle) !== false;}));
-}
-
 /*
 	@brief Loads a tab-separated file without newline characters, empty lines and comment lines.
 */
@@ -730,14 +724,20 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 	$apptainer_args = [];
 	$apptainer_args[] = "--no-mount home,cwd";
 	$apptainer_args[] = "--cleanenv";
-	if ($container=="samtools" || $container=="methylartist" || $container=="straglrOn") //samtools needs REF_CACHE to avoid re-initializing the reference cache inside the container every call: http://www.htslib.org/doc/samtools.html#ENVIRONMENT_VARIABLES
+
+	if ($container=="samtools" || $container=="methylartist" || $container=="straglrOn") //samtools (and methylartist, straglrOn) need REF_CACHE/REF_PATH to avoid re-initializing the reference cache inside the container every call: http://www.htslib.org/doc/samtools.html#ENVIRONMENT_VARIABLES, https://www.htslib.org/workflow/cram.html#The%20REF_PATH%20and%20REF_CACHE 
 	{
-		$apptainer_args[] = "--env REF_CACHE=".get_path("local_data")."/samtools_ref_cache/%2s/%2s/%s";
+		$ref_cache_folder = get_path("local_data")."/samtools_ref_cache/";
+		if (!file_exists($ref_cache_folder)) $ref_cache_folder = get_path("data_folder")."/genomes/samtools_ref_cache/";
+		$apptainer_args[] = "--env REF_CACHE={$ref_cache_folder}/%2s/%2s/%s";
+		$apptainer_args[] = "--env REF_PATH={$ref_cache_folder}/%2s/%2s/%s:http://www.ebi.ac.uk/ena/cram/md5/%s";
 	}
 
-	if ($container=="subread") //subread repair needs access to the cwd to save intermediate files. Therefore we set the cwd in the container to /tmp when executing it
+	if ($container=="subread") $apptainer_args[] = "--pwd=/tmp";
+
+	if ($container=="deepvariant-gpu") //to run a gpu supported apptainer container you need the --nv flag
 	{
-		$apptainer_args[] = "--pwd=/tmp";
+		$apptainer_args[] = "--nv";
 	}
 
 	//if ngs-bits container is executed the settings.ini is mounted into the container during execution 
@@ -914,12 +914,12 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 	//compose Apptainer command
 	$apptainer_command = "apptainer exec ".implode(" ", $apptainer_args)." {$container_path} {$command} {$parameters}";
 
-	if ($container=="deepvariant")
+	if ($container=="deepvariant" || $container=="deepvariant-gpu")
 	{
 		$apptainer_command = "TF_CPP_MIN_LOG_LEVEL=2 $apptainer_command";
 	}
 	
-	//if command only option is true, only the apptainer command is being return, without execution
+	//if command only option is true, only the apptainer command is being returned, without execution
 	if($command_only) 
 	{
 		$apptainer_command = "apptainer -q exec ".implode(" ", $apptainer_args)." {$container_path} {$command} {$parameters}";
@@ -949,7 +949,14 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 		trigger_error("Error while executing command: '$apptainer_command'\nCODE: $exit\nSTDOUT: ".$stdout."\nSTDERR: ".$stderr."\n", E_USER_ERROR);
 	}
 	
-	//return output
-	return array(explode("\n", nl_trim($stdout)), explode("\n", nl_trim($stderr)), $exit);
+	// Clean stderr by removing specific warning lines
+	$stderr_lines = explode("\n", nl_trim($stderr));
+	$filtered_stderr_lines = array_filter($stderr_lines, function($line) 
+	{
+		return stripos($line, "WARNING: Error changing the container working directory") === false;
+	});
+
+	// Return cleaned output
+	return array(explode("\n", nl_trim($stdout)), array_values($filtered_stderr_lines), $exit);
 }
 ?>

@@ -58,14 +58,8 @@ $method = "hetx";
 $args = "";
 $sys_roi = "";
 
-if (!isset($gender))
+if (db_is_enabled($db))
 {
-	if (! db_is_enabled("NGSD"))
-	{
-		trigger_error("Could not determine gender for processed sample '{$pid}': NGSD is not enabled.", E_USER_WARNING);
-		exit(0);
-	}
-	
 	//get sample info from DB
 	$db = DB::getInstance($db);
 	$ps_id = get_processed_sample_id($db, $pid, false);
@@ -75,7 +69,7 @@ if (!isset($gender))
 		exit(0);
 	}
 	$info = get_processed_sample_info($db, $pid);
-	$gender = $info['gender'];
+	if (!isset($gender)) $gender = $info['gender'];
 	$sys_type = $info['sys_type'];
 	$sys_roi = trim(realpath($info["sys_target"]));
 
@@ -110,7 +104,7 @@ if (!isset($gender))
 	else if ($sys_type=="lrGS")
 	{
 		$method = "hetx";
-		$args = "-include_single_end_reads";
+		$args = "-long_read";
 	}
 	else
 	{

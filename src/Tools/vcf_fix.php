@@ -175,10 +175,6 @@ while(!feof($h_in))
 {
 	$line = trim(fgets($h_in));
 	if ($line=="") continue;
-
-	//TODO: remove
-	//debug output
-
 	
 	//write headers
 	if (starts_with($line, "#"))

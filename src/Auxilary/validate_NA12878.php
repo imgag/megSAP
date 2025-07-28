@@ -15,6 +15,7 @@ $parser->addInfile("roi", "Target region of sequencing experiment (BED format)."
 $parser->addOutfile("stats", "Append statistics to this file.", false);
 //optional
 $parser->addString("name", "Name used in the 'stats' output. If unset, the 'vcf' file base name is used.", true);
+$parser->addString("child_id", "Set to childs processed sample ID when validating trio vcf to ensure the correct sample column is validated.", true, "");
 $parser->addInt("min_dp", "If set, only regions in the 'roi' with at least the given depth are evaluated.", true, 0);
 $parser->addInt("min_qual", "If set, only input variants with QUAL greater or equal to the given value are evaluated.", true, 5);
 $parser->addInt("max_indel", "Maximum indel size (larger indels are ignored). Disabled if set to 0.", true, 50);
@@ -24,19 +25,8 @@ $parser->addFlag("matches", "Do not only show variants that were missed (-), are
 $parser->addFlag("skip_depth_calculation", "Do not calculate depth of missed variants to speed up calculation.");
 extract($parser->parse($argv));
 
-//returns the base count of a BED file
-function get_bases($filename)
-{
-	global $parser;
-	
-	list($stdout) = $parser->execApptainer("ngs-bits", "BedInfo", "-in $filename", [$filename]);
-	$hits = array_containing($stdout, "Bases ");
-	$parts = explode(":", $hits[0]);
-	return trim($parts[1]);
-}
-
 //returns the variants of a VCF file in the given ROI
-function get_variants($vcf_gz, $roi, $max_indel, $min_qual, &$skipped)
+function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $child_id, &$skipped)
 {
 	global $parser;
 	global $genome;
@@ -52,13 +42,33 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, &$skipped)
 	//put together output
 	$output = array();	
 	$file = file($tmp);
+	$is_trio = false;
 	foreach($file as $line)
 	{
 		$line = trim($line);
+
+		if (starts_with(strtolower($line), "#chrom"))
+		{
+			$header = explode("\t", $line);
+			if (count($header) > 10) 
+			{
+				$is_trio = true;
+				$idx_child = array_search($child_id, $header);
+				if ($idx_child == false) trigger_error("Column for child ID '$child_id' could not be found in $vcf_gz.", E_USER_ERROR);
+			}
+		}
+
 		if ($line=="" || $line[0]=="#") continue;
 
 		//get variant infos
-		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = explode("\t", $line);
+		$columns = explode("\t", $line);
+		if ($is_trio)
+		{
+			list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format) = array_slice($columns, 0, 9);
+			$sample = $columns[$idx_child];
+		}
+		else list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = $columns;
+		
 		if (!starts_with($chr, "chr")) $chr = "chr".$chr;
 		
 		//skip variants from special variant calling in low mappabilty regions
@@ -174,7 +184,7 @@ if (!file_exists($giab_vcfgz)) trigger_error("GiaB {$ref_sample} VCF file missin
 
 //Target region base statistics
 print "##Target region     : $roi\n";
-$bases = get_bases($roi);
+$bases = bed_size($roi);
 print "##Bases             : $bases\n";
 //sort and merge $roi_hc after intersect - MH
 $roi_hc = $parser->tempFile(".bed");
@@ -183,7 +193,7 @@ $pipeline[] = array("", $parser->execApptainer("ngs-bits", "BedIntersect", "-in 
 $pipeline[] = array("", $parser->execApptainer("ngs-bits", "BedSort", "", [], [], true));
 $pipeline[] = array("", $parser->execApptainer("ngs-bits", "BedMerge", "-out $roi_hc", [], [], true));
 $parser->execPipeline($pipeline, "high-conf ROI");
-$bases_hc = get_bases($roi_hc);
+$bases_hc = bed_size($roi_hc);
 print "##High-conf bases   : $bases_hc (".number_format(100*$bases_hc/$bases, 2)."%)\n";
 $roi_used = $roi_hc;
 $bases_used = $bases_hc;
@@ -194,7 +204,7 @@ if ($min_dp>0)
 	$roi_high_dp = $parser->tempFile(".bed");
 	$parser->execApptainer("ngs-bits", "BedSubtract", "-in {$roi_hc} -in2 {$roi_low_dp} -out {$roi_high_dp}");
 	
-	$bases_high_dp = get_bases($roi_high_dp);
+	$bases_high_dp = bed_size($roi_high_dp);
 	print "##High-depth bases  : $bases_high_dp (".number_format(100*$bases_high_dp/$bases, 2)."%)\n";
 	
 	$roi_used = $roi_high_dp;
@@ -206,7 +216,7 @@ print "##\n";
 //get reference variants in ROI
 print "##Variant list      : $vcf\n";
 $skipped = [];
-$found = get_variants($vcf, $roi_used, $max_indel, $min_qual, $skipped);
+$found = get_variants($vcf, $roi_used, $max_indel, $min_qual, $child_id, $skipped);
 print "##Variants observed : ".count($found)."\n";
 foreach($skipped as $reason => $count)
 {
@@ -214,7 +224,7 @@ foreach($skipped as $reason => $count)
 	print "##  Skipped '{$reason}' variants: {$count}\n";
 }
 $skipped = [];
-$expected = get_variants($giab_vcfgz, $roi_used, $max_indel, 0, $skipped);
+$expected = get_variants($giab_vcfgz, $roi_used, $max_indel, 0, "", $skipped);
 print "##Variants expected : ".count($expected)."\n";
 foreach($skipped as $reason => $count)
 {
@@ -364,7 +374,7 @@ if ($min_qual>0) $options[] = "min_qual={$min_qual}";
 $options = implode(" ", $options);
 $date = strtr(date("Y-m-d H:i:s", filemtime($vcf)), "T", " ");
 $output = array();
-$output[] = "#name\toptions\tdate\taverage_depth\texpected_snvs\texpected_indels\tsnv_sensitivity\tsnv_ppv\tsnv_f1\tsnv_genotyping_accuracy\tindel_sensitivity\tindel_ppv\tindel_f1\tindel_genotyping_accuracy\tall_sensitivity\tall_ppv\tall_f1\tall_genotyping_accuracy";
+$output[] = "#name\toptions\tdate\taverage_depth\t20x percentage\texpected_snvs\texpected_indels\tsnv_sensitivity\tsnv_ppv\tsnv_f1\tsnv_genotyping_accuracy\tindel_sensitivity\tindel_ppv\tindel_f1\tindel_genotyping_accuracy\tall_sensitivity\tall_ppv\tall_f1\tall_genotyping_accuracy";
 if (file_exists($stats))
 {
 	foreach(file($stats) as $line)
@@ -374,8 +384,10 @@ if (file_exists($stats))
 		$output[] = $line;
 	}
 }
-$avg_depth = "n/a";
+
+//get QC metrics
 $qcml = dirname($bam)."/".basename2($bam)."_stats_map.qcML";
+$avg_depth = "n/a";
 if (file_exists($qcml))
 {
 	list($stdout) = exec2("grep 'QC:2000025' $qcml"); //Average sequencing depth in target region
@@ -385,9 +397,20 @@ if (file_exists($qcml))
 		$avg_depth = explode("\"", $part)[1];
 	}
 }
+$cov20x = "n/a";
+if (file_exists($qcml))
+{
+	list($stdout) = exec2("grep 'QC:2000027' $qcml"); //Average sequencing depth in target region
+	foreach(explode(" ", $stdout[0]) as $part)
+	{
+		if (!contains($part, "value")) continue;
+		$cov20x = explode("\"", $part)[1];
+	}
+}
+
 list($snv_exp, $snv_sens, $snv_ppv, $snv_geno, $snv_f1) = stats("SNVS", $expected, $var_diff);
 list($indel_exp, $indel_sens, $indel_ppv, $indel_geno, $indel_f1) = stats("INDELS", $expected, $var_diff);
 list($all_exp, $all_sens, $all_ppv, $all_geno, $all_f1) = stats(null, $expected, $var_diff);
-$output[] = implode("\t", [$name, $options, $date, $avg_depth, $snv_exp, $indel_exp, $snv_sens, $snv_ppv, $snv_f1, $snv_geno, $indel_sens, $indel_ppv, $indel_f1, $indel_geno, $all_sens, $all_f1, $all_ppv, $all_geno])."\n";
+$output[] = implode("\t", [$name, $options, $date, $avg_depth, $cov20x, $snv_exp, $indel_exp, $snv_sens, $snv_ppv, $snv_f1, $snv_geno, $indel_sens, $indel_ppv, $indel_f1, $indel_geno, $all_sens, $all_f1, $all_ppv, $all_geno])."\n";
 file_put_contents($stats, implode("\n", $output)."\n");
 ?>

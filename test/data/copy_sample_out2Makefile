@@ -1,4 +1,4 @@
-all: chmod import_runqc import_read_counts copy_SomaticAndTreatment_diagnostic queue_SomaticAndTreatment_diagnostic
+all: chmod import_runqc import_read_counts Sample_DX181280_01 Sample_DX181277_01 Sample_DX181278_01 Sample_DX181279_01 queue_somatic
 
 chmod:
 	chmod -R 775 Unaligned
@@ -9,27 +9,42 @@ import_runqc:
 import_read_counts:
 	php /mnt/storage2/megSAP/pipeline/src/IMGAG/import_sample_read_counts.php -stats Unaligned/Stats/Stats.json -db NGSD_TEST 
 
-copy_SomaticAndTreatment_diagnostic:
+create_project_folder:
 	mkdir -p /test/project/folder/
 	chmod 775 /test/project/folder/
+
+Sample_DX181280_01:
+	#copy
 	mv Unaligned/SomaticAndTreatment/Sample_DX181280_01/ /test/project/folder/
 	chmod -R 775 /test/project/folder/Sample_DX181280_01
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_DX181280_01
+	#queue
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181280_01 -args '-steps ma,db -somatic'
+
+Sample_DX181277_01:
+	#copy
 	mv Unaligned/SomaticAndTreatment/Sample_DX181277_01/ /test/project/folder/
 	chmod -R 775 /test/project/folder/Sample_DX181277_01
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_DX181277_01
+
+Sample_DX181278_01:
+	#copy
 	mv Unaligned/SomaticAndTreatment/Sample_DX181278_01/ /test/project/folder/
 	chmod -R 775 /test/project/folder/Sample_DX181278_01
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_DX181278_01
+	#queue
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181278_01 -args '-steps ma,db -somatic'
+
+Sample_DX181279_01:
+	#copy
 	mv Unaligned/SomaticAndTreatment/Sample_DX181279_01/ /test/project/folder/
 	chmod -R 775 /test/project/folder/Sample_DX181279_01
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_DX181279_01
-
-queue_SomaticAndTreatment_diagnostic:
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181280_01 -args '-steps ma,db -somatic'
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181277_01 -args '-steps ma,vc,cn,db -somatic'
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'somatic' -samples DX181280_01 DX181277_01 -info tumor normal
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181278_01 -args '-steps ma,db -somatic'
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'somatic' -samples DX181278_01 DX181277_01 -info tumor normal
+	#queue
 	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181279_01 -args '-steps ma,db -somatic'
+
+queue_somatic:
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181277_01 -args '-steps ma,vc,cn,sv,db -somatic'
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'somatic' -samples DX181280_01 DX181277_01 -info tumor normal -use_dragen
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'somatic' -samples DX181278_01 DX181277_01 -info tumor normal -use_dragen
 	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'somatic' -samples DX181279_01 -info tumor

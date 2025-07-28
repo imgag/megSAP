@@ -9,6 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 $parser = new ToolBase("copy_sample", "Creates a Makefile to copy de-multiplexed sample data to projects and queue data analysis.");
+//optional
 $parser->addString("samplesheet",  "Input samplesheet that was used to create the data folder. (Has to be located in the run folder.)", true, "SampleSheet_bcl2fastq.csv");
 $parser->addString("folder",  "Input data folder.", true, "Unaligned");
 $parser->addString("runinfo" ,"Illumina RunInfo.xml file. Necessary for checking metadata in NGSD",true, "RunInfo.xml");
@@ -16,12 +17,26 @@ $parser->addOutfile("out",  "Output Makefile. Default: 'Makefile'.", true);
 $parser->addFlag("high_priority", "Assign high priority to all queued samples.");
 $parser->addFlag("overwrite", "Do not prompt before overwriting FASTQ files.");
 $parser->addFlag("no_rename_r3", "Do not rename R2/R3 FASTQ files to index/R2.");
-$parser->addFlag("ignore_nsx_analysis", "Ignore NovaSeqX Analysis results.");
+
 $parser->addFlag("no_genlab", "Do not query GENLAB for metadata.");
 $parser->addFlag("ignore_analysis", "Use FASTQ files from BCLConvert.");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
-$parser->addInt("threads_ora", "Number of threads used to decompress ORA files during the copy.", true, 8);
+$parser->addInt("threads_ora", "Number of threads used to decompress ORA files during the copy.", true, 15);
 $parser->addFlag("test", "Run in test mode, e.g. set the pipeline path and project folder to a fixed value.");
+
+$parser->addFlag("use_dragen", "Use DRAGEN to analyze the data.");
+$parser->addFlag("no_dragen", "Do not use DRAGEN to analyze the data.");
+
+$parser->addFlag("merge_runs", "Automatically merge this run if a previous run was detected.");
+$parser->addFlag("skip_run_merging", "Do not merge this run with a previous run.");
+
+$parser->addFlag("manual_demux", "Ignore NovaSeqX Analysis results and use maunal demux.");
+$parser->addFlag("no_queuing", "Do not include queuing commands in the default target of the Makefile.");
+
+
+
+
+
 extract($parser->parse($argv));
 
 //check if GenLab is available
@@ -254,7 +269,7 @@ if($flowcell_id != $flowcell_id_ngsd) trigger_error("ERROR: FlowCell id from run
 //get instrument type
 $run_parameters_xml = $run_folder."/RunParameters.xml";
 if(!file_exists($run_parameters_xml)) trigger_error("ERROR: Required RunParameters.xml file is missing in the run folder!", E_USER_ERROR);
-$is_novaseq_x = is_novaseq_x_run($run_parameters_xml) && !$ignore_nsx_analysis;
+$is_novaseq_x = is_novaseq_x_run($run_parameters_xml) && !$manual_demux;
 
 //change default data folder for NovaSeqX 
 if($is_novaseq_x && ($folder=="Unaligned")) 
@@ -271,11 +286,29 @@ if(! $is_novaseq_x && !file_exists("Fq") && !check_number_of_lanes($runinfo,$sam
 	trigger_error("***!!!WARNING!!!***\nCould not verify number of lanes used for Demultiplexing and actually used on Sequencer. Please check manually!", E_USER_WARNING);
 }
 
+
+
+//get analysis options
+
+//DRAGEN:
+if ($use_dragen && $no_dragen) trigger_error("Cannot use and not use DRAGEN!", E_USER_ERROR);
+if (($use_dragen == false) && ($no_dragen == false) && (get_path("queues_dragen", false)!=""))
+{
+	// ask if DRAGEN should be used
+	echo "Should the genome samples on this run mapped with DRAGEN mapping? (y/n)?\n";
+	if(trim(fgets(STDIN)) == "y") $use_dragen = true;
+}
+
+//merge former run
+if ($merge_runs && $skip_run_merging) trigger_error("Can either merge or skip merging runs!", E_USER_ERROR);
+$merge_former_run = "";
+if ($merge_runs) $merge_former_run = "y";
+else if ($skip_run_merging) $merge_former_run = "n";
+
+
 //get sample data
 if($is_novaseq_x) $sample_data = get_sample_data_from_db($db_conn, $run_name);
 else $sample_data = extract_sample_data($db_conn, $samplesheet);
-
-
 //import data from Genlab
 if (!$no_genlab)
 {
@@ -288,13 +321,11 @@ if (!$no_genlab)
 		if ($db=="NGSD_TEST") $args[] = "-test";
 		$parser->execApptainer("ngs-bits", "NGSDImportGenlab", implode(" ", $args));
 	}
+
+	//update sample data after importing sample relations
+	if($is_novaseq_x) $sample_data = get_sample_data_from_db($db_conn, $run_name);
+	else $sample_data = extract_sample_data($db_conn, $samplesheet);
 }
-
-
-//update sample data after importing sample relations
-if($is_novaseq_x) $sample_data = get_sample_data_from_db($db_conn, $run_name);
-else $sample_data = extract_sample_data($db_conn, $samplesheet);
-
 //extract tumor-normal pair infos
 $normal2tumor = array();
 $tumor2normal = array();
@@ -307,7 +338,7 @@ foreach($sample_data as $sample => $sample_infos)
 		$tumor2normal[$sample] = $normal_name;
 	}
 	//check run name (the same for all samples)
-	if($run_name != $sample_infos['run_name']) trigger_error("ERROR: Sequencing run doesn't match sample info ('".$sample_infos['run_name']."')");
+	if($run_name != $sample_infos['run_name']) trigger_error("Sequencing run doesn't match sample info ('".$sample_infos['run_name']."')", E_USER_ERROR);
 }
 $queued_normal_samples = [];
 
@@ -316,25 +347,22 @@ $queued_normal_samples = [];
 //Check for former run that contains more than 50% same samples and offer merging to user
 $former_run_name = "";
 $merge_files = array(); //contains merge commands, commands are inserted before queue
-$use_dragen = false; //parameter to enable DRAGEN mapping
-$skip_queuing = false; //parameter to skip queuing if run is first genome run
-$wgs_use_dragen_data = false; //parameter to use created Dragen data for analysis
 
 if($run_name != "")
 {
 	$former_run_name =  check_former_run($db_conn, $run_name);
 	if($former_run_name != "")
 	{
-		//skip user interaction on test runs:
-		$answer = "n";
-		if($db != "NGSD_TEST")
+		// if no option is set by cli -> ask
+		if ($merge_former_run == "")
 		{
 			echo "Former run '{$former_run_name}' detected. Merge (y/n)?\n";
-			$answer = trim(fgets(STDIN));
+			$merge_former_run = trim(fgets(STDIN));
 		}
 		
-		if($answer == "y")
+		if($merge_former_run == "y")
 		{
+			//get samples to merge
 			$old_samples = array();
 			foreach(get_processed_samples_from_run($db_conn, $former_run_name) as $ps)
 			{
@@ -356,64 +384,39 @@ if($run_name != "")
 			{
 				if(array_key_exists($current_key, $old_samples))
 				{
-					$merge_files[] = "\tphp {$repo_folder}/src/Tools/merge_samples.php -ps ".$old_samples[$current_key]." -into $current_ps";
+					$merge_files[$current_ps] = "\tphp {$repo_folder}/src/Tools/merge_samples.php -ps ".$old_samples[$current_key]." -into $current_ps";
 				}
 			}
-
-			// check if DRAGEN can be used
-			if (get_path("queues_dragen", false)!="")
-			{
-				// ask if DRAGEN should be used
-				echo "Should the genome samples on this run mapped with DRAGEN mapping? (y/n)?\n";
-				if(trim(fgets(STDIN)) == "y") $use_dragen = true;
-				
-			}
-
 		}
-		elseif($answer != "n")
+		elseif($merge_former_run != "n")
 		{
 			trigger_error("Please choose whether files from both runs shall be merged.", E_USER_ERROR);
 		}
 	}
 	else
 	{
-		// check if run is first genome run
-		$processed_samples = get_processed_samples_from_run($db_conn, $run_name);
-		$n_samples = count($processed_samples);
-		$n_genomes = 0;
-		foreach($processed_samples as $ps)
+		//skip first run only on NovaSeq6000 
+		if (!$is_novaseq_x && !$no_queuing)
 		{
-			$processed_sample_info = get_processed_sample_info($db_conn,$ps);
-			if ($processed_sample_info['sys_type'] == "WGS") $n_genomes++;
-		}
-
-		if (($n_genomes/$n_samples) >= 0.9)
-		{
-			// ask if queuing should be skipped
-			echo "The current run seems to be the first of a genome run. Should the queuing of the samples be skipped? (y/n)?\n";
-			if(trim(fgets(STDIN)) == "y")
+			// check if run is first genome run
+			$processed_samples = get_processed_samples_from_run($db_conn, $run_name);
+			$n_samples = count($processed_samples);
+			$n_genomes = 0;
+			foreach($processed_samples as $ps)
 			{
-				$skip_queuing = true;
-			} 
-			else
-			{
-				if ($is_novaseq_x)
-				{
-					echo "The genomes are already analyzed on the device. Should this data be used for the analysis? (y/n)?\n";
-					if(trim(fgets(STDIN)) == "y") $wgs_use_dragen_data = true;
-				}
-				else
-				{
-					// ask if DRAGEN should be used
-					echo "Should the genome samples on this run mapped with DRAGEN mapping? (y/n)?\n";
-					if(trim(fgets(STDIN)) == "y") $use_dragen = true;
-				}
+				$processed_sample_info = get_processed_sample_info($db_conn,$ps);
+				if ($processed_sample_info['sys_type'] == "WGS") $n_genomes++;
 			}
-		}
-		elseif (($n_genomes > 0) && $is_novaseq_x)
-		{
-			echo "There are genomes on this run which are already analyzed on the device. Should this data be used for the analysis? (y/n)?\n";
-			if(trim(fgets(STDIN)) == "y") $wgs_use_dragen_data = true;
+
+			if (($n_genomes/$n_samples) >= 0.9)
+			{
+				// ask if queuing should be skipped
+				echo "The current run seems to be the first of a genome run. Should the queuing of the samples be skipped? (y/n)?\n";
+				if(trim(fgets(STDIN)) == "y")
+				{
+					$no_queuing = true;
+				} 
+			}
 		}
 
 	}
@@ -424,30 +427,29 @@ else
 }
 
 //get analysis folder
+$nsx_analysis_done = false;
 if ($is_novaseq_x)
 {
 	$analyses = array_filter(glob($folder."/[0-9]"), 'is_dir');
 	if(count($analyses) == 0) trigger_error("ERROR: No analysis found!", E_USER_ERROR);
 	if(count($analyses) > 1) trigger_error("ERROR: Multiple analyses found!", E_USER_ERROR);
 	$analysis_id = $analyses[0];
+
+	//check for analysis
+	$nsx_analysis_done = file_exists($analysis_id."/Data/DragenEnrichment/") || file_exists($analysis_id."/Data/DragenGermline/");
 }
 
+
+
 //parse input
+$create_project_folder = array();
 $target_to_copylines = array();
 $target_to_queuelines = array();
 $queue_trios = array();
+$queue_somatic = array();
 $project_to_fastqonly_samples = array();
 $sample_to_newlocation = array();
 $md5sum_buffer = array();
-
-if (get_path("queues_dragen", false)!="" && !$test)
-{
-	$use_dragen_somatic = null;
-}
-else
-{
-	$use_dragen_somatic = false;
-}
 
 //get all processed samples which are scheduled for resequencing:
 $samples_to_resequence = array();
@@ -481,9 +483,7 @@ foreach($sample_data as $sample => $sample_infos)
 			//merge sample
 			$merge_sample = true;
 			$source_ps_name = processed_sample_name($db_conn, $samples_to_resequence[$key]);
-			//create function name for first sample
-			if (count($merge_files) == 0) $merge_files[] = "merge:";
-			$merge_files[] = "\tphp {$repo_folder}/src/Tools/merge_samples.php -ps {$source_ps_name} -into {$sample}";
+			$merge_files[$sample] = "\tphp {$repo_folder}/src/Tools/merge_samples.php -ps {$source_ps_name} -into {$sample}";
 			$merge_notice[] = "\t{$source_ps_name} => {$sample}";
 		}
 	}
@@ -550,15 +550,11 @@ foreach($sample_data as $sample => $sample_infos)
 	$sample_to_newlocation[$sample] = $sample_folder;
 	
 	//copy_target line if first sample of project in run, mkdir and chmod if first sample of project at all
-	$tag = $project_name."_".$project_type;
-	if (!isset($target_to_copylines[$tag]))
+	$tag = $sample;
+	if (!is_dir($project_folder)) 
 	{
-		$target_to_copylines[$tag] = array("copy_{$tag}:");
-		if (!is_dir($project_folder)) 
-		{
-			$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}";
-			$target_to_copylines[$tag][] = "\tchmod 775 {$project_folder}";
-		}
+		$create_project_folder[] = "\tmkdir -p {$project_folder}";
+		$create_project_folder[] = "\tchmod 775 {$project_folder}";
 	}
 	
 	//build copy line
@@ -566,7 +562,7 @@ foreach($sample_data as $sample => $sample_infos)
 	{
 		if(($sys_type == "RNA") || ($sys_type == "Panel") || ($sys_type == "cfDNA (patient-specific)") || ($sys_type == "cfDNA") || ($sys_type == "WGS (shallow)"))
 		{
-			//only copy FastQ files
+			//only copy FastQ files, analyzed by megSAP
 			//get FastQs
 			$fastq_files = glob($fastq_folder."/{$sample}*_L00[0-9]_R[123]_00[0-9].fastq.{gz,ora}", GLOB_BRACE);
 			if($umi_type == "n/a" || $umi_type == "IDT-UDI-UMI" || $umi_type == "IDT-xGen-Prism" || $umi_type == "Twist")
@@ -609,10 +605,22 @@ foreach($sample_data as $sample => $sample_infos)
 		}
 		else if(($sys_type == "WGS") || ($sys_type == "WES"))
 		{
-			//WES/WGS sample ==> use full analysis (ma,vc,sv)
+			//create folder
+			$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}";
 
-			//if not manually set, ignore analysis of WGS samples since the WGS samples will be mapped by the DRAGEN server
-			if($sys_type != "WGS" || $wgs_use_dragen_data)
+			//get FastQs
+			$fastq_files = glob($fastq_folder."/{$sample}*_L00[0-9]_R[12]_00[0-9].fastq.{gz,ora}", GLOB_BRACE);
+			//check count
+			if(count($fastq_files) != count($sample_infos["ps_lanes"]) * 2) 
+			{
+				trigger_error("ERROR: Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found in {$fastq_folder}: ".count($fastq_files).")", E_USER_ERROR);
+			}
+
+			$move_cmd = "mv ".($overwrite ? "-f " : "");
+
+
+			//check & copy analyzed data
+			if ($nsx_analysis_done && !$merge_sample)
 			{
 				//check if all files are present
 				$tmp = glob("$old_location/{$sample}/*_seq");
@@ -664,24 +672,9 @@ foreach($sample_data as $sample => $sample_infos)
 				$md5sum_buffer[] = get_md5_line($source_gvcf_file);
 				// $md5sum_buffer[] = get_md5_line($source_sv_vcf_file);
 				if (file_exists($source_cnv_vcf_file)) $md5sum_buffer[] = get_md5_line($source_cnv_vcf_file);
-			}
-			
 
-			//get FastQs
-			$fastq_files = glob($fastq_folder."/{$sample}*_L00[0-9]_R[12]_00[0-9].fastq.{gz,ora}", GLOB_BRACE);
-			//check count
-			if(count($fastq_files) != count($sample_infos["ps_lanes"]) * 2) 
-			{
-				trigger_error("ERROR: Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found in {$fastq_folder}: ".count($fastq_files).")", E_USER_ERROR);
-			}
 
-			$move_cmd = "mv ".($overwrite ? "-f " : "");
-			
-			//create folder
-			$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}";
-			//ignore analysis of WGS samples for 2-run WGS samples
-			if(!$merge_sample && ($sys_type != "WGS" || $wgs_use_dragen_data))
-			{
+				//*********************** copy analyzed data *********************************************
 				$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}/dragen_variant_calls";
 				//copy logs
 				$target_to_copylines[$tag][] = "\tcp -r {$log_folder} {$project_folder}Sample_{$sample}/dragen_variant_calls/";
@@ -720,12 +713,13 @@ foreach($sample_data as $sample => $sample_infos)
 					}
 				}
 			}
+			
 
-			if(($sample_infos["preserve_fastqs"] == 1) || ($project_analysis=="fastq") || ($sys_type == "WGS" && !$wgs_use_dragen_data) || $merge_sample)
+			if(($sample_infos["preserve_fastqs"] == 1) || ($project_analysis=="fastq") || !$nsx_analysis_done || $merge_sample)
 			{
 				foreach ($fastq_files as $fastq_file) 
 				{
-					if(ends_with(strtolower($fastq_file), ".fastq.ora"))
+					if(ends_with(strtolower($fastq_file), ".fastq.ora") && !$use_dragen && !$merge_sample)
 					{
 						//convert to fastq.gz
 						$orad_files = [
@@ -798,25 +792,19 @@ foreach($sample_data as $sample => $sample_infos)
 
 	if($project_analysis!="fastq" && !$is_normal_with_tumor) //if more than FASTQ creation should be done for samples's project
 	{	
-		//build target lines for analysis using Sungrid Engine's queues if first sample of project on this run
-		if (!array_key_exists($tag, $target_to_queuelines))
-		{
-			$target_to_queuelines[$tag] = array("queue_{$tag}:");
-		}
-		
 		//queue analysis
 		if ($sample_is_tumor && $sys_type!="RNA")
 		{
 			//queue tumor, with somatic specific options
 			//add variant calling for diagnostic normal samples
 			$outputline = "php {$repo_folder}/src/Tools/db_queue_analysis.php -type 'single sample' -samples {$sample}";
-			if($is_novaseq_x)
+			if($is_novaseq_x && $nsx_analysis_done)
 			{
-				$outputline .= " -args '-steps db -somatic'\n\t";
+				$outputline .= " -args '-steps db -somatic'";
 			} 
 			else 
 			{
-				$outputline .= " -args '-steps ma,db -somatic'\n\t";
+				$outputline .= " -args '-steps ma,db -somatic'";
 			}
 			if (isset($tumor2normal[$sample]))
 			{
@@ -824,16 +812,7 @@ foreach($sample_data as $sample => $sample_infos)
 				//queue normal if on same run, with somatic specific options
 				if (!in_array($normal, $queued_normal_samples)  && array_key_exists($normal,$sample_data) && $sample_data[$normal]["run_name"] === $sample_infos["run_name"])
 				{
-					$steps = ($is_novaseq_x ? "vc,cn,db" : "ma,vc,cn,db");
-					$outputline .= "php {$repo_folder}/src/Tools/db_queue_analysis.php -type 'single sample' -samples {$normal}";
-					if($is_novaseq_x)
-					{
-						$outputline .= " -args '-steps {$steps} -use_dragen -somatic'\n\t";
-					}
-					else
-					{
-						$outputline .= " -args '-steps {$steps} -somatic'\n\t";
-					}
+					$queue_somatic[] = "\tphp {$repo_folder}/src/Tools/db_queue_analysis.php -type 'single sample' -samples {$normal} -args '-steps ".(!$nsx_analysis_done ? "ma,": "")."vc,cn,sv,db -somatic'";
 					//track that normal sample is queued
 					$queued_normal_samples[] = $normal;
 				}
@@ -843,22 +822,7 @@ foreach($sample_data as $sample => $sample_infos)
 				//queue somatic analysis: only if normal sample is included in this run or its folder exists
 				if(in_array($normal,$queued_normal_samples) || is_dir($n_dir))
 				{
-					if ($use_dragen_somatic === null)
-					{
-						echo "Somatic anylsis about to be started. Use dragen for somatic analysis on this run (y/n)?\n";
-						$answer = trim(fgets(STDIN));
-						
-						$use_dragen_somatic = ($answer == "y");
-					}
-					
-					if ($use_dragen_somatic)
-					{
-						$outputline .= "php {$repo_folder}/src/Tools/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal -args '-use_dragen'";
-					}
-					else
-					{
-						$outputline .= "php {$repo_folder}/src/Tools/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal";
-					}
+					$queue_somatic[] = "\tphp {$repo_folder}/src/Tools/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal ".($use_dragen ? "-use_dragen": "");
 				}
 				else
 				{
@@ -868,37 +832,40 @@ foreach($sample_data as $sample => $sample_infos)
 			else
 			{
 				//queue tumor-only somatic analysis
-				$outputline .= "php {$repo_folder}/src/Tools/db_queue_analysis.php -type 'somatic' -samples {$sample} -info tumor";
+				$queue_somatic[] = "\tphp {$repo_folder}/src/Tools/db_queue_analysis.php -type 'somatic' -samples {$sample} -info tumor";
 			}
 		}
 		else
 		{
-			//TODO: check if sample will be merged => redo (mapping & ) VC
+			//default analysis
 			$outputline = "php {$repo_folder}/src/Tools/db_queue_analysis.php -type 'single sample' -samples {$sample}";
 
-			// add DRAGEN parameter
-			if ($use_dragen && !$is_novaseq_x)
-			{
-				$processed_sample_info = get_processed_sample_info($db_conn,$sample);
-				if ($processed_sample_info['sys_type'] == "WGS") $args[] = "-use_dragen -no_abra";
-			}
-
 			//determine analysis steps from project
+			$args = [];
 			if ($project_analysis=="mapping")
 			{
-				$args[] = (($is_novaseq_x && ($sys_type != "RNA") && ($sys_type != "cfDNA (patient-specific)") && ($sys_type != "cfDNA") && ($sys_type != "WGS (shallow)") && ($sys_type != "Panel") && !$merge_sample) ? "-steps db -use_dragen" : "-steps ma,db");
+				if ($nsx_analysis_done && (($sys_type == "WGS") || ($sys_type == "WES") && !$merge_sample)) $args[] = "-steps db"; //mapping already done on device
+				else $args[] = "-steps ma,db";
 			}
-			if ($project_analysis=="variants")
+			else if ($project_analysis=="variants")
 			{
-				//no steps parameter > use all default steps
-				if($is_novaseq_x && ($sys_type != "RNA") && ($sys_type != "cfDNA (patient-specific)") && ($sys_type != "cfDNA") && ($sys_type != "WGS (shallow)") && ($sys_type != "Panel")) // do  complete analysis for RNA/cfDNA samples 
+				if (($sys_type == "WGS") || ($sys_type == "WES"))
 				{
-					//do mapping for WGS samples
-					if (($sys_type == "WGS" && !$wgs_use_dragen_data) || $merge_sample) $args[] = "-steps ma,vc,cn,sv,re,db";
-					else $args[] = "-steps vc,cn,sv,re,db";
-					$args[] = "-use_dragen";
-					$args[] = "-no_abra";
+					if ($nsx_analysis_done && !$merge_sample)
+					{
+						$args[] = "-steps vc,cn,sv,re,db";
+					}
+					else
+					{
+						if ($use_dragen)
+						{
+							//perform DRAGEN analysis at front:
+							$outputline .= " -use_dragen";
+						}
+						//complete analysis => no '-steps' parameter 
+					}
 				}
+				//other sample types > use all default steps
 			}
 			
 			//check if trio needs to be queued
@@ -997,50 +964,136 @@ if ($is_novaseq_x)
 	}
 }
 
-
-//target(s) 'copy_...'
-foreach ($target_to_copylines as $target => $lines)
+//target 'create_project_folder'
+if (count($create_project_folder) > 0)
 {
-	$all_parts[] = "copy_{$target}";
-	
-	$output = array_merge($output, array_unique($lines));
+	$create_project_folder = array_unique($create_project_folder);
+	$output[] = "create_project_folder:";
+	foreach ($create_project_folder as $line) 
+	{
+		$output[] = $line;
+	}
 	$output[] = "";
 }
 
-//target 'merge'
-if(count($merge_files) > 0)
-{
-	$all_parts[] = "merge";
-	$output = array_merge($output, $merge_files);
-	$output[] = "";
 
-	//report merged samples
-	print(implode("\n", $merge_notice)."\n");
-}
+
+//group commands by sample
+$urgent_sample_buffer = array();
+$normal_sample_buffer = array();
+$skipped_queuing_commands = array();
+$urgent_samples = array();
+$normal_samples = array();
+
+foreach($sample_data as $sample => $sample_infos)
+{
+	$sample_target = array();
+
+	$sample_target[] = "Sample_{$sample}:";
+
+	//copy commands
+	$sample_target[] = "\t#copy";
+	$copy_cmds = $target_to_copylines[$sample];
+	if (count($copy_cmds) < 1) trigger_error("No data found to copy for Sample {$sample}!", E_USER_ERROR);
+	foreach ($copy_cmds as $line) 
+	{
+		$sample_target[] = $line;
+	}
+
+	//merge
+	if (isset($merge_files[$sample]))
+	{
+		$sample_target[] = "\t#merge";
+		$sample_target[] = $merge_files[$sample];
+	}
+
+	//queue
+	if (isset($target_to_queuelines[$sample]))
+	{
+		if (!$no_queuing)
+		{
+			$sample_target[] = "\t#queue";
+			foreach ($target_to_queuelines[$sample] as $line) 
+			{
+				$sample_target[] = $line;
+			}
+		}
+		else
+		{
+			foreach ($target_to_queuelines[$sample] as $line) 
+			{
+				$skipped_queuing_commands[] = $line;
+			}
+		}
+	}
+
+	$sample_target[] = "";
+
+	//divide samples in urgent and non urgent
+	if ($sample_infos['urgent']==1)	
+	{
+		$urgent_samples[] = "Sample_".$sample;
+		$urgent_sample_buffer[] = implode("\n", $sample_target);
+	}
+	else 
+	{
+		$normal_samples[] = "Sample_".$sample;
+		$normal_sample_buffer[] = implode("\n", $sample_target);
+	}
 	
-//target(s) 'queue_...'
-if (!$skip_queuing)
-{
-	foreach ($target_to_queuelines as $target => $lines)
-	{
-		$all_parts[] = "queue_{$target}";
+}
+//add to Makefile
+$all_parts = array_merge($all_parts, $urgent_samples, $normal_samples);
+$output = array_merge($output, $urgent_sample_buffer, $normal_sample_buffer);
+
+// //target(s) 'copy_...'
+// foreach ($target_to_copylines as $target => $lines)
+// {
+// 	$all_parts[] = "copy_{$target}";
+	
+// 	$output = array_merge($output, array_unique($lines));
+// 	$output[] = "";
+// }
+
+// //target 'merge'
+// if(count($merge_files) > 0)
+// {
+// 	$all_parts[] = "merge";
+// 	$output = array_merge($output, $merge_files);
+// 	$output[] = "";
+
+// 	//report merged samples
+// 	print(implode("\n", $merge_notice)."\n");
+// }
+	
+// //target(s) 'queue_...'
+// if (!$no_queuing)
+// {
+// 	foreach ($target_to_queuelines as $target => $lines)
+// 	{
+// 		$all_parts[] = "queue_{$target}";
 		
-		$output = array_merge($output, array_unique($lines));
-		$output[] = "";	
-	}
+// 		$output = array_merge($output, array_unique($lines));
+// 		$output[] = "";	
+// 	}
+// }
+
+//target 'queue_somatic'
+if (count($queue_somatic)>0)
+{
+	if (!$no_queuing) $all_parts[] = "queue_somatic";
+	
+	$output = array_merge($output, ["queue_somatic:"], array_unique($queue_somatic));
+	$output[] = "";	
 }
 
-
-//target(s) 'queue_trios'
-if (!$skip_queuing)
+//target 'queue_trios'
+if (count($queue_trios)>0)
 {
-	if (count($queue_trios)>0)
-	{
-		$all_parts[] = "queue_trios";
-		
-		$output = array_merge($output, ["queue_trios:"], array_unique($queue_trios));
-		$output[] = "";	
-	}
+	if (!$no_queuing) $all_parts[] = "queue_trios";
+	
+	$output = array_merge($output, ["queue_trios:"], array_unique($queue_trios));
+	$output[] = "";	
 }
 
 

@@ -23,7 +23,8 @@ apt-get install -y \
 	libcurl4-gnutls-dev \
 	libssl-dev \
 	libncurses5-dev \
-	libdeflate-dev
+	libdeflate-dev \
+	libdigest-perl-md5-perl
 
 # clone and build samtools
 mkdir -p /opt
@@ -53,8 +54,7 @@ apt-get remove -y \
 	libncurses5-dev \
 	libdeflate-dev \
 	autoconf \
-	gcc \
-	perl
+	gcc
 	
 apt-get autoremove -y && \
 apt-get clean && \

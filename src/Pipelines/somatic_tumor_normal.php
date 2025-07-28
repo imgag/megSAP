@@ -37,6 +37,7 @@ $parser->addFlag("skip_signatures", "Skip calculation of mutational signatures."
 $parser->addFlag("skip_HRD", "Skip calculation HRD.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("use_dragen", "Use Illumina dragen for somatic variant calling.");
+$parser->addFlag("validation", "Option used for analyzing validation samples. Ignores checks: flagging in NGSD, report config, correlation");
 //default cut-offs
 $parser->addFloat("min_correlation", "Minimum correlation for tumor/normal pair.", true, 0.8);
 $parser->addFloat("min_depth_t", "Tumor sample coverage cut-off for low coverage statistics.", true, 60);
@@ -105,6 +106,14 @@ if (in_array("vc", $steps)  && $use_dragen)
 
 
 ###################################### SCRIPT START ######################################
+if($validation)
+{
+	$skip_correlation = true;
+	$skip_contamination_check = true;
+	$skip_signatures = true;
+}
+
+
 if (!file_exists($out_folder))
 {
 	exec2("mkdir -p $out_folder");
@@ -183,7 +192,7 @@ if($roi != $n_sys["target_file"])
 }
 
 //Abort if calling is requested and somatic report config exists in NGSD
-if (db_is_enabled("NGSD"))
+if (db_is_enabled("NGSD") && !$validation)
 {
 	$db = DB::getInstance("NGSD", false);
 	list($config_id, $config_vars_exist, $config_cnvs_exist, $config_svs_exists) = somatic_report_config($db, $t_id, $n_id);
@@ -204,7 +213,7 @@ if (db_is_enabled("NGSD"))
 //sample similarity check
 $bams = array_filter([$t_bam, $n_bam]);
 
-if ($skip_correlation)
+if ($skip_correlation || $validation)
 {
 	trigger_error("Genotype correlation check has been disabled!", E_USER_NOTICE);
 }
@@ -244,7 +253,7 @@ if (!$skip_contamination_check)
 else trigger_error("Skipping check of female tumor sample $t_bam for contamination with male genomic DNA.", E_USER_WARNING);
 
 // Check samples are flagged correctly in NGSD
-if( db_is_enabled("NGSD"))
+if( db_is_enabled("NGSD") && !$validation)
 {
 	$db = DB::getInstance("NGSD");
 	
@@ -373,13 +382,14 @@ if (in_array("vc", $steps))
 		$args[] = "-build ".$sys['build'];
 		$args[] = "--log ".$dragen_log_file;
 		
-		$dragen_normal_vcf = $n_folder."/dragen_variant_calls/{$n_id}_dragen.vcf.gz";
-		if ($sys['type'] == "WGS" && is_file($dragen_normal_vcf))
-		{
+		//TODO again in Dragen 4.4 - Test sample: DNA2506018A1_01-DNA2504724A1_01 or DNA2505658A1_01-DNA2504802A1_01
+		// $dragen_normal_vcf = $n_folder."/dragen_variant_calls/{$n_id}_dragen.vcf.gz";
+		// if ($sys['type'] == "WGS" && is_file($dragen_normal_vcf))
+		// {
 			//calc dragen CNVs for WGS samples to compare results to clincnv
-			$args[] = "-out_cnv ".$dragen_output_cnvs;
-			$args[] = "-normal_snvs ".$dragen_normal_vcf;
-		}
+			// $args[] = "-out_cnv ".$dragen_output_cnvs;
+			// $args[] = "-normal_snvs ".$dragen_normal_vcf;
+		// }
 		
 		$args[] = "-n_bam ".$n_bam_dragen;
 		
@@ -617,10 +627,7 @@ if (in_array("vi", $steps))
 			"-in_qcml ".$t_bam_map_qc,
 			"-threads ".$threads
 		];
-		if ($dedup_used)
-		{
-			$vc_viral_args[] = "-barcode_correction";
-		}
+		if ($dedup_used) $vc_viral_args[] = "-barcode_correction";
 		$parser->execTool("Tools/vc_viral_load.php", implode(" ", $vc_viral_args));
 	}
 }

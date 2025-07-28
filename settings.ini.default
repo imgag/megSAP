@@ -38,7 +38,7 @@ container_methylartist = v1.3.1
 container_minimap2 = v2.28
 container_modkit = v0.3.2
 container_msisensor-pro = v1.2.0
-container_ngs-bits = 2025-03
+container_ngs-bits = 2025-05-20250529
 container_orad = v2.6.1
 container_paraphase = v3.2.1
 container_python = v3.10.9
@@ -62,7 +62,7 @@ container_vep = release-112.0
 container_whatshap = v2.3
 
 [folders]
-local_data = /tmp/local_ngs_data/
+local_data = /tmp/local_ngs_data_GRCh38/
 data_folder = [path]/data/
 container_folder = [path]/data/tools/apptainer_container/
 test_data_folder = [path]/data/test_data/

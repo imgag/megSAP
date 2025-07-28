@@ -159,10 +159,12 @@ $args_multisample = [
 	"-out_folder $out_folder",
 	"-system $system",
 	"-prefix trio",
+	"-no_sync", //already done if needed
 	"-threads $threads"
 	];
-if ($annotation_only) $args_multisample[] = "-annotation_only";
 	
+if ($annotation_only) $args_multisample[] = "-annotation_only";
+
 //check steps
 $is_wgs_shallow = $sys['type']=="WGS (shallow)";
 if ($is_wgs_shallow)
@@ -277,7 +279,7 @@ if (in_array("cn", $steps))
 		
 			fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data);
 
-			//add Contamination data
+			//contamination check (only necessary for shallow - for deep genomes we have the check in VariantQC)
 			if($lines = file($cnv_multi))
 			{
 				list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "TrioMaternalContamination", "-bam_m $m -bam_f $f -bam_c $c -build ".ngsbits_build($sys['build']), [$m, $f, $c]);

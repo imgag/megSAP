@@ -113,6 +113,7 @@ else if ($ps_type == "germline")
 
 //check if FASTQ files or BAM in target folder exist
 $target_fastq_files = glob($folder2."/*.fastq.gz");
+$target_ora_files = glob($folder2."/*.fastq.ora");
 $target_mod_unmapped_bam_files = glob($folder2."/*.mod.unmapped.bam");
 $target_bam_or_cram_methylation = false; //init to false to prevent 'Undefined variable'
 removeIndexFastqs($target_fastq_files);
@@ -122,6 +123,16 @@ $target_bam_or_cram = $info2['ps_bam'];
 if (count($target_fastq_files) > 0)
 {
 	//FASTQ files found -> nothing to do
+}
+elseif (count($target_ora_files) > 0)
+{
+	//convert ORA to FASTQ
+	foreach ($target_ora_files as $ora_file) 
+	{
+		$parser->execApptainer("orad", "orad", "--ora-reference ".get_path("data_folder")."/dbs/oradata/ -t 8 -P {$folder2}/ ".realpath($ora_file), [$ora_file, get_path("data_folder")."/dbs/oradata/"], [$folder2]);
+		//delete ORA
+		unlink($ora_file);
+	}
 }
 elseif (count($target_mod_unmapped_bam_files) > 0)
 {
@@ -140,10 +151,10 @@ elseif (file_exists($target_bam_or_cram))
 	{
 		$genome = getSampleGenome($into, $sys);
 
-		trigger_error("No FASTQ files found in Sample folder of '${into}'. Generating FASTQs from BAM/CRAM.", E_USER_WARNING);
+		trigger_error("No FASTQ files found in Sample folder of '{$into}'. Generating FASTQs from BAM/CRAM.", E_USER_WARNING);
 		// recreate FASTQ files from BAM
-		$in_fq_for = $folder2."/${into}_BamToFastq_R1_001.fastq.gz";
-		$in_fq_rev = $folder2."/${into}_BamToFastq_R2_001.fastq.gz";
+		$in_fq_for = $folder2."/{$into}_BamToFastq_R1_001.fastq.gz";
+		$in_fq_rev = $folder2."/{$into}_BamToFastq_R2_001.fastq.gz";
 		$tmp1 = $parser->tempFile(".fastq.gz");
 		$tmp2 = $parser->tempFile(".fastq.gz");
 		$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$target_bam_or_cram} -out1 $tmp1 -out2 $tmp2 -ref $genome", [$target_bam_or_cram, $genome]);
@@ -159,6 +170,7 @@ print "XY: ".$target_bam_or_cram."\n";
 
 //check if FASTQ files or BAM in source folder exist
 $source_fastq_files = glob($folder1."/*.fastq.gz");
+$source_ora_files = glob($folder1."/*.fastq.ora");
 //remove index 
 removeIndexFastqs($source_fastq_files);
 $source_mod_unmapped_bam_files = glob($folder1."/*.mod.unmapped.bam");
@@ -168,6 +180,16 @@ if (count($source_fastq_files) > 0)
 {
 	//FASTQ files found -> move them to the target folder
 	exec2("mv $folder1/*.fastq.gz $folder2/");
+}
+elseif (count($source_ora_files) > 0)
+{
+	//convert ORA to FASTQ
+	foreach ($source_ora_files as $ora_file) 
+	{
+		$parser->execApptainer("orad", "orad", "--ora-reference ".get_path("data_folder")."/dbs/oradata/ -t 8 -P {$folder2}/ ".realpath($ora_file), [$ora_file, get_path("data_folder")."/dbs/oradata/"], [$folder2]);
+		//delete ORA
+		unlink($ora_file);
+	}
 }
 elseif (count($source_mod_unmapped_bam_files) > 0)
 {
@@ -188,8 +210,8 @@ elseif (file_exists($source_bam_or_cram))
 
 		trigger_error("No FASTQ files found in Sample folder of '${ps}'. Generating FASTQs from BAM/CRAM.", E_USER_WARNING);
 		// recreate FASTQ files from BAM
-		$in_fq_for = $folder2."/${ps}_BamToFastq_R1_001.fastq.gz";
-		$in_fq_rev = $folder2."/${ps}_BamToFastq_R2_001.fastq.gz";
+		$in_fq_for = $folder2."/{$ps}_BamToFastq_R1_001.fastq.gz";
+		$in_fq_rev = $folder2."/{$ps}_BamToFastq_R2_001.fastq.gz";
 		$tmp1 = $parser->tempFile(".fastq.gz");
 		$tmp2 = $parser->tempFile(".fastq.gz");
 		$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$source_bam_or_cram} -out1 $tmp1 -out2 $tmp2 -ref $genome", [$source_bam_or_cram, $genome]);

@@ -156,11 +156,7 @@ print "input files: ".count($in)."\n";
 print "threshold: {$thres} of {$samples_processed} processed samples\n";
 print "threshold chrX: {$thres_x} of {$samples_processed_x} processed females\n";
 print "threshold chrY: {$thres_y} of {$samples_processed_y} processed males\n";
-$info_bed = $parser->tempFile("_info.bed");
-$parser->execApptainer("ngs-bits", "BedInfo", "-in $out -out $info_bed", [$out]);
-list($stdout, $stderr) =  exec2("grep Bases $info_bed");
-list(,$bases) = explode(":", $stdout[0]);
-print "low-coverage bases: ".number_format($bases, 0)."\n";
+print "low-coverage bases: ".number_format(bed_size($out), 0)."\n";
  
 
 ?>

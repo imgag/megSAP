@@ -34,9 +34,6 @@ if (file_exists($viral_genome) && !file_exists($viral_genome.".bwt.2bit.64"))
 	$parser->execTool("Install/index_genome.php", "-in {$viral_genome}");
 }
 
-//copy genome to local data folder
-$parser->execTool("Tools/data_setup.php", "-build {$build_viral}");
-
 //target file for viral sequences
 $viral_enrichment = get_path("data_folder") . "/enrichment/{$build_viral}.bed";
 

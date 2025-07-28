@@ -78,11 +78,10 @@ foreach($gvcfs as $gvcf)
 	$first_file = false;
 }
 
-
 //create jobs to split up input gVCFs
-$gvcf_file_prefix = array();
-$jobs_split_gvcf = array();
-$jobs_index_gvcf =array();
+$gvcf_file_prefix = [];
+$jobs_split_gvcf = [];
+$jobs_index_gvcf = [];
 foreach($gvcfs as $gvcf)
 {
 	$gvcf_file_prefix[$gvcf] = random_string(8)."_".basename($gvcf);
@@ -91,9 +90,12 @@ foreach($gvcfs as $gvcf)
 		$tmp_gvcf_file_name = $temp_folder."/".$gvcf_file_prefix[$gvcf]."_".$chr.".gvcf.gz";
 
 		$bgzip_command = $parser->execApptainer("htslib", "bgzip", "-c > {$tmp_gvcf_file_name}", [], [], true);
+		
 		$tabix_split = $parser->execApptainer("htslib", "tabix", "-h {$gvcf} {$chr}:1-{$length}", [$gvcf], [], true);
 
-		$jobs_split_gvcf[] = array("Split_gVCF_{$chr}", "$tabix_split | $bgzip_command");
+		//TODO check if the problem still exists with DRAGEN 4.4
+		//DRAGEN: some variant lines from targeted callers do not contain the <NON_REF> alt allele > GATK dies with the error 'The list of input alleles must contain <NON_REF> as an allele but that is not the case at position 173001; please use the Haplotype Caller with gVCF output to generate appropriate records' > we skip these lines
+		$jobs_split_gvcf[] = array("Split_gVCF_{$chr}", "$tabix_split | grep -v 'TARGETED;' | $bgzip_command");
 		$jobs_index_gvcf[] = array("Index_gVCF_{$chr}", $parser->execApptainer("htslib", "tabix", "-f -p vcf $tmp_gvcf_file_name", [], [], true));
 	}
 }
@@ -130,7 +132,6 @@ foreach($chr_regions as list($chr, $length))
 	{
 		$jobs_combine_gvcf[] = array($job_name, $command);
 	}
-	
 }
 
 // run genotype calling for every chromosome separately
@@ -155,7 +156,6 @@ foreach($chr_regions as list($chr, $length))
 }
 // run genotype calling for every chromosome separately
 $parser->execParallel($jobs_call_genotypes, $threads);
-
 
 //merge (g)vcfs to single file
 $chr_multisample_gvcfs = array();
@@ -186,9 +186,9 @@ $pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c > {$tmp_vc
 $parser->execPipeline($pipeline, "Merge VCF");
 
 //post-processing 
-$pipeline = array();
+$pipeline = [];
 //stream vcf.gz
-$pipeline[] = array("zcat", $tmp_vcf);
+$pipeline[] = ["zcat", $tmp_vcf];
 
 //filter variants according to variant quality>5
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-qual 5 -ref $genome", [$genome], [], true)];

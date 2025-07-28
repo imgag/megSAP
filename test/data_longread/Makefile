@@ -59,13 +59,13 @@ diff:
 
 # 2nd test with BAM input (default test)
 bam_analysis: clean
-	php ../link_test_data.php 23014LRa023L2_02.mod.unmapped.bam
+	php ../link_test_data.php 23014LRa023L2_02.mod.unmapped.bam . -copy
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps ma,vc,cn,sv,ph,re,me,pg,an -threads 4 --log analyze_longread_bam_all_$(TIMESTAMP).log
 	cut -f1-22 23014LRa023L2_02_var_structural_variants.bedpe > 23014LRa023L2_02_var_structural_variants_cut.bedpe
 
 # 3rd test with each step separate (not performed on default)
 bam_analysis_single_steps: clean
-	php ../link_test_data.php 23014LRa023L2_02.mod.unmapped.bam
+	php ../link_test_data.php 23014LRa023L2_02.mod.unmapped.bam . -copy
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps ma -threads 4 --log analyze_longread_bam_ma_$(TIMESTAMP).log
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps vc -threads 4 --log analyze_longread_bam_vc_$(TIMESTAMP).log
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps cn -threads 4 --log analyze_longread_bam_cn_$(TIMESTAMP).log
