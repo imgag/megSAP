@@ -14,10 +14,11 @@ $parser->addInfile("vcf", "Input VCF file.", false);
 $parser->addString("s_col", "Column name of sample.", false);
 //optional
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
+$parser->addFlag("test", "test flag to skip out_file existence check");
 extract($parser->parse($argv));
 
 //Abort if out_file exists to prevent interference with other jobs
-if(file_exists($out_file)) return;
+if(file_exists($out_file) && !$test) return;
 $genome = genome_fasta($build);
 
 $in_handle  = gzopen2($vcf,"r");
@@ -35,12 +36,16 @@ while(!feof($in_handle))
 	//variant caller
 	if(starts_with($line, "##source="))	
 	{
-		#++$source_lines;
+		++$source_lines;
 		$line = strtolower($line);
 		if(contains($line, "freebayes")) $var_caller = "freebayes";
 		if(contains($line, "strelka")) $var_caller = "strelka";
 		if(contains($line, "umivar2") ) $var_caller = "umivar2";
-		if(contains($line, "dragen") ) $var_caller = "dragen";
+		if(contains($line, "dragen"))
+		{
+			if ($var_caller != "dragen") $var_caller = "dragen";
+			else --$source_lines;
+		}
 		if(contains($line, "deepvariant") ) $var_caller = "deepvariant";
 
 	}
@@ -53,7 +58,7 @@ while(!feof($in_handle))
 		break;
 	}
 }
-#if($source_lines!=1) trigger_error("Found ".($source_lines==0 ? "no" : "several")." 'source' entries in VCF header (needed to identify the variant caller).", E_USER_ERROR);
+if($source_lines!=1) trigger_error("Found ".($source_lines==0 ? "no" : "several")." 'source' entries in VCF header (needed to identify the variant caller).", E_USER_ERROR);
 if($var_caller===false) trigger_error("Unknown variant caller from 'source' entry in VCF header.", E_USER_ERROR);
 if($sample_idx===false) trigger_error("Could not identify sample column '$s_col' in VCF header.", E_USER_ERROR);
 
