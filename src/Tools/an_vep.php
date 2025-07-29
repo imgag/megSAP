@@ -59,6 +59,7 @@ $fields = array("Allele", "Consequence", "Feature", "Feature_type", "DOMAINS", "
 
 $local_data = get_path("local_data");
 $vep_data_path = "{$local_data}/".basename(get_path("vep_data"))."/"; //the data is copied to the local data folder by 'data_setup' to speed up annotations (and prevent hanging annotation jobs)
+if (!file_exists($vep_data_path)) $vep_data_path = get_path("vep_data")."/cache/";
 $data_folder = get_path("data_folder");
 $genome = genome_fasta($build);
 
