@@ -355,6 +355,9 @@ else //bam output
 				$out_bam = "{$out_dir}{$sample}.unmapped.bam";
 				if ($modified_bases) $out_bam = "{$out_dir}{$sample}.mod.unmapped.bam";
 				if (file_exists($out_bam)) trigger_error("Output BAM file '{$out_bam}' already exists, aborting.", E_USER_ERROR);
+				//apply file access permissions
+				$parser->exec("chmod", "-R 775 {$out_dir}");
+				$parser->exec("chgrp", "-R f_ad_bi_l_medgen_access_storages {$out_dir}", true, false);
 
 				if ($contains_skipped_bases && $queue_basecalling)
 				{
@@ -395,8 +398,8 @@ else //bam output
 					$parser->execPipeline($pipeline, "merge unaligned BAM files");
 
 					//apply file access permissions
-					exec2("chmod -R 775 {$out_dir}");
-					exec2("chgrp -R f_ad_bi_l_medgen_access_storages {$out_dir}", false);
+					$parser->exec("chmod", "-R 775 {$out_dir}");
+					$parser->exec("chgrp", "-R f_ad_bi_l_medgen_access_storages {$out_dir}", true, false);
 					
 					//queue sample
 					if ($queue_sample) $parser->execTool("Tools/db_queue_analysis.php", "-samples {$sample} -type 'single sample'".(($is_test_db)?" -db NGSD_TEST -user unknown":""));
@@ -429,6 +432,9 @@ else //bam output
 				$out_bam = "{$out_dir}{$sample}.unmapped.bam";
 				if ($modified_bases) $out_bam = "{$out_dir}{$sample}.mod.unmapped.bam";
 				if (file_exists($out_bam)) trigger_error("Output BAM file '{$out_bam}' already exists, aborting.", E_USER_ERROR);
+				//apply file access permissions
+				$parser->exec("chmod", "-R 775 {$out_dir}");
+				$parser->exec("chgrp", "-R f_ad_bi_l_medgen_access_storages {$out_dir}", true, false);
 
 
 				//queue full re-basecalling

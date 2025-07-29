@@ -197,6 +197,10 @@ if ($skipped_only && $rename_skip_folder)
 	}
 }
 
+//set file permissions for output BAM
+$parser->exec("chmod", "775 {$out_bam}");
+$parser->exec("chgrp", "f_ad_bi_l_medgen_access_storages {$out_bam}", true, false);
+
 
 //queue sample
 if ($queue_sample)
