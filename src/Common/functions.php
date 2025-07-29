@@ -727,8 +727,10 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 
 	if ($container=="samtools" || $container=="methylartist" || $container=="straglrOn") //samtools (and methylartist, straglrOn) need REF_CACHE/REF_PATH to avoid re-initializing the reference cache inside the container every call: http://www.htslib.org/doc/samtools.html#ENVIRONMENT_VARIABLES, https://www.htslib.org/workflow/cram.html#The%20REF_PATH%20and%20REF_CACHE 
 	{
-		$apptainer_args[] = "--env REF_CACHE=".get_path("local_data")."/samtools_ref_cache/%2s/%2s/%s";
-		$apptainer_args[] = "--env REF_PATH=".get_path("local_data")."/samtools_ref_cache/%2s/%2s/%s:http://www.ebi.ac.uk/ena/cram/md5/%s";
+		$ref_cache_folder = get_path("local_data")."/samtools_ref_cache/";
+		if (!file_exists($ref_cache_folder)) $ref_cache_folder = get_path("data_folder")."/genomes/samtools_ref_cache/";
+		$apptainer_args[] = "--env REF_CACHE={$ref_cache_folder}/%2s/%2s/%s";
+		$apptainer_args[] = "--env REF_PATH={$ref_cache_folder}/%2s/%2s/%s:http://www.ebi.ac.uk/ena/cram/md5/%s";
 	}
 
 	if ($container=="subread") $apptainer_args[] = "--pwd=/tmp";

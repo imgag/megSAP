@@ -185,7 +185,8 @@ if (in_array("cn", $steps))
 		"-out_folder $out_folder",
 		"-system $system",
 		"-prefix {$prefix}",
-		"-threads $threads"
+		"-threads $threads",
+		"-no_sync" //already done if needed
 		];
 	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps cn", true);
 }
