@@ -28,7 +28,8 @@ apt-get install -y \
 	pkg-config \
 	libxml2 \
 	libxml2-dev \
-	gnupg
+	gnupg \
+	unzip
 	
 # MSSQL in QT
 curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft.gpg
