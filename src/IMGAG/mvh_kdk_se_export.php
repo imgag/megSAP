@@ -301,10 +301,26 @@ function json_hospitalization($se_data)
 	return $output;
 }
 
-function json_care_plan($se_data, $se_data_rep) //'carePlan' is misleading. This object captures the decisions of the second "Fallkonferenz".
+function json_care_plan_1($se_data) //This object models the decisions of the first "Fallkonferenz". i.e. if the patient is included into the Modellvorhaben and sequencing is performed
 {
 	global $no_seq;
 	
+	$output = [
+			"id"=>"ID_CARE_PLAN_1",
+			"patient" => json_patient_ref(),
+			"issuedOn" => xml_str($se_data->datum_fallkonferenz),
+			];
+			
+	if ($no_seq)
+	{
+		$output["noSequencingPerformedReason"] = [ "code" => convert_noseq_reason($se_data->fallkonferenz_grund)];
+	}
+	
+	return $output;	
+}
+
+function json_care_plan_2($se_data, $se_data_rep) //'carePlan' is misleading. This object captures the decisions of the second "Fallkonferenz".
+{	
 	//prepare therapy recommendations
 	$therapy_recoms = [];
 	$num = 1;
@@ -384,7 +400,7 @@ function json_care_plan($se_data, $se_data_rep) //'carePlan' is misleading. This
 	if (count($clin_recoms)>1) trigger_error("More than one clinical management recommendation found! Only one is allowed in KDK-SE!", E_USER_ERROR);
 	
 	$output = [
-			"id"=>"ID_CARE_PLAN_1",
+			"id"=>"ID_CARE_PLAN_2",
 			"patient" => json_patient_ref(),
 			"issuedOn" => xml_str($se_data->klin_datum_fallkonferenz),
 			"therapyRecommendations" => $therapy_recoms,
@@ -409,10 +425,6 @@ function json_care_plan($se_data, $se_data_rep) //'carePlan' is misleading. This
 		$output["clinicalManagementRecommendation"] = $clin_recoms[0];
 	}
 	
-	if ($no_seq)
-	{
-		$output["noSequencingPerformedReason"] = [ "code" => convert_noseq_reason($se_data->fallkonferenz_grund)];
-	}
 	//missing: notes
 	
 	return $output;	
@@ -473,9 +485,6 @@ $cm_data = get_cm_data($db_mvh, $case_id);
 $patient_id = xml_str($cm_data->case_id); //TODO pseudonymize via meDIC when clear what Entici instance to use
 if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}'!", E_USER_ERROR);
 
-//check if sequencing was performed
-$no_seq = xml_str($cm_data->seq_mode)=="Keine";
-
 //create export folder
 print "MVH DB id: {$case_id} (CM ID: {$cm_id} / CM Fallnummer: {$patient_id})\n";
 $folder = realpath($mvh_folder)."/kdk_se_export/{$case_id}/";
@@ -500,6 +509,9 @@ $se_data = get_se_data($db_mvh, $case_id);
 $se_data_rep = get_se_data($db_mvh, $case_id, true);
 $rc_data_json = get_rc_data_json($db_mvh, $case_id);
 
+//check if that patient was included into the Modellvorhaben, i.e. sequencing is/was performed
+$no_seq = !xml_bool($se_data->aufnahme_mvh, false);
+
 //create base JSON
 print "\n";
 print "### creating JSON ###\n";
@@ -511,13 +523,14 @@ $json = [
 	"diagnoses" => [ json_diagnoses($se_data, $se_data_rep) ],
 	"hpoTerms" => json_hpos($se_data, $se_data_rep),
 	"hospitalization" => json_hospitalization($se_data),
-	"carePlans" => [ json_care_plan($se_data, $se_data_rep) ],
+	"carePlans" => [ json_care_plan_1($se_data) ],
 	//TODO: followUps, therapies
 	];
-	
+
 //add optional parts to JSON
 if (!$no_seq)
 {
+	$json["carePlans"][] = json_care_plan_2($se_data, $se_data_rep);
 	$json["ngsReports"] = [ json_ngs_report($cm_data, $se_data, $info)];
 }
 $gmfcs = json_gmfcs($se_data_rep);
