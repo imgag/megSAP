@@ -993,7 +993,7 @@ function vcf_varscan2($format_col, $sample_col)
 	return array($sample_data[$i_dp], $af);
 }
 
-function vcf_freebayes($format_col, $sample_col)
+function vcf_freebayes($format_col, $sample_col, $pos)
 {
 	$g = explode(":",$format_col);
 	$index_DP = NULL;
@@ -1006,7 +1006,7 @@ function vcf_freebayes($format_col, $sample_col)
 		if($g[$i]=="GT")	$index_GT = $i;
 	}
 
-	if(is_null($index_DP) || is_null($index_AO) ||is_null($index_GT))	trigger_error("Invalid freebayes format; either field DP, GT or AO not available.",E_USER_ERROR);	
+	if(is_null($index_DP) || is_null($index_AO) ||is_null($index_GT))	trigger_error("Invalid freebayes format; either field DP, GT or AO not available for variant at position: '{$pos}'",E_USER_ERROR);	
 	
 	$s = explode(":",$sample_col);
 
@@ -1063,7 +1063,7 @@ function vcf_deepvariant($format_col, $sample_col)
 	return array($dp,$fq);
 }
 
-function vcf_dragen_var($format_col, $sample_col)
+function vcf_dragen_var($format_col, $sample_col, $pos)
 {
 	$g = explode(":",$format_col);
 	$index_DP = NULL;
@@ -1074,7 +1074,7 @@ function vcf_dragen_var($format_col, $sample_col)
 		if($g[$i]=="AF")	$index_AF = $i;
 	}
 
-	if(is_null($index_DP) || is_null($index_AF)) trigger_error("Invalid dragon vcf format; either field DP or AF not available.", E_USER_ERROR);	
+	if(is_null($index_DP) || is_null($index_AF)) trigger_error("Invalid dragon vcf format; either field DP or AF not available. Position: $pos", E_USER_ERROR);	
 	
 	$s = explode(":",$sample_col);	
 	

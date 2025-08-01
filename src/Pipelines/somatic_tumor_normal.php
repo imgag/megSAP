@@ -64,17 +64,14 @@ function complement_baf_folder($t_n_id_file,$baf_folder,&$db_conn, $build)
 		if(!file_exists("{$baf_folder}/{$nid}.tsv"))
 		{
 			$ninfo = get_processed_sample_info($db_conn,$nid);
-			$n_gsvar = $ninfo["ps_folder"] ."/{$nid}.GSvar";
-			$n_bam = $ninfo["ps_bam"];
-			$parser->execTool("Auxilary/create_baf_file.php", "-gsvar $n_gsvar -bam $n_bam -build $build -out_file {$baf_folder}/{$nid}.tsv");
+			$n_vcf = $ninfo["ps_folder"] ."/{$nid}_var.vcf.gz";
+			$parser->execTool("Auxilary/create_baf_file.php", "-vcf $n_vcf -build $build -out_folder {$baf_folder}");
 		}
 		if(!file_exists("{$baf_folder}/{$tid}.tsv"))
 		{
-			$ninfo = get_processed_sample_info($db_conn,$nid);
-			$n_gsvar = $ninfo["ps_folder"] ."/{$nid}.GSvar";
 			$tinfo = get_processed_sample_info($db_conn,$tid);
-			$t_bam = $tinfo["ps_bam"];
-			$parser->execTool("Auxilary/create_baf_file.php", "-gsvar $n_gsvar -bam $t_bam -build $build -out_file {$baf_folder}/{$tid}.tsv");
+			$t_vcf = $tinfo["ps_folder"] ."/{$tid}_var.vcf.gz";
+			$parser->execTool("Auxilary/create_baf_file.php", "-vcf $t_vcf -build $build -out_folder {$baf_folder}");
 		}
 	}
 }
@@ -792,9 +789,11 @@ if(in_array("cn",$steps))
 		file_put_contents($t_n_list_file,"{$t_id},{$n_id}\n", FILE_APPEND | LOCK_EX);
 	}
 
-	$baf_folder = get_path("data_folder")."/coverage/". $sys['name_short']."_bafs";
+	//TODO reanable real baf folder
+	#$baf_folder = get_path("data_folder")."/coverage/". $sys['name_short']."_bafs";
+	$baf_folder = "/mnt/storage2/users/ahiliuk1/issues/2025_04_08_create_baf_file/twistCustomExomeV2_all_DNA_bafs";
 	create_directory($baf_folder);
-	if(db_is_enabled("NGSD"))
+	if(db_is_enabled("NGSD") && !$validation)
 	{
 		$db_conn = DB::getInstance("NGSD");
 		//Create BAF file for each sample with the same processing system if not existing
@@ -802,8 +801,7 @@ if(in_array("cn",$steps))
 	}
 	else
 	{
-		$normal_gsvar = "{$n_basename}.GSvar";
-		$parser->execTool("Auxilary/create_baf_file.php", "-gsvar $normal_gsvar -bam $n_bam -build ".$sys['build']." -out_file {$baf_folder}/{$n_id}.tsv");
+		$parser->execTool("Auxilary/create_baf_file.php", "-vcf {$n_basename}_var.vcf.gz -build ".$sys['build']." -out_folder {$baf_folder}");
 	}
 
 	//Skip CNV Calling if there are less than specified tumor-normal coverage pairs
