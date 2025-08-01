@@ -587,29 +587,32 @@ function gsvar_to_vcf($build, $chr, $start, $ref, $obs)
 	$ref = trim($ref,"-");
 	$obs = trim($obs,"-");
 
-	// handle indels
+	//get extra base before indels from reference genome
 	$extra1 = "";
-	
-	// 1. simple insertion - add prefix
-	if(strlen($ref)==0 && strlen($obs)>=1)
+	if(strlen($ref)==0 && strlen($obs)>=1) // simple insertion - add prefix
 	{
 		$extra1 = get_ref_seq($build, $chr,$start,$start);
 	}
-
-	// 2. simple deletion - correct start and add prefix
-	if(strlen($ref)>=1 && strlen($obs)==0)
+	else if(strlen($ref)>=1 && strlen($obs)==0) // simple deletion - correct start and add prefix
 	{
 		$start -= 1;
 		$extra1 = get_ref_seq($build, $chr,$start,$start);
 	}
+	else if (strlen($ref)==strlen($obs)) //SNP or MNP - nothing to do
+	{
+		
+	}
+	else if(strlen($ref)>1 || strlen($obs)>1) // complex indel - correct start and add prefix
+	{
+		$start -= 1;
+		$extra1 = get_ref_seq($build, $chr,$start, $start);
+	}
 
-	// 3. complex indel or SNP > nothing to do
-	
 	// combine all information
 	$ref = strtoupper($extra1.$ref);
 	$obs = strtoupper($extra1.$obs);
 	
-	return array($chr,$start,$ref,$obs);
+	return array($chr, $start, $ref, $obs);
 }
 
 function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false, $include_test_projects = false, $include_ffpe = false)
