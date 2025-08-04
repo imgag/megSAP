@@ -99,7 +99,7 @@
 	Demultiplexing is done on the instrument already. We only have to check the output for additional MIDs:
 	
 	```bash
-	/mnt/storage2/megSAP/tools/Python-3.10.9_2024.11.06/bin/python /mnt/storage2/megSAP/pipeline/src/Tools/extract_demux_stats.py
+	python /mnt/storage2/megSAP/pipeline/src/Tools/extract_demux_stats.py
 	```
 	Check the output files `DemuxStats.html` and `DemuxStats.png` for additional MIDs.
 

@@ -221,6 +221,7 @@ check(gsvar_to_vcf("GRCh38", "chr12",25368401,"T","A"),array("chr12",25368401,"T
 check(gsvar_to_vcf("GRCh38", "chr12",25368401,"TC","AG"),array("chr12",25368401,"TC","AG"));
 check(gsvar_to_vcf("GRCh38", "chr12",25368401,"TC","-"),array("chr12",25368400,"TTC","T"));
 check(gsvar_to_vcf("GRCh38", "chr12",25368401,"-","AG"),array("chr12",25368401,"G","GAG"));
+check(gsvar_to_vcf("GRCh38", "chr18",50207290,"A","GTGTGTG"),array("chr18",50207289,"TA","TGTGTGTG"));	
 end_test();
 
 //##################################################################################
