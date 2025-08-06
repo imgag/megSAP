@@ -2,6 +2,8 @@
 
 Currently only Linux is supported!  
 
+*Note: Indexing the genome with bwa-mem2 requires about 60BG of RAM. Do not try to install megSAP on a machine with less than 64GB of RAM!*
+
 ## Base dependencies
 
 We are providing instructions for the latest Ubuntu LTS distibutions here.  
