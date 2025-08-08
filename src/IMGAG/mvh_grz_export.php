@@ -319,6 +319,8 @@ $patient_id = xml_str($cm_data->case_id); //TODO pseudonymize via meDIC when cle
 if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}'!", E_USER_ERROR);
 
 print "MVH DB id: {$case_id} (CM ID: {$cm_id} / CM Fallnummer: {$patient_id} / seq_mode: {$seq_mode} / network: {$network})\n";
+print "Export start: ".date('Y-m-d H:i:s')."\n";
+$time_start = microtime(true);
 
 //check germline processed sample is ok
 $ps = $db_mvh->getValue("SELECT ps FROM case_data WHERE id='{$case_id}'");
@@ -374,6 +376,9 @@ if ($is_somatic)
 	$read_length_t = get_read_length($ps_t, $sys_type);
 }
 
+print "base checks took ".time_readable(microtime(true)-$time_start)."\n";
+$time_start = microtime(true);
+
 //TODO add support for trio
 //TODO add support for RNA?
 //create germline raw data (FASTQs + germline VCF)
@@ -400,7 +405,7 @@ if ($is_lrgs && !file_exists($n_fq1))
 if (!file_exists($n_vcf))
 {
 	print "  generating VCF file for germline sample {$ps}...\n";
-	exec2("zcat ". $info['ps_folder']."/{$ps}_var.vcf.gz > {$n_vcf}");
+	exec2("zcat ". $info['ps_folder']."/{$ps}_var.vcf.gz > {$n_vcf}"); //TODO replace our sample ID
 }
 $files_to_submit = $is_lrgs ? [$lrgs_bam, $n_vcf] : [$n_fq1, $n_fq2, $n_vcf];
 
@@ -419,7 +424,7 @@ if ($is_somatic)
 	if (!file_exists($tn_vcf))
 	{
 		print "  generating VCF file for tumor sample {$ps_t}...\n";
-		exec2("zcat ". $info_t['ps_folder']."/../Somatic_{$ps_t}-{$ps}/{$ps_t}-{$ps}_var.vcf.gz > {$tn_vcf}");
+		exec2("zcat ". $info_t['ps_folder']."/../Somatic_{$ps_t}-{$ps}/{$ps_t}-{$ps}_var.vcf.gz > {$tn_vcf}"); //TODO replace our sample ID
 	}
 	$files_to_submit_t = [$t_fq1, $t_fq2, $tn_vcf];
 }
@@ -435,6 +440,9 @@ if ($roi!="")
 	}
 }
 
+print "creating upload files took ".time_readable(microtime(true)-$time_start)."\n";
+$time_start = microtime(true);
+
 //run QC pipeline for germline sample
 exec2("mkdir -p {$qc_folder}/checksums/");
 print "QC folder: {$qc_folder}\n";
@@ -445,6 +453,9 @@ if ($is_somatic)
 {
 	$grz_qc_t = run_qc_pipeline($ps_t, $t_bam, $t_fq1, $t_fq2, $roi, true);
 }
+
+print "running QC pipeline took ".time_readable(microtime(true)-$time_start)."\n";
+$time_start = microtime(true);
 
 //prepare file info for meta data JSON
 print "  calculating file checksums...\n";
@@ -617,6 +628,8 @@ if ($active_consent_count>0)
 //write meta data JSON
 file_put_contents("{$folder}/metadata/metadata.json", json_encode($json, JSON_PRETTY_PRINT));
 
+print "creating JSON took ".time_readable(microtime(true)-$time_start)."\n";
+$time_start = microtime(true);
 
 //print grz-cli version info
 $grz_cli = "/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/bin/grz-cli";
@@ -636,6 +649,9 @@ if ($exit_code!=0)
 	trigger_error("grz-cli validate failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
 }
 
+print "validating submission took ".time_readable(microtime(true)-$time_start)."\n";
+$time_start = microtime(true);
+
 //Encrypt the submission
 print "running grz-cli encrypt...\n";
 $config = "/mnt/storage2/MVH/config/config_".($test ? "test_phase" : "production").".txt";
@@ -649,6 +665,9 @@ if ($exit_code!=0)
 	print_r($output);
 	trigger_error("grz-cli encrypt failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
 }
+
+print "encrypting submission took ".time_readable(microtime(true)-$time_start)."\n";
+$time_start = microtime(true);
 
 //Upload the submission
 print "running grz-cli upload...\n";
@@ -667,6 +686,9 @@ if ($exit_code!=0)
 $submission_id = trim(implode("", file($stdout)));
 print "SUBMISSION ID GRZ: {$submission_id}\n";
 
+print "uploading submission took ".time_readable(microtime(true)-$time_start)."\n";
+$time_start = microtime(true);
+
 //if upload successfull, add 'Pruefbericht' to CM RedCap
 if (!$test)
 {
@@ -680,12 +702,14 @@ if (!$test)
 	exec2("rm -rf {$folder} {$qc_folder}");
 }
 
+print "cleanup took ".time_readable(microtime(true)-$time_start)."\n";
+$time_start = microtime(true);
+
 /*
 //TODO:
 - add tests when first final version is done
 	- KDK-SE: WGS, lrGS, no_seq
 	- GRZ: SE WGS, SE lrGS, SE WGS trio, T/N
-- remove gl_data from MVH database if not needed when production mode starts
  
 #################### DOCU: Installation of tools (for running this script without GRZ QC workflow) #####################
 

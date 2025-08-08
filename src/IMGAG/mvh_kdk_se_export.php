@@ -31,7 +31,7 @@ function json_metadata($cm_data, $tan_k, $rc_data_json)
 		$active_rcs[] = $entry;
 	}
 	if (count($active_rcs)>1) trigger_error("Several active consent resources found!", E_USER_ERROR);
-	//TODO THROW error if bc_signed is true and count($active_rcs)==0
+	if (count($active_rcs)==0 && xml_str($cm_data->bc_signed)=="Ja") trigger_error("No active consent resources found, but CM RedCap says that the consent was signed!", E_USER_ERROR);
 	
 	$te_date = xml_str($cm_data->datum_teilnahme);
 	
@@ -71,13 +71,13 @@ function json_metadata($cm_data, $tan_k, $rc_data_json)
 	return $output;
 }
 
-function json_patient($info, $cm_data, $se_data)
+function json_patient($cm_data, $se_data)
 {
 	global $patient_id;
 	
 	$output = [
 			"id" => $patient_id,
-			"gender" => [ "code" => convert_gender($info['gender'])],
+			"gender" => [ "code" => convert_gender(xml_str($se_data->gender))],
 			"birthDate" => xml_str($se_data->birthdate),
 			"healthInsurance" => [
 				"type" => [
@@ -397,7 +397,7 @@ function json_care_plan_2($se_data, $se_data_rep) //'carePlan' is misleading. Th
 		$clin_recoms[] = $entry;
 		++$num;
 	}
-	if (count($clin_recoms)>1) trigger_error("More than one clinical management recommendation found! Only one is allowed in KDK-SE!", E_USER_ERROR);
+	if (count($clin_recoms)>1) trigger_error("More than one clinical management recommendation found. Only one is allowed in KDK-SE. Using first clinical management recommendation!", E_USER_WARNING);
 	
 	$output = [
 			"id"=>"ID_CARE_PLAN_2",
@@ -420,7 +420,7 @@ function json_care_plan_2($se_data, $se_data_rep) //'carePlan' is misleading. Th
 		$output["reevaluationRecommended"] = $recom_reeval;
 	}
 	
-	if (count($clin_recoms)==1)
+	if (count($clin_recoms)>=1)
 	{
 		$output["clinicalManagementRecommendation"] = $clin_recoms[0];
 	}
@@ -432,7 +432,6 @@ function json_care_plan_2($se_data, $se_data_rep) //'carePlan' is misleading. Th
 
 function json_ngs_report($cm_data, $se_data, $info)
 {
-	global $is_lrgs;
 	global $db_ngsd;
 	
 	$output = [
@@ -440,7 +439,7 @@ function json_ngs_report($cm_data, $se_data, $info)
 			"patient" => json_patient_ref(),
 			"issuedOn" =>  xml_str($cm_data->gen_finding_date),
 			"type" => [
-				"code" => ($is_lrgs ? "genome-long-read" : "genome-short-read"),
+				"code" => ($info['sys_type']=="lrGS" ? "genome-long-read" : "genome-short-read"),
 				],
 			"sequencingInfo" =>[
 				"platform" => [
@@ -448,7 +447,7 @@ function json_ngs_report($cm_data, $se_data, $info)
 					],
 				"kit" => $info['sys_name']
 				],
-			"result" => [
+			"results" => [
 				]
 		];
 		
@@ -458,6 +457,10 @@ function json_ngs_report($cm_data, $se_data, $info)
 	{
 		$output["conclusion"] = ["code"=>$outcome];
 	}
+	
+	//TODO results small variants
+	//TODO results CNVs
+	//TODO results SVs
 	
 	//missing: autozygosity (there is no definition how to calculate it)
 	return $output;
@@ -474,6 +477,7 @@ extract($parser->parse($argv));
 $db_mvh = DB::getInstance("MVH");
 $db_ngsd = DB::getInstance("NGSD");
 $mvh_folder = get_path("mvh_folder");
+$time_start = microtime(true);
 
 //check that case ID is valid
 $id = $db_mvh->getValue("SELECT id FROM case_data WHERE id='{$case_id}'");
@@ -483,10 +487,11 @@ $cm_id = $db_mvh->getValue("SELECT cm_id FROM case_data WHERE id='{$case_id}'");
 //get patient identifer (pseudonym from case management) - this is the ID that is used to identify submissions from the same case by GRZ/KDK
 $cm_data = get_cm_data($db_mvh, $case_id);
 $patient_id = xml_str($cm_data->case_id); //TODO pseudonymize via meDIC when clear what Entici instance to use
-if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}'!", E_USER_ERROR);
+if ($patient_id=="") trigger_error("No patient identifier set for sample with MVH case ID '{$case_id}'!", E_USER_ERROR);
 
 //create export folder
 print "MVH DB id: {$case_id} (CM ID: {$cm_id} / CM Fallnummer: {$patient_id})\n";
+print "Export start: ".date('Y-m-d H:i:s')."\n";
 $folder = realpath($mvh_folder)."/kdk_se_export/{$case_id}/";
 if ($clear) exec2("rm -rf {$folder}");
 exec2("mkdir -p {$folder}/metadata/");
@@ -500,11 +505,7 @@ print "ID in submission_kdk_se table: {$sub_id}\n";
 $tan_k = $db_mvh->getValue("SELECT tank FROM submission_kdk_se WHERE id='{$sub_id}'");
 print "TAN: {$tan_k}\n";
 
-//get data
-$ps = $db_mvh->getValue("SELECT ps FROM case_data WHERE id='{$case_id}'");
-print "index sample: {$ps}\n";
-$info = get_processed_sample_info($db_ngsd, $ps);
-$is_lrgs = $info['sys_type']=="lrGS";
+//get data from MVH database
 $se_data = get_se_data($db_mvh, $case_id);
 $se_data_rep = get_se_data($db_mvh, $case_id, true);
 $rc_data_json = get_rc_data_json($db_mvh, $case_id);
@@ -512,13 +513,24 @@ $rc_data_json = get_rc_data_json($db_mvh, $case_id);
 //check if that patient was included into the Modellvorhaben, i.e. sequencing is/was performed
 $no_seq = !xml_bool($se_data->aufnahme_mvh, false);
 
+//get data from NGSD
+if ($no_seq)
+{
+	print "index sample: none - no sequending was performed in MVH for this patient!\n";
+}
+else
+{
+	$ps = $db_mvh->getValue("SELECT ps FROM case_data WHERE id='{$case_id}'");
+	print "index sample: {$ps}\n";
+}
+
 //create base JSON
 print "\n";
 print "### creating JSON ###\n";
 
 $json = [
 	"metadata" => json_metadata($cm_data, $tan_k, $rc_data_json),
-	"patient" => json_patient($info, $cm_data, $se_data),
+	"patient" => json_patient($cm_data, $se_data),
 	"episodesOfCare" => [ json_episode_of_care($se_data) ],
 	"diagnoses" => [ json_diagnoses($se_data, $se_data_rep) ],
 	"hpoTerms" => json_hpos($se_data, $se_data_rep),
@@ -531,6 +543,7 @@ $json = [
 if (!$no_seq)
 {
 	$json["carePlans"][] = json_care_plan_2($se_data, $se_data_rep);
+	$info = get_processed_sample_info($db_ngsd, $ps);
 	$json["ngsReports"] = [ json_ngs_report($cm_data, $se_data, $info)];
 }
 $gmfcs = json_gmfcs($se_data_rep);
@@ -542,6 +555,9 @@ if (!is_null($gmfcs))
 //write JSON
 $json_file = "{$folder}/metadata/metadata.json";
 file_put_contents($json_file, json_encode($json, JSON_PRETTY_PRINT));
+
+print "creating JSON took ".time_readable(microtime(true)-$time_start)."\n";
+$time_start = microtime(true);
 
 //validate JSON
 print "\n";
@@ -577,6 +593,9 @@ foreach(json_decode($result)->issues as $issue)
 }
 if ($validation_error) trigger_error("Validation failed!", E_USER_ERROR);
 
+print "validating JSON took ".time_readable(microtime(true)-$time_start)."\n";
+$time_start = microtime(true);
+
 //upload JSON
 print "\n";
 print "### uploading JSON ###\n";
@@ -595,7 +614,6 @@ if (!$test) //production server is in UKT network
 $result = curl_exec($ch);
 if ($result===false) trigger_error('CURL ERROR: '.curl_error($ch), E_USER_ERROR);
 curl_close($ch);
-
 
 //parse/show upload result
 $exit_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -618,5 +636,7 @@ if (!$test)
 	print "Adding Pruefbericht to CM RedCap...\n";
 	add_submission_to_redcap($cm_id, "K", $tan_k);
 }
+
+print "uploading JSON took ".time_readable(microtime(true)-$time_start)."\n";
 
 ?>

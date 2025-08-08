@@ -181,6 +181,9 @@ function not_empty($value, $element)
 
 function convert_gender($gender)
 {
+	if ($gender=="Männlich") $gender = "male";
+	if ($gender=="Weiblich") $gender = "female";
+	if ($gender=="Divers") $gender = "unknown";
 	if ($gender=="n/a") $gender = "unknown";
 	return $gender;
 }
