@@ -18,8 +18,10 @@ $parser->addStringArray("sample_ids", "Optional sample id(s)/name(s) for VCF out
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addFlag("somatic", "Use somatic mode for SV calling (only single sample).");
 $parser->addFlag("use_tandem_repeat_file", "Use tandem repeat BED file for calling (only supported for GRCh38).");
+$parser->addFlag("add_unfiltered_output", "Also output unfiltered VCF (only single sample).");
 $parser->addInfile("target",  "Optional target region to limit SV calls to certain areas", true, true);
 $parser->addInt("threads", "Number of threads used.", true, 4);
+
 extract($parser->parse($argv));
 
 //get sample names
@@ -36,7 +38,6 @@ else
 		$sample_ids[] = basename2($single_sample_bam);
 	}
 }
-
 
 if(count($bam) == 0)
 {
@@ -57,8 +58,7 @@ else if(count($bam) == 1)
 		$args[] = "--tandem-repeats ".get_path("data_folder")."/dbs/tandem-repeats/human_GRCh38_no_alt_analysis_set.trf.bed";
 	}
 
-    $tmp_vcf = $parser->tempFile(".vcf", "sniffles");
-
+	$tmp_vcf = $parser->tempFile(".vcf", "sniffles");
     $args = array();
 	$in_files = array();
     $args[] = "--input ".$single_sample_bam;
@@ -73,7 +73,7 @@ else if(count($bam) == 1)
 	{
 		$args[] = "--regions ".$target;
 		$in_files[] = $target;
-	} 
+	}
 
 	//set bind path for sniffles container
 	$in_files[] = $single_sample_bam;
@@ -82,6 +82,32 @@ else if(count($bam) == 1)
 	//execute sniffles container
 	$parser->execApptainer("sniffles", "sniffles", implode(" ", $args), $in_files);
 
+
+	if ($add_unfiltered_output)
+	{
+		//also create second call file without filtering
+		$args = array();
+		$in_files = array();
+		$tmp_vcf_nofilter = $parser->tempFile(".vcf", "sniffles");
+		$args[] = "--input ".$single_sample_bam;
+		$args[] = "--vcf ".$tmp_vcf_nofilter;
+		$args[] = "--threads ".$threads;
+		$args[] = "--reference ".genome_fasta($build);
+		$args[] = "--no-qc";
+		$args[] = "--sample-id ".$name;
+		$args[] = "--output-rnames";
+		if($somatic) $args[] = "--non-germline";
+		if(isset($target))
+		{
+			$args[] = "--regions ".$target;
+			$in_files[] = $target;
+		} 
+		//set bind path for sniffles container
+		$in_files[] = $single_sample_bam;
+		$in_files[] = genome_fasta($build);
+		//execute sniffles container
+		$parser->execApptainer("sniffles", "sniffles", implode(" ", $args), $in_files);
+	}
 }
 else
 {
@@ -94,7 +120,6 @@ else
 	{
 		// get sample name
 		$name = $sample_ids[count($snfs)];
-
 		$tmp_snf = $parser->tempFile(".snf", "sniffles");
 		$args = array();
 		$in_files = array();
@@ -121,7 +146,6 @@ else
 		$snfs[] = $tmp_snf;
 	}
 	
-
 	//combine snfs to multisample VCF
 	$tmp_vcf = $parser->tempFile(".vcf", "sniffles");
 
@@ -149,6 +173,14 @@ if(count($bam) == 1)
 	$masked_tmp_vcf = $parser->tempFile(".vcf", "sniffles_masked");
 	$parser->execApptainer("ngs-bits", "SnifflesVcfFix", "-in {$tmp_vcf} -out {$masked_tmp_vcf}");
 	$tmp_vcf = $masked_tmp_vcf;
+}
+
+if ($add_unfiltered_output)
+{
+	//copy unfiltered to output
+	$out_nofilter = dirname($out)."/".basename($out, ".vcf.gz")."_no_filter.vcf.gz";
+	$parser->execApptainer("htslib", "bgzip", "-c {$tmp_vcf_nofilter} > {$out_nofilter}", [], [dirname($out)]);
+	$parser->execApptainer("htslib", "tabix", "-f -p vcf {$out_nofilter}", [], [dirname($out)]);
 }
 
 //rarely single SVs are in the wrong order:
