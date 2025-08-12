@@ -103,14 +103,11 @@ $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "-no_erro
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], true)];
 
 //sort variants by genomic position
-$tmp_out = $parser->tempFile(".vcf");
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true)];
 
-//fix error in VCF file and strip unneeded information
-if (contains($model_type, "PACBIO"))
-{
-	$pipeline[] = array("php ".repository_basedir()."/src/Tools/vcf_fix.php", "--deepvariant_mode > $tmp_out", false);
-}
+//fix errors and merge variants
+$tmp_out = $parser->tempFile(".vcf");
+$pipeline[] = ["php ".repository_basedir()."/src/Tools/vcf_fix.php", "--deepvariant_mode > $tmp_out", false];
 
 //(2) execute pipeline
 $parser->execPipeline($pipeline, "deepvariant post processing");
