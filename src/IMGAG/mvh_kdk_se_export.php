@@ -33,6 +33,7 @@ function json_metadata($cm_data, $tan_k, $rc_data_json)
 	if (count($active_rcs)>1) trigger_error("Several active consent resources found!", E_USER_ERROR);
 	if (count($active_rcs)==0 && xml_str($cm_data->bc_signed)=="Ja") trigger_error("No active consent resources found, but CM RedCap says that the consent was signed!", E_USER_ERROR);
 	
+	$te_present_date = xml_str($cm_data->mvconsentpresenteddate);
 	$te_date = xml_str($cm_data->datum_teilnahme);
 	
 	$output = [
@@ -40,7 +41,7 @@ function json_metadata($cm_data, $tan_k, $rc_data_json)
 			"transferTAN" => $tan_k,
 			"modelProjectConsent" => [
 				"version" => "",
-				"date" => $te_date,
+				"date" => $te_present_date,
 				"version" => xml_str($cm_data->version_teilnahme),
 				"provisions" => [
 					[
@@ -446,8 +447,6 @@ function json_ngs_report($cm_data, $se_data, $info)
 					"code" => convert_sequencing_platform($info["device_type"])
 					],
 				"kit" => $info['sys_name']
-				],
-			"results" => [
 				]
 		];
 		
@@ -458,11 +457,21 @@ function json_ngs_report($cm_data, $se_data, $info)
 		$output["conclusion"] = ["code"=>$outcome];
 	}
 	
-	//TODO results small variants
-	//TODO results CNVs
-	//TODO results SVs
+	//add variants to results (only if we have a interesting variant)
+	$results = [];
+	//small variants
+	//TODO
+	//CNVs
+	//TODO
+	//SVs
+	//TODO
+	if (count($results)>0)
+	{
+		$output['results'] = $results;
+	}
 	
 	//missing: autozygosity (there is no definition how to calculate it)
+	
 	return $output;
 }
 
