@@ -211,7 +211,7 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 				"enrichmentKitDescription" => $info["sys_name"],
 				"barcode" => $info["sys_adapter1"]."/".$info["sys_adapter2"],
 				"sequencingLayout" => ($is_lrgs ? "single-end" : "paired-end"),
-				"sequenceData"=> [
+				"sequenceData" => [
 						"bioinformaticsPipelineName" => "megSAP",
 						"bioinformaticsPipelineVersion" => $megsap_ver,
 						"referenceGenome" => "GRCh38",
@@ -770,12 +770,11 @@ $time_start = microtime(true);
 CREATE TABLE `case_data` (
  `id` int(11) NOT NULL AUTO_INCREMENT,
  `cm_id` varchar(20) NOT NULL,
- `cm_data` text NOT NULL COMMENT 'case managment data in XML format as proviced by the RedCap API',
+ `cm_data` mediumtext NOT NULL COMMENT 'case managment data in XML format as proviced by the RedCap API',
  `se_id` text DEFAULT NULL COMMENT 'ID in SE RedCap',
- `se_data` text DEFAULT NULL COMMENT 'Entries in SE RedCap (several are possible)',
+ `se_data` mediumtext DEFAULT NULL COMMENT 'Entries in SE RedCap (several are possible)',
  `rc_data` text DEFAULT NULL COMMENT 'Research consent data from meDIC converted to XML',
  `rc_data_json` text DEFAULT NULL COMMENT 'Research consent data in JSON format as provided by meDIC',
- `gl_data` text DEFAULT NULL COMMENT 'GenLab data',
  `sap_id` varchar(20) NOT NULL,
  `ps` varchar(23) DEFAULT NULL COMMENT 'germline sample',
  `ps_t` varchar(23) DEFAULT NULL COMMENT 'tumor sample for tumor-normal',

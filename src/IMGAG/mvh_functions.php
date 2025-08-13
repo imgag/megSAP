@@ -366,5 +366,31 @@ function convert_noseq_reason($name)
 	trigger_error(__FUNCTION__.": Unhandled name '{$name}'!", E_USER_ERROR);
 }
 
+function convert_var_type($type)
+{
+	if ($type=="Kausale Variante") return "primary";
+	
+	trigger_error(__FUNCTION__.": Unhandled variant type '{$type}'!", E_USER_ERROR);
+}
+
+function convert_genotype($gt)
+{
+	if ($gt=="het") return "heterozygous";
+	if ($gt=="hom") return "homozygous";
+	
+	trigger_error(__FUNCTION__.": Unhandled genotype '{$gt}'!", E_USER_ERROR);
+}
+
+function convert_inheritance($inheritance)
+{
+	if ($inheritance=="n/a") return "unclear";
+	if ($inheritance=="AR") return "recessive";
+	if ($inheritance=="AD") return "dominant";
+	if ($inheritance=="XLR") return "X-linked";
+	if ($inheritance=="XLD") return "X-linked";
+	if ($inheritance=="MT") return "mitochondrial";
+	
+	trigger_error(__FUNCTION__.": Unhandled inheritance '{$inheritance}'!", E_USER_ERROR);
+}
 
 ?>
