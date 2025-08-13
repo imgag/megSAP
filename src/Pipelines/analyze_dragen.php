@@ -24,6 +24,7 @@ $parser->addFlag("mapping_only", "Only map the data and remove variant calling."
 $parser->addFlag("dragen_only", "Perform only DRAGEN analysis and copy all output files without renaming (not compatible with later megSAP analysis).");
 $parser->addFlag("debug", "Add debug output to the log file.");
 $parser->addFlag("high_priority", "Queue megSAP analysis with high priority.");
+$parser->addFlag("somatic", "Queue megSAP analysis with somatic flag.");
 $parser->addString("user", "User used to queue megSAP analysis (has to be in the NGSD).", true, "");
 $parser->addFlag("high_mem", "Run DRAGEN analysis in high memory mode for deep samples. (Also increases timeout to prevent job from being terminated.)");
 
@@ -420,6 +421,7 @@ $megSAP_args = array();
 if (!$system_created_from_ngsd) $megSAP_args[] = "-system {$system}";
 $megSAP_args[] = "-steps ".implode(",", $steps);
 $megSAP_args[] = "-threads {$threads}";
+if ($somatic) $megSAP_args[] = "-somatic";
 if ($rna_sample != "") $megSAP_args[] = "-rna_sample {$rna_sample}";
 $high_priority_str = ($high_priority)? "-high_priority " : ""; 
 
