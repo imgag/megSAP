@@ -72,7 +72,7 @@ foreach($output as $line)
 
 If ($exit_code != 0)
 {
-	$startet_dsicarded = false;
+	$startet_discarded = false;
 	foreach($output as $line)
 	{
 		if (contains($line, "Writing discarded fusions to file"))
