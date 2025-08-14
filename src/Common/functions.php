@@ -727,8 +727,10 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 
 	if ($container=="samtools" || $container=="methylartist" || $container=="straglrOn") //samtools (and methylartist, straglrOn) need REF_CACHE/REF_PATH to avoid re-initializing the reference cache inside the container every call: http://www.htslib.org/doc/samtools.html#ENVIRONMENT_VARIABLES, https://www.htslib.org/workflow/cram.html#The%20REF_PATH%20and%20REF_CACHE 
 	{
-		$apptainer_args[] = "--env REF_CACHE=".get_path("local_data")."/samtools_ref_cache/%2s/%2s/%s";
-		$apptainer_args[] = "--env REF_PATH=".get_path("local_data")."/samtools_ref_cache/%2s/%2s/%s:http://www.ebi.ac.uk/ena/cram/md5/%s";
+		$ref_cache_folder = get_path("local_data")."/samtools_ref_cache/";
+		if (!file_exists($ref_cache_folder)) $ref_cache_folder = get_path("data_folder")."/genomes/samtools_ref_cache/";
+		$apptainer_args[] = "--env REF_CACHE={$ref_cache_folder}/%2s/%2s/%s";
+		$apptainer_args[] = "--env REF_PATH={$ref_cache_folder}/%2s/%2s/%s:http://www.ebi.ac.uk/ena/cram/md5/%s";
 	}
 
 	if ($container=="subread") $apptainer_args[] = "--pwd=/tmp";
@@ -917,7 +919,7 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 		$apptainer_command = "TF_CPP_MIN_LOG_LEVEL=2 $apptainer_command";
 	}
 	
-	//if command only option is true, only the apptainer command is being return, without execution
+	//if command only option is true, only the apptainer command is being returned, without execution
 	if($command_only) 
 	{
 		$apptainer_command = "apptainer -q exec ".implode(" ", $apptainer_args)." {$container_path} {$command} {$parameters}";
@@ -947,7 +949,14 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 		trigger_error("Error while executing command: '$apptainer_command'\nCODE: $exit\nSTDOUT: ".$stdout."\nSTDERR: ".$stderr."\n", E_USER_ERROR);
 	}
 	
-	//return output
-	return array(explode("\n", nl_trim($stdout)), explode("\n", nl_trim($stderr)), $exit);
+	// Clean stderr by removing specific warning lines
+	$stderr_lines = explode("\n", nl_trim($stderr));
+	$filtered_stderr_lines = array_filter($stderr_lines, function($line) 
+	{
+		return stripos($line, "WARNING: Error changing the container working directory") === false;
+	});
+
+	// Return cleaned output
+	return array(explode("\n", nl_trim($stdout)), array_values($filtered_stderr_lines), $exit);
 }
 ?>

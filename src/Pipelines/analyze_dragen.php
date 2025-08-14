@@ -20,9 +20,11 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mappi
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
 $parser->addFlag("no_queuing", "Do not queue megSAP analysis afterwards.");
+$parser->addFlag("mapping_only", "Only map the data and remove variant calling.");
 $parser->addFlag("dragen_only", "Perform only DRAGEN analysis and copy all output files without renaming (not compatible with later megSAP analysis).");
 $parser->addFlag("debug", "Add debug output to the log file.");
 $parser->addFlag("high_priority", "Queue megSAP analysis with high priority.");
+$parser->addFlag("somatic", "Queue megSAP analysis with somatic flag.");
 $parser->addString("user", "User used to queue megSAP analysis (has to be in the NGSD).", true, "");
 $parser->addFlag("high_mem", "Run DRAGEN analysis in high memory mode for deep samples. (Also increases timeout to prevent job from being terminated.)");
 
@@ -164,6 +166,7 @@ if (count($files_forward) == 0)
 	
 	//convert BAM/CRAM to FASTQ
 	//NOTE: it is not possible to override the sample ID when using BAM/CRAM as input, so external samples get the wrong sample IDs, which end up in the VCF files and cause errors in subsequent secondary analyses, e.g. trio analysis. The workround for this problem is to convert the data to FASTQ.
+	trigger_error("Converting BAM/CRAM to FASTQ. This is slow and should not be done on the DRAGEN server. If possible, do the conversion before calling this script!", E_USER_NOTICE);
 	$in_fq_for = $folder."/{$name}_BamToFastq_R1_001.fastq.gz";
 	$in_fq_rev = $folder."/{$name}_BamToFastq_R2_001.fastq.gz";
 	$tmp1 = $working_dir."/{$name}_BamToFastq_R1_001.fastq.gz";
@@ -299,12 +302,6 @@ $dragen_parameter[] = "--output-format CRAM"; //always use CRAM
 $dragen_parameter[] = "--enable-map-align-output=true";
 $dragen_parameter[] = "--enable-bam-indexing true";
 $dragen_parameter[] = "--enable-rh=false"; //disabled RH special caller because this leads to variants with EVENTTYPE=GENE_CONVERSION that have no DP and AF entry and sometimes are duplicated (same variant twice in the VCF).
-if ($is_wgs)
-{
-	$dragen_parameter[] = "--enable-cnv true";
-	$dragen_parameter[] = "--cnv-enable-self-normalization true";
-	$dragen_parameter[] = "--vc-ml-enable-recalibration=false"; //disabled because it leads to a sensitivity drop for Twist Exome V2 (see /mnt/storage2/users/ahsturm1/scripts/2025_03_21_megSAP_release_performance)
-}
 //set target region
 if ($is_wes || $is_panel) $dragen_parameter[] = "--vc-target-bed {$target_extended}";
 
@@ -316,16 +313,26 @@ if(db_is_enabled("NGSD"))
 //always mark duplicates
 $dragen_parameter[] = "--enable-duplicate-marking true";
 
-//small variant calling
-$dragen_parameter[] = "--enable-variant-caller true";
-$dragen_parameter[] = "--vc-min-base-qual 15"; //TODO Marc re-validate with DRAGEN 4.4 (also for somatic)
+if (!$mapping_only)
+{
+	//small variant calling
+	$dragen_parameter[] = "--enable-variant-caller true";
+	$dragen_parameter[] = "--vc-min-base-qual 15"; //TODO Marc re-validate with DRAGEN 4.4 (also for somatic)
 
-//add gVCFs
-$dragen_parameter[] = "--vc-emit-ref-confidence GVCF";
-$dragen_parameter[] = "--vc-enable-vcf-output true";
-//structural variant calling
-$dragen_parameter[] = "--enable-sv true";
-$dragen_parameter[] = "--sv-use-overlap-pair-evidence true"; //TODO Marc re-validate with DRAGEN 4.4
+	//add gVCFs
+	$dragen_parameter[] = "--vc-emit-ref-confidence GVCF";
+	$dragen_parameter[] = "--vc-enable-vcf-output true";
+	//structural variant calling
+	$dragen_parameter[] = "--enable-sv true";
+	$dragen_parameter[] = "--sv-use-overlap-pair-evidence true"; //TODO Marc re-validate with DRAGEN 4.4
+}
+
+if ($is_wgs && !$mapping_only)
+{
+	$dragen_parameter[] = "--enable-cnv true";
+	$dragen_parameter[] = "--cnv-enable-self-normalization true";
+	$dragen_parameter[] = "--vc-ml-enable-recalibration=false"; //disabled because it leads to a sensitivity drop for Twist Exome V2 (see /mnt/storage2/users/ahsturm1/scripts/2025_03_21_megSAP_release_performance)
+}
 
 //high memory
 if ($high_mem)
@@ -373,21 +380,23 @@ else
 	$parser->copyFile($working_dir.$name.".cram", $out_cram);
 	$parser->copyFile($working_dir.$name.".cram.crai", $out_cram.".crai");
 
-	// copy small variant calls to sample folder
-	$parser->log("Copying small variants to output folder");
-	$parser->exec("mkdir", "-p {$dragen_out_folder}");
-	$parser->copyFile($working_dir.$name.".hard-filtered.vcf.gz", $out_vcf);
-	$parser->copyFile($working_dir.$name.".hard-filtered.vcf.gz.tbi", $out_vcf.".tbi");
-	$parser->copyFile($working_dir.$name.".hard-filtered.gvcf.gz", $out_gvcf);
-	$parser->copyFile($working_dir.$name.".hard-filtered.gvcf.gz.tbi", $out_gvcf.".tbi");
+	if (!$mapping_only)
+	{
+		// copy small variant calls to sample folder
+		$parser->log("Copying small variants to output folder");
+		$parser->exec("mkdir", "-p {$dragen_out_folder}");
+		$parser->copyFile($working_dir.$name.".hard-filtered.vcf.gz", $out_vcf);
+		$parser->copyFile($working_dir.$name.".hard-filtered.vcf.gz.tbi", $out_vcf.".tbi");
+		$parser->copyFile($working_dir.$name.".hard-filtered.gvcf.gz", $out_gvcf);
+		$parser->copyFile($working_dir.$name.".hard-filtered.gvcf.gz.tbi", $out_gvcf.".tbi");
 
-	// copy SV calls to sample folder
-	$parser->log("Copying SVs to output folder");
-	$parser->copyFile($working_dir.$name.".sv.vcf.gz", $out_sv);
-	$parser->copyFile($working_dir.$name.".sv.vcf.gz.tbi", $out_sv.".tbi");
-
+		// copy SV calls to sample folder
+		$parser->log("Copying SVs to output folder");
+		$parser->copyFile($working_dir.$name.".sv.vcf.gz", $out_sv);
+		$parser->copyFile($working_dir.$name.".sv.vcf.gz.tbi", $out_sv.".tbi");
+	}
 	// copy CNV calls
-	if ($is_wgs)
+	if ($is_wgs && ! $mapping_only)
 	{
 		$parser->log("Copying CNVs to output folder");
 		$parser->copyFile($working_dir.$name.".cnv.vcf.gz", $out_cnv);
@@ -412,6 +421,7 @@ $megSAP_args = array();
 if (!$system_created_from_ngsd) $megSAP_args[] = "-system {$system}";
 $megSAP_args[] = "-steps ".implode(",", $steps);
 $megSAP_args[] = "-threads {$threads}";
+if ($somatic) $megSAP_args[] = "-somatic";
 if ($rna_sample != "") $megSAP_args[] = "-rna_sample {$rna_sample}";
 $high_priority_str = ($high_priority)? "-high_priority " : ""; 
 

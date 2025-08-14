@@ -131,35 +131,29 @@ function get_ref_seq($build, $chr, $start, $end, $cache_size=0, $use_local_data=
 
 			// get sequence
 			$output = array();
-			$samtools_command = execApptainer("samtools", "samtools faidx", genome_fasta($build, $use_local_data)." $chr:{$cache_start}-{$cache_end} 2>&1", [genome_fasta($build, $use_local_data)], [], true);
+			list($output, $stderr, $ret) = execApptainer("samtools", "samtools faidx", genome_fasta($build, $use_local_data)." $chr:{$cache_start}-{$cache_end}", [genome_fasta($build, $use_local_data)], []);
 
-			exec($samtools_command, $output, $ret);
 			if ($ret!=0)
 			{
-				trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
+				trigger_error("Error in get_ref_seq: ".implode("\n\t", $stderr), E_USER_ERROR);
 			}
-
-			$cache_sequence = "";
-			foreach ($output as $line) 
+			elseif (!empty(array_filter($stderr)))
 			{
-				//skip header line
-				if (starts_with($line, ">")) continue;
-				
-				//skip truncation warning
-				if (starts_with($line, "[faidx] Truncated sequence:")) continue;
-
-				//report but skip warnings
-				if (starts_with($line, "WARNING:"))
-				{
-					trigger_error($line, E_USER_WARNING);
-					continue;
-				}
-
-				$cache_sequence .= $line;
-
+				trigger_error("Warning in get_ref_seq: ".implode("\n\t", $stderr), E_USER_WARNING);
 			}
-			//update cached end position, if cache exceeds chr end
-			$cache_end = $cache_start + strlen($cache_sequence);
+
+			// check if chr range exceeds chr end:
+			if (starts_with($output[0], "[faidx] Truncated sequence:"))
+			{
+				//skip warning
+				$cache_sequence = trim(implode("", array_slice($output, 2)));
+				// correct cached end position, if cache exceeds chr end
+				$cache_end = $cache_start + strlen($cache_sequence);
+			}
+			else
+			{
+				$cache_sequence = trim(implode("", array_slice($output, 1)));
+			}
 
 			// return requested interval
 			return substr($cache_sequence, $start - $cache_start, $end - $start + 1);
@@ -172,38 +166,18 @@ function get_ref_seq($build, $chr, $start, $end, $cache_size=0, $use_local_data=
 		//get sequence
 		$output = array();
 		$genome = genome_fasta($build, $use_local_data);
-		$samtools_command = execApptainer("samtools", "samtools faidx", "{$genome} {$chr}:{$start}-{$end} 2>&1", [$genome], [], true);
-		exec($samtools_command, $output, $ret);
+		list($output, $stderr, $ret) = execApptainer("samtools", "samtools faidx", "{$genome} {$chr}:{$start}-{$end}", [$genome], []);
+
 		if ($ret!=0)
 		{
-			trigger_error("Error in get_ref_seq: ".implode("\n", $output), E_USER_ERROR);
+			trigger_error("Error in get_ref_seq: ".implode("\n\t", $stderr), E_USER_ERROR);
 		}
-
-		$sequence = "";
-		foreach ($output as $line) 
+		elseif (!empty(array_filter($stderr)))
 		{
-			//skip header line
-			if (starts_with($line, ">")) continue;
-			
-			//skip truncation warning
-			if (starts_with($line, "[faidx] Truncated sequence:")) 
-			{
-				trigger_error($line, E_USER_WARNING);
-				continue;
-			}
-			
-			//report but skip warnings
-			if (starts_with($line, "WARNING:"))
-			{
-				trigger_error($line, E_USER_WARNING);
-				continue;
-			}
-
-			$sequence .= $line;
-
+			trigger_error("Warning in get_ref_seq: ".implode("\n\t", $stderr), E_USER_WARNING);
 		}
-				
-		return $sequence;
+
+		return implode("", array_slice($output, 1));
 	}
 	
 	
@@ -613,29 +587,32 @@ function gsvar_to_vcf($build, $chr, $start, $ref, $obs)
 	$ref = trim($ref,"-");
 	$obs = trim($obs,"-");
 
-	// handle indels
+	//get extra base before indels from reference genome
 	$extra1 = "";
-	
-	// 1. simple insertion - add prefix
-	if(strlen($ref)==0 && strlen($obs)>=1)
+	if(strlen($ref)==0 && strlen($obs)>=1) // simple insertion - add prefix
 	{
 		$extra1 = get_ref_seq($build, $chr,$start,$start);
 	}
-
-	// 2. simple deletion - correct start and add prefix
-	if(strlen($ref)>=1 && strlen($obs)==0)
+	else if(strlen($ref)>=1 && strlen($obs)==0) // simple deletion - correct start and add prefix
 	{
 		$start -= 1;
 		$extra1 = get_ref_seq($build, $chr,$start,$start);
 	}
+	else if (strlen($ref)==strlen($obs)) //SNP or MNP - nothing to do
+	{
+		
+	}
+	else if(strlen($ref)>1 || strlen($obs)>1) // complex indel - correct start and add prefix
+	{
+		$start -= 1;
+		$extra1 = get_ref_seq($build, $chr,$start, $start);
+	}
 
-	// 3. complex indel or SNP > nothing to do
-	
 	// combine all information
 	$ref = strtoupper($extra1.$ref);
 	$obs = strtoupper($extra1.$obs);
 	
-	return array($chr,$start,$ref,$obs);
+	return array($chr, $start, $ref, $obs);
 }
 
 function is_valid_ref_sample_for_cnv_analysis($file, $tumor_only = false, $include_test_projects = false, $include_ffpe = false)
@@ -2437,7 +2414,6 @@ function update_gsvar_sample_header($file_name, $status_map)
 function get_read_count($bam_file, $threads = 4, $samtools_params = array(), $build = "GRCh38", $region = "")
 {
 	$read_count = -1;
-	// list($stdout, $stderr, $exit_code) = exec2(get_path("samtools")." view -@ {$threads} -c -T ".genome_fasta($build)." ".implode($samtools_params)." {$bam_file} {$region}");
 	list($stdout, $stderr, $exit_code) = execApptainer("samtools", "samtools view", "-@ {$threads} -c -T ".genome_fasta($build)." ".implode($samtools_params)." {$bam_file} {$region}", [$bam_file, genome_fasta($build)]);
 	if ($exit_code == 0)
 	{

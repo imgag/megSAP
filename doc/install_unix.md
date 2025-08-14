@@ -2,26 +2,24 @@
 
 Currently only Linux is supported!  
 
-## Dependencies
+*Note: Indexing the genome with bwa-mem2 requires about 60BG of RAM. Do not try to install megSAP on a machine with less than 64GB of RAM!*
 
-We are providing instructions for Ubuntu 20.04 and RHEL 8.3 here. However this should be reasonably easy to port to any other Linux distribution.
+## Base dependencies
 
-### Base dependencies for different operating systems:
-
-Ubuntu 20.04
-
-	> sudo apt-get install -y rsync zlib1g bzip2 php7.4-cli php7.4-xml php7.4-mysql make unzip wget git gnumeric pigz ghostscript
+We are providing instructions for the latest Ubuntu LTS distibutions here.  
+If you are using other Linux distributions, you have to adapt them yourself.
     
 Ubuntu 22.04
 
+	> sudo apt-get update
 	> sudo apt-get install -y rsync zlib1g bzip2 php8.1-cli php8.1-xml php8.1-mysql make unzip wget git gnumeric pigz ghostscript
 
 Ubuntu 24.04
 
+	> sudo apt-get update
 	> sudo apt-get install -y rsync zlib1g bzip2 php8.3-cli php8.3-xml php8.3-mysql make unzip wget git gnumeric pigz ghostscript
 
-    
-## Install Apptainer
+Install Apptainer:
 
 	> sudo add-apt-repository -y ppa:apptainer/ppa
 	> sudo apt update
