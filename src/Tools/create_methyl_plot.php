@@ -12,7 +12,7 @@ $parser->addString("out", "Output table (TSV format).", false);
 $parser->addString("regions", "The regions/highlights to analyze/plot. ", false);
 
 // optional
-$parser->addInfile("local_bam", "Optional (local) BAM used for analysis instead of BAM/CRAM file in folder.", true);
+$parser->addInfile("local_bam", "Optional (local) BAM/CRAM used for analysis instead of BAM/CRAM file in folder.", true);
 $parser->addFlag("skip_plot", "Disable methylartist plotting of imprinting sites.");
 $parser->addFlag("skip_align_plot", "Do not create alginment plot in methylartist (Useful for large plots).");
 $parser->addString("build", "The genome build to use. ", true, "GRCh38");
@@ -28,7 +28,7 @@ $cram_input = false;
 if ($local_bam != "")
 {
     $bam = $local_bam;
-    if (!file_exists($bam)) trigger_error("Local BAM file not found!", E_USER_ERROR);
+    if (!file_exists($bam)) trigger_error("Local BAM/CRAM file not found!", E_USER_ERROR);
 }
 else
 {
@@ -38,11 +38,9 @@ else
         $bam = $folder."/".$name.".bam";
         if (!file_exists($bam)) trigger_error("BAM/CRAM file not found!", E_USER_ERROR);
     }
-    else
-    {
-        $cram_input = true;
-    }
 }
+
+if (ends_with($bam, ".cram")) $cram_input = true;
 
 //create temp folder for bam
 if ($cram_input) $bam_tmp_folder = $parser->tempFolder("bam");
