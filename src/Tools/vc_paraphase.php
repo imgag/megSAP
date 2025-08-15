@@ -13,7 +13,7 @@ $parser->addString("folder", "Sample folder for output files.", false);
 $parser->addString("name", "Base file name, typically the processed name ID (e.g. 'GS120001_01').", false);
 
 //optional
-$parser->addInfile("local_bam",  "Optional alternative local BAM file (otherwise BAM from folder will be used).", false);
+$parser->addInfile("local_bam",  "Optional alternative local BAM file (otherwise BAM from folder will be used).", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 

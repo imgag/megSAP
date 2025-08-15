@@ -119,7 +119,15 @@ for($r=0; $r<$regions_table->rows(); ++$r)
         $tmp_bam,
         $pileup_out . "/",
     ];
-    $parser->execApptainer("modkit", "modkit", implode(" ", $args_modkit), [$ref_genome, $tmp_bam], [$pileup_out]);
+    list($stdout, $stderr, $ec) = $parser->execApptainer("modkit", "modkit", implode(" ", $args_modkit), [$ref_genome, $tmp_bam], [$pileup_out], false, true, false, true);
+
+    // workaround to allow 0 reads in BAM region (e.g. in test cases)
+    if (($ec != 0) && (end($stderr) != "> Error! zero reads found in bam index")) 
+    {
+        $this->toStderr($stdout);
+		$this->toStderr($stderr);
+		trigger_error("Call of external tool 'modkit' returned error code '$ec'.", E_USER_ERROR);
+    }
     
     $haplotypes = [1, 2, "ungrouped"];
     $modified = [];
