@@ -806,6 +806,11 @@ foreach($sample_data as $sample => $sample_infos)
 			{
 				$outputline .= " -args '-steps ma,db -somatic'";
 			}
+			
+			//use DRAGEN mapping:
+			$outputline .= ($use_dragen ? " -use_dragen": "");
+			
+			
 			if (isset($tumor2normal[$sample]))
 			{
 				$normal = $tumor2normal[$sample];
