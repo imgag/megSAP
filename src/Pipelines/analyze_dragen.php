@@ -288,10 +288,10 @@ $dragen_parameter[] = "--output-directory $working_dir";
 $dragen_parameter[] = "--output-file-prefix {$name}";
 $dragen_parameter[] = "--output-format CRAM"; //always use CRAM
 //trimming:
-$dragen_parameter[] = "--read-trimmers adapter,quality"
+$dragen_parameter[] = "--read-trimmers adapter,quality";
 $dragen_parameter[] = "--trim-adapter-read1 tmp_adapter_p7";
 $dragen_parameter[] = "--trim-adapter-read2 tmp_adapter_p5";
-$dragen_parameter[] = "--trim-min-quality 15"
+$dragen_parameter[] = "--trim-min-quality 15";
 //mapping:
 $dragen_parameter[] = "--enable-map-align-output=true";
 $dragen_parameter[] = "--enable-bam-indexing true";
