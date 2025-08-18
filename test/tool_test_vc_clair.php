@@ -23,6 +23,11 @@ $model1 = get_path("clair3_models")."/r1041_e82_400bps_hac_g632/";
 check_exec("php ".src_folder()."/Tools/{$name}.php -bam ".data_folder().$name."_in3.bam -folder ".output_folder()." -target ".data_folder().$name."_in_roi.bed -name LSK114_02 -model {$model1} -threads 4 --log ".output_folder().$name."_out3.log");
 check_file(output_folder()."LSK114_02_var.vcf.gz", data_folder().$name."_out3.vcf.gz");
 
+########################## SQK-LSK114 GPU test ##################
+$model1 = get_path("clair3_models")."/r1041_e82_400bps_hac_g632/";
+check_exec("php ".src_folder()."/Tools/{$name}.php -bam ".data_folder().$name."_in1.bam -folder ".output_folder()." -target ".data_folder().$name."_in_roi.bed -name LSK114_03 -model {$model1} -threads 4 -gpu 0,1 --log ".output_folder().$name."_out4.log");
+check_file(output_folder()."LSK114_03_var.vcf.gz", data_folder().$name."_out1.vcf.gz");
+
 end_test();
 
 ?>

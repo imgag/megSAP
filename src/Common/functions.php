@@ -735,7 +735,7 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 
 	if ($container=="subread") $apptainer_args[] = "--pwd=/tmp";
 
-	if ($container=="deepvariant-gpu") //to run a gpu supported apptainer container you need the --nv flag
+	if ($container=="deepvariant-gpu" || $container=="clair3-gpu") //to run a gpu supported apptainer container you need the --nv flag
 	{
 		$apptainer_args[] = "--nv";
 	}
