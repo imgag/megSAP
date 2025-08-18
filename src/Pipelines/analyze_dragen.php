@@ -91,23 +91,6 @@ else
 //disable megSAP queuing for DRAGEN only analyses
 if ($dragen_only) $no_queuing = true;
 
-
-if (!$no_queuing)
-{
-	//add vc, sv steps for later megSAP analysis
-	if (!in_array("vc", $steps))
-	{
-		trigger_error("Small variant calling step missing in later megSAP analysis, adding step 'vc'!", E_USER_WARNING);
-		$steps[] = "vc";
-	}
-	if (!in_array("sv", $steps))
-	{
-		trigger_error("Structural variant calling step missing in later megSAP analysis, adding step 'sv'!", E_USER_WARNING);
-		$steps[] = "sv";
-	}
-}
-
-
 // create empty folder for analysis
 $working_dir = get_path("dragen_data")."/megSAP_working_dir/";
 if (file_exists($working_dir))	
@@ -292,6 +275,11 @@ if ($is_wes || $is_panel)
 	}
 	file_put_contents($target_extended, implode("\n", $target_region_extended));
 }
+//write adapters to fasta files:
+$tmp_adapter_p5 = $parser->tempFile("_adapter_p5.fasta");
+$tmp_adapter_p7 = $parser->tempFile("_adapter_p7.fasta");
+file_put_contents($tmp_adapter_p5, implode("\n", [">header adapter1 p5", $sys["adapter1_p5"]]));
+file_put_contents($tmp_adapter_p7, implode("\n", [">header adapter2 p7", $sys["adapter2_p7"]]));
 
 //parameters
 $dragen_parameter[] = "-r ".$dragen_genome_path;
@@ -299,6 +287,12 @@ $dragen_parameter[] = "--ora-reference ".get_path("data_folder")."/dbs/oradata/"
 $dragen_parameter[] = "--output-directory $working_dir";
 $dragen_parameter[] = "--output-file-prefix {$name}";
 $dragen_parameter[] = "--output-format CRAM"; //always use CRAM
+//trimming:
+$dragen_parameter[] = "--read-trimmers adapter,quality"
+$dragen_parameter[] = "--trim-adapter-read1 tmp_adapter_p7";
+$dragen_parameter[] = "--trim-adapter-read2 tmp_adapter_p5";
+$dragen_parameter[] = "--trim-min-quality 15"
+//mapping:
 $dragen_parameter[] = "--enable-map-align-output=true";
 $dragen_parameter[] = "--enable-bam-indexing true";
 $dragen_parameter[] = "--enable-rh=false"; //disabled RH special caller because this leads to variants with EVENTTYPE=GENE_CONVERSION that have no DP and AF entry and sometimes are duplicated (same variant twice in the VCF).
