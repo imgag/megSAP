@@ -325,6 +325,7 @@ else //bam output
 	$bam_available = check_data_available($run_dir, "bam_pass", ".bam") || check_data_available($run_dir, "bam_pass/barcode??", ".bam");
 	if (!$bam_available && !$queue_basecalling) trigger_error("No BAM files available!", E_USER_ERROR);
 
+	trigger_error("Run folder checks done", E_USER_NOTICE);
 
 	foreach ($sample_info as $sample => $info) 
 	{
