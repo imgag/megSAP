@@ -83,7 +83,7 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data_rep)
 			}
 		}
 		if (count($active_rcs)>1) trigger_error("Several active research consents found!", E_USER_ERROR);
-		if (count($active_rcs)==0 && ) trigger_error("No active consent resources found, but CM RedCap says that the consent was signed!", E_USER_ERROR);
+		if (count($active_rcs)==0) trigger_error("No active consent resources found, but CM RedCap says that the consent was signed!", E_USER_ERROR);
 		
 		if (count($active_rcs)>0)
 		{
@@ -792,6 +792,9 @@ foreach(json_decode($result)->issues as $issue)
 }
 if ($exit_code!="200" && $exit_code!="201") trigger_error("Upload failed!", E_USER_ERROR);
 
+print "uploading JSON took ".time_readable(microtime(true)-$time_start)."\n";
+$time_start = microtime(true);
+
 //if upload successfull, add 'Pruefbericht' to CM RedCap
 if (!$test)
 {
@@ -799,6 +802,12 @@ if (!$test)
 	add_submission_to_redcap($cm_id, "K", $tan_k);
 }
 
-print "uploading JSON took ".time_readable(microtime(true)-$time_start)."\n";
+//clean up export folder if successfull
+if (!$test)
+{
+	exec2("rm -rf {$folder} {$qc_folder}");
+}
+
+print "cleanup took ".time_readable(microtime(true)-$time_start)."\n";
 
 ?>

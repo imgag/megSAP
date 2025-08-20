@@ -702,7 +702,6 @@ if (!$test)
 }
 
 print "cleanup took ".time_readable(microtime(true)-$time_start)."\n";
-$time_start = microtime(true);
 
 /*
 //TODO:
