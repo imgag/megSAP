@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("analyze_dragen", "Maps paired-end reads to a reference genome and performs small/structural variant calling using the Illumina DRAGEN server.");
+$parser = new ToolBase("analyze_dragen", "Performs mapping and variant calling using the Illumina DRAGEN server.");
 $parser->addInfile("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 
@@ -27,7 +27,7 @@ $parser->addFlag("high_priority", "Queue megSAP analysis with high priority.");
 $parser->addFlag("somatic", "Queue megSAP analysis with somatic flag.");
 $parser->addString("user", "User used to queue megSAP analysis (has to be in the NGSD).", true, "");
 $parser->addFlag("high_mem", "Run DRAGEN analysis in high memory mode for deep samples. (Also increases timeout to prevent job from being terminated.)");
-$parser->addFlag("trim", "Perform adapter and quality trimming.");
+$parser->addFlag("trim", "Perform adapter and quality trimming. Optional since trimming is usually done during the demultiplexing.");
 
 extract($parser->parse($argv));
 
@@ -316,7 +316,7 @@ if (!$mapping_only)
 {
 	//small variant calling
 	$dragen_parameter[] = "--enable-variant-caller true";
-	$dragen_parameter[] = "--vc-min-base-qual 15"; //TODO Marc re-validate with DRAGEN 4.4 (also for somatic)
+	$dragen_parameter[] = "--vc-min-base-qual 15"; //TODO remove when switching to DRAGEN 4.4
 	//add gVCF output
 	$dragen_parameter[] = "--vc-emit-ref-confidence GVCF";
 	$dragen_parameter[] = "--vc-enable-vcf-output true";
@@ -335,7 +335,7 @@ if (!$mapping_only)
 	
 	//SVs
 	$dragen_parameter[] = "--enable-sv true";
-	$dragen_parameter[] = "--sv-use-overlap-pair-evidence true"; //TODO Marc re-validate with DRAGEN 4.4
+	$dragen_parameter[] = "--sv-use-overlap-pair-evidence true"; //TODO remove when switching to DRAGEN 4.4
 }
 
 //high memory
