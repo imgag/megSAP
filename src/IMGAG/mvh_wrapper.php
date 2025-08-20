@@ -9,7 +9,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
 $parser = new ToolBase("mvh_wrapper", "Wrapper for GRZ/KDK export.");
-$parser->addInt("case_id", "'id' in 'case_data' of 'MVH' database.", false);
+$parser->addInt("cm_id", "ID in case management RedCap database.", false);
 $parser->addEnum("type", "Export type", false, ["GRZ", "KDK_SE"]);
 $parser->addFlag("clear", "Clear date (passed to export script).");
 $parser->addFlag("test", "Test mode (passed to export script).");
@@ -18,7 +18,7 @@ extract($parser->parse($argv));
 //execute export script
 print "Performing export\n";
 $args = [];
-$args[] = "-case_id {$case_id}";
+$args[] = "-cm_id {$cm_id}";
 if ($clear) $args[] = "-clear";
 if ($test) $args[] = "-test";
 $script = dirname(realpath($_SERVER['SCRIPT_FILENAME']))."/mvh_".strtolower($type)."_export.php";

@@ -260,7 +260,7 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 
 //parse command line arguments
 $parser = new ToolBase("mvh_grz_export", "GRZ export for Modellvorhaben.");
-$parser->addInt("case_id", "'id' in 'case_data' of 'MVH' database.", false);
+$parser->addInt("cm_id", "ID in case management RedCap database.", false);
 $parser->addFlag("clear", "Clear export and QC folder before running this script.");
 $parser->addFlag("test", "Test mode.");
 extract($parser->parse($argv));
@@ -271,17 +271,16 @@ $db_ngsd = DB::getInstance("NGSD");
 $mvh_folder = get_path("mvh_folder");
 
 //check that case ID is valid
-$id = $db_mvh->getValue("SELECT id FROM case_data WHERE id='{$case_id}'");
-if ($id=="") trigger_error("No case with id '{$case_id}' in MVH database!", E_USER_ERROR);
-$cm_id = $db_mvh->getValue("SELECT cm_id FROM case_data WHERE id='{$case_id}'");
+$id = $db_mvh->getValue("SELECT id FROM case_data WHERE cm_id='{$cm_id}'");
+if ($id=="") trigger_error("No case with ID '{$cm_id}' in MVH database!", E_USER_ERROR);
 
 //clear
-$folder = realpath($mvh_folder)."/grz_export/{$case_id}/";
-$qc_folder = realpath($mvh_folder)."/grz_qc/{$case_id}/";
+$folder = realpath($mvh_folder)."/grz_export/{$cm_id}/";
+$qc_folder = realpath($mvh_folder)."/grz_qc/{$cm_id}/";
 if ($clear) exec2("rm -rf {$folder} {$qc_folder}");
 
 //get data we need from MVH database
-$cm_data = get_cm_data($db_mvh, $case_id);
+$cm_data = get_cm_data($db_mvh, $id);
 
 //check network > determine KDK and study_subtype
 $network = xml_str($cm_data->network_title);
@@ -318,12 +317,12 @@ if ($seq_mode!="WGS" && $seq_mode!="WES") trigger_error("Unhandled seq_mode '{$s
 $patient_id = xml_str($cm_data->case_id); //TODO pseudonymize via meDIC when clear what Entici instance to use
 if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}'!", E_USER_ERROR);
 
-print "MVH DB id: {$case_id} (CM ID: {$cm_id} / CM Fallnummer: {$patient_id} / seq_mode: {$seq_mode} / network: {$network})\n";
+print "CM ID: {$cm_id} (MVH DB id: {$id} / CM Fallnummer: {$patient_id} / seq_mode: {$seq_mode} / network: {$network})\n";
 print "Export start: ".date('Y-m-d H:i:s')."\n";
 $time_start = microtime(true);
 
 //check germline processed sample is ok
-$ps = $db_mvh->getValue("SELECT ps FROM case_data WHERE id='{$case_id}'");
+$ps = $db_mvh->getValue("SELECT ps FROM case_data WHERE id='{$id}'");
 $info = get_processed_sample_info($db_ngsd, $ps);
 $sys = $info['sys_name_short'];
 $sys_type = $info['sys_type'];
@@ -335,13 +334,13 @@ $ps_t = "";
 $info_t = "";
 if ($is_somatic)
 {
-	$ps_t = $db_mvh->getValue("SELECT ps_t FROM case_data WHERE id='{$case_id}'");
-	if ($ps_t=="") trigger_error("Could no tumor sample for case '{$case_id}' in network '{$network}'!", E_USER_ERROR);
+	$ps_t = $db_mvh->getValue("SELECT ps_t FROM case_data WHERE id='{$id}'");
+	if ($ps_t=="") trigger_error("Could no tumor sample for case '{$cm_id}' in network '{$network}'!", E_USER_ERROR);
 	
 	//check tumor and germline have same system
 	$info_t = get_processed_sample_info($db_ngsd, $ps_t);
 	$sys_t = $info_t['sys_name_short'];
-	if ($sys!=$sys_t) trigger_error("Mismatching tumor/normal processing systems for case '{$case_id}' in network '{$network}': '{$sys}' vs '{$sys_t}'", E_USER_ERROR);
+	if ($sys!=$sys_t) trigger_error("Mismatching tumor/normal processing systems for case '{$cm_id}' in network '{$network}': '{$sys}' vs '{$sys_t}'", E_USER_ERROR);
 	
 	print "tumor sample: {$ps_t} (system: {$sys})\n";
 }
@@ -352,8 +351,8 @@ if ($sys=="twistCustomExomeV2" || $sys=="twistCustomExomeV2Covaris") $roi = "{$m
 if ($seq_mode!="WGS" && $roi=="") trigger_error("Could not determine target region for sample '{$ps}' with processing system '{$sys}'!", E_USER_ERROR);
 
 //determine tanG==VNg
-$sub_ids = $db_mvh->getValues("SELECT id FROM `submission_grz` WHERE status='pending' AND case_id='{$case_id}'");
-if (count($sub_ids)!=1)  trigger_error(count($sub_ids)." pending GRZ submissions for case {$case_id}. Must be one!", E_USER_ERROR);
+$sub_ids = $db_mvh->getValues("SELECT id FROM `submission_grz` WHERE status='pending' AND case_id='{$id}'");
+if (count($sub_ids)!=1)  trigger_error(count($sub_ids)." pending GRZ submissions for case {$cm_id}. Must be one!", E_USER_ERROR);
 $sub_id = $sub_ids[0];
 print "ID in submission_grz table: {$sub_id}\n";
 $tan_g = $db_mvh->getValue("SELECT tang FROM submission_grz WHERE id='{$sub_id}'");
@@ -479,7 +478,7 @@ $research_use_allowed = false;
 $date = "";
 $start = "";
 $end = "";
-$rc_data = get_rc_data($db_mvh, $case_id);
+$rc_data = get_rc_data($db_mvh, $id);
 foreach($rc_data->consent as $consent)
 {
 	if ($consent->status!="active") continue;

@@ -7,11 +7,11 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 ################# data from different sources #################
 
 //returns case management data as an XML object
-function get_cm_data($db_mvh, $case_id)
+function get_cm_data($db_mvh, $id)
 {
 	$main_item = null;
 	
-	$xml_string = $db_mvh->getValue("SELECT cm_data FROM case_data WHERE id='{$case_id}'", "");
+	$xml_string = $db_mvh->getValue("SELECT cm_data FROM case_data WHERE id='{$id}'", "");
 	$xml_obj = simplexml_load_string($xml_string, "SimpleXMLElement", LIBXML_NOCDATA);
 	foreach($xml_obj->item as $item)
 	{
@@ -24,9 +24,9 @@ function get_cm_data($db_mvh, $case_id)
 }
 
 //returns SE data as an XML object
-function get_se_data($db_mvh, $case_id, $with_repeat_instances=false)
+function get_se_data($db_mvh, $id, $with_repeat_instances=false)
 {	
-	$xml_string = $db_mvh->getValue("SELECT se_data FROM case_data WHERE id='{$case_id}'", "");
+	$xml_string = $db_mvh->getValue("SELECT se_data FROM case_data WHERE id='{$id}'", "");
 	$xml_obj = simplexml_load_string($xml_string, "SimpleXMLElement", LIBXML_NOCDATA);
 	
 	if ($with_repeat_instances) return $xml_obj;
@@ -42,25 +42,25 @@ function get_se_data($db_mvh, $case_id, $with_repeat_instances=false)
 	return $main_item;
 }
 //returns GenLab data as an XML object
-function get_gl_data($db_mvh, $case_id)
+function get_gl_data($db_mvh, $id)
 {
-	$xml_string = $db_mvh->getValue("SELECT gl_data FROM case_data WHERE id='{$case_id}'", "");
+	$xml_string = $db_mvh->getValue("SELECT gl_data FROM case_data WHERE id='{$id}'", "");
 	$xml_obj = simplexml_load_string($xml_string, "SimpleXMLElement", LIBXML_NOCDATA);
 	return $xml_obj;
 }
 
 
 //returns research consent data as an XML object
-function get_rc_data($db_mvh, $case_id)
+function get_rc_data($db_mvh, $id)
 {
-	$xml_string = $db_mvh->getValue("SELECT rc_data FROM case_data WHERE id='{$case_id}'", "");
+	$xml_string = $db_mvh->getValue("SELECT rc_data FROM case_data WHERE id='{$id}'", "");
 	return simplexml_load_string($xml_string, "SimpleXMLElement", LIBXML_NOCDATA);
 }
 
 //returns research consent data as an JSON object
-function get_rc_data_json($db_mvh, $case_id)
+function get_rc_data_json($db_mvh, $id)
 {
-	$json_string = $db_mvh->getValue("SELECT rc_data_json FROM case_data WHERE id='{$case_id}'", "");
+	$json_string = $db_mvh->getValue("SELECT rc_data_json FROM case_data WHERE id='{$id}'", "");
 	return json_decode($json_string, true);
 }
 
@@ -213,6 +213,7 @@ function convert_tissue($tissue)
 	if ($tissue=="lymphocyte") return "BTO:0000775";
 	if ($tissue=="skin") return "BTO:0001253";
 	if ($tissue=="muscle") return "BTO:0000887";
+	if ($tissue=="n/a") return "BTO:0001253"; //TODO where from for tumor
 		
 	trigger_error(__FUNCTION__.": Unhandled tissue '{$tissue}'!", E_USER_ERROR);
 }
