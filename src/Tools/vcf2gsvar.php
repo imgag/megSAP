@@ -1253,7 +1253,7 @@ while(!gzeof($handle))
 	if (isset($info["gnomADg_Het"])) $het_gnomad = explode("&", $info["gnomADg_Het"]);
 	if (isset($info["gnomADg_Wt"])) $wt_gnomad = explode("&", $info["gnomADg_Wt"]);
 
-	//genomAD sub-populations
+	//gnomAD sub-populations
 	if (isset($info["gnomADg_AFR_AF"])) $af_gnomad_afr = explode("&", $info["gnomADg_AFR_AF"]);
 	if (isset($info["gnomADg_AMR_AF"])) $af_gnomad_amr = explode("&", $info["gnomADg_AMR_AF"]);
 	if (isset($info["gnomADg_EAS_AF"])) $af_gnomad_eas = explode("&", $info["gnomADg_EAS_AF"]);
