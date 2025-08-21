@@ -33,10 +33,6 @@ $parser->addFlag("skip_run_merging", "Do not merge this run with a previous run.
 $parser->addFlag("manual_demux", "Ignore NovaSeqX Analysis results and use maunal demux.");
 $parser->addFlag("no_queuing", "Do not include queuing commands in the default target of the Makefile.");
 
-
-
-
-
 extract($parser->parse($argv));
 
 //check if GenLab is available
