@@ -805,7 +805,7 @@ if (!$test)
 //clean up export folder if successfull
 if (!$test)
 {
-	exec2("rm -rf {$folder} {$qc_folder}");
+	exec2("rm -rf {$folder}");
 }
 
 print "cleanup took ".time_readable(microtime(true)-$time_start)."\n";

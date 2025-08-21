@@ -479,25 +479,27 @@ $date = "";
 $start = "";
 $end = "";
 $rc_data = get_rc_data($db_mvh, $id);
-foreach($rc_data->consent as $consent)
+if ($rc_data!=false)
 {
-	if ($consent->status!="active") continue;
-	++$active_consent_count;
-	
-	$date = xml_str($consent->date);
-	$start = xml_str($consent->start);
-	$end = xml_str($consent->end);
-	
-	foreach($consent->permit as $permit)
+	foreach($rc_data->consent as $consent)
 	{
-		if ($permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.8" || $permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.1")
+		if ($consent->status!="active") continue;
+		++$active_consent_count;
+		
+		$date = xml_str($consent->date);
+		$start = xml_str($consent->start);
+		$end = xml_str($consent->end);
+		
+		foreach($consent->permit as $permit)
 		{
-			$research_use_allowed = true;
+			if ($permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.8" || $permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.1")
+			{
+				$research_use_allowed = true;
+			}
 		}
 	}
+	if ($active_consent_count>1) trigger_error("More than one active consent found in MVH data:\n{$rc_data}", E_USER_ERROR);
 }
-if ($active_consent_count>1) trigger_error("More than one active consent found in MVH data:\n{$rc_data}", E_USER_ERROR);
-
 $research_consent = [
 	"status" => "active",
 	"scope" => [
