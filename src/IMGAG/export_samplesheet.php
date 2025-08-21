@@ -16,6 +16,7 @@ $parser->addInt("mid1_len", "Number of bases to use from MID 1.", true, -1);
 $parser->addInt("mid2_len", "Number of bases to use from MID 2.", true, -1);
 $parser->addFlag("mid2_no_rc", "Disables reverse-complement of MID 2.");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
+$parser->addFlag("no_trim", "Disables adapter trimming.");
 extract($parser->parse($argv));
 
 //init
@@ -34,7 +35,8 @@ SELECT
 	ps.comment as pscomment,
 	ps.lane as lane,
 	s.comment as scomment,
-	p.name as pname
+	p.name as pname,
+	ps.processing_system_id as processing_system_id
 FROM
 	processed_sample as ps,
 	sample as s,
@@ -78,6 +80,7 @@ foreach($res as $index => $row)
 $barcodes = array();
 $output[] = "[Data]";
 $output[] = "Lane,Sample_ID,Sample_Name,Sample_Project,index,index2,comment,index_name,index2_name";
+$system_ids = array();
 foreach($res as $row)
 {
 	$name = $row["psname"];
@@ -95,6 +98,8 @@ foreach($res as $row)
 		if (!empty($mid1)) $mids1 = [ $mid1 ];
 		if (!empty($mid2)) $mids2 = [ $mid2 ];
 
+		//get processing system for adapter trimming
+		$system_ids[$row["processing_system_id"]] = true;
 
 		//in case of "add_mids", look up the given MID names and add the MID sequence to $mids1
 		if (starts_with($row["pscomment"], "add_mids:"))
@@ -192,6 +197,26 @@ foreach($res as $row)
 			]);
 		}
 	}
+}
+
+if (!$no_trim)
+{
+	//get adapter sequences
+	$res = $db->executeQuery("SELECT adapter1_p5, adapter2_p7 FROM processing_system WHERE id IN (".implode(", ", array_keys($system_ids)).");");
+	$adapter1 = array();
+	$adapter2 = array();
+	foreach($res as $row)
+	{
+		$adapter1[] = $row['adapter1_p5'];
+		$adapter2[] = $row['adapter2_p7'];
+	}
+	$adapter1 = array_unique($adapter1);
+	$adapter2 = array_unique($adapter2);
+
+	array_unshift($output, "\n");
+	array_unshift($output, "AdapterRead2,".implode("+", $adapter2));
+	array_unshift($output, "Adapter,".implode("+", $adapter1));
+	array_unshift($output, "[Settings]");
 }
 
 
