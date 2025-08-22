@@ -702,20 +702,23 @@ if (in_array("re", $steps))
 {
 	//Repeat-expansion calling using straglr
 	$variant_catalog = repository_basedir()."/data/repeat_expansions/straglr_variant_catalog_grch38.bed";
-	$parser->execTool("Tools/vc_straglr.php", "-in {$used_bam_or_cram} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build} --log ".$parser->getLogFile());
+	$parser->execTool("Tools/vc_straglr.php", "-include_partials -in {$used_bam_or_cram} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build} --log ".$parser->getLogFile());
 }
 
 // methylation calling
 if (in_array("me", $steps))
 {
 	if (!contains_methylation($used_bam_or_cram)) trigger_error("BAM file doesn't contain methylation info! Skipping step 'me'", E_USER_WARNING);
-	else $parser->execTool("Tools/create_methyl_plot.php", "-folder {$folder} -name {$name} -local_bam {$used_bam_or_cram} -out {$methylation_table} -build {$build} -regions {$methyl_regions} -threads {$threads} --log ".$parser->getLogFile());
+	else 
+	{
+		$parser->execTool("Tools/create_methyl_plot.php", "-folder {$folder} -name {$name} ".(ends_with($used_bam_or_cram, ".bam")?"-local_bam {$used_bam_or_cram} ":"")."-out {$methylation_table} -build {$build} -regions {$methyl_regions} -threads {$threads} --log ".$parser->getLogFile());
+	}
 }
 
 // paralogous gene calling
 if (in_array("pg", $steps))
 {
-	$parser->execTool("Tools/vc_paraphase.php", "-folder {$folder} -name {$name} -local_bam {$used_bam_or_cram} -build {$build} -threads {$threads} --log ".$parser->getLogFile());
+	$parser->execTool("Tools/vc_paraphase.php", "-folder {$folder} -name {$name} ".(ends_with($used_bam_or_cram, ".bam")?"-local_bam {$used_bam_or_cram} ":"")."-build {$build} -threads {$threads} --log ".$parser->getLogFile());
 }
 
 // annotation

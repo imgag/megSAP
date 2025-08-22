@@ -147,7 +147,7 @@ if (in_array("vc", $steps))
 	$args[] = "-out {$vcf_file}";
 	$args[] = "-threads {$threads}";
 	$args[] = "-analysis_type ".($prefix=="trio" ? "GERMLINE_TRIO" : "GERMLINE_MULTISAMPLE");
-	$args[] = "-mode longread";
+	$args[] = "-mode clair3";
 	$parser->execTool("Tools/merge_gvcf.php", implode(" ", $args));
 
 	//phasing (WhatsHap)
@@ -185,7 +185,8 @@ if (in_array("cn", $steps))
 		"-out_folder $out_folder",
 		"-system $system",
 		"-prefix {$prefix}",
-		"-threads $threads"
+		"-threads $threads",
+		"-no_sync" //already done if needed
 		];
 	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps cn", true);
 }

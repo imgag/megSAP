@@ -433,7 +433,7 @@ if (in_array("vc", $steps))
 			sleep($sge_update_interval);
 
 			// check if job is still running
-			list($stdout) = exec2("qstat -u '*' | egrep '^\s+{$sge_id}\s+' 2>&1", false);
+			list($stdout) = exec2("qstat -u '*' | egrep '^\s*{$sge_id}\s+' 2>&1", false);
 			$finished = trim(implode("", $stdout))=="";
 
 			// log running state
@@ -627,10 +627,7 @@ if (in_array("vi", $steps))
 			"-in_qcml ".$t_bam_map_qc,
 			"-threads ".$threads
 		];
-		if ($dedup_used)
-		{
-			$vc_viral_args[] = "-barcode_correction";
-		}
+		if ($dedup_used) $vc_viral_args[] = "-barcode_correction";
 		$parser->execTool("Tools/vc_viral_load.php", implode(" ", $vc_viral_args));
 	}
 }

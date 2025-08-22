@@ -176,7 +176,7 @@ if ($annotation_only)
 // prevent accidentally re-mapping if Dragen already ran
 if (!$no_dragen && in_array("ma", $steps) && (file_exists($bamfile) || file_exists($cramfile)) && file_exists($folder."/dragen_variant_calls")) 
 {
-	trigger_error("'ma'-step provided, but sample already analyzed with DRAGEN. Use '-no_dragen' if you really want to do a re-mapping!", E_USER_ERROR);
+	trigger_error("'ma' step requested, but sample is already analyzed with DRAGEN. Use '-no_dragen' if you really want to do a re-mapping!", E_USER_ERROR);
 }
 
 //mapping

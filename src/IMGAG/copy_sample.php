@@ -33,10 +33,6 @@ $parser->addFlag("skip_run_merging", "Do not merge this run with a previous run.
 $parser->addFlag("manual_demux", "Ignore NovaSeqX Analysis results and use maunal demux.");
 $parser->addFlag("no_queuing", "Do not include queuing commands in the default target of the Makefile.");
 
-
-
-
-
 extract($parser->parse($argv));
 
 //check if GenLab is available
@@ -719,7 +715,7 @@ foreach($sample_data as $sample => $sample_infos)
 			{
 				foreach ($fastq_files as $fastq_file) 
 				{
-					if(ends_with(strtolower($fastq_file), ".fastq.ora") && !$use_dragen && !$merge_sample)
+					if ((ends_with(strtolower($fastq_file), ".fastq.ora") && !$use_dragen && !$merge_sample) || ($project_analysis=="fastq"))
 					{
 						//convert to fastq.gz
 						$orad_files = [
@@ -806,6 +802,11 @@ foreach($sample_data as $sample => $sample_infos)
 			{
 				$outputline .= " -args '-steps ma,db -somatic'";
 			}
+			
+			//use DRAGEN mapping:
+			$outputline .= ($use_dragen ? " -use_dragen": "");
+			
+			
 			if (isset($tumor2normal[$sample]))
 			{
 				$normal = $tumor2normal[$sample];
