@@ -160,7 +160,7 @@ if (isset($in_exon))
 		$srpb = [];
 		foreach ($rpb as $value)
 		{
-			$srpb[] = $value / $scaling * 10;
+			$srpb[] = $value / $scaling * 100;
 		}
 
 		$tbl_exon->addCol($srpb, "srpb", "Reads overlapping exon per base, scaled by total number of reads in 100 million");

@@ -31,7 +31,7 @@ extract($parser->parse($argv));
 function getCohortStrategy($ps_info)
 {
 	$cohort_strategy = "RNA_COHORT_GERMLINE";
-	if ($ps_info['is_tumor']) $cohort_strategy = "RNA_COHORT_SOMATIC"; 
+	if ($ps_info != null && $ps_info['is_tumor']) $cohort_strategy = "RNA_COHORT_SOMATIC"; 
 	return $cohort_strategy;
 }
 
@@ -605,12 +605,18 @@ if (in_array("rc", $steps))
 	if(is_file($uncorrected_counts_genes_normalized)) exec("rm $uncorrected_counts_genes_normalized");
 	if(is_file($uncorrected_counts_exons_normalized)) exec("rm $uncorrected_counts_exons_normalized");
 	
-	//check cohort for differing processing systems
-	if (db_is_enabled("NGSD"))
+	//check if the settings for this processing system allows multiple processing systems in the cohort
+	$sys_short_name = $sys["name_short"];
+	$ps_allowed_systems ="";
+	$rna_allowed_systems = get_path("rna_allowed_systems");
+	if(is_array($rna_allowed_systems) && array_key_exists($sys_short_name, $rna_allowed_systems)) $ps_allowed_systems = $rna_allowed_systems[$sys_short_name];
+	
+	if (db_is_enabled("NGSD") && $ps_allowed_systems != "")
 	{
 		$db = DB::getInstance("NGSD");
 		$ps_info = get_processed_sample_info($db, $name, false);
 		
+		////check if cohort actally differing processing systems
 		$cohort_strategy = getCohortStrategy($ps_info);
 		$cohort_samples = getCohortSamples($db, $name, $cohort_strategy);
 		
