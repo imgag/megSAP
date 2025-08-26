@@ -42,7 +42,7 @@ function getCohortSamples($db, $ps_name, $cohort_strategy)
 	$ps_sys = processingSystem($db, $ps_name);
 	
 	$ps_allowed_systems ="";
-	$rna_allowed_systems = get_path("rna_allowed_systems");
+	$rna_allowed_systems = get_path("rna_allowed_systems", false);
 	if(is_array($rna_allowed_systems) && array_key_exists($ps_sys, $rna_allowed_systems)) $ps_allowed_systems = $rna_allowed_systems[$ps_sys];
 	
 	$args = [];
@@ -608,7 +608,7 @@ if (in_array("rc", $steps))
 	//check if the settings for this processing system allows multiple processing systems in the cohort
 	$sys_short_name = $sys["name_short"];
 	$ps_allowed_systems ="";
-	$rna_allowed_systems = get_path("rna_allowed_systems");
+	$rna_allowed_systems = get_path("rna_allowed_systems", false);
 	if(is_array($rna_allowed_systems) && array_key_exists($sys_short_name, $rna_allowed_systems)) $ps_allowed_systems = $rna_allowed_systems[$sys_short_name];
 	
 	if (db_is_enabled("NGSD") && $ps_allowed_systems != "")
