@@ -41,7 +41,7 @@ This section contains general settings:
 * `annotate_refseq_consequences` - Flag (true/false) that indicates if variant consequences based on RefSeq transcripts should be annotated in addition to variant consequences based on Ensembl transcripts.
 * `custom_columns` - Used to add custom annotations to the output VCF/GSvar file. Each entry consists of a colon-speparated list of VCF file, INFO field name in the source VCF (prefixed with `CUSTOM_` in the annotated VCF) and column description. Provide the annotation using the dictionary syntax of PHP, e.g. `custom_columns['NGSD_counts'] = "/mnt/data/dbs/NGSD/NGSD_germline.vcf.gz;COUNTS;NGSD counts"`.
 * `locaton` - If set enables site-specific functionality and tests. Set only if you are a collaborator with a specific site name.
-
+* `rna_allowed_systems` - Used to allow multiple processing systems in the RNA analysis for the cohort. If set the samples of all given processing systems are used to build the cohort and a batch correction is run to correct for differences. E.G. `rna_allowed_systems['processing_system_short_name1']="processing_system_short_name2,processing_system_short_name3"`
 ## Section 'dragen'
 
 This section contains settings to run the germline/somatic data analysis on a on-site Illumina Dragen server:
