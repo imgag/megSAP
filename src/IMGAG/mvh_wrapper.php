@@ -71,7 +71,7 @@ if (!$test)
 {
 	$status = $exit_code==0 ? "done" : "failed";
 	$db_mvh = DB::getInstance("MVH");
-	$hash = $db_mvh->prepare("UPDATE submission_".strtolower($type)." SET status=:status, submission_id=:submission_id, submission_output=:submission_output WHERE id=:id");
+	$hash = $db_mvh->prepare("UPDATE submission_".strtolower($type)." SET status=:status, submission_id=:submission_id, submission_output=:submission_output, date=CURDATE() WHERE id=:id");
 	$db_mvh->bind($hash, "status", $status);
 	$db_mvh->bind($hash, "submission_id", $id_sub);
 	$db_mvh->bind($hash, "submission_output", implode("\n", $stdout));

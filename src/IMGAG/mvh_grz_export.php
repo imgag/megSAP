@@ -314,7 +314,7 @@ $seq_mode = xml_str($cm_data->seq_mode);
 if ($seq_mode!="WGS" && $seq_mode!="WES") trigger_error("Unhandled seq_mode '{$seq_mode}'!", E_USER_ERROR);
 
 //get patient identifer (pseudonym from case management) - this is the ID that is used to identify submissions from the same case by GRZ/KDK
-$patient_id = xml_str($cm_data->case_id); //TODO pseudonymize via meDIC when clear what Entici instance to use
+$patient_id = xml_str($cm_data->case_id);
 if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}'!", E_USER_ERROR);
 
 print "CM ID: {$cm_id} (MVH DB id: {$id} / CM Fallnummer: {$patient_id} / seq_mode: {$seq_mode} / network: {$network})\n";
@@ -378,8 +378,7 @@ if ($is_somatic)
 print "base checks took ".time_readable(microtime(true)-$time_start)."\n";
 $time_start = microtime(true);
 
-//TODO add support for trio
-//TODO add support for RNA?
+//TODO add support for trio?
 //create germline raw data (FASTQs + germline VCF)
 $n_bam = $info['ps_bam'];
 $n_fq1 = "{$folder}/files/normal_R1.fastq.gz";
@@ -404,7 +403,8 @@ if ($is_lrgs && !file_exists($n_fq1))
 if (!file_exists($n_vcf))
 {
 	print "  generating VCF file for germline sample {$ps}...\n";
-	exec2("zcat ". $info['ps_folder']."/{$ps}_var.vcf.gz > {$n_vcf}"); //TODO replace our sample ID
+	$vcf = $info['ps_folder']."/{$ps}_var.vcf.gz";
+	$parser->execApptainer("ngs-bits", "VcfReplaceSamples", "-in {$vcf} -out {$n_vcf} -ids {$ps}=SAMPLE_GERMLINE", [$vcf], ["{$folder}/files/"]);
 }
 $files_to_submit = $is_lrgs ? [$lrgs_bam, $n_vcf] : [$n_fq1, $n_fq2, $n_vcf];
 
@@ -422,8 +422,10 @@ if ($is_somatic)
 	}
 	if (!file_exists($tn_vcf))
 	{
-		print "  generating VCF file for tumor sample {$ps_t}...\n";
-		exec2("zcat ". $info_t['ps_folder']."/../Somatic_{$ps_t}-{$ps}/{$ps_t}-{$ps}_var.vcf.gz > {$tn_vcf}"); //TODO replace our sample ID
+		print "  generating VCF file for tumor/normal pair {$ps_t}/{$ps}...\n";
+		
+		$vcf = $info_t['ps_folder']."/../Somatic_{$ps_t}-{$ps}/{$ps_t}-{$ps}_var.vcf.gz";
+		$parser->execApptainer("ngs-bits", "VcfReplaceSamples", "-in {$vcf} -out {$tn_vcf} -ids {$ps}=SAMPLE_GERMLINE,{$ps_t}=SAMPLE_TUMOR", [$vcf], ["{$folder}/files/"]);
 	}
 	$files_to_submit_t = [$t_fq1, $t_fq2, $tn_vcf];
 }
@@ -571,7 +573,7 @@ print "  creating metadata...\n";
 $json = [];
 $json['$schema'] = "https://raw.githubusercontent.com/BfArM-MVH/MVGenomseq/refs/tags/v1.2.1/GRZ/grz-schema.json";
 $json['submission'] = [
-	"submissionDate" => $db_mvh->getValue("SELECT date FROM submission_grz WHERE id='{$sub_id}'"),
+	"submissionDate" => date('Y-m-d'),
 	"submissionType" => $db_mvh->getValue("SELECT type FROM submission_grz WHERE id='{$sub_id}'"),
 	"tanG" => $tan_g,
 	"localCaseId" => $patient_id,

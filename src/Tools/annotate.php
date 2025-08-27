@@ -65,7 +65,6 @@ $args[] = "-build ".$sys['build'];
 $args[] = "-threads ".$threads;
 $args[] = "-ps_name ".$out_name;
 if ($somatic) $args[] = "-somatic";
-if ($somatic) $args[] = "-somatic";
 if (get_path("annotate_refseq_consequences", false)) $args[] = "-annotate_refseq_consequences";
 $args[] = "-custom custom_columns";
 if ($no_splice) $args[] = "-no_splice";

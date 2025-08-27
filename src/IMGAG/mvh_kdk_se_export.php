@@ -65,7 +65,7 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data_rep)
 		$active_rcs = [];
 		if (starts_with($consent_type, "Kinder")) //generate consent JSON from SE RedCap
 		{
-			//TODO 
+			trigger_error("kids consent not implemented!", E_USER_ERROR); //TODO implement with https://github.com/KohlbacherLab/mii_broad_consent_mapper
 		}
 		else //adult > search for consent data from SAP
 		{
@@ -644,7 +644,7 @@ if ($id=="") trigger_error("No case with id '{$cm_id}' in MVH database!", E_USER
 
 //get patient identifer (pseudonym from case management) - this is the ID that is used to identify submissions from the same case by GRZ/KDK
 $cm_data = get_cm_data($db_mvh, $id);
-$patient_id = xml_str($cm_data->case_id); //TODO pseudonymize via meDIC when clear what Entici instance to use
+$patient_id = xml_str($cm_data->case_id);
 if ($patient_id=="") trigger_error("No patient identifier set for sample with MVH case ID '{$cm_id}'!", E_USER_ERROR);
 
 //create export folder
