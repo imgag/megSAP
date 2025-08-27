@@ -367,7 +367,7 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 	{
 		if ($has_roi && !$is_wgs_shallow)
 		{	
-			$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".realpath($sys['target_file'])." -bam $used_bam_or_cram -out $lowcov_file -cutoff 20 -threads {$threads}", [$folder, $sys['target_file']]);
+			$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".realpath($sys['target_file'])." -bam $used_bam_or_cram -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", [$folder, $sys['target_file'], $genome]);
 			if (db_is_enabled("NGSD"))
 			{
 

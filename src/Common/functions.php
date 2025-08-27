@@ -755,7 +755,7 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 			}
 			else
 			{
-				list($stdout, $stderr, $return) = exec2($ngsbits_command);
+				list($stdout, $stderr, $return) = exec2($ngsbits_command, $abort_on_error);
 				return array($stdout, $stderr, $return);
 			}
 		}
