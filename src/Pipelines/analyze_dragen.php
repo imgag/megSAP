@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("analyze_dragen", "Maps paired-end reads to a reference genome and performs small/structural variant calling using the Illumina DRAGEN server.");
+$parser = new ToolBase("analyze_dragen", "Performs mapping and variant calling using the Illumina DRAGEN server.");
 $parser->addInfile("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 
@@ -27,6 +27,7 @@ $parser->addFlag("high_priority", "Queue megSAP analysis with high priority.");
 $parser->addFlag("somatic", "Queue megSAP analysis with somatic flag.");
 $parser->addString("user", "User used to queue megSAP analysis (has to be in the NGSD).", true, "");
 $parser->addFlag("high_mem", "Run DRAGEN analysis in high memory mode for deep samples. (Also increases timeout to prevent job from being terminated.)");
+$parser->addFlag("trim", "Perform adapter and quality trimming. Optional since trimming is usually done during the demultiplexing.");
 
 extract($parser->parse($argv));
 
@@ -48,15 +49,13 @@ foreach($steps as $step)
 //determine processing system
 $system_created_from_ngsd = (is_null($system) || $system=="");
 $sys = load_system($system, $name);
-$is_wes = $sys['type']=="WES";
+$is_wes_or_panel = $sys['type']=="WES" || $sys['type']=="Panel" || $sys['type']=="Panel Haloplex";
 $is_wgs = $sys['type']=="WGS";
-$is_panel = $sys['type']=="Panel" || $sys['type']=="Panel Haloplex";
-$has_roi = $sys['target_file']!="";
 $build = $sys['build'];
 $genome = genome_fasta($build, false);
 
 //stop on unsupported processing systems:
-if (!($is_wes || $is_wgs || $is_panel)) trigger_error("Can only analyze WGS/WES/panel samples not ".$sys['type']." samples!", E_USER_ERROR);
+if (!$is_wes_or_panel && !$is_wgs) trigger_error("Can only analyze WGS/WES/panel samples not ".$sys['type']." samples!", E_USER_ERROR);
 
 //check if valid reference genome is provided
 $dragen_genome_path = get_path("dragen_genomes")."/".$build."/dragen/";
@@ -253,7 +252,7 @@ file_put_contents($fastq_file_list, implode("\n", $fastq_file_list_data));
 $dragen_parameter[] = "--fastq-list ".$fastq_file_list;
 
 //create target region for exomes/panels
-if ($is_wes || $is_panel)
+if ($is_wes_or_panel)
 {
 	$target_extended = $parser->tempFile("_roi_extended.bed");
 	$target_region = file($sys['target_file'], FILE_IGNORE_NEW_LINES);
@@ -275,11 +274,21 @@ if ($is_wes || $is_panel)
 	}
 	file_put_contents($target_extended, implode("\n", $target_region_extended));
 }
-//write adapters to fasta files:
-$tmp_adapter_p5 = $parser->tempFile("_adapter_p5.fasta");
-$tmp_adapter_p7 = $parser->tempFile("_adapter_p7.fasta");
-file_put_contents($tmp_adapter_p5, implode("\n", [">header adapter1 p5", $sys["adapter1_p5"]]));
-file_put_contents($tmp_adapter_p7, implode("\n", [">header adapter2 p7", $sys["adapter2_p7"]]));
+
+//trimming
+if ($trim)
+{
+	//write adapters to fasta files
+	$tmp_adapter_p5 = $parser->tempFile("_adapter_p5.fasta");
+	$tmp_adapter_p7 = $parser->tempFile("_adapter_p7.fasta");
+	file_put_contents($tmp_adapter_p5, implode("\n", [">header adapter1 p5", $sys["adapter1_p5"]]));
+	file_put_contents($tmp_adapter_p7, implode("\n", [">header adapter2 p7", $sys["adapter2_p7"]]));
+
+	$dragen_parameter[] = "--read-trimmers adapter,quality";
+	$dragen_parameter[] = "--trim-adapter-read1 $tmp_adapter_p7";
+	$dragen_parameter[] = "--trim-adapter-read2 $tmp_adapter_p5";
+	$dragen_parameter[] = "--trim-min-quality 15";
+}
 
 //parameters
 $dragen_parameter[] = "-r ".$dragen_genome_path;
@@ -287,17 +296,13 @@ $dragen_parameter[] = "--ora-reference ".get_path("data_folder")."/dbs/oradata/"
 $dragen_parameter[] = "--output-directory $working_dir";
 $dragen_parameter[] = "--output-file-prefix {$name}";
 $dragen_parameter[] = "--output-format CRAM"; //always use CRAM
-//trimming:
-$dragen_parameter[] = "--read-trimmers adapter,quality";
-$dragen_parameter[] = "--trim-adapter-read1 tmp_adapter_p7";
-$dragen_parameter[] = "--trim-adapter-read2 tmp_adapter_p5";
-$dragen_parameter[] = "--trim-min-quality 15";
+
 //mapping:
-$dragen_parameter[] = "--enable-map-align-output=true";
-$dragen_parameter[] = "--enable-bam-indexing true";
-$dragen_parameter[] = "--enable-rh=false"; //disabled RH special caller because this leads to variants with EVENTTYPE=GENE_CONVERSION that have no DP and AF entry and sometimes are duplicated (same variant twice in the VCF).
+$dragen_parameter[] = "--enable-map-align-output true";
+$dragen_parameter[] = "--enable-cram-indexing true";
+$dragen_parameter[] = "--enable-rh false"; //disabled RH special caller because this leads to variants with EVENTTYPE=GENE_CONVERSION that have no DP and AF entry and sometimes are duplicated (same variant twice in the VCF).
 //set target region
-if ($is_wes || $is_panel) $dragen_parameter[] = "--vc-target-bed {$target_extended}";
+if ($is_wes_or_panel) $dragen_parameter[] = "--vc-target-bed {$target_extended}";
 
 if(db_is_enabled("NGSD"))
 {
@@ -311,21 +316,26 @@ if (!$mapping_only)
 {
 	//small variant calling
 	$dragen_parameter[] = "--enable-variant-caller true";
-	$dragen_parameter[] = "--vc-min-base-qual 15"; //TODO Marc re-validate with DRAGEN 4.4 (also for somatic)
-
-	//add gVCFs
+	$dragen_parameter[] = "--vc-min-base-qual 15"; //TODO remove when switching to DRAGEN 4.4
+	//add gVCF output
 	$dragen_parameter[] = "--vc-emit-ref-confidence GVCF";
 	$dragen_parameter[] = "--vc-enable-vcf-output true";
-	//structural variant calling
+	//disabled ML model because it leads to a sensitivity drop for Twist Exome V2 (see /mnt/storage2/users/ahsturm1/scripts/2025_03_21_megSAP_release_performance)
+	if ($is_wes_or_panel)
+	{
+		$dragen_parameter[] = "--vc-ml-enable-recalibration false";
+	}
+	
+	//CNVs
+	if ($is_wgs)
+	{
+		$dragen_parameter[] = "--enable-cnv true";
+		$dragen_parameter[] = "--cnv-enable-self-normalization true";
+	}
+	
+	//SVs
 	$dragen_parameter[] = "--enable-sv true";
-	$dragen_parameter[] = "--sv-use-overlap-pair-evidence true"; //TODO Marc re-validate with DRAGEN 4.4
-}
-
-if ($is_wgs && !$mapping_only)
-{
-	$dragen_parameter[] = "--enable-cnv true";
-	$dragen_parameter[] = "--cnv-enable-self-normalization true";
-	$dragen_parameter[] = "--vc-ml-enable-recalibration=false"; //disabled because it leads to a sensitivity drop for Twist Exome V2 (see /mnt/storage2/users/ahsturm1/scripts/2025_03_21_megSAP_release_performance)
+	$dragen_parameter[] = "--sv-use-overlap-pair-evidence true"; //TODO remove when switching to DRAGEN 4.4
 }
 
 //high memory

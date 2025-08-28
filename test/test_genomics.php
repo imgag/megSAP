@@ -402,4 +402,18 @@ check(get_fastq_read_count([data_folder()."/get_fastq_read_count_in1_L001_R1_001
 
 end_test();
 
+//##################################################################################
+start_test("contains_mito");
+
+check(contains_mito(data_folder()."/an_vep_in1.vcf"), true);
+check(contains_mito(data_folder()."/an_vep_in2.vcf"), false);
+
+check(contains_mito(data_folder()."/vc_clair_out3.vcf.gz"), true);
+check(contains_mito(data_folder()."/vc_clair_out2.vcf.gz"), false);
+
+check(contains_mito(data_folder()."/an_vep_NGSD_gene_info.bed"), true);
+check(contains_mito(data_folder()."/vc_clair_in_roi.bed"), false);
+
+end_test();
+
 ?>

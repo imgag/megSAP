@@ -100,11 +100,13 @@ queues_dragen =
 
 [mysql-databases]
 db_host['NGSD'] = "localhost"
+db_port['NGSD'] = "3306"
 db_name['NGSD'] = "ngsd"
 db_user['NGSD'] = "ngsduser"
 db_pass['NGSD'] = ""
 
 db_host['NGSD_TEST'] = "localhost"
+db_port['NGSD_TEST'] = "3306"
 db_name['NGSD_TEST'] = "ngsd_test"
 db_user['NGSD_TEST'] = "ngsdtestuser"
 db_pass['NGSD_TEST'] = ""
