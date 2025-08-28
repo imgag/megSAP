@@ -459,7 +459,7 @@ if (in_array("vc", $steps))
 		$args[] = "-build ".$build;
 		$args[] = "--log ".$parser->getLogFile();
 		$args[] = "-model ".$basecall_model_path;
-		if ($gpu) $args[] = "-gpu 0";
+		if ($gpu) $args[] = "-gpu";
 		
 		$parser->execTool("Tools/vc_clair.php", implode(" ", $args));
 	}
