@@ -774,14 +774,14 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 			
 			//NGSD credentials (production instance)
 			$output[] = "ngsd_host = ".get_db('NGSD', 'db_host', '');
-			$output[] = "ngsd_port = 3306";
+			$output[] = "ngsd_port = ".get_db('NGSD', 'db_port', '');
 			$output[] = "ngsd_name = ".get_db('NGSD', 'db_name', '');
 			$output[] = "ngsd_user = ".get_db('NGSD', 'db_user', '');
 			$output[] = "ngsd_pass = ".get_db('NGSD', 'db_pass', '');
 			
 			//NGSD credentials (test instance)
 			$output[] = "ngsd_test_host = ".get_db('NGSD_TEST', 'db_host', '');
-			$output[] = "ngsd_test_port = 3306";
+			$output[] = "ngsd_test_port = ".get_db('NGSD_TEST', 'db_port', '');
 			$output[] = "ngsd_test_name = ".get_db('NGSD_TEST', 'db_name', '');
 			$output[] = "ngsd_test_user = ".get_db('NGSD_TEST', 'db_user', '');
 			$output[] = "ngsd_test_pass = ".get_db('NGSD_TEST', 'db_pass', '');
