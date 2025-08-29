@@ -581,7 +581,7 @@ if (in_array("vc", $steps))
 		{
 			$vcffile_mito = $parser->tempFile("_mito.vcf.gz");
 			$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen.vcf.gz";
-			if (!$no_dragen && file_exists($dragen_output_vcf))
+			if (!$no_dragen && file_exists($dragen_output_vcf) && contains_mito($dragen_output_vcf))
 			{
 				trigger_error("DRAGEN analysis found in sample folder. Using this data for mito small variant calling. ", E_USER_NOTICE);
 				$pipeline = [];

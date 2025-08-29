@@ -341,7 +341,7 @@ function get_path($name, $throw_on_error=true)
 	//get value
 	if (!isset($parsed_ini[$name]) && $throw_on_error)
 	{
-		trigger_error("Could not find key '$name' in settings!", E_USER_ERROR);
+		trigger_error("Could not find key '$name' in settings file!", E_USER_ERROR);
 	}
 	$value = isset($parsed_ini[$name]) ? $parsed_ini[$name] : "";
 
@@ -1362,6 +1362,23 @@ function analysis_job_info(&$db_conn, $job_id, $error_if_not_found=true)
 	return $info;
 }
 
+//Returns if a BED, VCF or VCF.GZ file contains mito lines
+function contains_mito($filename)
+{
+	$h = gzopen($filename, 'r');
+	while(!gzeof($h))
+	{
+		$line = gzgets($h);
+		if (starts_with($line, "chrMT\t"))
+		{
+			return true;
+		}
+	}
+	gzclose($h);
+	
+	return false;
+}
+
 //Returns if special variant calling for mitochondrial DNA should be performed
 function enable_special_mito_vc($sys)
 {
@@ -1372,19 +1389,10 @@ function enable_special_mito_vc($sys)
 	if ($sys['type']!="WES" && $sys['type']!="WGS") return false;
 	
 	//no ROI > chrMT is called anyway > no special calling
-	if ($sys['target_file']=="") false;
+	if ($sys['target_file']=="") return false;
 	
 	//check if chrMT is already contained in the ROI
-	$roi = $sys['target_file'];
-	$file = file($roi);
-	foreach($file as $line)
-	{
-		if (starts_with($line, "chrMT"))
-		{
-			trigger_error("Special variant calling of chrMT disabled because target file '$roi' contains chrMT regions. Remove chrMT regions to enable high-sensitivity variant calling on chrMT!", E_USER_WARNING);
-			return false;
-		}
-	}
+	if (contains_mito($sys['target_file'])) return false;
 	
 	return true;
 }
