@@ -226,10 +226,10 @@ function json_diagnoses($se_data, $se_data_rep)
 	if (count($codes)!=3)
 	{
 		$output["missingCodeReason"] = [
-        "code" => "no-matching-code",
-        "display" => "Kein geeigneter Code (ICD-10-GM, ORDO, Alpha-ID-SE) verfügbar",
-        "system" => "dnpm-dip/rd/diagnosis/missing-code-reason"
-		];
+			"code" => "no-matching-code",
+			"display" => "Kein geeigneter Code (ICD-10-GM, ORDO, Alpha-ID-SE) verfügbar",
+			"system" => "dnpm-dip/rd/diagnosis/missing-code-reason"
+			];
 	}
 	
 	return $output;
@@ -247,7 +247,7 @@ function json_hpos($se_data, $se_data_rep)
 		if ($hpo=="") continue;
 		
 		//convert HPO name to id
-		$hpo_id = $db_ngsd->getValue("SELECT hpo_id FROM hpo_term WHERE name LIKE '{$hpo}'", "");  
+		$hpo_id = $db_ngsd->getValue("SELECT hpo_id FROM hpo_term WHERE name LIKE '{$hpo}'", "");
 		if ($hpo_id=="")
 		{
 			trigger_error("Could not convert HPO name '{$hpo}' to ID using the NGSD hpo_term table!", E_USER_WARNING);
@@ -460,7 +460,7 @@ function json_ngs_report($cm_data, $se_data, $info, $results)
 	$output = [
 			"id" => "ID_NGS_REPORT_1",
 			"patient" => json_patient_ref(),
-			"issuedOn" =>  xml_str($cm_data->gen_finding_date),
+			"issuedOn" => xml_str($cm_data->gen_finding_date),
 			"type" => [
 				"code" => ($info['sys_type']=="lrGS" ? "genome-long-read" : "genome-short-read"),
 				],
@@ -488,7 +488,36 @@ function json_ngs_report($cm_data, $se_data, $info, $results)
 	return $output;
 }
 
-function json_results($se_data_rep, $info)
+//returns a map from gene symbol to HGNC id. Genes need to be calculated because the variant text shows "(many)" if more than 10 genes are affected by the variant.
+function genes_overlapping($chr, $start, $end)
+{
+	global $db_ngsd;
+	
+	//determine overlapping genes
+	list($stdout) = exec2("echo '{$chr}\t".($start-1)."\t{$end}' | BedAnnotateGenes | cut -f4");
+	$tmp = trim(implode("", $stdout));
+	
+	//no gene > extend by 5000 bases
+	if ($tmp=="")
+	{
+		list($stdout) = exec2("echo '{$chr}\t".($start-1)."\t{$end}' | BedAnnotateGenes -extend 5000 | cut -f4");
+		$tmp = trim(implode("", $stdout));
+	}
+	
+	$genes = [];
+	foreach(explode(",", $tmp) as $gene)
+	{
+		$gene = trim($gene);
+		if ($gene=="") continue;
+		
+		//determine HGNC ID
+		$genes[$gene] = "HGNC:".$db_ngsd->getValue("SELECT hgnc_id FROM gene WHERE symbol='{$gene}'");;
+	}
+	
+	return $genes;
+}
+
+function json_results($se_data, $se_data_rep, $info)
 {
 	global $var2id; //we need variant IDs to link to variants, so we store the association in a global variable
 	global $db_ngsd;
@@ -499,7 +528,11 @@ function json_results($se_data_rep, $info)
 	{
 		$var = xml_str($item->variante);
 		if ($var=="") continue;
-
+		
+		//init
+		$ps_id = $info['ps_id'];
+		$rc_id = $db_ngsd->getValue("SELECT id FROM report_configuration WHERE processed_sample_id='{$ps_id}'");
+		
 		//determine ID
 		$id = "ID_VAR_".(count($var2id)+1);
 		$var2id[$var] = $id;
@@ -509,8 +542,11 @@ function json_results($se_data_rep, $info)
 		$var_data['id'] = $id;
 		$var_data['patient'] = json_patient_ref();
 		
+		//add significance
+		$var_data['significance'] = ['code' => convert_var_type(xml_str($item->typ_variante))];
+		
 		//add variants to result
-		if (starts_with($var, "chr")) //small variants
+		if (starts_with($var, "chr")) //small variants - example: chr8:10623069-10623069 G>A (RP1L1)
 		{
 			//convert GSvar format to VCF format
 			for($i=0; $i<strpos($var, ' '); ++$i)
@@ -518,7 +554,7 @@ function json_results($se_data_rep, $info)
 				if ($var[$i]=='-') $var[$i] = ' ';
 			}
 			$var = strtr($var, ":>", "  ");
-			list($chr, $start, $end, $ref, $alt, $genes) = explode(" ", $var);
+			list($chr, $start, $end, $ref, $alt) = explode(" ", $var);
 			list($chr2, $start2, $ref2, $alt2) = gsvar_to_vcf("GRCh38", $chr, $start, $ref, $alt);
 			$var_data['chromosome'] = $chr2;
 			$var_data['startPosition'] = (int)$start2;
@@ -526,45 +562,33 @@ function json_results($se_data_rep, $info)
 			$var_data['ref'] = $ref2;
 			$var_data['alt'] = $alt2;
 			
-			//significance
-			$var_data['significance'] = ['code' => convert_var_type(xml_str($item->typ_variante))];
-			
-			//genes
-			$genes_valid = [];
-			$genes = explode(",", strtr($genes, "()", "  "));
-			foreach($genes as $gene)
-			{
-				$gene = trim($gene);
-				if ($gene=="") continue;
-				
-				$hgnc_id = "HGNC:".$db_ngsd->getValue("SELECT hgnc_id FROM gene WHERE symbol='{$gene}'");
-				if (!isset($var_data['genes'])) $var_data['genes'] = [];
-				$var_data['genes'][] = ['code'=>$hgnc_id, 'disply'=>$gene];
-				
-				$genes_valid[] = $gene;
-			}
-			
 			//zygosity
-			$ps_id = $info['ps_id'];
 			$var_id = get_variant_id($db_ngsd, $chr, $start, $end, $ref, $alt);
 			$genotype = $db_ngsd->getValue("SELECT genotype FROM detected_variant WHERE processed_sample_id='{$ps_id}' AND variant_id='{$var_id}'");
 			$var_data['zygosity'] = ['code' => convert_genotype($genotype)];
 			
+			//genes
+			$genes = genes_overlapping($chr, $start, $end);
+			foreach($genes as $gene => $hgnc_id)
+			{
+				if (!isset($var_data['genes'])) $var_data['genes'] = [];
+				$var_data['genes'][] = ['code'=>$hgnc_id, 'disply'=>$gene];
+			}
+			
 			//acmgClass
-			$class = $db_ngsd->getValue("SELECT class FROM variant_classification  WHERE variant_id='{$var_id}'", "");
+			$class = $db_ngsd->getValue("SELECT class FROM variant_classification WHERE variant_id='{$var_id}'", "");
 			if (is_numeric($class))
 			{
 				$var_data['acmgClass'] = ['code' => $class];
 			}
 			
 			//modeOfInheritance
-			$rc_id = $db_ngsd->getValue("SELECT id FROM report_configuration WHERE processed_sample_id='{$ps_id}'");
 			$inheritance = $db_ngsd->getValue("SELECT inheritance FROM report_configuration_variant WHERE report_configuration_id='{$rc_id}' AND variant_id='{$var_id}'");
 			$var_data['inheritance'] = ['code' => convert_inheritance($inheritance)];
 			
 			//cDNAChange, proteinChange
 			$transcripts = []; //best transcripts of overlapping 
-			foreach($genes_valid as $gene)
+			foreach($genes as $gene => $hgnc_id)
 			{
 				list($stdout) = exec2("echo '{$gene}' | GenesToTranscripts -mode best | grep '{$gene}' | cut -f2");
 				foreach($stdout as $line)
@@ -597,18 +621,50 @@ function json_results($se_data_rep, $info)
 				if (count($consequences)>1) trigger_error("More than one variant consequence found. Only one is allowed in KDK-SE. Using first variant consequence!", E_USER_WARNING);
 			}
 			
-			//missing: publications (not in NGSD), externalIds (which?), segregationAnalysis (not in NGSD), acmgCriteria (not in NGSD), gDNAChange (duplicate of chr, start, ref, alt), localization (depends on gene/transcript)
-						
 			//add
 			if (isset($results['smallVariants'])) $results['smallVariants'] = [];
 			$results['smallVariants'][] = $var_data;
+			
+			//missing: publications (not in NGSD), externalIds (which?), segregationAnalysis (not in NGSD), acmgCriteria (not in NGSD), localization (depends on gene/transcript), gDNAChange (duplicate of chr, start, ref, alt)
 		}
-		else if (starts_with($var, "CNV:")) //CNV
+		else if (starts_with($var, "CNV:")) //CNV - example: CNV: chr6:64839979-64993979 CN=0 size=154.000kb (EYS)
 		{
-			//TODO
-			trigger_error("CNVs not implemented", E_USER_ERROR);	
+			//parse variant text
+			$var = strtr(substr($var, 5), ":-", "  ");
+			list($chr, $start, $end, $cn) = explode(" ", $var);
+			$var_data['chromosome'] = $chr;
+			$var_data['startPosition'] = (int)$start;
+			$var_data['endPosition'] = (int)$end;
+			$var_data['type'] = ['code' => convert_cn_to_type($cn, $chr, convert_gender(xml_str($se_data->gender)))];
+			
+			//genes
+			$genes = genes_overlapping($chr, $start, $end);
+			foreach($genes as $gene => $hgnc_id)
+			{
+				if (!isset($var_data['genes'])) $var_data['genes'] = [];
+				$var_data['genes'][] = ['code'=>$hgnc_id, 'disply'=>$gene];
+			}
+			
+			//acmgClass
+			$cs_id = $db_ngsd->getValue("SELECT id FROM cnv_callset WHERE processed_sample_id='{$ps_id}'");
+			$var_id = $db_ngsd->getValue("SELECT id FROM cnv WHERE cnv_callset_id='{$cs_id}' AND chr='{$chr}' AND start='{$start}' AND end='{$end}'");
+			$class = $db_ngsd->getValue("SELECT class FROM report_configuration_cnv WHERE cnv_id='{$var_id}'", "");
+			if (is_numeric($class))
+			{
+				$var_data['acmgClass'] = ['code' => $class];
+			}
+			
+			//modeOfInheritance
+			$inheritance = $db_ngsd->getValue("SELECT inheritance FROM report_configuration_cnv WHERE cnv_id='{$var_id}'", "");
+			$var_data['inheritance'] = ['code' => convert_inheritance($inheritance)];
+			
+			//add
+			if (isset($results['copyNumberVariants'])) $results['copyNumberVariants'] = [];
+			$results['copyNumberVariants'][] = $var_data;
+			
+			//missing: publications (not in NGSD), externalIds (which?), segregationAnalysis (not in NGSD), acmgCriteria (not in NGSD), localization (depends on gene/transcript), gDNAChange/cDNAChange/proteinChange how?, zygosity not applicable
 		}
-		else if (starts_with($var, "SV-")) //SV
+		else if (starts_with($var, "SV-")) //SV - example: SV-DUP at chr9:17051726-138024890 genotype=het (many)
 		{
 			//TODO
 			trigger_error("SVs not implemented", E_USER_ERROR);	
@@ -618,6 +674,7 @@ function json_results($se_data_rep, $info)
 			//missing: REs (not modelled in SE-DIP format)
 		}
 		else trigger_error("Unhandled variant type for variant '{$var}'!", E_USER_ERROR);	
+
 	}
 	
 	//missing: autozygosity (there is no definition how to calculate it), REs (not modelled in SE-DIP format)
@@ -657,7 +714,7 @@ print "export folder: {$folder}\n";
 
 //determine tanG==VNg
 $sub_ids = $db_mvh->getValues("SELECT id FROM `submission_kdk_se` WHERE ".($test ? "" : "status='pending' AND")." case_id='{$id}'");
-if (count($sub_ids)!=1)  trigger_error(count($sub_ids)." pending KDK-SE submissions for case {$cm_id}. Must be one!", E_USER_ERROR);
+if (count($sub_ids)!=1) trigger_error(count($sub_ids)." pending KDK-SE submissions for case {$cm_id}. Must be one!", E_USER_ERROR);
 $sub_id = $sub_ids[0];
 print "ID in submission_kdk_se table: {$sub_id}\n";
 $tan_k = $db_mvh->getValue("SELECT tank FROM submission_kdk_se WHERE id='{$sub_id}'");
@@ -689,7 +746,7 @@ print "### creating JSON ###\n";
 
 //create results section (contained variants are referenced in XXX and XXX, so we need to create them first to have to the IDs later on)
 $var2id = [];
-$results = $no_seq ? [] : json_results($se_data_rep, $info);
+$results = $no_seq ? [] : json_results($se_data, $se_data_rep, $info);
 $json = [
 	"metadata" => json_metadata($cm_data, $tan_k, $rc_data_json, $se_data_rep),
 	"patient" => json_patient($cm_data, $se_data),

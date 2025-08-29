@@ -213,7 +213,7 @@ function convert_tissue($tissue)
 	if ($tissue=="lymphocyte") return "BTO:0000775";
 	if ($tissue=="skin") return "BTO:0001253";
 	if ($tissue=="muscle") return "BTO:0000887";
-	if ($tissue=="n/a") return "BTO:0001253"; //TODO where from for tumor
+	if ($tissue=="n/a") return "BTO:0001253"; //TODO use OncoTree for tumor
 		
 	trigger_error(__FUNCTION__.": Unhandled tissue '{$tissue}'!", E_USER_ERROR);
 }
@@ -392,6 +392,35 @@ function convert_inheritance($inheritance)
 	if ($inheritance=="MT") return "mitochondrial";
 	
 	trigger_error(__FUNCTION__.": Unhandled inheritance '{$inheritance}'!", E_USER_ERROR);
+}
+
+function convert_cn_to_type($cn, $chr, $gender)
+{
+	//remove 'CN=' prefix
+	$cn = trim(strtr($cn, ["CN="=>""]));
+	if (!is_numeric($cn)) trigger_error(__FUNCTION__.": Invalid copy number '$cn'!", E_USER_ERROR);
+	
+	//determine type
+	if ($chr=="chrX")
+	{
+		if ($gender=="male" && $cn<1) return "loss";
+		else if ($gender=="male" && $cn>1) return "gain";
+		else if ($gender=="female" && $cn<2) return "loss";
+		else if ($gender=="female" && $cn>2) return "gain";
+	}
+	else if ($chr=="chrY")
+	{
+		if ($gender=="male" && $cn<1) return "loss";
+		if ($gender=="male" && $cn>1) return "gain";
+		if ($gender=="female") return "gain";
+	}
+	else
+	{
+		if ($cn<2) return "loss";
+		if ($cn>2) return "gain";
+	}
+	
+	trigger_error(__FUNCTION__.": Unhandled combination: {$cn}/{$chr}/{$gender}", E_USER_ERROR);
 }
 
 ?>

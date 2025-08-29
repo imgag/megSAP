@@ -34,6 +34,7 @@ foreach($stdout as $line)
 	if ($line=="") continue;
 	print "  {$line}\n";
 }
+if ($exit_code!=0) exit($exit_code);
 
 //get submission IDs from output (available for GRZ only)
 $id_sub = "";
