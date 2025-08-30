@@ -363,7 +363,7 @@ function json_care_plan_2($se_data, $se_data_rep) //'carePlan' is misleading. Th
 		"type" => [
 			"code" => convert_therapy_type($item->therapie_beschreibung),
 			],
-		//TODO supportingVariants
+		//TODO supportingVariants - no example yet
 		//missing fields: medication (not in SE data)
 		];
 
@@ -392,7 +392,7 @@ function json_care_plan_2($se_data, $se_data_rep) //'carePlan' is misleading. Th
 					"display" => xml_str($item->studienname)
 				]
 			],
-		//TODO supportingVariants
+		//TODO supportingVariants - no example yet
 		];
 
 		$study_recoms[] = $entry;
@@ -537,7 +537,7 @@ function json_results($se_data, $se_data_rep, $info)
 		$id = "ID_VAR_".(count($var2id)+1);
 		$var2id[$var] = $id;
 		
-		//start variant datastructure
+		//initialize variant datastructure
 		$var_data = [];
 		$var_data['id'] = $id;
 		$var_data['patient'] = json_patient_ref();
@@ -545,8 +545,8 @@ function json_results($se_data, $se_data_rep, $info)
 		//add significance
 		$var_data['significance'] = ['code' => convert_var_type(xml_str($item->typ_variante))];
 		
-		//add variants to result
-		if (starts_with($var, "chr")) //small variants - example: chr8:10623069-10623069 G>A (RP1L1)
+		//small variants - example: chr8:10623069-10623069 G>A (RP1L1)
+		if (starts_with($var, "chr"))
 		{
 			//convert GSvar format to VCF format
 			for($i=0; $i<strpos($var, ' '); ++$i)
@@ -627,7 +627,8 @@ function json_results($se_data, $se_data_rep, $info)
 			
 			//missing: publications (not in NGSD), externalIds (which?), segregationAnalysis (not in NGSD), acmgCriteria (not in NGSD), localization (depends on gene/transcript), gDNAChange (duplicate of chr, start, ref, alt)
 		}
-		else if (starts_with($var, "CNV:")) //CNV - example: CNV: chr6:64839979-64993979 CN=0 size=154.000kb (EYS)
+		//CNV - example: CNV: chr6:64839979-64993979 CN=0 size=154.000kb (EYS)
+		else if (starts_with($var, "CNV:"))
 		{
 			//parse variant text
 			$var = strtr(substr($var, 5), ":-", "  ");
@@ -662,12 +663,58 @@ function json_results($se_data, $se_data_rep, $info)
 			if (isset($results['copyNumberVariants'])) $results['copyNumberVariants'] = [];
 			$results['copyNumberVariants'][] = $var_data;
 			
-			//missing: publications (not in NGSD), externalIds (which?), segregationAnalysis (not in NGSD), acmgCriteria (not in NGSD), localization (depends on gene/transcript), gDNAChange/cDNAChange/proteinChange how?, zygosity not applicable
+			//missing: publications (not in NGSD), externalIds (which?), segregationAnalysis (not in NGSD), acmgCriteria (not in NGSD), localization (depends on gene/transcript), gDNAChange (duplicate of chr, start, end) , cDNAChange/proteinChange (how?)
 		}
-		else if (starts_with($var, "SV-")) //SV - example: SV-DUP at chr9:17051726-138024890 genotype=het (many)
+		//SV - example: SV-DUP at chr9:17051726-138024890 genotype=het (many)
+		else if (starts_with($var, "SV-"))
 		{
-			//TODO
-			trigger_error("SVs not implemented", E_USER_ERROR);	
+			//parse variant text
+			
+			list(, $type, , $chr, $start, $end) = explode(" ", strtr($var, ":-", "  "));
+			if ($type!="DEL" && $type!="DUP" && $type!="INV" && $type!="INS") trigger_error("Unsupported structural variant type '{$type}'!", E_USER_ERROR);
+			
+			//gDNAChange
+			$var_data['gDNAChange'] = chr2NC($chr).":g.{$start}_{$end}".strtolower($type);
+			
+			//genes
+			$genes = genes_overlapping($chr, $start, $end);
+			foreach($genes as $gene => $hgnc_id)
+			{
+				if (!isset($var_data['genes'])) $var_data['genes'] = [];
+				//$var_data['genes'][] = ['code'=>$hgnc_id, 'disply'=>$gene];
+			}
+			
+			//acmgClass
+			$cs_id = $db_ngsd->getValue("SELECT id FROM sv_callset WHERE processed_sample_id='{$ps_id}'");
+			$table = sv_type_to_table($type);
+			if ($type=="INS")
+			{
+				$var_id = $db_ngsd->getValue("SELECT id FROM {$table} WHERE sv_callset_id='{$cs_id}' AND chr='{$chr}' AND pos=>'{$start}' AND pos<='{$end}'");
+			}
+			else
+			{
+				$var_id = $db_ngsd->getValue("SELECT id FROM {$table} WHERE sv_callset_id='{$cs_id}' AND chr='{$chr}' AND start_min='{$start}' AND end_max='{$end}'");
+			}
+			
+			$class = $db_ngsd->getValue("SELECT class FROM report_configuration_sv WHERE {$table}_id='{$var_id}'", "");
+			if (is_numeric($class))
+			{
+				$var_data['acmgClass'] = ['code' => $class];
+			}
+			
+			//modeOfInheritance
+			$inheritance = $db_ngsd->getValue("SELECT inheritance FROM report_configuration_sv WHERE {$table}_id='{$var_id}'", "");
+			$var_data['inheritance'] = ['code' => convert_inheritance($inheritance)];
+			
+			//zygosity
+			$genotype = $db_ngsd->getValue("SELECT genotype FROM {$table} WHERE id='{$var_id}'");
+			$var_data['zygosity'] = ['code' => convert_genotype($genotype)];
+			
+			//add
+			if (isset($results['structuralVariants'])) $results['structuralVariants'] = [];
+			$results['structuralVariants'][] = $var_data;
+			
+			//missing: publications (not in NGSD), externalIds (which?), segregationAnalysis (not in NGSD), acmgCriteria (not in NGSD), localization (depends on gene/transcript), cDNAChange/proteinChange (how?), iscnDescription (can be calculated from HGVS.g)
 		}
 		else if (starts_with($var, "RE:")) //RE
 		{
