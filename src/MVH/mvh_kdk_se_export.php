@@ -56,16 +56,30 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data_rep)
 			$bc_retracted = xml_str($item->datum_einwillig_f_wid);
 			if ($bc_retracted!="") continue;
 
-			$consents_se[] = [$bc_date, $bc_ver];
+			$consents_se[] = [$bc_ver, $item];
 		}
 		if (count($consents_se)>1) trigger_error("Several research consent forms found in SE RedCap!", E_USER_ERROR);
 		if (count($consents_se)==0) trigger_error("No research consent form found in SE RedCap!", E_USER_ERROR);
+		list($bc_type, $bc_item) = $consents_se[0];
 		
-		$consent_type = $consents_se[0][1];
 		$active_rcs = [];
-		if (starts_with($consent_type, "Kinder")) //generate consent JSON from SE RedCap
+		if (starts_with($bc_type, "Kinder")) //generate consent JSON from SE RedCap
 		{
-			trigger_error("kids consent not implemented!", E_USER_ERROR); //TODO implement with https://github.com/KohlbacherLab/mii_broad_consent_mapper
+			//store consent from SE RedCap as JSON
+			$form = [];
+			foreach(["psn", "redcap_repeat_instrument", "redcap_repeat_instance", "datum_einwillig_forsch", "vers_einwillig_forsch", "bc_sb_1",  "bc_sb_2",  "bc_sb_3",  "bc_sb_4",  "bc_sb_5",  "bc_sb_6",  "bc_sb_7",  "bc_sb_8",  "bc_sb_9", "datum_einwillig_f_wid", "umfang_einwillig_f_wid", "forschungseinwilligungen_complete"] as $key)
+			{
+				$form[] = "\"{$key}\": \"".xml_str($bc_item->$key)."\"";
+			}
+			$tmp = temp_file(".json");
+			file_put_contents($tmp, "[\n  {},\n    {\n    ".implode(",\n    ", $form)."\n  }\n]");
+			print_r(file($tmp));
+			
+			//generate consent JSON
+			$tmp2 = temp_file(".json");
+			exec2("java -jar /mnt/storage2/MVH/tools/mii_broad_consent_mapper/build/libs/consent-mapper-all.jar --redcap_formular {$tmp} --output {$tmp2} --date_of_birth 12.1977"); //TODO Datum?
+			
+			$active_rcs[] = json_decode(file_get_contents($tmp2), true);
 		}
 		else //adult > search for consent data from SAP
 		{
@@ -342,6 +356,20 @@ function json_care_plan_1($se_data) //This object models the decisions of the fi
 	return $output;	
 }
 
+function json_supporting_variants($variants)
+{
+	$output = [];
+	
+	foreach($variants as $var)
+	{
+		if ($var=="") continue;
+		
+		//TODO noch keine Beispiel - case 402?!
+	}
+	
+	return $output;
+}
+
 function json_care_plan_2($se_data, $se_data_rep) //'carePlan' is misleading. This object captures the decisions of the second "Fallkonferenz".
 {	
 	//prepare therapy recommendations
@@ -362,10 +390,21 @@ function json_care_plan_2($se_data, $se_data_rep) //'carePlan' is misleading. Th
 			],
 		"type" => [
 			"code" => convert_therapy_type($item->therapie_beschreibung),
-			],
-		//TODO supportingVariants - no example yet
-		//missing fields: medication (not in SE data)
+			]
 		];
+		
+		//supporting variants (optional)
+		$variants = [
+			xml_str($se_data->variante1),
+			xml_str($se_data->variante2),
+			xml_str($se_data->variante3),
+			xml_str($se_data->variante4),
+			xml_str($se_data->variante5),
+			];
+		$support = json_supporting_variants($variants);
+		if (count($support)>0) $entry['supportingVariants'] = $support;
+		
+		//missing: medication (not in SE data)
 
 		$therapy_recoms[] = $entry;
 		++$num;
@@ -391,9 +430,19 @@ function json_care_plan_2($se_data, $se_data_rep) //'carePlan' is misleading. Th
 					"type" => "Study",
 					"display" => xml_str($item->studienname)
 				]
-			],
-		//TODO supportingVariants - no example yet
+			]
 		];
+		
+		//supporting variants (optional)
+		$variants = [
+			xml_str($se_data->studie_variante1),
+			xml_str($se_data->studie_variante2),
+			xml_str($se_data->studie_variante3),
+			xml_str($se_data->studie_variante4),
+			xml_str($se_data->studie_variante5),
+			];
+		$support = json_supporting_variants($variants);
+		if (count($support)>0) $entry['supportingVariants'] = $support;
 
 		$study_recoms[] = $entry;
 		++$num;

@@ -59,38 +59,9 @@ see <https://github.com/BfArM-MVH/grz-tools/blob/main/packages/grz-cli/README.md
 
 ## Installation of consent mapper
 
-Install gradle:
-
-	> mkdir /mnt/storage2/MVH/tools/gradle
-	> wget https://services.gradle.org/distributions/gradle-8.10.2-bin.zip -P /tmp
-	> unzip -d /mnt/storage2/MVH/tools/gradle /tmp/gradle-8.10.2-bin.zip
-	> echo 'export PATH=/mnt/storage2/MVH/tools/gradle/latest/bin:$PATH' >> ~/.bashrc
-
-Create `~/.gradle/gradle.properties` and add the following lines to set up the proxy for gradle:
-
-	# === HTTP Proxy Settings ===
-	systemProp.http.proxyHost=httpproxy.zit.med.uni-tuebingen.de
-	systemProp.http.proxyPort=88
-	systemProp.http.proxyUser=AH1inges
-	systemProp.http.proxyPassword=iD5PvnGy+Vm@
-
-	# === HTTPS Proxy Settings ===
-	systemProp.https.proxyHost=httpproxy.zit.med.uni-tuebingen.de
-	systemProp.https.proxyPort=88
-	systemProp.https.proxyUser=AH1inges
-	systemProp.https.proxyPassword=iD5PvnGy+Vm@
-
-	# === Exclusions (don't proxy local/internal addresses) ===
-	systemProp.http.nonProxyHosts=localhost|127.0.0.1|*.example.local
-
-	# === Optional: Increase timeout (useful behind slow proxies) ===
-	systemProp.http.connectionTimeout=60000
-	systemProp.http.readTimeout=60000
-
-Install mapper:
+Install mapper (outside of UKT network):
 
 	> git clone https://github.com/KohlbacherLab/mii_broad_consent_mapper.git
-	> gradle wrapper
 	> ./gradlew build 
 	
 ## TODOs
