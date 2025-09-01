@@ -1213,47 +1213,52 @@ function get_processed_sample_qc(&$db, $ps, $qc_name_or_accession)
 	return $db->getValue("SELECT value FROM processed_sample_qc WHERE processed_sample_id='{$ps_id}' AND qc_terms_id={$term_id}", "");
 }
 
-//Converts NGSD sample meta data to a GSvar file header (using $override_map to allow replace NGSD info)
-function gsvar_sample_header($ps_name, $override_map, $prefix = "##", $suffix = "\n")
+//Creates a samples header using meta data from NGSD (using $override_map to allow replace NGSD info)
+function gsvar_sample_header($ps, $override_map, $prefix = "##", $suffix = "\n")
 {
-	//get information from NGSD
-	$parts = array();
-	$parts['ID'] = $ps_name;
+	//init
+	$parts = [];
+	$parts['ID'] = $ps;
+	$parts['Gender'] = "";
+	$parts['ExternalSampleName'] = "";
+	$parts['IsTumor'] = "";
+	$parts['IsFFPE'] = "";
+	$parts['DiseaseGroup'] = "";
+	$parts['DiseaseStatus'] = "";
 	
+	//get data from NGSD
 	if (db_is_enabled("NGSD"))
 	{
-		$db_conn = DB::getInstance("NGSD", false);
-		$details = get_processed_sample_info($db_conn, $ps_name, false);
-		if ($details!=NULL)
+		$db = DB::getInstance("NGSD", false);
+		$info = get_processed_sample_info($db, $ps, false);
+		if ($info!=NULL)
 		{
-			$parts['Gender'] = $details['gender'];
-			if ($parts['Gender'] == 'n/a') trigger_error("Gender of sample {$ps_name} not set!", E_USER_WARNING);
-			$parts['ExternalSampleName'] = strtr($details['name_external'], ",", ";");
-			$parts['IsTumor'] = $details['is_tumor'] ? "yes" : "no";
-			$parts['IsFFPE'] = $details['is_ffpe'] ? "yes" : "no";
-			$parts['IsFFPE'] = $details['is_ffpe'] ? "yes" : "no";
-			$parts['DiseaseGroup'] = strtr($details['disease_group'], ",", ";");
-			$parts['DiseaseStatus'] = $details['disease_status'];
+			$parts['Gender'] = $info['gender'];
+			if ($parts['Gender'] == 'n/a') trigger_error("Gender of sample {$ps} not set in NGSD!", E_USER_WARNING);
+			$parts['ExternalSampleName'] = strtr($info['name_external'], ",", ";");
+			$parts['IsTumor'] = $info['is_tumor'] ? "yes" : "no";
+			$parts['IsFFPE'] = $info['is_ffpe'] ? "yes" : "no";
+			$parts['DiseaseGroup'] = strtr($info['disease_group'], ",", ";");
+			$parts['DiseaseStatus'] = $info['disease_status'];
 		}
 	}
 	
 	//apply overwrite settings
-	$parts = array_merge($parts, $override_map);
+	foreach($override_map as $key => $value)
+	{
+		if (!isset($parts[$key])) trigger_error("Invalid GSvar sample header key '$key'! Valid are: ".implode(",", array_keys($parts)), E_USER_ERROR); 
+		
+		$parts[$key] = $value;
+	}
 	
-	//create and check output
-	$output = array();
-	$valid = array('ID','Gender','ExternalSampleName','SampleName','IsTumor','IsFFPE','DiseaseGroup','DiseaseStatus');
+	//create output
+	$output = [];
 	foreach($parts as $key => $value)
 	{
-		if (!in_array($key, $valid))
-		{
-			trigger_error("Invalid GSvar sample header key '$key'! Valid are: ".implode(",", $valid), E_USER_ERROR); 
-		}
-		
 		//skip empty entries
 		if ($value=="") continue;
 		
-		$output[] = "{$key}={$value}";
+		$output[] = "{$key}=".trim($value);
 	}
 	
 	return "{$prefix}SAMPLE=<".implode(",", $output).">{$suffix}";
@@ -2371,51 +2376,36 @@ function get_project_folder(&$db, $project_name)
 }
 
 //updates the GSvar SAMPLE entry with NGSD info (inplace)
-function update_gsvar_sample_header($file_name, $status_map)
+function update_gsvar_sample_header($file_name, $disease_status_map)
 {
-	if (!db_is_enabled("NGSD"))
-	{
-		trigger_error("Skipping update of GSvar SAMPLE header, because no NGSD is available.", E_USER_NOTICE);
-		return;
-	}
-
 	$file_content = Matrix::fromTSV($file_name);
-	$old_comments = $file_content->getComments();
-	$new_comments = array();
-	foreach ($old_comments as $line) 
+	$new_comments = [];
+	foreach ($file_content->getComments() as $line) 
 	{
-		if(starts_with($line, "#SAMPLE="))
+		//only update SAMPLE lines
+		if(!starts_with($line, "#SAMPLE="))
 		{
-			$found = false;
-			foreach ($status_map as $sample_name => $disease_status) 
-			{
-				if(strpos($line, "ID=".$sample_name) !== false)
-				{
-					$overwrite_map = array("DiseaseStatus"=>$disease_status);
-					if (strpos($line, "Gender=male") !== false) $override_map["Gender"] = "male";
-					if (strpos($line, "Gender=female") !== false) $override_map["Gender"] = "female";
-
-					//replace SAMPLE line with updated entry from NGSD
-					$new_comments[] = gsvar_sample_header($sample_name, $overwrite_map, "#", "\n"); 
-					$found = true;
-					break;
-				}
-			}
-			if (!$found)
-			{
-				trigger_error("No sample info found for sample line '{$line}'! Keeping old line.", E_USER_WARNING);
-				//keep old line
-				$new_comments[] = $line;
-			} 
-		}
-		else
-		{
-			//keep old line
 			$new_comments[] = $line;
+			continue;
 		}
+		
+		//determine overrides
+		$override_map = [];
+		list($ps) = explode(",", substr($line, 12, -1), 2);			
+		if (isset($disease_status_map[$ps]))
+		{
+			$override_map["DiseaseStatus"] = $disease_status_map[$ps];
+			
+			//keep gender (for trios)
+			if (contains($line, "Gender=male")) $override_map["Gender"] = "male";
+			if (contains($line, "Gender=female")) $override_map["Gender"] = "female";
+		}
+
+		//generate new header line
+		$new_comments[] = gsvar_sample_header($ps, $override_map, "#", "\n"); 
 	}
 	$file_content->setComments($new_comments);
-	$file_content->toTSV(($file_name));
+	$file_content->toTSV($file_name);
 }
 
 //get bam read count
