@@ -63,10 +63,3 @@ Install mapper (outside of UKT network):
 
 	> git clone https://github.com/KohlbacherLab/mii_broad_consent_mapper.git
 	> ./gradlew build 
-	
-## TODOs
-
-- add tests when first final version is done
-  - KDK-SE: WGS, lrGS, no_seq
-  - GRZ: SE WGS, SE lrGS, SE WGS trio, T/N
-	

@@ -128,7 +128,6 @@ function add_submission_to_redcap($record_id, $data_type, $tan)
 	//input checks
 	if ($data_type!="G" && $data_type!="K") trigger_error("Invalid type '{$data_type}'", E_USER_ERROR);
 	
-	//TODO implement other types (report_type)
 	$xml = "<records>
 				<item>
 					<record_id><![CDATA[{$record_id}]]></record_id>

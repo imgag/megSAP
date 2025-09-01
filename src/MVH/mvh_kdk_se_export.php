@@ -73,11 +73,11 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data_rep)
 			}
 			$tmp = temp_file(".json");
 			file_put_contents($tmp, "[\n  {},\n    {\n    ".implode(",\n    ", $form)."\n  }\n]");
-			print_r(file($tmp));
 			
 			//generate consent JSON
 			$tmp2 = temp_file(".json");
-			exec2("java -jar /mnt/storage2/MVH/tools/mii_broad_consent_mapper/build/libs/consent-mapper-all.jar --redcap_formular {$tmp} --output {$tmp2} --date_of_birth 12.1977"); //TODO Datum?
+			$birthdate = new DateTime($se_data->birthdate);
+			exec2("java -jar /mnt/storage2/MVH/tools/mii_broad_consent_mapper/build/libs/consent-mapper-all.jar --redcap_formular {$tmp} --output {$tmp2} --date_of_birth ".$birthdate->format("m.Y"));
 			
 			$active_rcs[] = json_decode(file_get_contents($tmp2), true);
 		}
@@ -277,8 +277,8 @@ function json_hpos($se_data, $se_data_rep)
 			"code" => $hpo_id,
 			"display" => $hpo,
 			"system" => "https://hpo.jax.org",
-			] 
-		//missing fields: status/history
+			]
+		//missing fields: status/history //TODO no example with HPO change in follow-up - test with 274
 		];
 		
 		//add optional stuff to entry
@@ -295,34 +295,49 @@ function json_hpos($se_data, $se_data_rep)
 	return $output;
 }
 
-function json_gmfcs($se_data_rep)
+function json_gmfcs($se_data)
 {
 	$output = [];
 	$num = 1;
 	
-	foreach($se_data_rep->item as $item)
+	$gmf = xml_str($se_data->diag_gmfcs);
+	if ($gmf!="")
 	{
-		$gmf = xml_str($item->gmfcs_wiedervorst_aend);
-		if ($gmf=="") continue;
-		
-		$entry = [
+		$output[] = [
 			"id" => "ID_GMFCS_{$num}",
 			"patient" => json_patient_ref(),
-			"effectiveDate" => xml_str($item->datum_wiedervorst),
+			"effectiveDate" => xml_str($se_data->datum_fallkonferenz),
 			"value" => [
 				"code" => $gmf,
 				"display" => "Level ".$gmf,
 				"system" => "Gross-Motor-Function-Classification-System",			
 				]
 			];
-		
-		$output[] = $entry;
-		++$num;
 	}
 	
-	if(count($output)==0) return null;
+	//TODO no example with more than one GMFCS entry, i.e. changed GMFCS during follow-up
+	
 	return $output;
 }
+
+function json_followups($se_data_rep)
+{
+	$output = [];
+	
+	foreach($se_data_rep->item as $item)
+	{
+		$date = xml_str($item->datum_wiedervorst);
+		if ($date=="") continue;
+		
+		$output[] = [
+			"date" => $date,
+			"patient" => json_patient_ref()
+			];
+	}
+	
+	return $output;
+}
+
 
 function json_hospitalization($se_data)
 {
@@ -364,7 +379,7 @@ function json_supporting_variants($variants)
 	{
 		if ($var=="") continue;
 		
-		//TODO noch keine Beispiel - case 402?!
+		//TODO no example - test with 333
 	}
 	
 	return $output;
@@ -851,8 +866,7 @@ $json = [
 	"hpoTerms" => json_hpos($se_data, $se_data_rep),
 	"hospitalization" => json_hospitalization($se_data),
 	"carePlans" => [ json_care_plan_1($se_data) ],
-	//TODO: followUps
-	//TODO: therapies
+	//TODO: therapies - wait for answer on email "Docu eigentliche Therapie" from 31.08.2025
 	];
 
 //add optional parts to JSON
@@ -861,10 +875,16 @@ if (!$no_seq)
 	$json["carePlans"][] = json_care_plan_2($se_data, $se_data_rep);
 	$json["ngsReports"] = [ json_ngs_report($cm_data, $se_data, $info, $results)];
 }
-$gmfcs = json_gmfcs($se_data_rep);
-if (!is_null($gmfcs))
+$gmfcs = json_gmfcs($se_data, $se_data_rep);
+if (count($gmfcs)>0)
 {
 	$json["gmfcsStatus"] = $gmfcs;
+}
+
+$followups = json_followups($se_data_rep);
+if (count($followups)>0)
+{
+	$json["followUps"] = $followups;
 }
 
 //write JSON
@@ -962,5 +982,7 @@ if (!$test)
 }
 
 print "cleanup took ".time_readable(microtime(true)-$time_start)."\n";
+
+//TODO add tests: WGS, lrGS, no_seq
 
 ?>

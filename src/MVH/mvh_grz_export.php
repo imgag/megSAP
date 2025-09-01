@@ -707,4 +707,6 @@ if (!$test)
 
 print "cleanup took ".time_readable(microtime(true)-$time_start)."\n";
 
+//TODO add tests: SE WGS, SE lrGS, SE WGS trio, T/N
+
 ?>
