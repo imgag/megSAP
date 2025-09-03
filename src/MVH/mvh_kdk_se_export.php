@@ -7,7 +7,7 @@ require_once("mvh_functions.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data_rep)
+function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data, $se_data_rep)
 {
 	global $db_mvh;
 	global $sub_id;
@@ -371,15 +371,34 @@ function json_care_plan_1($se_data) //This object models the decisions of the fi
 	return $output;	
 }
 
-function json_supporting_variants($variants)
+function json_supporting_variants($variant_repeat_instances, $se_data_rep)
 {
+	global $var2id;
 	$output = [];
 	
-	foreach($variants as $var)
+	foreach($variant_repeat_instances as $instance)
 	{
-		if ($var=="") continue;
+		if ($instance=="") continue;
 		
-		//TODO no example - test with 333
+		//search for variant in repeat instances
+		foreach($se_data_rep->item as $item)
+		{
+			if (xml_str($item->redcap_repeat_instrument)!="Varianten") continue;
+			if (xml_str($item->redcap_repeat_instance)!=$instance) continue;
+			
+			$var = xml_str($item->variante);
+			$id = $var2id[$var];
+			$output[] = [
+				"display" => $var,
+				"variant" =>
+					[
+						"id"=> $id,
+						"display" => $var
+					]
+				];
+			
+			//missing: gene (already listed in variant section)
+		}
 	}
 	
 	return $output;
@@ -409,14 +428,14 @@ function json_care_plan_2($se_data, $se_data_rep) //'carePlan' is misleading. Th
 		];
 		
 		//supporting variants (optional)
-		$variants = [
-			xml_str($se_data->variante1),
-			xml_str($se_data->variante2),
-			xml_str($se_data->variante3),
-			xml_str($se_data->variante4),
-			xml_str($se_data->variante5),
+		$variant_repeat_instances = [
+			xml_str($item->variante1),
+			xml_str($item->variante2),
+			xml_str($item->variante3),
+			xml_str($item->variante4),
+			xml_str($item->variante5),
 			];
-		$support = json_supporting_variants($variants);
+		$support = json_supporting_variants($variant_repeat_instances, $se_data_rep);
 		if (count($support)>0) $entry['supportingVariants'] = $support;
 		
 		//missing: medication (not in SE data)
@@ -449,14 +468,14 @@ function json_care_plan_2($se_data, $se_data_rep) //'carePlan' is misleading. Th
 		];
 		
 		//supporting variants (optional)
-		$variants = [
-			xml_str($se_data->studie_variante1),
-			xml_str($se_data->studie_variante2),
-			xml_str($se_data->studie_variante3),
-			xml_str($se_data->studie_variante4),
-			xml_str($se_data->studie_variante5),
+		$variant_repeat_instances = [
+			xml_str($item->studie_variante1),
+			xml_str($item->studie_variante2),
+			xml_str($item->studie_variante3),
+			xml_str($item->studie_variante4),
+			xml_str($item->studie_variante5),
 			];
-		$support = json_supporting_variants($variants);
+		$support = json_supporting_variants($variant_repeat_instances, $se_data_rep);
 		if (count($support)>0) $entry['supportingVariants'] = $support;
 
 		$study_recoms[] = $entry;
@@ -855,11 +874,11 @@ else
 print "\n";
 print "### creating JSON ###\n";
 
-//create results section (contained variants are referenced in XXX and XXX, so we need to create them first to have to the IDs later on)
+//create results section (contained variants are referenced in therapy and study recommendations, so we need to create them first to have to the IDs later on)
 $var2id = [];
 $results = $no_seq ? [] : json_results($se_data, $se_data_rep, $info);
 $json = [
-	"metadata" => json_metadata($cm_data, $tan_k, $rc_data_json, $se_data_rep),
+	"metadata" => json_metadata($cm_data, $tan_k, $rc_data_json, $se_data, $se_data_rep),
 	"patient" => json_patient($cm_data, $se_data),
 	"episodesOfCare" => [ json_episode_of_care($se_data) ],
 	"diagnoses" => [ json_diagnoses($se_data, $se_data_rep) ],
