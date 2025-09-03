@@ -249,6 +249,30 @@ function json_diagnoses($se_data, $se_data_rep)
 	return $output;
 }
 
+function json_hpo_history($instance, $se_data_rep)
+{
+	$output = [];
+	
+	//search for updates in repeat instances
+	foreach($se_data_rep->item as $item)
+	{
+		if (xml_str($item->hpo_wiedervorst)!=$instance) continue;
+		
+		$change = xml_str($item->hpo_wiedervorst_aend);
+
+		$element = [
+			"date" => xml_str($item->datum_wiedervorst),
+			"status" => [
+					"code" => convert_hpo_change($change),
+				]
+			];
+		
+		$output[] = $element;
+	}
+	
+	return $output;
+}
+
 function json_hpos($se_data, $se_data_rep)
 {
 	global $db_ngsd;
@@ -278,7 +302,6 @@ function json_hpos($se_data, $se_data_rep)
 			"display" => $hpo,
 			"system" => "https://hpo.jax.org",
 			]
-		//missing fields: status/history //TODO no example with HPO change in follow-up - test with 274
 		];
 		
 		//add optional stuff to entry
@@ -287,7 +310,10 @@ function json_hpos($se_data, $se_data_rep)
 		
 		$hpo_ver = xml_str($item->version_hpo);
 		if ($hpo_ver!="") $entry["value"]["version"] = $hpo_ver;
-
+		
+		$history = json_hpo_history(xml_str($item->redcap_repeat_instance), $se_data_rep);
+		if (count($history)>0) $entry["status"] = [ "history" => $history ];
+		
 		$output[] = $entry;
 		++$num;
 	}

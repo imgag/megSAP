@@ -463,4 +463,16 @@ function sv_type_to_table($type)
 	
 	trigger_error(__FUNCTION__.": Unhandled SV type '{$type}'!", E_USER_ERROR);
 }
+
+
+function convert_hpo_change($change)
+{
+	if ($change=="verbessert") return "improved";
+	if ($change=="verschlechtert") return "degraded";
+	if ($change=="weggefallen") return "abated";
+	if ($change=="unverändert") return "unchanged";
+	
+	trigger_error(__FUNCTION__.": Unhandled HPO change '{$change}'!", E_USER_ERROR);
+}
+
 ?>
