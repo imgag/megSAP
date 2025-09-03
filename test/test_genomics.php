@@ -256,7 +256,7 @@ end_test();
 
 //##################################################################################
 start_test("vcf_varscan2");
-check(vcf_varscan2("GT:GQ:SDP:DP:RD:AD:FREQ:PVAL:RBQ:ABQ:RDF:RDR:ADF:ADR","0/1:255:1560:1560:1070:489:31.37\%:2.7462E-165:36:35:707:363:355:134"), array(1560, 0.3137));
+check(vcf_varscan2("GT:GQ:SDP:DP:RD:AD:FREQ:PVAL:RBQ:ABQ:RDF:RDR:ADF:ADR","0/1:255:1560:1560:1070:489:31.37%:2.7462E-165:36:35:707:363:355:134"), array(1560, 0.3137));
 check(vcf_varscan2("GT:GQ:SDP:DP:RD:AD:FREQ:PVAL:RBQ:ABQ:RDF:RDR:ADF:ADR", "0/1:52:200:200:183:17:8.5%:5.3509E-6:36:36:138:45:14:3"), array(200,0.085));
 end_test();
 

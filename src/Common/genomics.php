@@ -963,37 +963,23 @@ function vcf_umivar2($filter_col, $info_col, $format_col, $sample_col)
 //Calculates depth and variant allele frequency for varscan2 output line.
 function vcf_varscan2($format_col, $sample_col)
 {
+	//combine FORMAT and SAMPLE data
 	$format_data = explode(":", $format_col);
 	$sample_data = explode(":", $sample_col);
-	if(count($format_data) != count($sample_data))
-	{
-		trigger_error("FORMAT column and sample column have different count of entries.", E_USER_ERROR);
-	}
+	if(count($format_data) != count($sample_data)) trigger_error("FORMAT column and sample column have different count of entries.", E_USER_ERROR);
+	$data = array_combine($format_data, $sample_data);
 	
-	$i_dp = NULL;
-	$i_dp_ref = NULL; //index depth referennce
-	$i_dp_alt = NULL; //index depth alteration
-	$i_freq = NULL; //Allele frequency of alteration
-	for($i=0;$i<count($format_data);++$i)
-	{
-		if($format_data[$i] == "DP") $i_dp = $i;
-		if($format_data[$i] == "RD") $i_dp_ref = $i;
-		if($format_data[$i] == "AD") $i_dp_alt = $i;
-		if($format_data[$i] == "FREQ") $i_freq = $i;
-	}
-	
-	if(is_null($i_dp) ||is_null($i_dp_ref) || is_null($i_dp_alt) || is_null($i_freq))
+	//check it's from VarScan2
+	if (!isset($data['DP']) || !isset($data['RD']) || !isset($data['AD']) || !isset($data['FREQ']))
 	{
 		trigger_error("Invalid Varscan2 format. Missing one of the fields 'DP', 'RD', 'AD' or 'FREQ'", E_USER_ERROR);
 	}
-
 	
-	$af = $sample_data[$i_freq];
-	$af = str_replace("\%","",$af);
+	//convert AF
+	$af = trim(strtr($data['FREQ'],'%', ' '));
+	$af  = number_format($af/100.0, 4);
 	
-	$af  = number_format((float)$af / 100., 4);
-	
-	return array($sample_data[$i_dp], $af);
+	return array($data['DP'], $af);
 }
 
 function vcf_freebayes($format_col, $sample_col)
