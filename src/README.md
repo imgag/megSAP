@@ -28,6 +28,10 @@ They are mainly used by the developers in Tübingen.
 
 This folder contains scripts that are used by the developers in Tübingen only.
 
+## MVH
+
+This folder contains scripts used for the "Modellvorhaben Genomsequenzierung"
+
 ## Deprecated
 
 This folcer contains deprecated scrips that will be removed in the next release unless we get feedback that they are still needed.
