@@ -27,6 +27,250 @@ $parser->addFlag("skip_gender_check", "Skip check of the detected gender against
 
 extract($parser->parse($argv));
 
+
+function getCohortStrategy($ps_info)
+{
+	$cohort_strategy = "RNA_COHORT_GERMLINE";
+	if ($ps_info != null && $ps_info['is_tumor']) $cohort_strategy = "RNA_COHORT_SOMATIC"; 
+	return $cohort_strategy;
+}
+
+function getCohortSamples($db, $ps_name, $cohort_strategy)
+{
+	global $parser;
+	
+	$ps_sys = processingSystem($db, $ps_name);
+	
+	$ps_allowed_systems ="";
+	$rna_allowed_systems = get_path("rna_allowed_systems", false);
+	if(is_array($rna_allowed_systems) && array_key_exists($ps_sys, $rna_allowed_systems)) $ps_allowed_systems = $rna_allowed_systems[$ps_sys];
+	
+	$args = [];
+	$args[] = "-ps $ps_name";
+	$args[] = "-only_samples";
+	$args[] = "-cohort_strategy $cohort_strategy";
+	$args[] = "-allowed_systems $ps_allowed_systems";
+	list ($stdout, $stderr, $return) = $parser->exec("/mnt/storage2/users/ahott1a1/ngs-bits/bin/NGSDExtractRNACohort", implode(" ", $args));
+	
+	return $stdout;
+}
+
+function processingSystem($db, $sample)
+{
+	$ps_id = get_processed_sample_id($db, $sample);
+	return $db->getValue("SELECT sys.name_short FROM processed_sample as ps LEFT JOIN processing_system as sys ON ps.processing_system_id = sys.id WHERE ps.id = $ps_id");
+}
+
+function processingSystems($db, $samples)
+{
+	$processing_systems = [];
+	
+	foreach($samples as $sample)
+	{
+		$processing_systems[$sample] = processingSystem($db, $sample);
+	}
+	
+	return $processing_systems;
+}
+
+/**
+	@brief returns all 'reference'/helper samples to have a enough samples of each system to remove batch effects
+	@systems the short_names of processing systems appearing in the cohort
+	@return all samples where sys1 and sys2 are in the given systems
+*/
+function getBatchCorrectSamples($systems, $cohort_samples)
+{
+	//base samples to be able to remove batch effects between sys1 and sys2.
+	$all_samples = [];
+	$all_samples[] = ["name1" => "RNA2412583A1_01", "sys1" => "nebRNAU2_qiaRRNA_umi", "name2" => "RNA2412583A1_03", "sys2" => "Twist_RNA_Exome", "covar" => "lung"];
+	$all_samples[] = ["name1" => "RNA2413360A1_01", "sys1" => "nebRNAU2_qiaRRNA_umi", "name2" => "RNA2413360A1_03", "sys2" => "Twist_RNA_Exome", "covar" => "cerebral_cortex"];
+	$all_samples[] = ["name1" => "RNA2500053A1_01", "sys1" => "nebRNAU2_qiaRRNA_umi", "name2" => "RNA2500053A1_03", "sys2" => "Twist_RNA_Exome", "covar" => "colon"];
+	$all_samples[] = ["name1" => "RNA2500212A1_01", "sys1" => "nebRNAU2_qiaRRNA_umi", "name2" => "RNA2500212A1_03", "sys2" => "Twist_RNA_Exome", "covar" => "cerebral_cortex"];
+	$all_samples[] = ["name1" => "RNA2500587A1_01", "sys1" => "nebRNAU2_qiaRRNA_umi", "name2" => "RNA2500587A1_03", "sys2" => "Twist_RNA_Exome", "covar" => "adipose_tissue"];
+	$all_samples[] = ["name1" => "RNA2500692A1_01", "sys1" => "nebRNAU2_qiaRRNA_umi", "name2" => "RNA2500692A1_03", "sys2" => "Twist_RNA_Exome", "covar" => "tongue"];
+	$all_samples[] = ["name1" => "RNA2501696A1_01", "sys1" => "nebRNAU2_qiaRRNA_umi", "name2" => "RNA2501696A1_03", "sys2" => "Twist_RNA_Exome", "covar" => "rectum"];
+	$all_samples[] = ["name1" => "RNA2501794A1_01", "sys1" => "nebRNAU2_qiaRRNA_umi", "name2" => "RNA2501794A1_03", "sys2" => "Twist_RNA_Exome", "covar" => "skin"];
+	$all_samples[] = ["name1" => "RNA2412583A1_01", "sys1" => "nebRNAU2_qiaRRNA_umi", "name2" => "RNA2412583A1_04", "sys2" => "Twist_RNA_Exome", "covar" => "lung"];
+	$all_samples[] = ["name1" => "RNA2413360A1_01", "sys1" => "nebRNAU2_qiaRRNA_umi", "name2" => "RNA2413360A1_04", "sys2" => "Twist_RNA_Exome", "covar" => "cerebral_cortex"];
+	$all_samples[] = ["name1" => "RNA2500053A1_01", "sys1" => "nebRNAU2_qiaRRNA_umi", "name2" => "RNA2500053A1_04", "sys2" => "Twist_RNA_Exome", "covar" => "colon"];
+	$all_samples[] = ["name1" => "RNA2500212A1_01", "sys1" => "nebRNAU2_qiaRRNA_umi", "name2" => "RNA2500212A1_04", "sys2" => "Twist_RNA_Exome", "covar" => "cerebral_cortex"];
+	$all_samples[] = ["name1" => "RNA2500587A1_01", "sys1" => "nebRNAU2_qiaRRNA_umi", "name2" => "RNA2500587A1_04", "sys2" => "Twist_RNA_Exome", "covar" => "adipose_tissue"];
+	$all_samples[] = ["name1" => "RNA2500692A1_01", "sys1" => "nebRNAU2_qiaRRNA_umi", "name2" => "RNA2500692A1_04", "sys2" => "Twist_RNA_Exome", "covar" => "tongue"];
+	$all_samples[] = ["name1" => "RNA2501696A1_01", "sys1" => "nebRNAU2_qiaRRNA_umi", "name2" => "RNA2501696A1_04", "sys2" => "Twist_RNA_Exome", "covar" => "rectum"];
+	$all_samples[] = ["name1" => "RNA2501794A1_01", "sys1" => "nebRNAU2_qiaRRNA_umi", "name2" => "RNA2501794A1_04", "sys2" => "Twist_RNA_Exome", "covar" => "skin"];
+
+	$samples = [];
+	foreach($all_samples as $sample)
+	{
+		if (in_array($sample["sys1"], $systems) && in_array($sample["sys2"], $systems))
+		{
+			if (!in_array($sample["name1"], $cohort_samples))
+			{
+				$samples[] = ["name" => $sample["name1"], "sys" => $sample["sys1"], "covar" => $sample["covar"]];
+			}
+			if (!in_array($sample["name2"], $cohort_samples))
+			{
+				$samples[] = ["name" => $sample["name2"], "sys" => $sample["sys2"], "covar" => $sample["covar"]];
+			}
+		}
+	}
+	
+	return $samples;
+}
+
+function getCountFile($ps_name, $exons)
+{
+	$args = [];
+	$args[] = "-ps {$ps_name}";
+	$args[] = "-type SAMPLE_FOLDER";
+	list ($stdout, $stderr) = execApptainer("ngs-bits", "SamplePath", implode(" ", $args));
+	$ps_folder = trim(implode("", $stdout));
+		
+	if ($exons) return $ps_folder.$ps_name."_counts_exon.tsv";
+	return $ps_folder.$ps_name."_counts.tsv";
+}
+
+function writeCohortCounts($full_cohort, $ps_name, $out, $exons)
+{
+	global $parser;
+	
+	$removed_samples = [];
+	$cohort_counts = new Matrix();
+
+	//set names based on diag sample:
+	$count_file = getCountFile($ps_name, $exons);
+	$parser->log("writeCohortCounts(): given sample $ps_name - countfile: $count_file");
+	if (! is_file($count_file)) trigger_error("The count file for $ps_name doesn't exist: $count_file!", E_USER_ERROR);
+	
+	
+	$sample_counts = Matrix::fromTSV($count_file);
+	$ident_idx = $sample_counts->getColumnIndex("gene_id");
+	if ($exons) $ident_idx = $sample_counts->getColumnIndex("gene_exon");
+	
+	$names = $sample_counts->getCol($ident_idx);
+	$cohort_counts->addCol($names, "Identifier");
+	
+	//gather counts
+	foreach($full_cohort as $sample)
+	{
+		$count_file = getCountFile($sample, $exons);
+		
+		if (! is_file($count_file))
+		{	
+			$removed_samples[] = $sample;
+			trigger_error("Skipped counts of $sample because file doesn't exist: $count_file\n", E_USER_WARNING);
+			continue;
+		}
+		
+		$sample_counts = Matrix::fromTSV($count_file);
+		
+		$raw_idx = $sample_counts->getColumnIndex("raw");
+		$raw_counts = $sample_counts->getCol($raw_idx);
+		
+		//check count and correct order!
+		if (count($raw_counts) == $cohort_counts->rows() && count(array_diff_assoc($names, $sample_counts->getCol($ident_idx))) == 0)
+		{
+			$cohort_counts->addCol($raw_counts, $sample);
+		}
+		else
+		{
+			$removed_samples[] = $sample;
+			if (count($raw_counts) != $cohort_counts->rows())
+			{
+				trigger_error("Skipped counts of $sample because of differing row count: $count_file\n", E_USER_WARNING);
+			} 
+			else
+			{
+				trigger_error("Skipped counts of $sample because of differing order of counts: $count_file\n", E_USER_WARNING);
+			}
+			continue;
+		}
+	}
+	
+	$tmp_count_file = $parser->tempFile("_rna_cohort_counts.tsv");
+	$cohort_counts->toTSV($tmp_count_file);
+	
+	$parser->execApptainer("htslib", "bgzip", "-c $tmp_count_file > $out", [], [dirname($out)]);
+	
+	return $removed_samples;
+}
+
+function generateBatchCorrectData($cohort_samples, $ps_name, $processing_systems, $raw_cohort_counts_file, $exons, $batch_correct_samples=[])
+{
+	$full_cohort = [];
+	$full_batches = [];
+	
+	//determine the covariant of the cohort (tissue) in comparision to added samples.
+	$cohort_covar = "other";
+	foreach($batch_correct_samples as $ref_sample)
+	{
+		if (in_array($ref_sample["name"], $cohort_samples))
+		{
+			$cohort_covar = $ref_sample["covar"];
+		}
+	}
+	
+	$full_cohort = $cohort_samples;
+	$full_batches = $processing_systems;
+	$full_covar = array_fill_keys($cohort_samples, $cohort_covar);
+	foreach($batch_correct_samples as $ref_sample)
+	{
+		$ps_name = $ref_sample["name"];
+		if (! in_array($ps_name, $full_cohort)) $full_cohort[] = $ps_name;
+		$full_covar[$ps_name] = $ref_sample["covar"];
+		$full_batches[$ps_name] = $ref_sample["sys"];
+	}	
+	
+	//write raw cohort count files
+	$removed_samples = writeCohortCounts($full_cohort, $ps_name, $raw_cohort_counts_file, $exons);
+	
+	//remove samples that couldn't be used in the counts table (wrong number/order of counts -> not comparable because of differing analysis)
+	$full_cohort = array_diff($full_cohort, $removed_samples);
+	foreach($removed_samples as $remove)
+	{
+		unset($full_batches[$remove]);
+		unset($full_covar[$remove]);
+	}
+	
+	return [$full_cohort, $full_batches, $full_covar];
+}
+
+function remove_helper_samples($cohort_count_file, $batch_correct_samples)
+{
+	global $parser;
+	if (! count($batch_correct_samples) > 0) return;
+	
+	$tmp_cohort_count_file = $parser->tempFile("_analyze_rna_cohort_count_rm_helper.tsv");
+	
+	$cohort_mat = Matrix::fromTSV($cohort_count_file);
+	foreach($batch_correct_samples as $helper_sample)
+	{
+		$cohort_mat->removeColByName($helper_sample["name"]);
+	}
+	
+	$cohort_mat->toTSV($tmp_cohort_count_file);
+	//overwrite old cohort_count file with cleaned version
+	$parser->execApptainer("htslib", "bgzip", "-c $tmp_cohort_count_file > $cohort_count_file", [], [dirname($cohort_count_file)]);
+}
+
+function writeTSV($array, $out_file, $headers)
+{
+	$lines = [];
+	$lines[] = implode("\t", $headers);
+	foreach($array as $sample=>$value)
+	{
+		$lines[] = $sample."\t".$value;
+	}
+	
+	file_put_contents($out_file, implode("\n", $lines));
+}
+
+
+#//////////////////////////////////
+#-----------  MAIN  ---------------
+#//////////////////////////////////
+
+
 //resolve out_folder
 if($out_folder=="default")
 {
@@ -312,6 +556,16 @@ $counts_normalized = $prefix."_counts.tsv";
 $counts_exon_normalized = $prefix."_counts_exon.tsv";
 $counts_qc = $prefix."_stats_rc.tsv";
 $repair_bam = $final_bam;
+//batch correction files:
+$cohort_raw_counts_genes_file = $prefix."_cohort_counts_raw.tsv.gz";
+$cohort_raw_counts_exons_file = $prefix."_cohort_counts_exons_raw.tsv.gz";
+$cohort_counts_genes_file = $prefix."_cohort_counts.tsv.gz";
+$cohort_counts_exons_file = $prefix."_cohort_counts_exons.tsv.gz";
+$cohort_counts_normalized_genes_file = $prefix."_cohort_counts_norm.tsv.gz";
+$cohort_counts_normalized_exons_file = $prefix."_cohort_counts_exons_norm.tsv.gz";
+
+$uncorrected_counts_genes_normalized = $prefix."_counts_uncorrected.tsv";
+$uncorrected_counts_exons_normalized = $prefix."_counts_exon_uncorrected.tsv";
 if (in_array("rc", $steps))
 {
 	$tmpdir = $parser->tempFolder();
@@ -343,20 +597,133 @@ if (in_array("rc", $steps))
 		"-out", $counts_exon_raw
 	]);
 	$parser->execTool("Tools/rc_featurecounts.php", implode(" ", $args_exon));
-
+	
 	// read count normalization
 	$parser->execTool("Tools/rc_normalize.php", "-in $counts_raw -out $counts_normalized -in_exon $counts_exon_raw -out_exon $counts_exon_normalized");
+	
+	//remove uncorrected files from previous analysis to not interfere with current analysis
+	if(is_file($uncorrected_counts_genes_normalized)) exec("rm $uncorrected_counts_genes_normalized");
+	if(is_file($uncorrected_counts_exons_normalized)) exec("rm $uncorrected_counts_exons_normalized");
+	
+	//check if the settings for this processing system allows multiple processing systems in the cohort
+	$sys_short_name = $sys["name_short"];
+	$ps_allowed_systems ="";
+	$rna_allowed_systems = get_path("rna_allowed_systems", false);
+	if(is_array($rna_allowed_systems) && array_key_exists($sys_short_name, $rna_allowed_systems)) $ps_allowed_systems = $rna_allowed_systems[$sys_short_name];
+	
+	if (db_is_enabled("NGSD") && $ps_allowed_systems != "")
+	{
+		$db = DB::getInstance("NGSD");
+		$ps_info = get_processed_sample_info($db, $name, false);
+		
+		////check if cohort actally differing processing systems
+		$cohort_strategy = getCohortStrategy($ps_info);
+		$cohort_samples = getCohortSamples($db, $name, $cohort_strategy);
+		
+		$processing_systems = processingSystems($db, $cohort_samples);
+		$processing_system_counts = array_count_values($processing_systems);
+		
+		//more than one processing system -> remove batch effects
+		if (count($processing_system_counts) > 1)
+		{
+			$add_ref_samples = False;
+			foreach(array_keys($processing_system_counts) as $system)
+			{
+				if ($processing_system_counts[$system] < 10)
+				{
+					$add_ref_samples = True;
+					break;
+				}
+			}
+			
+			foreach (["gene", "exon"] as $type)
+			{
+				$raw_cohort_counts_file = $cohort_raw_counts_genes_file;
+				$corrected_cohort_counts_file = $cohort_counts_genes_file;
+				$cohort_counts_normalized = $cohort_counts_normalized_genes_file;
+				$base_counts_normalized = $counts_normalized;
+				$uncorrected = $uncorrected_counts_genes_normalized;
+				$raw_count_file = $counts_raw;
+				$exons = False;
+				
+				if ($type == "exon")
+				{
+					$raw_cohort_counts_file = $cohort_raw_counts_exons_file;
+					$corrected_cohort_counts_file = $cohort_counts_exons_file;
+					$cohort_counts_normalized = $cohort_counts_normalized_exons_file;
+					$base_counts_normalized = $counts_exon_normalized;
+					$uncorrected = $uncorrected_counts_exons_normalized;
+					$raw_count_file = $counts_exon_raw;
+					$exons = True;
+				}
+				
+				//generate necessary data
+				$batch_correct_samples = [];
+				if ($add_ref_samples)
+				{
+					//List of samples with keys: [[name, sys, covar], ...]
+					$batch_correct_samples = getBatchCorrectSamples(array_keys($processing_system_counts), $cohort_samples);
+					list($full_cohort, $full_batches, $full_covar) = generateBatchCorrectData($cohort_samples, $name, $processing_systems, $raw_cohort_counts_file, $exons, $batch_correct_samples);
+				}
+				else
+				{
+					list($full_cohort, $full_batches, $full_covar) = generateBatchCorrectData($cohort_samples, $name, $processing_systems, $raw_cohort_counts_file, $exons);
+				}
+				
+				//write tmp files:
+				$tmp_batch_file = $parser->tempFile("_batch.tsv");
+				$tmp_covar_file = $parser->tempFile("_covar.tsv");
+				
+				writeTSV($full_batches, $tmp_batch_file, ["SAMPLE", "BATCH"]);
+				writeTSV($full_covar, $tmp_covar_file, ["SAMPLE", "COVARIANT"]);
+				
+				//rename uncorrected counts:
+				exec("mv $base_counts_normalized $uncorrected");
+				
+				$files = [$tmp_batch_file, $tmp_covar_file, $raw_cohort_counts_file, $corrected_cohort_counts_file, repository_basedir()."/src/Tools/rc_batch_correct.py"];
+				
+				$args = [];
+				$args[] = "-i $raw_cohort_counts_file";
+				$args[] = "-b $tmp_batch_file";
+				if (! $exons) $args[] = "-c $tmp_covar_file";
+				$args[] = "-o $corrected_cohort_counts_file";
+				$parser->execApptainer("python", "python3", repository_basedir()."/src/Tools/rc_batch_correct.py ".implode(" ", $args), $files);
+				
+				//remove columns of samples added only to improve batch correction:
+				remove_helper_samples($corrected_cohort_counts_file, $batch_correct_samples);
+				
+				$args = [];
+				$args[] = "-ps_name $name";
+				$args[] = "-in_cohort $corrected_cohort_counts_file";
+				$args[] = "-uncorrected_counts $raw_count_file";				
+				$args[] = "-out_cohort $cohort_counts_normalized";
+				$args[] = "-out_sample $base_counts_normalized";
+				if ($exons)
+				{
+					$args[] = "-normalized_genes $counts_normalized";
+					$parser->execTool("Tools/rc_normalize_cohort_exons.php", implode(" ", $args));
+				}
+				else
+				{
+					$parser->execTool("Tools/rc_normalize_cohort_genes.php", implode(" ", $args));
+				}
+			}
+		}
+	}	
 }
 
 //annotate
 $expr = $prefix."_expr.tsv";
 $expr_exon = $prefix."_expr_exon.tsv";
-$expr_stats = $prefix."_expr.stats.tsv";
 $expr_corr = $prefix."_expr.corr.txt";
 $junctions = "{$prefix}_splicing.tsv";
 $splicing_annot = "{$prefix}_splicing_annot.tsv";
 $splicing_bed = "{$prefix}_splicing.bed";
 $splicing_gene = "{$prefix}_splicing_gene.tsv";
+
+$uncorrected_expr_genes = $prefix."_expr_uncorrected.tsv";
+$uncorrected_expr_exons = $prefix."_expr_exon_uncorrected.tsv";
+$uncorrected_expr_corr = $prefix."_expr_uncorrected.corr.txt";
 
 $reference_tissues = array();
 if (in_array("an", $steps))
@@ -365,7 +732,17 @@ if (in_array("an", $steps))
 	$parser->execTool("Tools/rc_annotate.php", "-in $counts_normalized -out $counts_normalized -gtf_file $gtf_file -annotationIds gene_name,gene_biotype");
 	//annotate exon-level read counts
 	$parser->execTool("Tools/rc_annotate.php", "-in $counts_exon_normalized -out $counts_exon_normalized -gtf_file $gtf_file -annotationIds gene_name,gene_biotype");
-
+	
+	if (is_file($uncorrected_counts_genes_normalized))
+	{
+		$parser->execTool("Tools/rc_annotate.php", "-in $uncorrected_counts_genes_normalized -out $uncorrected_counts_genes_normalized -gtf_file $gtf_file -annotationIds gene_name,gene_biotype");
+	}
+	
+	if (is_file($uncorrected_counts_exons_normalized))
+	{
+		$parser->execTool("Tools/rc_annotate.php", "-in $uncorrected_counts_exons_normalized -out $uncorrected_counts_exons_normalized -gtf_file $gtf_file -annotationIds gene_name,gene_biotype");
+	}
+	
 	//expression value based on cohort
 	if (db_is_enabled("NGSD"))
 	{
@@ -376,16 +753,13 @@ if (in_array("an", $steps))
 		{
 			if ($build=="GRCh38")
 			{
-				$cohort_strategy = "RNA_COHORT_GERMLINE";
+				$cohort_strategy = getCohortStrategy($ps_info);
 				$hpa_parameter = "";
 				if ($ps_info['is_tumor']) 
 				{
 					$rna_id = get_processed_sample_id($db, $name);
 					$s_id = $db->getValue("SELECT sample_id FROM processed_sample where id=$rna_id");
 					$reference_tissues = $db->getValues("SELECT DISTINCT sdi.disease_info FROM sample s LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id LEFT JOIN sample_disease_info sdi ON sdi.sample_id=sr.sample1_id OR sdi.sample_id=sr.sample2_id WHERE s.id=$s_id AND sdi.type='RNA reference tissue' AND (sr.relation='same sample' OR sr.relation IS NULL)");
-
-					
-					$cohort_strategy = "RNA_COHORT_SOMATIC";
 					
 					if (count($reference_tissues) > 0)
 					{
@@ -396,6 +770,16 @@ if (in_array("an", $steps))
 				$in_files[] = $out_folder;
 				$parser->execApptainer("ngs-bits", "NGSDAnnotateRNA", "-mode genes -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr} -corr {$expr_corr} {$hpa_parameter}", $in_files);
 				$parser->execApptainer("ngs-bits", "NGSDAnnotateRNA", "-mode exons -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_exon_normalized} -out {$expr_exon}", [$out_folder]);
+				
+				if (is_file($uncorrected_counts_genes_normalized))
+				{
+					$parser->execApptainer("ngs-bits", "NGSDAnnotateRNA", "-mode genes -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$uncorrected_counts_genes_normalized} -out {$uncorrected_expr_genes} -corr {$uncorrected_expr_corr} {$hpa_parameter}", $in_files);
+				}
+				
+				if (is_file($uncorrected_counts_exons_normalized))
+				{
+					$parser->execApptainer("ngs-bits", "NGSDAnnotateRNA", "-mode exons -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$uncorrected_counts_exons_normalized} -out {$uncorrected_expr_exons}", [$out_folder]);
+				}
 			}
 			
 			//remove duplicate exons from file
@@ -470,16 +854,40 @@ if (in_array("plt", $steps))
 	$genelists = glob(repository_basedir()."/data/misc/pathway_genelists/*.txt");
 	$all_gene_file = $parser->tempFile(".txt", "genes_");
 	$parser->exec("cat", implode(" ", $genelists)." > {$all_gene_file}");
-	$cohort_strategy = "RNA_COHORT_GERMLINE";
-	$ps_info = get_processed_sample_info($db, $name);
-	if ($ps_info['is_tumor']) $cohort_strategy = "RNA_COHORT_SOMATIC";
-	$parser->execApptainer("ngs-bits", "NGSDExtractRNACohort", "-genes {$all_gene_file} -ps {$name} -sample_expression {$expr} -cohort_strategy {$cohort_strategy} -out {$expr_cohort}", [$out_folder]);
-
-	//create cohort/expr file without comments
-	$tmp_cohort = $parser->tempFile(".tsv", "cohort_");
-	$parser->exec("egrep", " -v '^##' {$expr_cohort} > {$tmp_cohort}");
+	
 	$tmp_expr = $parser->tempFile(".tsv", "expr_");
 	$parser->exec("egrep", " -v '^##' {$expr} > {$tmp_expr}");
+	
+	$tmp_cohort = $parser->tempFile(".tsv", "cohort_");
+	if (! file_exists($cohort_counts_normalized_genes_file))
+	{
+		$ps_info = get_processed_sample_info($db, $name);
+		$cohort_strategy = getCohortStrategy($ps_info);
+		$parser->execApptainer("ngs-bits", "NGSDExtractRNACohort", "-genes {$all_gene_file} -ps {$name} -sample_expression {$expr} -cohort_strategy {$cohort_strategy} -out {$expr_cohort}", [$out_folder]);
+		//create cohort/expr file without comments
+		$parser->exec("egrep", " -v '^##' {$expr_cohort} > {$tmp_cohort}");
+		
+	}
+	else
+	{
+		$tmp_for_cut = $parser->tempFile(".tsv", "cohort_before_cut");
+		
+		$ensemble_ids = array();
+		foreach(file($all_gene_file) as $gene)
+		{
+			$gene = trim($gene);
+			$ensemble_ids[] = $db->getValue("SELECT ensembl_id FROM gene WHERE symbol = '$gene'");
+		}
+		
+		list($stdout, $stderr, $return) = $parser->exec("zgrep", "'#gene_id' $cohort_counts_normalized_genes_file");
+		$header = str_replace("_tpm", "", trim($stdout[0]));
+		file_put_contents($tmp_for_cut, $header."\n");
+		
+		exec("zgrep '".implode("\|", $ensemble_ids)."' $cohort_counts_normalized_genes_file >> $tmp_for_cut");
+		#remove length column:
+		exec("cut --complement -f 2 $tmp_for_cut > $tmp_cohort");
+		
+	}
 
 
 	$args = [
@@ -487,7 +895,6 @@ if (in_array("plt", $steps))
 		"--annotation", $tmp_expr,
 		"--sample", $name
 	];
-	$genelists = glob(repository_basedir()."/data/misc/pathway_genelists/*.txt");
 	
 	//remove old images
 	$parser->exec("rm -f", "{$prefix}_expr.*.png");
@@ -543,7 +950,6 @@ if (in_array("db", $steps))
 		$parser->execTool("Tools/db_check_gender.php", "-in $final_bam -pid $name --log ".$parser->getLogFile());
 	}
 	
-
 	//import QC data
 	$qc_file_list = array($qc_fastq, $qc_map);
 	if (file_exists($qc_rna)) $qc_file_list[] = $qc_rna;
@@ -556,8 +962,24 @@ if (in_array("db", $steps))
 	];
 	if ($build=="GRCh38")
 	{
-		if (file_exists($expr)) $parser->execApptainer("ngs-bits", "NGSDImportExpressionData", "-mode genes -expression {$expr} ".implode(" ", $args), [$out_folder]);
-		if (file_exists($expr_exon)) $parser->execApptainer("ngs-bits", "NGSDImportExpressionData", "-mode exons -expression {$expr_exon} ".implode(" ", $args), [$out_folder]);
+		//if the NOT batch corrected files exist import those to keep the data in NGSD comparable within the processing systems
+		if (file_exists($uncorrected_expr_genes))
+		{
+			$parser->execApptainer("ngs-bits", "NGSDImportExpressionData", "-mode genes -expression {$uncorrected_expr_genes} ".implode(" ", $args), [$out_folder]);
+		}
+		else if (file_exists($expr))
+		{
+			$parser->execApptainer("ngs-bits", "NGSDImportExpressionData", "-mode genes -expression {$expr} ".implode(" ", $args), [$out_folder]);
+		}
+		
+		if (file_exists($uncorrected_expr_exons))
+		{
+			$parser->execApptainer("ngs-bits", "NGSDImportExpressionData", "-mode exons -expression {$uncorrected_expr_exons} ".implode(" ", $args), [$out_folder]);
+		}
+		else if (file_exists($expr_exon))
+		{
+			$parser->execApptainer("ngs-bits", "NGSDImportExpressionData", "-mode exons -expression {$expr_exon} ".implode(" ", $args), [$out_folder]);
+		}
 	}	
 }
 

@@ -19,7 +19,7 @@ $parser->addString("out_folder", "Output folder.", false);
 $parser->addInfile("t_rna_bam", "Tumor RNA sample BAM file.", true);
 $parser->addString("prefix", "Output file prefix.", true, "somatic");
 
-$steps_all = array("vc", "vi", "cn", "an", "an_rna", "db", "msi");
+$steps_all = array("vc", "vi", "cn", "an", "an_rna", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\n" .
 	"vc=variant calling, an=annotation,\n" .
 	"cn=copy-number analysis\n".
@@ -35,7 +35,7 @@ $parser->addFlag("use_deepsomatic", "Use DeepSomatic for somatic variant calling
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 
 //default cut-offs
-$parser->addFloat("min_af", "Allele frequency detection limit (for tumor-only calling only).", true, 0.05);
+$parser->addFloat("min_af", "Allele frequency detection limit (for small variant calling).", true, 0.01);
 $parser->addFloat("min_depth_t", "Tumor sample coverage cut-off for low coverage statistics.", true, 60);
 $parser->addString("rna_ref_tissue", "Reference data for RNA annotation", true);
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
@@ -50,12 +50,6 @@ foreach($steps as $step)
 		trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
 	}
 }
-
-if (in_array("msi",$steps))
-{
-	trigger_error("Calling microsatellite instabilities is only possible for tumor normal pairs",E_USER_NOTICE);
-}
-
 
 ###################################### SCRIPT START ######################################
 if (!file_exists($out_folder))
@@ -79,19 +73,20 @@ $t_id = basename2($t_bam);
 $t_basename = dirname($t_bam)."/".$t_id;
 $sys = load_system($system, $t_id);
 $roi = $sys["target_file"];
-$ref_genome = genome_fasta($sys['build']);
+$build = $sys['build'];
+$ref_genome = genome_fasta($build);
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
 if (!$no_sync)
 {
-	$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
+	$parser->execTool("Tools/data_setup.php", "-build {$build}");
 }
 
-check_genome_build($t_bam, $sys['build']);
+check_genome_build($t_bam, $build);
 
 if (!$skip_contamination_check)
 {
-	$parser->execTool("Auxilary/check_sry_coverage.php", "-t_bam $t_bam -build ".$sys['build']);
+	$parser->execTool("Auxilary/check_sry_coverage.php", "-t_bam $t_bam -build {$build}");
 }
 else trigger_error("Skipping check of female tumor sample $t_bam for contamination with male genomic DNA.", E_USER_WARNING);
 
@@ -109,17 +104,52 @@ if ($sys['type'] !== "WGS" && !empty($roi) && !$skip_low_cov)
 }
 
 //variant calling
-$manta_indels  = $full_prefix . "_manta_var_smallIndels.vcf.gz";	// small indels from manta
-$manta_sv      = $full_prefix . "_manta_var_structural.vcf.gz";		// structural variants (vcf)
-$manta_sv_bedpe= $full_prefix . "_manta_var_structural.bedpe"; 		// structural variants (bedpe)
-$variants      = $full_prefix . "_var.vcf.gz";					// variants
-$ballele       = $full_prefix . "_bafs.igv";					// B-allele frequencies
-$hla_file_tumor = "{$t_basename}_hla_genotyper.tsv";
+$manta_indels   = "{$full_prefix}_manta_var_smallIndels.vcf.gz";	// small indels from manta
+$manta_sv       = "{$full_prefix}_manta_var_structural.vcf.gz";		// structural variants (vcf)
+$manta_sv_bedpe = "{$full_prefix}_manta_var_structural.bedpe"; 		// structural variants (bedpe)
+$variants       = "{$full_prefix}_var.vcf.gz";						// variants
+$ballele        = "{$full_prefix}_bafs.igv";						// B-allele frequencies
+$hla_file_tumor = "{$full_prefix}_hla_genotyper.tsv";
 
 if (in_array("vc", $steps))
 {
 	//get HLA types
-	$parser->execTool("Tools/hla_genotyper.php", "-bam $t_bam -name $t_id -out ".$hla_file_tumor);
+	$parser->execTool("Tools/hla_genotyper.php", "-bam {$t_bam} -name {$t_id} -out {$hla_file_tumor}");
+	
+	//small variant calling
+	//DeepSomatic calling
+	if ($use_deepsomatic)
+	{
+		$args = [];
+
+		$args[] = "-model_type WGS_TUMOR_ONLY";
+		$args[] = "-bam_tumor ".$t_bam;
+		$args[] = "-out ".$variants;
+		$args[] = "-build {$build}";
+		$args[] = "-threads ".$threads;
+		$args[] = "-tumor_id {$t_id}";
+		$args[] = "-min_af_indels $min_af";
+		$args[] = "-min_af_snps $min_af";
+		$args[] = "-tumor_only";
+		$args[] = "-min_mq 15"; //taken from vc_varscan2.php
+		$args[] = "-min_bq 30"; //taken from vc_varscan2.php
+
+		if (!empty($roi))
+		{
+			$args[] = "-target {$roi}";
+		}
+		$args[] = "-allow_empty_examples";
+
+		$parser->execTool("Tools/vc_deepsomatic.php", implode(" ", $args));
+	}
+	//Varscan2 calling
+	else
+	{
+		$parser->execTool("Tools/vc_varscan2.php", "-bam {$t_bam} -out {$variants} -build {$build} -target {$roi} -name {$t_id} -min_af {$min_af}");
+	}
+	
+	$parser->execApptainer("htslib", "tabix", "-f -p vcf {$variants}", [], [dirname($variants)]);
+
 	
 	// structural variant calling
 	if (!$sys['shotgun'])
@@ -157,39 +187,6 @@ if (in_array("vc", $steps))
 		}
 	}
 	
-	//DeepSomatic calling
-	if ($use_deepsomatic)
-	{
-		$args = [];
-
-		$args[] = "-model_type WGS_TUMOR_ONLY";
-		$args[] = "-bam_tumor ".$t_bam;
-		$args[] = "-out ".$variants;
-		$args[] = "-build ".$sys['build'];
-		$args[] = "-threads ".$threads;
-		$args[] = "-tumor_id {$t_id}";
-		$args[] = "-min_af_indels $min_af";
-		$args[] = "-min_af_snps $min_af";
-		$args[] = "-tumor_only";
-		$args[] = "-min_mq 15"; //taken from vc_varscan2.php
-		$args[] = "-min_bq 30"; //taken from vc_varscan2.php
-
-		if (!empty($roi))
-		{
-			$args[] = "-target {$roi}";
-		}
-		$args[] = "-allow_empty_examples";
-
-		$parser->execTool("Tools/vc_deepsomatic.php", implode(" ", $args));
-	}
-	//Varscan2 calling
-	else
-	{
-		$parser->execTool("Tools/vc_varscan2.php", "-bam $t_bam -out $variants -build " .$sys['build']. " -target ". $roi. " -name $t_id -min_af $min_af");
-	}
-	
-	$parser->execApptainer("htslib", "tabix", "-f -p vcf $variants", [], [dirname($variants)]);
-
 	//add somatic BAF file
 	//create b-allele frequency file
 	$params = array();
@@ -389,29 +386,28 @@ if (in_array("an", $steps))
 {
 	check_genome_build($variants, $sys['build']);
 	
-	// annotate vcf (in temp folder)
+	//annotate VCF (in temp folder)
 	$tmp_folder1 = $parser->tempFolder();
 	$tmp_vcf = "{$tmp_folder1}/{$prefix}_var_annotated.vcf.gz";
-	$parser->execTool("Tools/annotate.php", "-out_name $prefix -out_folder $tmp_folder1 -system $system -vcf $variants -somatic -threads $threads");
-
+	$parser->execTool("Tools/annotate.php", "-out_name {$prefix} -out_folder {$tmp_folder1} -system {$system} -vcf {$variants} -somatic -threads {$threads}");
+	
 	//add sample info to VCF header
 	$s = Matrix::fromTSV($tmp_vcf);
 	$comments = $s->getComments();
 	$comments[] = gsvar_sample_header($t_id, array("IsTumor" => "yes"), "#", "");
-
 	$s->setComments(sort_vcf_comments($comments));
 	$s->toTSV($tmp_vcf);
 
-	// zip and index vcf file
-	$parser->execApptainer("htslib", "bgzip", "-c $tmp_vcf > $variants_annotated", [], [dirname($variants_annotated)]);
-	$parser->execApptainer("htslib", "tabix", "-f -p vcf $variants_annotated", [], [dirname($variants_annotated)]);
+	//zip and index VCF
+	$parser->execApptainer("htslib", "bgzip", "-c {$tmp_vcf} > {$variants_annotated}", [], [dirname($variants_annotated)]);
+	$parser->execApptainer("htslib", "tabix", "-f -p vcf {$variants_annotated}", [], [dirname($variants_annotated)]);
 
-	// convert vcf to GSvar
-	$args = array("-in $tmp_vcf", "-out $variants_gsvar", "-t_col $t_id");
+	//convert VCF to GSvar
+	$args = ["-in {$tmp_vcf}", "-out {$variants_gsvar}", "-t_col {$t_id}"];
 	$parser->execTool("Tools/vcf2gsvar_somatic.php", implode(" ", $args));
 	
 	//Annotate data from network of cancer genes
-	$parser->execTool("Tools/an_somatic_gsvar.php" , "-gsvar_in $variants_gsvar -out $variants_gsvar -include_ncg");
+	$parser->execTool("Tools/an_somatic_gsvar.php" , "-gsvar_in {$variants_gsvar} -out {$variants_gsvar} -include_ncg");
 }
 
 if (in_array("an_rna", $steps))
@@ -466,7 +462,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 		// import variants into NGSD
 		if (file_exists($variants_gsvar))
 		{
-			check_genome_build($variants_gsvar, $sys['build']);
+			check_genome_build($variants_gsvar, $build);
 			$parser->execApptainer("ngs-bits", "NGSDAddVariantsSomatic", "-t_ps $t_id -var $variants_gsvar -force", [$variants_gsvar]);
 		}
 				

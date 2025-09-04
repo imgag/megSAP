@@ -288,7 +288,7 @@ else
 
 
 //left-align VCF file
-$annotate_gnomad_af = (isset($pgs) && ($build=="GRCh38"));
+$annotate_gnomad_af = ((isset($pgs) || $use_gnomAD_af) && ($build=="GRCh38"));
 $normalize_out = $parser->tempFile("_leftNormalized.vcf");
 $pipeline = array();
 $pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome_fasta -in $input_vcf", [$genome_fasta, $input_vcf], [], true));

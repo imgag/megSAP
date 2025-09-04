@@ -12,7 +12,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 // parse command line arguments
 $parser = new ToolBase("vc_mosaic", "Call mosaic variants in a BAM file. Creates a VCF.GZ file.");
 $parser->addInfile("in", "Input BAM file.", false);
-$parser->addOutfile("out", "Output VCF file.", false);
+$parser->addOutfile("out", "Output VCF.GZ file.", false);
 $parser->addInt("min_obs", "Minimum observation per strand. Recommended value for WGS = 1 and WES = 2", false);
 $parser->addInfile("target", "File with target region for variant calling.", false);
 //optional

@@ -8,16 +8,16 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("validate_somatic_tumor_only", "Validates the somatic variant calling performance on tumor-only sample.");
-$parser->addInfile("induced_var", "Expected germline variants of sample used to induce simulated tumor (VCF.GZ).", false);
-$parser->addInfile("sample_var", "Expected germline variants of 'tumor' sample before mixing (VCF.GZ).", false);
+$parser = new ToolBase("validate_somatic_tumor_only", "Validates the somatic variant calling performance on a tumor-only sample.");
+$parser->addInfile("sample_var", "Germline variants before adding tumor variants (VCF.GZ). Make sure the variants are left-normalized.", false);
+$parser->addInfile("tumor_var", "Germline variants of sample used to add artificial tumor variants (VCF.GZ). Make sure the variants are left-normalized.", false);
 $parser->addInfile("roi", "Target region for the validation (high-confidence region of reference samples intersected with high-depth region of experiment.", false);
-$parser->addInfileArray("calls", "Somatic variant call files (VCF.GZ). Sorted in order of ascending tumor content", false);
-$parser->addString("tum_content", "Tumor content in the samples used for the calls given as comma seperated string '5,10,20,40'. If not given tum_content will be approximated from variant af. This may underestimate actual content", true);
+$parser->addInfileArray("calls", "Somatic variant call files (VCF.GZ). Sorted in order of ascending tumor content. Make sure the variants are left-normalized.", false);
+$parser->addString("tum_content", "Comma seperated list for tumor content percentages for 'calls', e.g. '5,10,20,40'. If not given tum_content will be approximated by somatic variant AF. This may underestimate the actual tumor content.", true);
 $parser->addOutfile("vars_details", "Output TSV file for variant details.", false);
 $parser->addOutfile("af_details", "Output TSV file for AF-specific output.", false);
 $parser->addEnum("caller", "The caller used to create the vcf files given in '-calls'", false, ["varscan", "deepsomatic"]);
-$parser->addFlag("ignore_filters", "Ignores filter column entries.");
+$parser->addFlag("ignore_filters", "If set, variants with filter column entries are used. The default is to ignore variants with filter column entries.");
 extract($parser->parse($argv));
 
 //checks if the variant type matches
@@ -35,11 +35,12 @@ function is_indel($tag)
 	return strlen($ref) > 1 || strlen($alt) > 1;
 }
 
-//load VCF variants. 'Caller' argument can modify information loaded for different callers (af and depth) and the reference files (genotype)
+//load VCF variants. 'Caller' argument modifies information loaded for different callers (af and depth) and the reference files (genotype)
 function load_vcf($filename, $roi, $caller)
 {
 	global $parser;
 	global $ignore_filters;
+	$c_filtered = 0;
 	
 	$output = array();
 	list($lines) = $parser->execApptainer("htslib", "tabix", "--regions {$roi} {$filename}", [$roi], [dirname($filename)]);
@@ -49,28 +50,29 @@ function load_vcf($filename, $roi, $caller)
 		if ($line=="") continue;
 		
 		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample) = explode("\t", $line."\t");
+		$tag = "$chr:$pos $ref>$alt";
+		
 		//fix chr
 		if (!starts_with($chr, "chr")) $chr = "chr".$chr;
 		
-		//fix gt/af
-		$tag = "$chr:$pos $ref>$alt";
-		
-
+		//parse gt/af
 		if ($caller == "varscan")
 		{
 			list($dp, $af) = vcf_varscan2($format, $sample);
 
-			//clear filter column
-			$filter_replace = ["PASS"=>"", "."=>"", "freq-tum"=>"", ";"=>""];
-			$filter = trim(strtr($filter, $filter_replace));
-			if ($ignore_filters) $filter = "";
+			//determine filter entries
+			$filter = "";
+			if (!$ignore_filters)
+			{
+				$filter = trim(strtr($filter, ["PASS"=>"", "."=>"", "freq-tum"=>"", ";"=>""]));
+			}
+			if ($filter!="") ++$c_filtered;
 			
 			$output[$tag] = array($af, $dp, $filter);
 		}
 		else if ($caller == "deepsomatic")
 		{
 			list($dp, $af) = vcf_deepvariant($format, $sample);
-
 			//clear filter column
 			$filter_replace = ["PASS"=>"", "freq-tum"=>"", ";"=>""];
 			$filter = trim(strtr($filter, $filter_replace));
@@ -80,7 +82,6 @@ function load_vcf($filename, $roi, $caller)
 		}
 		else if ($caller == "ref")
 		{
-			
 			$gt = strtr(explode(":", $sample)[0], "/", "|");
 			if ($gt=="1") $gt = "hom";
 			else if ($gt=="1|1") $gt = "hom";
@@ -97,36 +98,45 @@ function load_vcf($filename, $roi, $caller)
 			trigger_error("Unknown 'caller' given in load_vcf(): $caller", E_USER_ERROR);
 		}
 	}
-	return $output;
+	return [$output, $c_filtered];
 }
 
 //create a sorted list with all unique variants in the given lists
 function create_unique_variants_list($parser, $details_all)
 {
-	$vars_all = [];
+	//create a unique variant list in VCF format
+	$tags_done = [];
 	$vcf = [];
 	$vcf[] = "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO";
 	foreach($details_all as $name => $file_vars)
 	{
-		foreach($file_vars as $var => $result)
+		foreach($file_vars as $tag => $result)
 		{
-			list($chr, $pos, $ref, $alt) = explode(" ", strtr($var, "-:>", "   "));
-			$vcf[] = $chr."\t".$pos."\t.\t".$ref."\t".$alt."\t100\tPASS\t";
+			if (isset($tags_done[$tag])) continue;
+			$tags_done[$tag] = true;
+			
+			list($chr, $pos, $ref, $alt) = explode(" ", strtr($tag, "-:>", "   "));
+			$vcf[] = $chr."\t".$pos."\t.\t".$ref."\t".$alt."\t.\t.\t";
 		}
 	}
 	$tmp = $parser->tempFile(".vcf");
 	file_put_contents($tmp, implode("\n", $vcf));
+	
+	//sort variants
 	$tmp2 = $parser->tempFile(".vcf");
-	list($stdout) = $parser->execApptainer("ngs-bits", "VcfSort", "-in $tmp -out $tmp2 && sort --uniq $tmp2");
-	foreach($stdout as $line)
+	list($stdout) = $parser->execApptainer("ngs-bits", "VcfSort", "-in $tmp -out $tmp2");
+	
+	//create a tag list
+	$output = [];
+	foreach(file($tmp2) as $line)
 	{
 		$line = trim($line);
 		if ($line=="" || $line[0]=="#") continue;
 		list($chr, $pos, $id, $ref, $alt) = explode("\t", $line);
-		$vars_all[] = "$chr:$pos $ref>$alt";
+		$output[] = "$chr:$pos $ref>$alt";
 	}
 	
-	return $vars_all;
+	return $output;
 }
 
 //***** MAIN SCRIPT *****\\
@@ -148,38 +158,40 @@ if ($tum_content != "")
 $roi_bases = bed_size($roi);
 print "##ROI bases: {$roi_bases}\n";
 
-//load expected germline variants of sample used to induce simulated tumor
-$vars_induced = load_vcf($induced_var, $roi, "ref");
-print "##Germline variants: ".count($vars_induced)."\n";
+//load germline variants
+list($vars_germline, $filtered_germline) = load_vcf($sample_var, $roi, "ref");
+print "##Variants of germline sample: ".count($vars_germline)." ({$filtered_germline} with filter entry)\n";
 
-//load expected germline variants of 'tumor' sample
-$vars_germ_tumor = load_vcf($sample_var, $roi, "ref");
-print "##Germline variants of 'tumor' sample: ".count($vars_germ_tumor)."\n";
+//load 'tumor' variants
+list($vars_induced, $filtered_induced)  = load_vcf($tumor_var, $roi, "ref");
+print "##Variants of 'tumor' sample: ".count($vars_induced)." ({$filtered_induced} with filter entry)\n";
 foreach($vars_induced as $var => $gt)
 {
-	if (array_key_exists($var, $vars_germ_tumor))
+	if (array_key_exists($var, $vars_germline))
 	{
 		unset($vars_induced[$var]);
 	}
 }
-print "##Expected induced tumor variants after removing overlap with germline: ".count($vars_induced)."\n";
+print "##  - after removing overlap with germline: ".count($vars_induced)."\n";
 
 //benchmark
 $details_all = []; //format: array($filename -> array($var -> [var_AF/"Missed"/"filtered"]))
 print "#name\texpected\tTP\tTN\tFP\tFN\trecall/sensitivity\tprecision/ppv\tspecificity\n";
 foreach($calls as $filename)
 {
-	$name = basename($filename, "_var.vcf.gz");
-	$vars = load_vcf($filename, $roi, $caller);
-
-	// remove germline variants of 'tumor' sample resulting in the called induced tumor variants
+	//load calls
+	$name = basename($filename, ".vcf.gz");
+	list($vars, $filtered) = load_vcf($filename, $roi, $caller);	
+	print "##Variant calls of '{$filename}': ".count($vars)." ({$filtered} with filter entry)\n";
+	//remove expected germline variants for calls
 	foreach($vars as $var => $gt)
 	{
-		if (array_key_exists($var, $vars_germ_tumor))
+		if (array_key_exists($var, $vars_germline))
 		{
 			unset($vars[$var]);
 		}
 	}
+	print "##  - after removing overlap with germline: ".count($vars)."\n";
 
 	foreach(["", "SNVs", "InDels"] as $type)
 	{
@@ -193,7 +205,6 @@ foreach($calls as $filename)
 			if (!type_matches($type, $var)) continue;
 			if (isset($vars_induced[$var]))
 			{
-				
 				//flag filtered out
 				if ($filter!="")
 				{
@@ -236,7 +247,7 @@ foreach($calls as $filename)
 }
 
 
-//create sorted variant list
+//create sorted and unique variant tag list
 $vars_all = create_unique_variants_list($parser, $details_all);
 
 //write header 
@@ -251,7 +262,8 @@ $var_detail_lines[] = $header;
 //write variant details
 foreach($vars_all as $var)
 {
-	if (isset($vars_germ_tumor[$var])) continue;
+	if (isset($vars_germline[$var])) continue;
+	
 	$type = "ARTEFACT";
 	if (isset($vars_induced[$var])) $type = "SOMATIC (".$vars_induced[$var].")";
 	$line = "{$var}".(is_indel($var) ? " (INDEL)" : "")."\t{$type}";

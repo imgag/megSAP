@@ -39,13 +39,13 @@ container_methylartist = v1.3.1
 container_minimap2 = v2.28
 container_modkit = v0.3.2
 container_msisensor-pro = v1.2.0
-container_ngs-bits = 2025-05-20250529
+container_ngs-bits = 2025-07-20250801
 container_orad = v2.6.1
 container_paraphase = v3.2.1
 container_python = v3.10.9
 container_REViewer = v0.2.7
 container_samblaster = v0.1.26
-container_samtools = 1.20
+container_samtools = 1.20-20250812
 container_scarHRD = v1
 container_SigProfilerExtractor = v1.1.24
 container_sniffles = v2.4
@@ -101,11 +101,13 @@ queues_dragen =
 
 [mysql-databases]
 db_host['NGSD'] = "localhost"
+db_port['NGSD'] = "3306"
 db_name['NGSD'] = "ngsd"
 db_user['NGSD'] = "ngsduser"
 db_pass['NGSD'] = ""
 
 db_host['NGSD_TEST'] = "localhost"
+db_port['NGSD_TEST'] = "3306"
 db_name['NGSD_TEST'] = "ngsd_test"
 db_user['NGSD_TEST'] = "ngsdtestuser"
 db_pass['NGSD_TEST'] = ""

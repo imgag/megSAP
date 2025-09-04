@@ -176,7 +176,7 @@ if ($annotation_only)
 // prevent accidentally re-mapping if Dragen already ran
 if (!$no_dragen && in_array("ma", $steps) && (file_exists($bamfile) || file_exists($cramfile)) && file_exists($folder."/dragen_variant_calls")) 
 {
-	trigger_error("'ma'-step provided, but sample already analyzed with DRAGEN. Use '-no_dragen' if you really want to do a re-mapping!", E_USER_ERROR);
+	trigger_error("'ma' step requested, but sample is already analyzed with DRAGEN. Use '-no_dragen' if you really want to do a re-mapping!", E_USER_ERROR);
 }
 
 //mapping
@@ -367,7 +367,7 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 	{
 		if ($has_roi && !$is_wgs_shallow)
 		{	
-			$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".realpath($sys['target_file'])." -bam $used_bam_or_cram -out $lowcov_file -cutoff 20 -threads {$threads}", [$folder, $sys['target_file']]);
+			$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".realpath($sys['target_file'])." -bam $used_bam_or_cram -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", [$folder, $sys['target_file'], $genome]);
 			if (db_is_enabled("NGSD"))
 			{
 
@@ -581,7 +581,7 @@ if (in_array("vc", $steps))
 		{
 			$vcffile_mito = $parser->tempFile("_mito.vcf.gz");
 			$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen.vcf.gz";
-			if (!$no_dragen && file_exists($dragen_output_vcf))
+			if (!$no_dragen && file_exists($dragen_output_vcf) && contains_mito($dragen_output_vcf))
 			{
 				trigger_error("DRAGEN analysis found in sample folder. Using this data for mito small variant calling. ", E_USER_NOTICE);
 				$pipeline = [];

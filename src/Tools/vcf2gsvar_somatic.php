@@ -122,8 +122,6 @@ if(!$tumor_only && $normal_idx===false) trigger_error("Could not identify tumor 
 //process variants
 $r = -1;
 $i_quality = $gsvar->getColumnIndex("quality");
-$i_quality = $gsvar->getColumnIndex("quality");
-$i_quality = $gsvar->getColumnIndex("quality");
 while(!feof($handle))
 {
 	$line = nl_trim(fgets($handle));
@@ -156,15 +154,10 @@ while(!feof($handle))
 	}
 
 	//set quality
-	if ($var_caller=="freebayes")
-	{
-		$snp_q = $qual;
-	}
-	else if ($var_caller=="strelka")
+	$snp_q = $qual;
+	if ($var_caller=="strelka")
 	{
 		$field_name = $is_indel ? "QSI=" : "QSS=";
-		
-		$snp_q = "";
 		foreach(explode(";", $info) as $entry)
 		{
 			if (starts_with($entry, $field_name))
@@ -172,80 +165,29 @@ while(!feof($handle))
 				$snp_q = substr($entry, strlen($field_name));
 			}
 		}
-		if ($snp_q=="") trigger_error("Could not find entry '$field_name' in INFO '$info'.", E_USER_ERROR);
 	}
-	else if ($var_caller == "varscan2")
+	else if ($var_caller=="umivar2")
 	{
-		//Convert quality p-value to phred score
-		$i_p_value = false;
 		$f_parts = explode(":", $format);
-		
-		for($i=0; $i< count($f_parts); ++$i)
-		{
-			if($f_parts[$i] == "PVAL")
-			{
-				$i_p_value = $i;
-				break;
-			}
-		}
-	
-		if($i_p_value !== false)
+		$i_p_value = array_search("Pval", $f_parts);
+		if($i_p_value!==false)
 		{
 			$parts = explode(":", $cols[$tumor_idx]);
-			$snp_q = -10 * log10( $parts[$i_p_value] );	//calculate phred score from pvalue
-			$snp_q = floor($snp_q);
-			if($snp_q > 255) $snp_q = 255;
-		}
-		else
-		{
-			$snp_q = "0";
+			$snp_q = -10 * log10($parts[$i_p_value]); //calculate phred score from pvalue
+			$snp_q = min(floor($snp_q), 255);
 		}
 	}
-	else if ($var_caller == "umivar2")
+	else if ($var_caller=="dragen")
 	{
-		// get p-value
-		$p_value = false;
-		$f_parts = explode(":", $format);
-		for($i=0; $i< count($f_parts); ++$i)
-		{
-			if($f_parts[$i] == "Pval")
-			{
-				$i_p_value = $i;
-				break;
-			}
-		}
-
-		//Convert quality p-value to phred score
-		if($p_value !== false)
-		{
-			$snp_q = -10 * log10($parts[$i_p_value]);	//calculate phred score from pvalue
-			$snp_q = floor($snp_q);
-			if($snp_q > 255) $snp_q = 255;
-		}
-		else
-		{
-			$snp_q = "0";
-		}
-	}
-	else if ($var_caller == "dragen")
-	{
-		//get index of somatic quality
 		$f_parts = explode(":", $format);
 		$i_sq_value = array_search("SQ", $f_parts);
 		
-		$parts = explode(":", $cols[$tumor_idx]);
-	
-		if($i_sq_value !== false)
+		if($i_sq_value!==false)
 		{
+			$parts = explode(":", $cols[$tumor_idx]);
 			$snp_q = $parts[$i_sq_value];
 		}
-		else
-		{
-			$snp_q = "0";
-		}
-		
 	}
-	
 	$gsvar->set($r, $i_quality, "QUAL={$snp_q}");
 
 	//calculate DP/AF tumor
