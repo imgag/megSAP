@@ -963,37 +963,23 @@ function vcf_umivar2($filter_col, $info_col, $format_col, $sample_col)
 //Calculates depth and variant allele frequency for varscan2 output line.
 function vcf_varscan2($format_col, $sample_col)
 {
+	//combine FORMAT and SAMPLE data
 	$format_data = explode(":", $format_col);
 	$sample_data = explode(":", $sample_col);
-	if(count($format_data) != count($sample_data))
-	{
-		trigger_error("FORMAT column and sample column have different count of entries.", E_USER_ERROR);
-	}
+	if(count($format_data) != count($sample_data)) trigger_error("FORMAT column and sample column have different count of entries.", E_USER_ERROR);
+	$data = array_combine($format_data, $sample_data);
 	
-	$i_dp = NULL;
-	$i_dp_ref = NULL; //index depth referennce
-	$i_dp_alt = NULL; //index depth alteration
-	$i_freq = NULL; //Allele frequency of alteration
-	for($i=0;$i<count($format_data);++$i)
-	{
-		if($format_data[$i] == "DP") $i_dp = $i;
-		if($format_data[$i] == "RD") $i_dp_ref = $i;
-		if($format_data[$i] == "AD") $i_dp_alt = $i;
-		if($format_data[$i] == "FREQ") $i_freq = $i;
-	}
-	
-	if(is_null($i_dp) ||is_null($i_dp_ref) || is_null($i_dp_alt) || is_null($i_freq))
+	//check it's from VarScan2
+	if (!isset($data['DP']) || !isset($data['RD']) || !isset($data['AD']) || !isset($data['FREQ']))
 	{
 		trigger_error("Invalid Varscan2 format. Missing one of the fields 'DP', 'RD', 'AD' or 'FREQ'", E_USER_ERROR);
 	}
-
 	
-	$af = $sample_data[$i_freq];
-	$af = str_replace("\%","",$af);
+	//convert AF
+	$af = trim(strtr($data['FREQ'],'%', ' '));
+	$af  = number_format($af/100.0, 4);
 	
-	$af  = number_format((float)$af / 100., 4);
-	
-	return array($sample_data[$i_dp], $af);
+	return array($data['DP'], $af);
 }
 
 function vcf_freebayes($format_col, $sample_col)
@@ -1120,7 +1106,7 @@ function get_processed_sample_info(&$db_conn, $ps_name, $error_if_not_found=true
 	//get info from NGSD
 	$ps_name = trim($ps_name);
 	list($sample_name, $process_id) = explode("_", $ps_name."_");
-	$res = $db_conn->executeQuery("SELECT p.name as project_name, p.type as project_type, p.analysis as project_analysis, p.preserve_fastqs as preserve_fastqs, p.id as project_id, ps.id as ps_id, r.name as run_name, d.type as device_type, r.id as run_id, ps.normal_id as normal_id, s.sample_type as sample_type, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, s.disease_status as disease_status, s.tissue as tissue, s.comment as s_comments, s.year_of_birth, s.order_date, sys.id as sys_id, sys.type as sys_type, sys.target_file as sys_target, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, sys.adapter1_p5 as sys_adapter1, sys.adapter2_p7 as sys_adapter2, sys.umi_type as sys_umi_type, g.build as sys_build, s.name_external as name_external, ps.comment as ps_comments, ps.lane as ps_lanes, r.recipe as run_recipe, r.fcid as run_fcid, ps.mid1_i7 as ps_mid1, ps.mid2_i5 as ps_mid2, sp.id as species_id, sp.name as species, s.id as s_id, ps.quality as ps_quality, ps.processing_input, d.name as device_name, psa.population as ancestry, ps.urgent ".
+	$res = $db_conn->executeQuery("SELECT p.name as project_name, p.type as project_type, p.analysis as project_analysis, p.preserve_fastqs as preserve_fastqs, p.id as project_id, ps.id as ps_id, r.name as run_name, d.type as device_type, r.id as run_id, ps.normal_id as normal_id, s.sample_type as sample_type, s.tumor as is_tumor, s.gender as gender, s.ffpe as is_ffpe, s.disease_group as disease_group, s.disease_status as disease_status, s.tissue as tissue, s.received as s_received, s.comment as s_comments, s.patient_identifier, s.year_of_birth, s.order_date, sys.id as sys_id, sys.type as sys_type, sys.target_file as sys_target, sys.name_manufacturer as sys_name, sys.name_short as sys_name_short, sys.adapter1_p5 as sys_adapter1, sys.adapter2_p7 as sys_adapter2, sys.umi_type as sys_umi_type, g.build as sys_build, s.name_external as name_external, ps.comment as ps_comments, ps.lane as ps_lanes, r.recipe as run_recipe, r.fcid as run_fcid, ps.mid1_i7 as ps_mid1, ps.mid2_i5 as ps_mid2, sp.id as species_id, sp.name as species, s.id as s_id, ps.quality as ps_quality, ps.processing_input, d.name as device_name, psa.population as ancestry, ps.urgent ".
 									"FROM project p, sample s, processing_system as sys, processed_sample ps LEFT JOIN sequencing_run as r ON ps.sequencing_run_id=r.id LEFT JOIN device as d ON r.device_id=d.id LEFT JOIN processed_sample_ancestry as psa ON ps.id=psa.processed_sample_id, species sp, genome g ".
 									"WHERE ps.project_id=p.id AND ps.sample_id=s.id AND s.name='$sample_name' AND ps.processing_system_id=sys.id AND sys.genome_id=g.id AND s.species_id=sp.id AND ps.process_id='".(int)$process_id."'");
 	if (count($res)!=1)

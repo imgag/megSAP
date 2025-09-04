@@ -20,6 +20,8 @@ if ($mask)
 	$tmp = $parser->tempFile("_masked.fa");
 	$parser->execApptainer("ngs-bits", "FastaMask", "-in {$in} -reg {$exclusion_bed} -out {$tmp}", [$in]);
 	$parser->moveFile($tmp, $in);
+	
+	//TODO Marc implement/use FastaChecksumUpdate ngs-bits tool
 }
 
 //BWA index

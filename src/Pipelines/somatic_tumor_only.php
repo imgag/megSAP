@@ -34,7 +34,7 @@ $parser->addFlag("skip_low_cov", "Skip low coverage statistics.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 
 //default cut-offs
-$parser->addFloat("min_af", "Allele frequency detection limit (for small variant calling).", true, 0.05);
+$parser->addFloat("min_af", "Allele frequency detection limit (for small variant calling).", true, 0.01);
 $parser->addFloat("min_depth_t", "Tumor sample coverage cut-off for low coverage statistics.", true, 60);
 $parser->addString("rna_ref_tissue", "Reference data for RNA annotation", true);
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);

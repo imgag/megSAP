@@ -40,10 +40,10 @@ mkdir -p Ensembl
 cd Ensembl
 wget -O Homo_sapiens.GRCh38.112.gff3.gz https://ftp.ensembl.org/pub/release-112/gff3/homo_sapiens/Homo_sapiens.GRCh38.112.gff3.gz
 gunzip Homo_sapiens.GRCh38.112.gff3.gz
-wget -O Homo_sapiens.GRCh38.112.gtf.gz https://ftp.ensembl.org/pub/release-112/gtf/homo_sapiens/Homo_sapiens.GRCh38.112.gtf.gz
-gunzip Homo_sapiens.GRCh38.112.gtf.gz
+wget -O Homo_sapiens.GRCh38.112_original.gtf.gz https://ftp.ensembl.org/pub/release-112/gtf/homo_sapiens/Homo_sapiens.GRCh38.112.gtf.gz
+gunzip Homo_sapiens.GRCh38.112_original.gtf.gz
 # create sorted & indexed file for methylartist
-(grep ^"#" Homo_sapiens.GRCh38.112.gtf; grep -v ^"#" Homo_sapiens.GRCh38.112.gtf | sort -k1,1 -k4,4n | sed -e 's/^/chr/') | apptainer exec $htslib bgzip  > Homo_sapiens.GRCh38.112.gtf.gz
+(grep ^"#" Homo_sapiens.GRCh38.112_original.gtf; grep -v ^"#" Homo_sapiens.GRCh38.112_original.gtf | sort -k1,1 -k4,4n | sed -e 's/^/chr/') | apptainer exec $htslib bgzip  > Homo_sapiens.GRCh38.112.gtf.gz
 apptainer exec $htslib tabix -p gff Homo_sapiens.GRCh38.112.gtf.gz
 
 #Download RefSeq transcripts database
