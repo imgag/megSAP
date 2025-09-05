@@ -58,13 +58,6 @@ $dragen_path = "/opt/dragen/".get_path("dragen_version")."/bin/";
 //stop on unsupported processing systems:
 if (!$is_wes_or_panel && !$is_wgs) trigger_error("Can only analyze WGS/WES/panel samples not ".$sys['type']." samples!", E_USER_ERROR);
 
-//check if valid reference genome is provided
-$dragen_genome_path = get_path("dragen_genomes")."/".$build."/dragen/";
-if (!file_exists($dragen_genome_path)) 
-{
-	trigger_error("Invalid genome build '".$build."' given. Path '".$dragen_genome_path."' not found on Dragen!", E_USER_ERROR);
-}
-
 //sample checks:
 if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq", "IDT-xGen-Prism", "Twist"])) trigger_error("UMI handling is not supported by the DRAGEN pipeline! Please use local mapping instead.", E_USER_ERROR);
 if ($sys['type']=="WGS (shallow)") trigger_error("Shallow genomes are not supported by the DRAGEN pipeline! Please use local mapping instead.", E_USER_ERROR);
@@ -292,7 +285,7 @@ if ($trim)
 }
 
 //parameters
-$dragen_parameter[] = "-r ".$dragen_genome_path;
+$dragen_parameter[] = "-r ".get_path("dragen_genome");
 $dragen_parameter[] = "--ora-reference ".get_path("data_folder")."/dbs/oradata/";
 $dragen_parameter[] = "--output-directory $working_dir";
 $dragen_parameter[] = "--output-file-prefix {$name}";

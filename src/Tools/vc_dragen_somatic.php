@@ -52,13 +52,6 @@ if ($debug)
 if ($tumor=="") $tumor = basename($t_bam, ".bam");
 if ($n_bam != "" && $normal=="") $normal = basename($n_bam, ".bam");
 
-//check if valid reference genome is provided
-$dragen_genome_path = get_path("dragen_genomes")."/".$build."/dragen/";
-if (!file_exists($dragen_genome_path)) 
-{
-	trigger_error("Invalid genome build '".$build."' given. Path '".$dragen_genome_path."' not found on Dragen!", E_USER_ERROR);
-}
-
 //check if input files are readable and output file is writeable
 if (!is_readable($t_bam)) trigger_error("Input file '$t_bam' is not readable!", E_USER_ERROR);
 if ($n_bam != "" && !is_readable($n_bam)) trigger_error("Input file '$n_bam' is not readable!", E_USER_ERROR);
@@ -80,7 +73,7 @@ if (!mkdir($working_dir, 0777))
 
 //parameters
 $dragen_parameter = [];
-$dragen_parameter[] = "-r ".$dragen_genome_path;
+$dragen_parameter[] = "-r ".get_path("dragen_genome");
 if (ends_with($t_bam, ".bam"))
 {
 	$dragen_parameter[] = "--tumor-bam-input ".$t_bam;

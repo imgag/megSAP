@@ -93,7 +93,7 @@ dragen_in =
 dragen_out = 
 ; working/genome directory on the DRAGEN server
 dragen_data = 
-dragen_genomes = 
+dragen_genome = 
 ;sge settings
 dragen_log = 
 queues_dragen = 
