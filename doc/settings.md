@@ -46,6 +46,7 @@ This section contains general settings:
 
 This section contains settings to run the germline/somatic data analysis on a on-site Illumina Dragen server:
 
+* `dragen_version` - Version of Dragen to use, e.g. `4.3.17`.
 * `dragen_in` - Folder into which FASTQ data is copied for Dragen data analysis.
 * `dragen_out` - Folder into which Dragen output files are copied after the analysis.
 * `dragen_data` - Folder used as working directory on the Dragen server.

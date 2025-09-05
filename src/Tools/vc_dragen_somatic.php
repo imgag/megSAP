@@ -27,6 +27,7 @@ $parser->addFlag("debug", "Add debug output to the log file.");
 extract($parser->parse($argv));
 
 // ********************************* init *********************************//
+$dragen_path = "/opt/dragen/".get_path("dragen_version")."/bin/";
 
 if ($debug)
 {
@@ -42,7 +43,7 @@ if ($debug)
 	list($stdout) = exec2("env");
 	$parser->log("env:", $stdout);
 
-	list($stdout) = exec2("dragen_lic");
+	list($stdout) = exec2("{$dragen_path}dragen_lic");
 	$parser->log("dragen licence status before:", $stdout);
 }
 
@@ -150,8 +151,9 @@ if ($n_bam != "")
 $parser->log("DRAGEN parameters:", $dragen_parameter);
 
 //run
-$parser->exec("dragen_reset", "");
-$parser->exec("LANG=en_US.UTF-8 dragen", implode(" ", $dragen_parameter)); //LANG is necessary to avoid the error "locale::facet::_S_create_c_locale name not valid" if the locale from the ssh source shell is not available on the Dragen server 
+$dragen_path = 
+$parser->exec("{$dragen_path}dragen_reset", "");
+$parser->exec("LANG=en_US.UTF-8 {$dragen_path}dragen", implode(" ", $dragen_parameter)); //LANG is necessary to avoid the error "locale::facet::_S_create_c_locale name not valid" if the locale from the ssh source shell is not available on the Dragen server 
 if ($debug)
 {
 	list($stdout) = exec2("ls $working_dir");
@@ -193,7 +195,7 @@ $parser->exec("rm", "-rf $working_dir");
 
 if ($debug)
 {
-	list($stdout) = exec2("dragen_lic");
+	list($stdout) = exec2("{$dragen_path}dragen_lic");
 	$parser->log("dragen licence status after:", $stdout);
 }
 

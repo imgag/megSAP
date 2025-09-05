@@ -23,6 +23,8 @@ To use the DRAGEN server in the megSAP pipeline some additional software has to 
 
 After the required software is installed, some parameters in the megSAP `settings.ini` have to be adapted: 
 
+* `dragen_version` - Version of Dragen to use, e.g. `4.3.17`.
+
 * `dragen_user` - User which is used to run the analysis on the DRAGEN server. It has to be the same user who started the complete analysis and has to have read and write access to the folders defined below.
 
 * `dragen_in`/`dragen_out` - Transfer folders which have to be accessible from both the server which performs the main analysis and the DRAGEN server. These two folders are used to transfer data to the DRAGEN server, i.e. FASTQ files, and transfer data from the DRAGEN server to the analysis server, i.e. BAM files.

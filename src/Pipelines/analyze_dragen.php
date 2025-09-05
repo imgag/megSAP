@@ -53,6 +53,7 @@ $is_wes_or_panel = $sys['type']=="WES" || $sys['type']=="Panel" || $sys['type']=
 $is_wgs = $sys['type']=="WGS";
 $build = $sys['build'];
 $genome = genome_fasta($build, false);
+$dragen_path = "/opt/dragen/".get_path("dragen_version")."/bin/";
 
 //stop on unsupported processing systems:
 if (!$is_wes_or_panel && !$is_wgs) trigger_error("Can only analyze WGS/WES/panel samples not ".$sys['type']." samples!", E_USER_ERROR);
@@ -349,8 +350,8 @@ if ($high_mem)
 $parser->log("DRAGEN parameters:", $dragen_parameter);
 
 //run
-$parser->exec("dragen_reset", "");
-$parser->exec("LANG=en_US.UTF-8 dragen", implode(" ", $dragen_parameter)); //LANG is necessary to avoid the error "locale::facet::_S_create_c_locale name not valid" if the locale from the ssh source shell is not available on the Dragen server 
+$parser->exec("{$dragen_path}dragen_reset", "");
+$parser->exec("LANG=en_US.UTF-8 {$dragen_path}dragen", implode(" ", $dragen_parameter)); //LANG is necessary to avoid the error "locale::facet::_S_create_c_locale name not valid" if the locale from the ssh source shell is not available on the Dragen server 
 if ($debug)
 {
 	list($stdout) = exec2("ls $working_dir");
