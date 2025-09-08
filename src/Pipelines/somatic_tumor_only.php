@@ -121,7 +121,6 @@ if (in_array("vc", $steps))
 	if ($use_deepsomatic)
 	{
 		$args = [];
-
 		$args[] = "-model_type WGS_TUMOR_ONLY";
 		$args[] = "-bam_tumor ".$t_bam;
 		$args[] = "-out ".$variants;

@@ -230,6 +230,18 @@ wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/Ashkenazim
 zcat $dbs/GIAB/NA24385_CMRG/high_conf_variants.vcf.gz | apptainer exec $ngsbits VcfBreakMulti | apptainer exec -B $genome_dir $ngsbits VcfFilter -remove_invalid -ref $genome | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | apptainer exec $htslib bgzip > $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalized.vcf.gz
 apptainer exec $htslib tabix $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalized.vcf.gz
 
+#download and normalize HG008 reference data
+mkdir -p $dbs/GIAB/HG008
+wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/seqc/Somatic_Mutation_WG/release/latest/high-confidence_sINDEL_in_HC_regions_v1.2.1.vcf.gz -O $dbs/GIAB/HG008/high_conf_variants_INDEL.vcf.gz
+wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/seqc/Somatic_Mutation_WG/release/latest/high-confidence_sSNV_in_HC_regions_v1.2.1.vcf.gz -O $dbs/GIAB/HG008/high_conf_variants_SNV.vcf.gz
+wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/seqc/Somatic_Mutation_WG/release/latest/High-Confidence_Regions_v1.2.bed -O $dbs/GIAB/HG008/high_conf_regions.bed
+apptainer exec -B $dbs/GIAB/HG008/ $ngsbits VcfAdd -in $dbs/GIAB/HG008/high_conf_variants_INDEL.vcf.gz $dbs/GIAB/HG008/high_conf_variants_SNV.vcf.gz -out $dbs/GIAB/HG008/high_conf_variants.vcf
+apptainer exec -B $dbs/GIAB/HG008/ $ngsbits VcfSort -in $dbs/GIAB/HG008/high_conf_variants.vcf -out $dbs/GIAB/HG008/high_conf_variants.vcf
+apptainer exec -B $dbs/GIAB/HG008/ $htslib bgzip $dbs/GIAB/HG008/high_conf_variants.vcf
+apptainer exec -B $dbs/GIAB/HG008/ $htslib tabix $dbs/GIAB/HG008/high_conf_variants.vcf.gz
+zcat $dbs/GIAB/HG008/high_conf_variants.vcf.gz | apptainer exec $ngsbits VcfBreakMulti | apptainer exec -B $genome_dir $ngsbits VcfFilter -remove_invalid -ref $genome | apptainer exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | apptainer exec $ngsbits VcfStreamSort | apptainer exec $htslib bgzip > $dbs/GIAB/HG008/high_conf_variants_normalized.vcf.gz
+apptainer exec -B $dbs/GIAB/HG008/ $htslib tabix $dbs/GIAB/HG008/high_conf_variants_normalized.vcf.gz
+
 #download reference genome for orad
 cd $dbs
 mkdir -p oradata
