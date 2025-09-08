@@ -77,8 +77,7 @@ while (!feof($handle))
 	if (isset($sample['AF']))
 	{
 		$tmp = $sample['AF'];
-		if (count(explode(",", $tmp)) > 1) continue; //skip faulty variants with multiple AF values caused by vcfallelicprimitves 
-		if (is_numeric($tmp))
+		if (is_numeric($tmp)) //skip faulty variants with multiple values caused by vcfallelicprimitves
 		{
 			$af = $tmp;
 		}
@@ -86,32 +85,28 @@ while (!feof($handle))
 	if (isset($sample['AO'])) //freebayes does not report AF, so we need to calculate it from AO
 	{
 		$tmp = $sample['AO'];
-		if (count(explode(",", $tmp)) > 1) continue; //skip faulty variants with multiple AO values caused by vcfallelicprimitves 
-		if (is_numeric($tmp))
+		if (is_numeric($tmp)) //skip faulty variants with multiple values caused by vcfallelicprimitves
 		{
 			$af = $tmp/$dp;
 		}
 	}
-	if (isset($sample['FREQ'])) //varscan does not reports AF as FREQ, e.g. '99.62%'
+	if (isset($sample['FREQ'])) //varscan reports AF as FREQ, e.g. '99.62%'
 	{
 		$tmp = strtr($sample['FREQ'], ['%'=>'']);
-		if (count(explode(",", $tmp)) > 1) continue; //skip faulty variants with multiple FREQ values caused by vcfallelicprimitves 
-		$tmp = $tmp/100.0;
-		if (is_numeric($tmp))
+		if (is_numeric($tmp)) //skip faulty variants with multiple values caused by vcfallelicprimitves
 		{
-			$af = $tmp;
+			$af = $tmp/100.0;
 		}
 	}
 	if (isset($sample['VAF'])) //deepvariant reports AF as VAF
 	{
 		$tmp = $sample['VAF'];
-		if (count(explode(",", $tmp)) > 1) continue; //skip faulty variants with multiple VAF values caused by vcfallelicprimitves 
-		if (is_numeric($tmp))
+		if (is_numeric($tmp)) //skip faulty variants with multiple values caused by vcfallelicprimitves
 		{
 			$af = $tmp;
 		}
 	}
-	if ($af=="") trigger_error("Sample AF not found in: $line", E_USER_ERROR);
+	if ($af=="") continue;
 	
 	// perform downsampling when needed
 	if ($downsample>0 && $snps_passed%$downsample!=0) continue;

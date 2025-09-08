@@ -54,6 +54,7 @@ $args[] = $out_prefix;
 $args[] = "--loci {$loci}";
 $args[] = "--nprocs $threads";
 $args[] = "--sample {$pid}";
+$args[] = "--max_num_clusters 2";
 
 if ($gender != "n/a") $args[] = "--sex ".$gender[0];
 
@@ -93,20 +94,23 @@ foreach ($loci_content as $line)
 {
     if (starts_with($line, "#")) continue;
     list($chr, $start, $end, $motif, $repeat_id, $repeat_type, $ref_size, $ref_motif) = explode("\t", $line);
-    $catalog["{$chr}:{$start}-{$end}"] = array($repeat_id, $repeat_type, $ref_size, $ref_motif);
+    $catalog["{$chr}:{$start}"] = array($repeat_id, $repeat_type, $ref_size, $ref_motif, $end);
 }
 //annotate catalog to output file
 $bed_content_in = file($out_bed, FILE_IGNORE_NEW_LINES + FILE_SKIP_EMPTY_LINES);
 $bed_content_out = array();
+$wildtype_length = array();
 foreach ($bed_content_in as $line) 
 {
     if (starts_with($line, "##")) $bed_content_out[] = $line;
     elseif (starts_with($line, "#")) $bed_content_out[] = $line."\trepeat_id\trepeat_type\tref_size\tref_motif\tmin_pathogenic";
     else 
     {
-        list($chr, $start, $end, $motif, $repeat_id) = explode("\t", $line);
-        $annotation = $catalog["{$chr}:{$start}-{$end}"];
+        list($chr, $start, $end, $motif) = explode("\t", $line);
+        $annotation = $catalog["{$chr}:{$start}"];
+        array_pop($annotation);
         $ref_motif = $annotation[3];
+        $repeat_id = $annotation[0];
         if (isset($min_pathogenic["{$chr}:{$start}-{$end}_{$ref_motif}"]))
         {
           $annotation[] = $min_pathogenic["{$chr}:{$start}-{$end}_{$ref_motif}"];
@@ -116,6 +120,11 @@ foreach ($bed_content_in as $line)
           $annotation[] = "";
         }
         $bed_content_out[] = $line."\t".implode("\t", $annotation);
+
+        //store wildtype length (2nd allele on het and 1st allele on hom wt)
+        $tmp_column = explode("\t", $line);
+        if ($tmp_column[8] != "-") $wildtype_length[$repeat_id] = $tmp_column[8];
+        else $wildtype_length[$repeat_id] = explode("\t", $line)[5];
     }
 }
 file_put_contents($out_bed, implode("\n", $bed_content_out));
@@ -129,6 +138,7 @@ foreach ($vcf_content_in as $line)
     elseif (starts_with($line, "#")) 
     {
       $vcf_content_out[] = "##INFO=<ID=REF_MOTIF,Number=.,Type=String,Description=\"Reference motif\">";
+      $vcf_content_out[] = "##INFO=<ID=RUC_WT,Number=.,Type=Float,Description=\"Wild type repeat unit count of corresponding repeat sequence\">";
       $vcf_content_out[] = "##reference=".genome_fasta($build);
       $vcf_content_out[] = $line;
     }
@@ -137,18 +147,53 @@ foreach ($vcf_content_in as $line)
         $columns = explode("\t", $line);
         $chr = $columns[0];
         $start = $columns[1];
+        
         $info =  explode(";", $columns[7]);
-        foreach ($info as $kv_pair)
+        $info[] = "END=".$catalog["{$chr}:{$start}"][4]; //add end pos
+        $ref_motif = $catalog["{$chr}:{$start}"][3];
+        $repeat_id = $catalog["{$chr}:{$start}"][0];
+        $info[] = "REF_MOTIF=".$ref_motif;
+
+        if (!isset($wildtype_length[$repeat_id])) trigger_error("No wiltype copy number found for repeat_id '{$repeat_id}'!", E_USER_ERROR);
+        $wt_cn = $wildtype_length[$repeat_id];
+        
+        $format_values = explode(":", $columns[9]);
+        //fix genotype
+        //special case: male on chrX/Y:
+        if (($gender == "male") && (($chr == "chrX" || $chr == "chrY")))
         {
-          if (starts_with($kv_pair, "END=")) 
-          {
-            $end = explode("=", $kv_pair)[1];
-            break;
-          }
+          //there should be only one allele
+          if (str_contains($format_values[0], "/")) trigger_error("Invalid genotype '".$format_values[0]."' in line '{$line}'!", E_USER_ERROR);
+          // add wt copynumber
+          if ($format_values[0] == "0") $info[] = "RUC_WT=".$wt_cn;
         }
-        if (!isset($end)) trigger_error("No end position found in line '{$line}'!", E_USER_ERROR);
-        $info[] = "REF_MOTIF=".$catalog["{$chr}:{$start}-{$end}"][3];
+        else
+        {
+          if (($format_values[0] == "0") || ($format_values[0] == "0/0"))
+          {
+            //hom wt:
+            $format_values[0] = "0/0";
+            $info[] = "RUC_WT=".$wt_cn;
+          }
+          else if ($format_values[0] == "1")
+          {
+            //hom alt
+            $format_values[0] = "1/1";
+          }
+          else if ($format_values[0] == "0/1")
+          {
+            //het alt
+            $info[] = "RUC_WT=".$wt_cn;
+          }
+          else if ($format_values[0] == "1/2")
+          {
+            //hom alt with 2 alleles
+          }
+          else trigger_error("Invalid genotype '".$format_values[0]."' in line '{$line}'!", E_USER_ERROR);
+        }
+
         $columns[7] = implode(";", $info);
+        $columns[9] = implode(":", $format_values);
         $vcf_content_out[] = implode("\t", $columns);
 
     }
@@ -165,6 +210,10 @@ $parser->execApptainer("ngs-bits", "VcfSort", "-in {$out_vcf} -out {$out_vcf}", 
 //create plots:
 if (file_exists($plot_folder)) $parser->exec("rm", "-r {$plot_folder}"); //delete previous plots
 mkdir($plot_folder);
+
+// TODO: remove
+//$parser->execApptainer("straglrOn", "python3 /mnt/storage2/users/ahschul1/git/StraglrOn/src/straglron.py", "{$out_bed} {$out_tsv} {$loci} -o {$plot_folder} --hist --alleles --bam {$in} --genome ".genome_fasta($build), [$in, $out_folder, $loci, genome_fasta($build), "/mnt/storage2/users/ahschul1/git/StraglrOn/src/straglron.py"]);
+
 $parser->execApptainer("straglrOn", "straglron.py", "{$out_bed} {$out_tsv} {$loci} -o {$plot_folder} --hist --alleles --bam {$in} --genome ".genome_fasta($build), [$in, $out_folder, $loci, genome_fasta($build)]);
 
 

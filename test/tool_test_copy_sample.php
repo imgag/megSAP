@@ -22,6 +22,7 @@ if (db_is_enabled("NGSD"))
 	exec("cp ".data_folder().$name."_in1.csv ".output_folder()."190228_NB501582_0169_AH5LG5BDXX_00001/");
 	exec("cp ".data_folder().$name."_in2.csv ".output_folder()."190228_NB501582_0169_AH5LG5BDXX_00001/");
 	exec("cp ".data_folder().$name."_in3.csv ".output_folder()."190228_NB501582_0169_AH5LG5BDXX_01489/");
+	exec("cp ".data_folder().$name."_in4.csv ".output_folder()."190228_NB501582_0169_AH5LG5BDXX_00001/");
 	exec("cp ".data_folder().$name."_in_runparameters1.xml ".output_folder()."190228_NB501582_0169_AH5LG5BDXX_00001/RunParameters.xml");
 	exec("cp ".data_folder().$name."_in_runparameters1.xml ".output_folder()."190228_NB501582_0169_AH5LG5BDXX_01489/RunParameters.xml");
 	exec("unzip ".data_folder().$name."_in4.zip -d ".output_folder());
@@ -59,6 +60,12 @@ if (db_is_enabled("NGSD"))
 	exec("rm ".output_folder()."20230823_LH00240_0003_AFCID0001_00123/Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/DX181278_05.bam.bai");
 	check_exec("cd ".output_folder()."20230823_LH00240_0003_AFCID0001_00123/ && php ".src_folder()."/IMGAG/{$name}.php -test -out {$out_file} -db NGSD_TEST -no_dragen -merge_runs");
 	check_file($out_file, data_folder()."{$name}_out5Makefile");
+
+	//test 6 - NextSeq, 2nd test with adapter trimming
+	$out_file = output_folder().$name."_out6Makefile";
+	$runinfo = data_folder().$name."_in2_RunInfo.xml";
+	check_exec("cd ".output_folder()."190228_NB501582_0169_AH5LG5BDXX_00001/ && php ".src_folder()."/IMGAG/{$name}.php -test -samplesheet {$name}_in4.csv -out {$out_file} -db NGSD_TEST -runinfo {$runinfo} -use_dragen");
+	check_file($out_file, data_folder()."{$name}_out2Makefile");
 }
 
 end_test();

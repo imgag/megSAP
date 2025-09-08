@@ -864,12 +864,12 @@ class ToolBase
 		{
 			if ($command_only)
 			{
-				$ngsbits_command = execApptainer($container, $command, $parameters, $in_files, $out_files, true);
+				$ngsbits_command = execApptainer($container, $command, $parameters, $in_files, $out_files, true, false, $abort_on_error);
 				return $ngsbits_command;
 			}
 			else
 			{
-				list($stdout, $stderr, $return) = execApptainer($container, $command, $parameters, $in_files, $out_files);
+				list($stdout, $stderr, $return) = execApptainer($container, $command, $parameters, $in_files, $out_files, false, false, $abort_on_error);
 				return array($stdout, $stderr, $return);
 			}
 		}

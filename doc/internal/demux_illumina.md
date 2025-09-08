@@ -25,7 +25,8 @@
 	*Note*: The index (==barcode) should be given even if only one sample is on a lane (to avoid contamination).  
 	*Note*: If index 2 sequences are reverse-complement (e.g in NovaSeq6000 or MiSeq dual-indexing) of the sequences given in the sample sheet, re-export using the '-mid2_no_rc' flag.  
 	*Note*: Restrict the MID lenghs using the parameters '-mid1_len' and '-mid2_len'.      
-	*Note*: If there are some samples with only MID_1 and no MID_2. Start demultiplexing without them and check in the unclaimed MIDs what sequence is their MID_2. Stop the demux and enter this found MID_2 into the sample sheet to demultiplex all samples together.
+	*Note*: If there are some samples with only MID_1 and no MID_2. Start demultiplexing without them and check in the unclaimed MIDs what sequence is their MID_2. Stop the demux and enter this found MID_2 into the sample sheet to demultiplex all samples together.   
+	*Note*: If demultiplexing a NovaSeq X Plus run manually the MID_2 (MID5) has to be switched: `Y...,I..N..,N2I8,Y...` in the NSXPlus sample sheet translates into `Y...,I..N..,I8N2,Y...` in the bcl2fastq sample sheet!
 	
 	Then we execute the actual demultiplexing based on the sample sheet:
 	```bash
@@ -51,16 +52,16 @@
 	*Note*: If a sample has no second index, try AGATCTCGGT. For unknown bases 9/10 of first index read try AT.
 
 	
-4. Check that for all samples there is data and that no sample was missing in the sample sheet:
+5. Check that for all samples there is data and that no sample was missing in the sample sheet:
 	```bash
 	du -sh Unaligned/*/* Unaligned/Undetermined* | egrep -v "Reports|Stats"
 	```
 
-5. Check for additional MIDs in run data:
+6. Check for additional MIDs in run data:
 	```bash
 	FastqMidParser -in Unaligned/Undetermined_S0_L00?_R?_001.fastq.gz
 	```
-6. Copy the FASTQ files to the project folders and queue the analysis using:
+7. Copy the FASTQ files to the project folders and queue the analysis using:
 	```bash
 	php /mnt/storage2/megSAP/pipeline/src/IMGAG/copy_sample.php
 	```
@@ -68,12 +69,12 @@
 	ionice -c 3 make all
 	```
 
-7. Backup run using backup tool:
+8. Backup run using backup tool:
 	```bash
 	sudo -u archive-gs php /mnt/storage2/megSAP/pipeline/src/IMGAG/backup_queue.php -mode run -in [run] -email [email]
 	```
 
-8. Delete the run raw data (when all samples are analyzed with passed QC):
+9. Delete the run raw data (when all samples are analyzed with passed QC):
 	```bash
 	rm -rf [run]
 	```
@@ -99,7 +100,7 @@
 	Demultiplexing is done on the instrument already. We only have to check the output for additional MIDs:
 	
 	```bash
-	/mnt/storage2/megSAP/tools/Python-3.10.9_2024.11.06/bin/python /mnt/storage2/megSAP/pipeline/src/Tools/extract_demux_stats.py
+	python /mnt/storage2/megSAP/pipeline/src/Tools/extract_demux_stats.py
 	```
 	Check the output files `DemuxStats.html` and `DemuxStats.png` for additional MIDs.
 

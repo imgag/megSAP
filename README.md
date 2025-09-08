@@ -46,6 +46,8 @@ Documentation about the different **ONT long-read pipelines** can be found here:
 
 Please report any issues or questions to the [megSAP issue tracker](https://github.com/imgag/megSAP/issues).
 
+If you want to use our full software stack (megSAP, GSvar and NGSD) in a clinical or commercial setting, you can get professional support from [dxOmics](https://www.dxomics.de/).
+
 ## Citing
 
 You can cite megSAP using Zenodo DOIs:

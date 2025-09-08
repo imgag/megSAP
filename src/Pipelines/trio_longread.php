@@ -254,7 +254,7 @@ if (in_array("an", $steps))
 		
 		//determine gender of child
 		$genome = genome_fasta($build);
-		list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-method hetx -in $c -build ".ngsbits_build($build)." -ref {$genome}", [$c, $genome]);
+		list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-method hetx -long_read -in $c -build ".ngsbits_build($build)." -ref {$genome}", [$c, $genome]);
 		$gender_data = explode("\t", $stdout[1])[1];
 		if ($gender_data!="male" && $gender_data!="female") $gender_data = "n/a";
 		print "Gender of child (from data): {$gender_data}\n";

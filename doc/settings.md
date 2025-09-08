@@ -41,15 +41,16 @@ This section contains general settings:
 * `annotate_refseq_consequences` - Flag (true/false) that indicates if variant consequences based on RefSeq transcripts should be annotated in addition to variant consequences based on Ensembl transcripts.
 * `custom_columns` - Used to add custom annotations to the output VCF/GSvar file. Each entry consists of a colon-speparated list of VCF file, INFO field name in the source VCF (prefixed with `CUSTOM_` in the annotated VCF) and column description. Provide the annotation using the dictionary syntax of PHP, e.g. `custom_columns['NGSD_counts'] = "/mnt/data/dbs/NGSD/NGSD_germline.vcf.gz;COUNTS;NGSD counts"`.
 * `locaton` - If set enables site-specific functionality and tests. Set only if you are a collaborator with a specific site name.
-
+* `rna_allowed_systems` - Used to allow multiple processing systems in the RNA analysis for the cohort. If set the samples of all given processing systems are used to build the cohort and a batch correction is run to correct for differences. E.G. `rna_allowed_systems['processing_system_short_name1']="processing_system_short_name2,processing_system_short_name3"`
 ## Section 'dragen'
 
 This section contains settings to run the germline/somatic data analysis on a on-site Illumina Dragen server:
 
+* `dragen_version` - Version of Dragen to use, e.g. `4.3.17`.
 * `dragen_in` - Folder into which FASTQ data is copied for Dragen data analysis.
 * `dragen_out` - Folder into which Dragen output files are copied after the analysis.
 * `dragen_data` - Folder used as working directory on the Dragen server.
-* `dragen_genomes` - Folder containing genome files for Dragen on the Dragen server.
+* `dragen_genome` - Path to the DRAGEN genome reference hash tables.
 * `dragen_log` - Folder used to write SGE logs of Dragen analyses.
 * `queues_dragen` - Comma-separated list of SGE queues for Dragen servers (one per server).
 

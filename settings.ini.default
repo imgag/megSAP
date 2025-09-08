@@ -41,20 +41,20 @@ container_methylartist = v1.3.1
 container_minimap2 = v2.28
 container_modkit = v0.3.2
 container_msisensor-pro = v1.2.0
-container_ngs-bits = 2025-05-20250529
+container_ngs-bits = 2025-07-20250801
 container_orad = v2.6.1
 container_paraphase = v3.2.1
 container_python = v3.10.9
 container_REViewer = v0.2.7
 container_samblaster = v0.1.26
-container_samtools = 1.20
+container_samtools = 1.20-20250812
 container_scarHRD = v1
 container_SigProfilerExtractor = v1.1.24
 container_sniffles = v2.4
 container_spliceai = v1.3.1
 container_STAR = v2.7.11b
-container_straglr = v1.5.1
-container_straglrOn = v0.2.2
+container_straglr = v1.5.4-20250729
+container_straglrOn = v0.2.4-20250730
 container_strelka2 = v2.9.10
 container_subread = v2.0.6
 container_umi-tools = v1.1.5
@@ -90,12 +90,13 @@ custom_columns_test['ngsd_counts'] = "[path]/test/data/an_vep_custom.vcf.gz;COUN
 custom_columns_test['ngsd_nervous_system'] = "[path]/test/data/an_vep_custom.vcf.gz;GSC08;NGSD nervous system counts"
 
 [dragen]
+dragen_version = 
 ; transfer folder
 dragen_in = 
 dragen_out = 
 ; working/genome directory on the DRAGEN server
 dragen_data = 
-dragen_genomes = 
+dragen_genome = 
 ;sge settings
 dragen_log = 
 queues_dragen = 
@@ -106,11 +107,13 @@ queues_gpu =
 
 [mysql-databases]
 db_host['NGSD'] = "localhost"
+db_port['NGSD'] = "3306"
 db_name['NGSD'] = "ngsd"
 db_user['NGSD'] = "ngsduser"
 db_pass['NGSD'] = ""
 
 db_host['NGSD_TEST'] = "localhost"
+db_port['NGSD_TEST'] = "3306"
 db_name['NGSD_TEST'] = "ngsd_test"
 db_user['NGSD_TEST'] = "ngsdtestuser"
 db_pass['NGSD_TEST'] = ""
@@ -122,6 +125,16 @@ genlab_port =
 genlab_name = ""
 genlab_user = ""
 genlab_pass = ""
+
+#Modellvorhaben
+db_host['MVH'] = ""
+db_name['MVH'] = ""
+db_port['MVH'] = 3306
+db_user['MVH'] = ""
+db_pass['MVH'] = ""
+mvh_folder = ""
+mvh_redcap_token_se = ""
+mvh_redcap_token_cm = ""
 
 [grid_engine]
 queues_default = ""
