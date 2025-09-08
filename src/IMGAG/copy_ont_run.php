@@ -14,9 +14,10 @@ $parser->addString("run_dir",  "Input data folder.", false);
 //optional
 $parser->addString("run_name",  "Run name (will be derived from folder suffix if not provided.)", true, "");
 $parser->addFlag("queue_sample", "Queue analysis of the sample.");
-$parser->addFlag("queue_basecalling", "Queue basecalling of sample on GPU queue. (requires '-bam' and '-ignore_aligned'.)");
+$parser->addFlag("queue_basecalling", "Queue basecalling of sample on GPU queue.");
 $parser->addEnum("basecall_model",  "Model used for base calling: hac=high accuracy, sup=super accuracy", true, array("hac", "sup"), "hac");
 $parser->addInt("min_qscore", "Minimal read qScore for basecalling", true, 9);
+$parser->addFlag("force_basecalling", "Enforces complete (re-)basecalling of all POD5s in run folder.(requires '-queue_basecalling')");
 
 //TODO: re-implement
 // $parser->addFlag("fastq", "Copy FASTQ files.");
@@ -199,6 +200,9 @@ if (!file_exists($run_dir))
 	trigger_error("Run directory '{$run_dir}' does not exist!", E_USER_ERROR);
 }
 
+//check parameter:
+if ($force_basecalling && !$queue_basecalling) trigger_error("'-force_basecalling' requires '-queue_basecalling' to work!", E_USER_ERROR);
+
 //set ulimit
 $parser->exec("ulimit", "-n 10000");
 
@@ -333,127 +337,58 @@ else //bam output
 		if (isset($info["barcode"]) && ($info["barcode"] != "")) $bam_paths_glob = "{$run_dir}/*/bam_pass/".$info["barcode"]."/*.bam";
 		//get BAM files
 		$bam_files = glob($bam_paths_glob);
+
+		//get BAM info 
+		$on_device_basecall_model = "undefined";
+		$modified_bases = true;
 		if (count($bam_files) !== 0)
 		{
-			//get BAM info 
 			list($on_device_basecall_model, $modified_bases, $aligned) = get_bam_info($bam_files[array_rand($bam_files, 1)]);
-
 			if ($aligned) trigger_error("Aligned BAM files available, but not supported yet. Will be treated as unaligned!", E_USER_WARNING);
 			if ($modified_bases) trigger_error("Modified bases BAM files available.", E_USER_NOTICE);
+		} 
 
-			//check on-device basecall model:
-			if (str_contains($on_device_basecall_model, $basecall_model))
-			{
-				trigger_error("Basecall Models match: On-device basecall model: {$on_device_basecall_model}, requested basecall model: {$basecall_model}", E_USER_NOTICE);
+		//check on-device basecall model:
+		if (str_contains($on_device_basecall_model, $basecall_model) && !$force_basecalling)
+		{
+			trigger_error("Basecall Models match: On-device basecall model: {$on_device_basecall_model}, requested basecall model: {$basecall_model}", E_USER_NOTICE);
 
-				$out_dir = $info["ps_folder"];
-					
-				// copy to run folder during test:
-				if ($is_test_db) $out_dir = $run_dir."/TEST_Sample_".$sample."/";
+			$out_dir = $info["ps_folder"];
 				
-				//create sample folder 
-				if (!file_exists($out_dir)) mkdir($out_dir, 0777, true);
-				$out_bam = "{$out_dir}{$sample}.unmapped.bam";
-				if ($modified_bases) $out_bam = "{$out_dir}{$sample}.mod.unmapped.bam";
-				if (file_exists($out_bam)) trigger_error("Output BAM file '{$out_bam}' already exists, aborting.", E_USER_ERROR);
-				//apply file access permissions
-				$parser->exec("chmod", "-R 775 {$out_dir}");
-				$parser->exec("chgrp", "-R f_ad_bi_l_medgen_access_storages {$out_dir}", true, false);
+			// copy to run folder during test:
+			if ($is_test_db) $out_dir = $run_dir."/TEST_Sample_".$sample."/";
+			
+			//create sample folder 
+			if (!file_exists($out_dir)) mkdir($out_dir, 0777, true);
+			$out_bam = "{$out_dir}{$sample}.unmapped.bam";
+			if ($modified_bases) $out_bam = "{$out_dir}{$sample}.mod.unmapped.bam";
+			if (file_exists($out_bam)) trigger_error("Output BAM file '{$out_bam}' already exists, aborting.", E_USER_ERROR);
+			//apply file access permissions
+			$parser->exec("chmod", "-R 775 {$out_dir}");
+			$parser->exec("chgrp", "-R f_ad_bi_l_medgen_access_storages {$out_dir}", true, false);
 
-				if ($contains_skipped_bases && $queue_basecalling)
-				{
-
-					//queue partial basecalling on GPU server
-					trigger_error("Sample contains un-called bases. Queuing partial basecalling!", E_USER_NOTICE);
-
-					$basecalling_cmd = create_basecall_command($run_dir, $out_bam, $basecall_model, $min_qscore, end($subdirs)."/bam_pass/", $queue_sample, true);
-
-					$job_name = "megSAP_partial_basecalling_".basename($run_dir);
-					$qsub_cmd = create_gpu_qsub_cmd($basecalling_cmd, $run_dir, $job_name);
-
-					// log sge command
-					trigger_error("SGE command:\tqsub ".$qsub_cmd[1]);
-
-					if ($is_test_db)
-					{
-						//only report qsub command
-						trigger_error("Test mode, only reporting qsub command!", E_USER_WARNING);
-					}
-					else
-					{
-						// run qsub 
-						list($stdout, $stderr) = $parser->exec($qsub_cmd[0], $qsub_cmd[1]);
-						$sge_id = explode(" ", $stdout[0])[2];
-
-						trigger_error("Basecalling queued with SGE id {$sge_id} and job name '{$job_name}'.", E_USER_NOTICE);
-					}
-
-				}
-				else if (!$contains_skipped_bases)
-				{
-					//merge and copy to sample folder
-					// concat bams
-					$pipeline = [];
-					$pipeline[] = ["find", "{$bam_paths_glob} -name '*.bam' -type f"];
-					$pipeline[] = ["", $parser->execApptainer("samtools", "samtools cat", "--threads {$threads} -o {$out_bam} -b -", [$run_dir], [$out_dir], true)]; //no reference required
-					$parser->execPipeline($pipeline, "merge unaligned BAM files");
-
-					//apply file access permissions
-					$parser->exec("chmod", "-R 775 {$out_dir}");
-					$parser->exec("chgrp", "-R f_ad_bi_l_medgen_access_storages {$out_dir}", true, false);
-					
-					//queue sample
-					if ($queue_sample) $parser->execTool("Tools/db_queue_analysis.php", "-samples {$sample} -type 'single sample'".(($is_test_db)?" -db NGSD_TEST -user unknown":""));
-				}
-				else trigger_error("Should not happen!", E_USER_ERROR);
-
-			}
-			else if ($queue_basecalling)
+			if ($contains_skipped_bases && $queue_basecalling)
 			{
-				trigger_error("Basecall Models doesn't match: On-device basecall model: {$on_device_basecall_model}, requested basecall model: {$basecall_model}. Full (re-)basecalling is needed!", E_USER_WARNING);
 
-				//move basecalled files
-				$basecall_suffix = "";
-				if (str_contains($on_device_basecall_model, "hac")) $basecall_suffix = "_hac";
-				else if (str_contains($on_device_basecall_model, "sup")) $basecall_suffix = "_sup";
-				else trigger_error("Unknown basecall model type '{$on_device_basecall_model}'!", E_USER_ERROR);
+				//queue partial basecalling on GPU server
+				trigger_error("Sample contains un-called bases. Queuing partial basecalling!", E_USER_NOTICE);
 
-				foreach ($subdirs as $subdir) 
-				{
-					if (is_dir($subdir."/bam_pass")) $parser->moveFile($subdir."/bam_pass", $subdir."/bam_pass".$basecall_suffix);
-					if (is_dir($subdir."/bam_failed")) $parser->moveFile($subdir."/bam_failed", $subdir."/bam_failed".$basecall_suffix);
-				}
+				$basecalling_cmd = create_basecall_command($run_dir, $out_bam, $basecall_model, $min_qscore, end($subdirs)."/bam_pass/", $queue_sample, true);
+				$parser->log("Basecalling command:\t".$basecalling_cmd);
 
-				//create output folder (sample folder)
-				$out_dir = $info["ps_folder"];
-				// copy to run folder during test:
-				if ($is_test_db) $out_dir = $run_dir."/TEST_Sample_".$sample."/";
-				//create sample folder 
-				if (!file_exists($out_dir)) mkdir($out_dir, 0777, true);
-				$out_bam = "{$out_dir}{$sample}.unmapped.bam";
-				if ($modified_bases) $out_bam = "{$out_dir}{$sample}.mod.unmapped.bam";
-				if (file_exists($out_bam)) trigger_error("Output BAM file '{$out_bam}' already exists, aborting.", E_USER_ERROR);
-				//apply file access permissions
-				$parser->exec("chmod", "-R 775 {$out_dir}");
-				$parser->exec("chgrp", "-R f_ad_bi_l_medgen_access_storages {$out_dir}", true, false);
-
-
-				//queue full re-basecalling
-				$basecalling_cmd = create_basecall_command($run_dir, $out_bam, $basecall_model, $min_qscore, end($subdirs)."/bam_pass/", $queue_sample, false);
-
-				$job_name = "megSAP_basecalling_".basename($run_dir);
+				$job_name = "megSAP_partial_basecalling_".basename($run_dir);
 				$qsub_cmd = create_gpu_qsub_cmd($basecalling_cmd, $run_dir, $job_name);
+
+				// log sge command
+				trigger_error("SGE command:\tqsub ".$qsub_cmd[1]);
 
 				if ($is_test_db)
 				{
 					//only report qsub command
-					print "qsub command:\n".$qsub_cmd[0]." ".$qsub_cmd[1]."\n";
+					trigger_error("Test mode, only reporting qsub command!", E_USER_WARNING);
 				}
 				else
 				{
-					// log sge command
-					$parser->log("SGE command:\tqsub ".$qsub_cmd[1]);
-
 					// run qsub 
 					list($stdout, $stderr) = $parser->exec($qsub_cmd[0], $qsub_cmd[1]);
 					$sge_id = explode(" ", $stdout[0])[2];
@@ -461,13 +396,94 @@ else //bam output
 					trigger_error("Basecalling queued with SGE id {$sge_id} and job name '{$job_name}'.", E_USER_NOTICE);
 				}
 
+				//do not update run status yet  (done after basecalling)
+				$queue_sample = false;
+
+			}
+			else if (!$contains_skipped_bases)
+			{
+				//merge and copy to sample folder
+				// concat bams
+				$pipeline = [];
+				$pipeline[] = ["find", "{$bam_paths_glob} -name '*.bam' -type f"];
+				$pipeline[] = ["", $parser->execApptainer("samtools", "samtools cat", "--threads {$threads} -o {$out_bam} -b -", [$run_dir], [$out_dir], true)]; //no reference required
+				$parser->execPipeline($pipeline, "merge unaligned BAM files");
+
+				//apply file access permissions
+				$parser->exec("chmod", "-R 775 {$out_dir}");
+				$parser->exec("chgrp", "-R f_ad_bi_l_medgen_access_storages {$out_dir}", true, false);
+				
+				//queue sample
+				if ($queue_sample) $parser->execTool("Tools/db_queue_analysis.php", "-samples {$sample} -type 'single sample'".(($is_test_db)?" -db NGSD_TEST -user unknown":""));
+			}
+			else trigger_error("Should not happen!", E_USER_ERROR);
+
+		}
+		else if ($queue_basecalling)
+		{
+			if ($force_basecalling) trigger_error("Full basecalling requested!", E_USER_NOTICE);
+			else trigger_error("Basecall Models doesn't match: On-device basecall model: {$on_device_basecall_model}, requested basecall model: {$basecall_model}. Full (re-)basecalling is needed!", E_USER_WARNING);
+
+			//move basecalled files
+			$basecall_suffix = "";
+			if (str_contains($on_device_basecall_model, "hac")) $basecall_suffix = "_hac";
+			else if (str_contains($on_device_basecall_model, "sup")) $basecall_suffix = "_sup";
+			else if ($on_device_basecall_model == "undefined") $basecall_suffix = "_old";
+			else trigger_error("Unknown basecall model type '{$on_device_basecall_model}'!", E_USER_ERROR);
+
+			foreach ($subdirs as $subdir) 
+			{
+				if (is_dir($subdir."/bam_pass")) $parser->moveFile($subdir."/bam_pass", $subdir."/bam_pass".$basecall_suffix);
+				if (is_dir($subdir."/bam_failed")) $parser->moveFile($subdir."/bam_failed", $subdir."/bam_failed".$basecall_suffix);
+			}
+
+			//create output folder (sample folder)
+			$out_dir = $info["ps_folder"];
+			// copy to run folder during test:
+			if ($is_test_db) $out_dir = $run_dir."/TEST_Sample_".$sample."/";
+			//create sample folder 
+			if (!file_exists($out_dir)) mkdir($out_dir, 0777, true);
+			$out_bam = "{$out_dir}{$sample}.unmapped.bam";
+			if ($modified_bases) $out_bam = "{$out_dir}{$sample}.mod.unmapped.bam";
+			if (file_exists($out_bam)) trigger_error("Output BAM file '{$out_bam}' already exists, aborting.", E_USER_ERROR);
+			//apply file access permissions
+			$parser->exec("chmod", "-R 775 {$out_dir}");
+			$parser->exec("chgrp", "-R f_ad_bi_l_medgen_access_storages {$out_dir}", true, false);
+
+
+			//queue full re-basecalling
+			$basecalling_cmd = create_basecall_command($run_dir, $out_bam, $basecall_model, $min_qscore, end($subdirs)."/bam_pass/", $queue_sample, false);
+			$parser->log("Basecalling command:\t".$basecalling_cmd);
+
+			$job_name = "megSAP_basecalling_".basename($run_dir);
+			$qsub_cmd = create_gpu_qsub_cmd($basecalling_cmd, $run_dir, $job_name);
+
+			if ($is_test_db)
+			{
+				//only report qsub command
+				print "qsub command:\n".$qsub_cmd[0]." ".$qsub_cmd[1]."\n";
 			}
 			else
 			{
-				trigger_error("Basecall Models doesn't match: On-device basecall model: {$on_device_basecall_model}, requested basecall model: {$basecall_model}. Please check setting or re-do basecalling!", E_USER_ERROR);
+				// log sge command
+				$parser->log("SGE command:\tqsub ".$qsub_cmd[1]);
+
+				// run qsub 
+				list($stdout, $stderr) = $parser->exec($qsub_cmd[0], $qsub_cmd[1]);
+				$sge_id = explode(" ", $stdout[0])[2];
+
+				trigger_error("Basecalling queued with SGE id {$sge_id} and job name '{$job_name}'.", E_USER_NOTICE);
 			}
 
+			//do not update run status yet (done after basecalling)
+			$queue_sample = false;
+
 		}
+		else
+		{
+			trigger_error("Basecall Models doesn't match: On-device basecall model: {$on_device_basecall_model}, requested basecall model: {$basecall_model}. Please check setting or re-do basecalling!", E_USER_ERROR);
+		}
+
 		
 	}
 

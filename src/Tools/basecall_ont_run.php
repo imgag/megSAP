@@ -28,6 +28,10 @@ extract($parser->parse($argv));
 
 
 //init
+
+//log server, user, etc.
+$parser->logServerEnvronment();
+
 //check basecall model
 if ($basecall_model == "hac")
 {
