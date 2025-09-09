@@ -418,7 +418,7 @@ if (in_array("vc", $steps))
 			}
 			else
 			{
-				trigger_error("Unsupported processing system '".$sys["shortname"]."' provided!", E_USER_ERROR);
+				trigger_error("Unsupported processing system '".$sys["name_short"]."' provided!", E_USER_ERROR);
 			}
 
 			trigger_error("No basecall info found in BAM file. Using default model at '{$basecall_model_path}'.", E_USER_NOTICE);
