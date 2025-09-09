@@ -18,7 +18,7 @@ $parser->addString("model", "Model used for calling.", false);
 //optional
 $parser->addInt("target_extend",  "Call variants up to n bases outside the target region (they are flagged as 'off-target' in the filter column).", true, 0);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
-$parser->addFlag("gpu", "Enable Clair3 GPU support.");
+$parser->addFlag("gpu", "Enable Clair3 GPU support.", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 
 extract($parser->parse($argv));
@@ -45,6 +45,7 @@ $args[] = "--model_path={$model}";
 $args[] = "--keep_iupac_bases";
 $args[] = "--gvcf";
 $args[] = "--sample_name={$name}";
+$args[] = "--threads={$threads}";
 
 if ($gpu)
 {
@@ -56,14 +57,10 @@ if ($gpu)
 	else
 	{
 		$args[] = "--use_gpu";
-		$threads = 2; //set to 2 threads since more threads run into OOM error when using more than one GPU
-		#$args[] = "--device='cuda:$gpu'";
 		$container = "clair3-gpu";
 		$command = "/opt/bin/run_clair3.sh";
 	}
 }
-
-$args[] = "--threads={$threads}";
 
 //set bind paths for clair3 container
 $in_files = array();
