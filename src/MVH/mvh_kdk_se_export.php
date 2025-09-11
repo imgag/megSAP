@@ -725,8 +725,14 @@ function json_results($se_data, $se_data_rep, $info)
 			{
 				list($t_gene, $t_trans, $t_type, $t_impact, $t_exon, $t_cdna, $t_prot) = $consequences[0];
 				
-				$var_data['cDNAChange'] = $t_trans.":".$t_cdna;
-				$var_data['proteinChange'] = $t_trans.":".$t_prot;
+				if ($t_cdna!="")
+				{
+					$var_data['cDNAChange'] = $t_trans.":".$t_cdna;
+				}
+				if($t_prot!="")
+				{
+					$var_data['proteinChange'] = $t_trans.":".$t_prot;
+				}
 				if (count($consequences)>1) trigger_error("More than one variant consequence found. Only one is allowed in KDK-SE. Using first variant consequence!", E_USER_WARNING);
 			}
 			
