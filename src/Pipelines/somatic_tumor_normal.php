@@ -791,7 +791,10 @@ if(in_array("cn",$steps))
 
 	//TODO reanable real baf folder
 	#$baf_folder = get_path("data_folder")."/coverage/". $sys['name_short']."_bafs";
-	$baf_folder = "/mnt/storage2/users/ahiliuk1/issues/2025_04_08_create_baf_file/twistCustomExomeV2_all_DNA_bafs";
+	#$baf_folder = "/mnt/storage2/users/ahiliuk1/issues/2025_04_08_create_baf_file/twistCustomExomeV2_used_bafs_new";
+	#$baf_folder = "/mnt/storage2/users/ahiliuk1/issues/2025_04_08_create_baf_file/twistCutsomExomeV2_used_bafs_old";
+	#$baf_folder = "/mnt/storage2/users/ahiliuk1/issues/2025_04_08_create_baf_file/twistCustomExomeV2_all_DNA_bafs_old";
+	$baf_folder = "/mnt/storage2/users/ahiliuk1/issues/2025_04_08_create_baf_file/twistCustomExomeV2_all_DNA_bafs_new";
 	create_directory($baf_folder);
 	if(db_is_enabled("NGSD") && !$validation)
 	{

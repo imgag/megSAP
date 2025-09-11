@@ -13,6 +13,7 @@ $parser->addString("out_folder", "Target folder to store BAF file.", false);
 //optional
 $parser->addInfile("vcf", "Input VCF file.", true);
 $parser->addInfile("sample_list", "TXT File with multiple sample names to create baf file for", true);
+$parser->addString("sample_name", "Processed sample name. Inferred from vcf file if none is given", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addInt("mq_thresh", "Sets a mapping quality threshold for variants to be flagged as n/a in BAF", true, 1);
 $parser->addFlag("test", "test flag to skip out_file existence check");
@@ -172,7 +173,7 @@ $genome = genome_fasta($build);
 if (file_exists($vcf))
 {
 	//get sample name from input vcf
-	$s_col = basename($vcf, "_var.vcf.gz");
+	is_null($sample_name) ? $s_col = basename($vcf, "_var.vcf.gz") : $s_col = $sample_name;
 	$out_file = $out_folder."/{$s_col}.tsv";
 	if(file_exists($out_file) && !$test) return;
 	create_baf($vcf, $out_file, $s_col);
