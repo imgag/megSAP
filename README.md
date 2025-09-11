@@ -13,7 +13,7 @@ The design goals of the project are:
 
 If you are interested to join the effort, please contact [Marc Sturm](https://github.com/marc-sturm).
 
-## Obtaining megSAP
+## Installation
 
 General remarks:
 - Only GRCh38 is supported.
@@ -46,6 +46,8 @@ Documentation about the different **ONT long-read pipelines** can be found here:
 
 Please report any issues or questions to the [megSAP issue tracker](https://github.com/imgag/megSAP/issues).
 
+If you want to use our full software stack (megSAP, GSvar and NGSD) in a clinical or commercial setting, you can get professional support from [dxOmics](https://www.dxomics.de/).
+
 ## Citing
 
 You can cite megSAP using Zenodo DOIs:
@@ -56,3 +58,4 @@ You can cite megSAP using Zenodo DOIs:
 ## ChangeLog
 
 Change log is available on the [releases](https://github.com/imgag/megSAP/releases) page.
+

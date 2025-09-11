@@ -20,7 +20,7 @@ $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to th
 $parser->addFlag("no_gender_check", "Skip gender check (done between mapping and variant calling).");
 $parser->addFlag("skip_wgs_check", "Skip the similarity check with a related short-read WGS sample.");
 $parser->addFlag("bam_output", "Output file format for mapping is BAM instead of CRAM.");
-$parser->addFlag("gpu", "Use GPU supported tools where possible (currently DeepVariant in step 'vc').");
+$parser->addFlag("gpu", "Use GPU supported tools where possible (currently DeepVariant and Clair3 in step 'vc').");
 $parser->addFloat("min_af", "Minimum VAF cutoff used for variant calling (DeepVariant 'min-alternate-fraction' parameter).", true, 0.1);
 $parser->addFloat("min_bq", "Minimum base quality used for variant calling (DeepVariant 'min-base-quality' parameter).", true, 10);
 $parser->addFloat("min_mq", "Minimum mapping quality used for variant calling (DeepVariant 'min-mapping-quality' parameter).", true, 20);
@@ -418,7 +418,7 @@ if (in_array("vc", $steps))
 			}
 			else
 			{
-				trigger_error("Unsupported processing system '".$sys["shortname"]."' provided!", E_USER_ERROR);
+				trigger_error("Unsupported processing system '".$sys["name_short"]."' provided!", E_USER_ERROR);
 			}
 
 			trigger_error("No basecall info found in BAM file. Using default model at '{$basecall_model_path}'.", E_USER_NOTICE);
@@ -459,6 +459,7 @@ if (in_array("vc", $steps))
 		$args[] = "-build ".$build;
 		$args[] = "--log ".$parser->getLogFile();
 		$args[] = "-model ".$basecall_model_path;
+		if ($gpu) $args[] = "-gpu";
 		
 		$parser->execTool("Tools/vc_clair.php", implode(" ", $args));
 	}
@@ -709,13 +710,16 @@ if (in_array("re", $steps))
 if (in_array("me", $steps))
 {
 	if (!contains_methylation($used_bam_or_cram)) trigger_error("BAM file doesn't contain methylation info! Skipping step 'me'", E_USER_WARNING);
-	else $parser->execTool("Tools/create_methyl_plot.php", "-folder {$folder} -name {$name} -local_bam {$used_bam_or_cram} -out {$methylation_table} -build {$build} -regions {$methyl_regions} -threads {$threads} --log ".$parser->getLogFile());
+	else 
+	{
+		$parser->execTool("Tools/create_methyl_plot.php", "-folder {$folder} -name {$name} ".(ends_with($used_bam_or_cram, ".bam")?"-local_bam {$used_bam_or_cram} ":"")."-out {$methylation_table} -build {$build} -regions {$methyl_regions} -threads {$threads} --log ".$parser->getLogFile());
+	}
 }
 
 // paralogous gene calling
 if (in_array("pg", $steps))
 {
-	$parser->execTool("Tools/vc_paraphase.php", "-folder {$folder} -name {$name} -local_bam {$used_bam_or_cram} -build {$build} -threads {$threads} --log ".$parser->getLogFile());
+	$parser->execTool("Tools/vc_paraphase.php", "-folder {$folder} -name {$name} ".(ends_with($used_bam_or_cram, ".bam")?"-local_bam {$used_bam_or_cram} ":"")."-build {$build} -threads {$threads} --log ".$parser->getLogFile());
 }
 
 // annotation

@@ -256,7 +256,7 @@ end_test();
 
 //##################################################################################
 start_test("vcf_varscan2");
-check(vcf_varscan2("GT:GQ:SDP:DP:RD:AD:FREQ:PVAL:RBQ:ABQ:RDF:RDR:ADF:ADR","0/1:255:1560:1560:1070:489:31.37\%:2.7462E-165:36:35:707:363:355:134"), array(1560, 0.3137));
+check(vcf_varscan2("GT:GQ:SDP:DP:RD:AD:FREQ:PVAL:RBQ:ABQ:RDF:RDR:ADF:ADR","0/1:255:1560:1560:1070:489:31.37%:2.7462E-165:36:35:707:363:355:134"), array(1560, 0.3137));
 check(vcf_varscan2("GT:GQ:SDP:DP:RD:AD:FREQ:PVAL:RBQ:ABQ:RDF:RDR:ADF:ADR", "0/1:52:200:200:183:17:8.5%:5.3509E-6:36:36:138:45:14:3"), array(200,0.085));
 end_test();
 
@@ -399,6 +399,20 @@ start_test("get_fastq_read_count");
 check(get_fastq_read_count([data_folder()."/get_fastq_read_count_in1_L001_R1_001.fastq.gz"]), 1250);
 check(get_fastq_read_count([data_folder()."/get_fastq_read_count_in1_L001_R2_001.fastq.gz"]), 1250);
 check(get_fastq_read_count([data_folder()."/get_fastq_read_count_in1_L001_R1_001.fastq.gz", data_folder()."/get_fastq_read_count_in1_L001_R2_001.fastq.gz"]), 2500);
+
+end_test();
+
+//##################################################################################
+start_test("contains_mito");
+
+check(contains_mito(data_folder()."/an_vep_in1.vcf"), true);
+check(contains_mito(data_folder()."/an_vep_in2.vcf"), false);
+
+check(contains_mito(data_folder()."/vc_clair_out3.vcf.gz"), true);
+check(contains_mito(data_folder()."/vc_clair_out2.vcf.gz"), false);
+
+check(contains_mito(data_folder()."/an_vep_NGSD_gene_info.bed"), true);
+check(contains_mito(data_folder()."/vc_clair_in_roi.bed"), false);
 
 end_test();
 

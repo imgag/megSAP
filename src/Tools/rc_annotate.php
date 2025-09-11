@@ -53,24 +53,21 @@ $annotation_ids = explode(",", $annotationIds);
 
 // add column with annotation data
 $counts = Matrix::fromTSV($in);
-$c_gene_id = -1;
-$file = file($in);
-for($i=0; $i<count($file); ++$i)
+
+// if columns already exist remove them and update:
+$new_col_values = [];
+foreach($annotation_ids as $new_col)
 {
-	$line = nl_trim($file[$i]);
-	if ($line=="" || starts_with($line, "##")) continue;
-		
-	//header
-	if ($line[0]=="#")
-	{
-		$c_gene_id = array_search("gene_id", explode("\t", substr($line, 1)));
-		$file[$i] = $line."\t".implode("\t", $annotation_ids)."\n";
-		continue;
-	}
-	
-	//content
-	$parts = explode("\t", $line);
-	$gene_id = $parts[$c_gene_id];
+	$idx = $counts->getColumnIndex($new_col, false, false);
+	if ($idx != 0) $counts->removeCol($idx);
+	$new_col_values[$new_col] = [];
+}
+
+$gene_id_idx = $counts->getColumnIndex("gene_id");
+for($row_idx=0; $row_idx < $counts->rows(); ++$row_idx)
+{
+	$row = $counts->getRow($row_idx);
+	$gene_id = $row[$gene_id_idx];
 	if ($ignore_version_suffix) $gene_id = preg_replace("/\.[0-9]+$/", "", $gene_id);
 	foreach($annotation_ids as $ann_id)
 	{
@@ -79,10 +76,14 @@ for($i=0; $i<count($file); ++$i)
 		{
 			$anno = $mapping[$gene_id][$ann_id];
 		}
-		$parts[] = $anno;
+		$new_col_values[$ann_id][] = $anno;
 	}
-	$file[$i] = implode("\t", $parts)."\n";
 }
-file_put_contents($out, $file);
+
+foreach($annotation_ids as $new_col)
+{
+	$counts->addCol($new_col_values[$new_col], $new_col);
+}
+$counts->toTSV($out);
 
 ?>

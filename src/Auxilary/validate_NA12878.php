@@ -9,13 +9,13 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
 $parser = new ToolBase("validate_NA12878", "Validates the performance of a sequencing experiment on the GiaB reference sample NA12878.");
-$parser->addInfile("vcf", "Input variant list of sequencing experiment (VCF or VCF.GZ).", false);
-$parser->addInfile("bam", "Mapped reads of sequencing experiment (BAM format).", false);
-$parser->addInfile("roi", "Target region of sequencing experiment (BED format).", false);
+$parser->addInfile("vcf", "Variant list (VCF or VCF.GZ).", false);
+$parser->addInfile("bam", "Mapped reads (BAM format).", false);
+$parser->addInfile("roi", "Target region of the processing system (BED format).", false);
 $parser->addOutfile("stats", "Append statistics to this file.", false);
 //optional
 $parser->addString("name", "Name used in the 'stats' output. If unset, the 'vcf' file base name is used.", true);
-$parser->addString("child_id", "Set to childs processed sample ID when validating trio vcf to ensure the correct sample column is validated.", true, "");
+$parser->addString("sample_id", "Sample ID in VCF heanders (needed only if several samples are present in the VCF, e.g. in a trio analysis.", true, "");
 $parser->addInt("min_dp", "If set, only regions in the 'roi' with at least the given depth are evaluated.", true, 0);
 $parser->addInt("min_qual", "If set, only input variants with QUAL greater or equal to the given value are evaluated.", true, 5);
 $parser->addInt("max_indel", "Maximum indel size (larger indels are ignored). Disabled if set to 0.", true, 50);
@@ -26,7 +26,7 @@ $parser->addFlag("skip_depth_calculation", "Do not calculate depth of missed var
 extract($parser->parse($argv));
 
 //returns the variants of a VCF file in the given ROI
-function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $child_id, &$skipped)
+function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skipped)
 {
 	global $parser;
 	global $genome;
@@ -53,8 +53,8 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $child_id, &$skipped
 			if (count($header) > 10) 
 			{
 				$is_trio = true;
-				$idx_child = array_search($child_id, $header);
-				if ($idx_child == false) trigger_error("Column for child ID '$child_id' could not be found in $vcf_gz.", E_USER_ERROR);
+				$idx_child = array_search($sample_id, $header);
+				if ($idx_child == false) trigger_error("Column for child ID '$sample_id' could not be found in $vcf_gz.", E_USER_ERROR);
 			}
 		}
 
@@ -71,23 +71,41 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $child_id, &$skipped
 		
 		if (!starts_with($chr, "chr")) $chr = "chr".$chr;
 		
-		//skip variants from special variant calling in low mappabilty regions
+		
+		//multi-allelic > abort
+		if (contains($alt, ",")) trigger_error("This tool cannot handle multi-allelic variants. Break and normalize variants using VcfBreakMulti, VcfLeftNormalize and VcfStreamSort before running this tool!", E_USER_ERROR);
+		
+		//skip low mappabilty variants (megSAP)
 		if (contains($filter, "low_mappability"))
 		{
 			@$skipped["low_mappability"] += 1;
 			continue;
 		}
-		//skip variants from special variant calling for masaic variants
+		
+		//skip mosaic variants (megSAP)
 		if (contains($filter, "mosaic"))
 		{
 			@$skipped["mosaic"] += 1;
 			continue;
 		}
 		
+		//skip low mappabilty variants (DRAGEN)
+		//TODO
+		
+		//skip mosaic variants (DRAGEN)
+		$info = explode(";",$info);
+		foreach($info as $entry)
+		{
+			if ($entry=="MOSAIC")
+			{
+				@$skipped["mosaic"] += 1;
+				continue(2);
+			}
+		}
+		
 		//compile output
 		$var = array();
 		$var["QUAL"] = $qual;
-		$info = explode(";",$info);
 		foreach($info as $entry)
 		{
 			if (starts_with($entry, "MQM="))
@@ -104,11 +122,16 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $child_id, &$skipped
 		$gt = strtr($sample[0], array("|"=>"/", "."=>"0"));
 		if ($gt=="1/0") $gt="0/1";
 		$var['GT'] = $gt;
-	
+		
 		//skip wildtype variants (should not happen in normal pipeline, but can happen)
 		if ($gt=="0/0")
 		{
-			@$skipped["wildtype genotype"] += 1;
+			@$skipped["genotype wildtype: 0/0"] += 1;
+			continue;
+		}
+		if ($gt!="0/1" && $gt!="1/1")
+		{
+			@$skipped["genotype invalid: ".$sample[0]] += 1;
 			continue;
 		}
 		
@@ -216,7 +239,7 @@ print "##\n";
 //get reference variants in ROI
 print "##Variant list      : $vcf\n";
 $skipped = [];
-$found = get_variants($vcf, $roi_used, $max_indel, $min_qual, $child_id, $skipped);
+$found = get_variants($vcf, $roi_used, $max_indel, $min_qual, $sample_id, $skipped);
 print "##Variants observed : ".count($found)."\n";
 foreach($skipped as $reason => $count)
 {

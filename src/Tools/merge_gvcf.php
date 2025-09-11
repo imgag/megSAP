@@ -11,7 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("merge_gvcf", "Merge multiple gVCF files using GATK CombineGVCFs");
 $parser->addInfileArray("gvcfs", "List of gVCF files which should be merged (bgzipped and sorted).", false);
 $parser->addStringArray("status", "List of affected status of the input samples (gVCFs) - can be 'affected' or 'control'.", false);
-$parser->addEnum("mode", "Mode.", false, ["longread", "dragen"]);
+$parser->addEnum("mode", "Mode.", false, ["clair3", "dragen"]);
 $parser->addOutfile("out", "Output VCF files containing calls of the merged gVCFs.", false);
 
 //optional
@@ -149,7 +149,7 @@ foreach($chr_regions as list($chr, $length))
 	$args[] = "-O {$temp_folder_out}/{$chr}.vcf.gz";
 	$args[] = "--call-genotypes";
 	$args[] = "--seconds-between-progress-updates 3600"; //only update progress once every hour to keep log-file smaller
-	if ($mode=="longread") $args[] = "--standard-min-confidence-threshold-for-calling 5"; //decrease threshold in longread-mode to improve de-novo calling 
+	if ($mode=="clair3") $args[] = "--standard-min-confidence-threshold-for-calling 5"; //decrease threshold in clair3-mode to improve de-novo calling 
 
 	$command = $parser->execApptainer("gatk", "gatk", implode(" ", $args), [$genome], [], true);
 	$jobs_call_genotypes[] = array($job_name, $command);
@@ -167,7 +167,7 @@ foreach($chr_regions as list($chr, $length))
 }
 
 //merge gVCFs
-if ($mode=="longread")
+if ($mode=="clair3")
 {
 	$pipeline = array();
 	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfAdd", "-in ".implode(" ", $chr_multisample_gvcfs), [], [], true)];
@@ -211,7 +211,7 @@ $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [
 //fix error in VCF file and strip unneeded information
 $uncompressed_vcf = $parser->tempFile(".vcf");
 $args = [];
-if ($mode=="longread") $args[] = "--longread_mode";
+if ($mode=="clair3") $args[] = "--clair3_mode";
 if ($mode=="dragen") $args[] = "--dragen_mode";
 $args[] = "> {$uncompressed_vcf}";
 $pipeline[] = array("php ".repository_basedir()."/src/Tools/vcf_fix.php", implode(" ", $args), false);
@@ -220,7 +220,7 @@ $pipeline[] = array("php ".repository_basedir()."/src/Tools/vcf_fix.php", implod
 $parser->execPipeline($pipeline, "merge_gvcf post processing");
 
 //add name/pipeline info to VCF header
-if ($mode=="longread")
+if ($mode=="clair3")
 {
 	$vcf = Matrix::fromTSV($uncompressed_vcf);
 	$comments = $vcf->getComments();

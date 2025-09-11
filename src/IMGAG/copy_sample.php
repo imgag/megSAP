@@ -33,10 +33,6 @@ $parser->addFlag("skip_run_merging", "Do not merge this run with a previous run.
 $parser->addFlag("manual_demux", "Ignore NovaSeqX Analysis results and use maunal demux.");
 $parser->addFlag("no_queuing", "Do not include queuing commands in the default target of the Makefile.");
 
-
-
-
-
 extract($parser->parse($argv));
 
 //check if GenLab is available
@@ -50,7 +46,15 @@ if (get_path("genlab_host", false)=="" || get_path("genlab_name", false)=="" || 
 function extract_sample_data(&$db_conn, $filename)
 {
 	$file = file($filename);
-	if(starts_with($file[0], "[Data]")) array_shift($file); //NovaSeq 6000: skip "[Data]"
+	//remove everything above [DATA] + [DATA]:
+	for ($i=0; $i < count($file); $i++) 
+	{ 
+		if(starts_with($file[$i], "[Data]"))
+		{
+			$file = array_slice($file, $i+1); //section before [DATA], [DATA]
+			break;
+		}
+	}
 	array_shift($file);//skip header
 
 	//extract sample data
@@ -120,7 +124,20 @@ function check_number_of_lanes($run_info_xml_file, $sample_sheet)
 	}
 	
 	//Check whether LaneCount from RunInfo.xml occurs at least one time in samplesheet
-	$sample_sheet_content = Matrix::fromTSV($sample_sheet, ",", "["); //ignore line "[Data]" as comment
+	
+	//generate a cleaned sample sheet without adapter and sections
+	$file = file($sample_sheet);
+	for ($i=0; $i < count($file); $i++) 
+	{ 
+		if(starts_with($file[$i], "[Data]"))
+		{
+			$file = array_slice($file, $i+1); //section before [DATA], [DATA]
+			break;
+		}
+	}
+	$cleaned_sample_sheet = temp_file("sample_sheet.csv");
+	file_put_contents($cleaned_sample_sheet, implode("\n", $file));
+	$sample_sheet_content = Matrix::fromTSV($cleaned_sample_sheet, ",");
 	$i_lane = array_search("Lane",  $sample_sheet_content->getRow(0)); // first row contains headers
 	
 	if($i_lane == -1) return false;
@@ -719,7 +736,7 @@ foreach($sample_data as $sample => $sample_infos)
 			{
 				foreach ($fastq_files as $fastq_file) 
 				{
-					if(ends_with(strtolower($fastq_file), ".fastq.ora") && !$use_dragen && !$merge_sample)
+					if ((ends_with(strtolower($fastq_file), ".fastq.ora") && !$use_dragen && !$merge_sample) || ($project_analysis=="fastq"))
 					{
 						//convert to fastq.gz
 						$orad_files = [
@@ -806,6 +823,11 @@ foreach($sample_data as $sample => $sample_infos)
 			{
 				$outputline .= " -args '-steps ma,db -somatic'";
 			}
+			
+			//use DRAGEN mapping:
+			$outputline .= ($use_dragen ? " -use_dragen": "");
+			
+			
 			if (isset($tumor2normal[$sample]))
 			{
 				$normal = $tumor2normal[$sample];

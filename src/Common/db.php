@@ -17,11 +17,12 @@ class DB
 	protected static function get_instance($db)
 	{
 		$host = get_db($db, 'db_host');
+		$port = get_db($db, 'db_port');
 		$name = get_db($db, 'db_name');
 		$user = get_db($db, 'db_user');
 		$pass = get_db($db, 'db_pass');
 		
-		return new self($host, $name, $user, $pass, $db);
+		return new self($host, $port, $name, $user, $pass, $db);
 	}
 	
 	/**
@@ -42,11 +43,11 @@ class DB
 		return self::$instances[$db];
 	}
 	
-	protected function __construct($host, $name, $user, $pass, $ini_name)
+	protected function __construct($host, $port, $name, $user, $pass, $ini_name)
 	{		
 		try 
 		{
-			$this->connection = new PDO("mysql:host={$host};dbname={$name}", $user, $pass, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
+			$this->connection = new PDO("mysql:host={$host};port={$port};dbname={$name}", $user, $pass, array(PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES utf8"));
 			$this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);	
 			$hash = $this->prepare("SET SESSION sql_mode = 'STRICT_TRANS_TABLES';");
 			$this->execute($hash);

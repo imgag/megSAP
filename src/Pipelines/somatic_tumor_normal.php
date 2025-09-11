@@ -430,7 +430,7 @@ if (in_array("vc", $steps))
 			sleep($sge_update_interval);
 
 			// check if job is still running
-			list($stdout) = exec2("qstat -u '*' | egrep '^\s+{$sge_id}\s+' 2>&1", false);
+			list($stdout) = exec2("qstat -u '*' | egrep '^\s*{$sge_id}\s+' 2>&1", false);
 			$finished = trim(implode("", $stdout))=="";
 
 			// log running state

@@ -735,9 +735,10 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 
 	if ($container=="subread") $apptainer_args[] = "--pwd=/tmp";
 
-	if ($container=="deepvariant-gpu") //to run a gpu supported apptainer container you need the --nv flag
+	if ($container=="deepvariant-gpu" || $container=="clair3-gpu") //to run a gpu supported apptainer container you need the --nv flag
 	{
 		$apptainer_args[] = "--nv";
+		$apptainer_args[] = "--env TF_FORCE_GPU_ALLOW_GROWTH=true"; //to avoid OOM error when using clair3-gpu container
 	}
 
 	//if ngs-bits container is executed the settings.ini is mounted into the container during execution 
@@ -755,7 +756,7 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 			}
 			else
 			{
-				list($stdout, $stderr, $return) = exec2($ngsbits_command);
+				list($stdout, $stderr, $return) = exec2($ngsbits_command, $abort_on_error);
 				return array($stdout, $stderr, $return);
 			}
 		}
@@ -773,26 +774,26 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 			$output[] = "reference_genome = ".genome_fasta("GRCh38");
 			
 			//NGSD credentials (production instance)
-			$output[] = "ngsd_host = ".get_db('NGSD', 'db_host', '');
-			$output[] = "ngsd_port = 3306";
-			$output[] = "ngsd_name = ".get_db('NGSD', 'db_name', '');
-			$output[] = "ngsd_user = ".get_db('NGSD', 'db_user', '');
-			$output[] = "ngsd_pass = ".get_db('NGSD', 'db_pass', '');
+			$output[] = 'ngsd_host = "'.get_db('NGSD', 'db_host', ''). '"';
+			$output[] = "ngsd_port = ".get_db('NGSD', 'db_port', '');
+			$output[] = 'ngsd_name = "'.get_db('NGSD', 'db_name', ''). '"';
+			$output[] = 'ngsd_user = "'.get_db('NGSD', 'db_user', ''). '"';
+			$output[] = 'ngsd_pass = "' . get_db('NGSD', 'db_pass', '') . '"';
 			
 			//NGSD credentials (test instance)
-			$output[] = "ngsd_test_host = ".get_db('NGSD_TEST', 'db_host', '');
-			$output[] = "ngsd_test_port = 3306";
-			$output[] = "ngsd_test_name = ".get_db('NGSD_TEST', 'db_name', '');
-			$output[] = "ngsd_test_user = ".get_db('NGSD_TEST', 'db_user', '');
-			$output[] = "ngsd_test_pass = ".get_db('NGSD_TEST', 'db_pass', '');
+			$output[] = 'ngsd_test_host = "'.get_db('NGSD_TEST', 'db_host', ''). '"';
+			$output[] = "ngsd_test_port = ".get_db('NGSD_TEST', 'db_port', '');
+			$output[] = 'ngsd_test_name = "'.get_db('NGSD_TEST', 'db_name', ''). '"';
+			$output[] = 'ngsd_test_user = "'.get_db('NGSD_TEST', 'db_user', ''). '"';
+			$output[] = 'ngsd_test_pass = "'.get_db('NGSD_TEST', 'db_pass', ''). '"';
 			
 			//GenLab credentials
 			$output[] = "genlab_mssql = ".(get_path("genlab_mssql") ? "true" : "false");
-			$output[] = "genlab_host = ".get_path("genlab_host");
+			$output[] = 'genlab_host = "'.get_path("genlab_host"). '"';
 			$output[] = "genlab_port = ".get_path("genlab_port");
-			$output[] = "genlab_name = ".get_path("genlab_name");
-			$output[] = "genlab_user = ".get_path("genlab_user");
-			$output[] = "genlab_pass = ".get_path("genlab_pass");
+			$output[] = 'genlab_name = "'.get_path("genlab_name"). '"';
+			$output[] = 'genlab_user = "'.get_path("genlab_user"). '"';
+			$output[] = 'genlab_pass = "'.get_path("genlab_pass"). '"';
 
 
 			//project folders

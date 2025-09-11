@@ -13,7 +13,6 @@ apt-get install -y \
 	make \
 	g++ \
 	qtbase5-dev \
-	libqt5xmlpatterns5-dev \
 	libqt5sql5-mysql \
 	libqt5sql5-odbc \
 	libqt5charts5-dev \
@@ -22,13 +21,15 @@ apt-get install -y \
 	python3-matplotlib \
 	libbz2-dev \
 	liblzma-dev \
-	libxml2-dev \
 	libcurl4 \
 	libcurl4-openssl-dev \
 	zlib1g-dev \
 	curl \
+	pkg-config \
+	libxml2 \
+	libxml2-dev \
 	gnupg \
-	pkg-config
+	unzip
 	
 # MSSQL in QT
 curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft.gpg
@@ -41,7 +42,7 @@ mkdir -p /opt
 cd /opt
 git clone https://github.com/imgag/ngs-bits.git
 cd ngs-bits
-git checkout 2025_05 && git submodule update --recursive --init
+git checkout 2025_07 && git submodule update --recursive --init
 make build_3rdparty
 make build_libs_release
 make build_tools_release
@@ -54,12 +55,10 @@ apt-get remove -y \
 	make \
 	g++ \
 	qtbase5-dev \
-	libqt5xmlpatterns5-dev \
 	libqt5charts5-dev \
 	libqt5svg5-dev \
 	libbz2-dev \
 	liblzma-dev \
-	libxml2-dev \
 	libcurl4 \
 	zlib1g-dev \
 	curl

@@ -2,15 +2,18 @@
 /** 
 	@page vcf_fix
 	
-	flags:
-	--mosaic_mode: Doesn't remove variants with genotype '0/0' instead changes them to  het '0/1'
-	--longread_mode: preserve phasing information; keeps GT:DP:AF:GQ instead of GT:DP:AO:GQ
-	--dragen_mode: keeps GT:DP:AF:GQ instead of GT:DP:AO:GQ
+	By default the script assumes that the input is short-read data called with freebayes.
+	Additionally there are these modes:
+	--mosaic_mode: Like default freebayes modes, but doesn't remove variants with genotype '0/0' instead changes them to het '0/1'
+	--dragen_mode: short-read DRAGEN input; keeps AF instead of AO
+	--clair3_mode: long-read Clair3 input; preserves phasing information; keeps AF instead of AO
+	--deepvariant_mode: long-read DeepVariant input; keeps AF instead of AO
 	
-	Fixes VCF file problems produced by Freebayes:
+	Fixes VCF file problems produced by variant callers:
 	- Merges duplicate heterozygous variants into one homozygous variant
-	- Fixes 'AO' count for variants stemming from multi-allelic base variants (comma-separated list to single int)
-	- Normalizes 'GT' to '0/1' or '1/1' (removes variants with genotype '0/0')
+	- Fixes 'AO' count for variants stemming from multi-allelic base variants when using freebayes (comma-separated list to single int)
+	- Normalizes 'GT' to '0/1' or '1/1'
+	- Removes variants with genotype '0/0'
 	- Removed variants with invalid REF characters ('N', ...) 
 	- Removes unused fields in INFO/FORMAT columns
 */
@@ -43,13 +46,23 @@ function info_data($info)
 //convert FORMAT/SAMPLE data to associative array
 function sample_data($format, $sample)
 {
-	global $longread_mode;
+	global $clair3_mode;
+	global $deepvariant_mode;
 	
-	$tmp = array_combine(explode(":", $format), explode(":", $sample));
-	
-	if(!$longread_mode)
+	//combine keys/values to dictionary
+	$keys = explode(":", $format);
+	if ($deepvariant_mode)
 	{
-		//normalize genotype string
+		for($i=0; $i<count($keys); ++$i)
+		{
+			if ($keys[$i]=='VAF') $keys[$i] = 'AF';
+		}
+	}
+	$tmp = array_combine($keys, explode(":", $sample));
+	
+	//normalize genotype string (except for long-read data)
+	if(!$clair3_mode && !$deepvariant_mode)
+	{
 		$tmp['GT'] = strtr($tmp['GT'], array("."=>"0", "|"=>"/"));
 		if ($tmp['GT']=="1/0") $tmp['GT']="0/1";
 	}
@@ -61,8 +74,9 @@ function sample_data($format, $sample)
 function write($h_out, $var)
 {
 	global $mosaic_mode;
-	global $longread_mode;
+	global $clair3_mode;
 	global $dragen_mode;
+	global $deepvariant_mode;
 	global $format_header;
 	
 	$format_values = array();
@@ -76,7 +90,7 @@ function write($h_out, $var)
 	
 	for ($i=9; $i < count($var); $i++) 
 	{ 
-		$sample= sample_data($var[8], $var[$i]);
+		$sample = sample_data($var[8], $var[$i]);
 		if($sample['GT']!="0/0" && $sample['GT']!=".|.")
 		{
 			//non wt/non-call variant -> keep in file
@@ -90,7 +104,7 @@ function write($h_out, $var)
 		}
 		
 		// create output string
-		if($longread_mode || $dragen_mode)
+		if($clair3_mode || $dragen_mode || $deepvariant_mode)
 		{
 			//set defaults: (some indels only contain GT column)
 			if (!isset($sample['DP'])) $sample['DP'] = ".";
@@ -129,7 +143,7 @@ function write($h_out, $var)
 	//write INFO
 	$info = info_data($var[7]);
 
-	if($longread_mode || $dragen_mode)
+	if($clair3_mode || $dragen_mode || $deepvariant_mode)
 	{
 		$info_output = array();
 		if(isset($info["F"])) $info_output[] = "F";
@@ -149,13 +163,15 @@ function write($h_out, $var)
 
 //CLI handling:
 $mosaic_mode = false;
-$longread_mode = false;
+$clair3_mode = false;
 $dragen_mode = false;
+$deepvariant_mode = false;
 if ($argc==2)
 {
 	if ($argv[1] == "--mosaic_mode") $mosaic_mode = true;
-	else if ($argv[1] == "--longread_mode") $longread_mode = true;	
+	else if ($argv[1] == "--clair3_mode") $clair3_mode = true;	
 	else if ($argv[1] == "--dragen_mode") $dragen_mode = true;
+	else if ($argv[1] == "--deepvariant_mode") $deepvariant_mode = true;
 	else trigger_error("Unknown command line option given: ".$argv[1], E_USER_ERROR);
 }
 else if ($argc>2)
@@ -165,7 +181,7 @@ else if ($argc>2)
 
 //main loop
 $format_header = "GT:DP:AO:GQ";
-if ($longread_mode || $dragen_mode) $format_header = "GT:DP:AF:GQ";	
+if ($clair3_mode || $dragen_mode || $deepvariant_mode) $format_header = "GT:DP:AF:GQ";	
 
 $ids = array("RO","GTI","NS","SRF","NUMALT","DP","QR","SRR","SRP","PRO","EPPR","DPB","PQR","ROOR","MQMR","ODDS","AN","RPPR","PAIREDR");
 $var_last = array("","","","","","","","",$format_header,"0/0:0:0:0");
@@ -249,7 +265,7 @@ while(!feof($h_in))
 			}
 			
 			$dp = $sample['DP'];
-			if ($longread_mode || $dragen_mode)
+			if ($clair3_mode || $dragen_mode || $deepvariant_mode)
 			{
 				$af = $sample['AF'];
 				if (contains($af, ",")) list($af) = explode(",", $af);
@@ -273,7 +289,7 @@ while(!feof($h_in))
 			$gq = max($sample['GQ'], $gq_last);
 
 			// determine genotype
-			if ($longread_mode || $dragen_mode)
+			if ($clair3_mode || $dragen_mode || $deepvariant_mode)
 			{
 				$var_last[$i] = "$gt:$dp:$af:$gq";
 			}
