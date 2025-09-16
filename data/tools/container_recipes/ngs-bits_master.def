@@ -29,6 +29,8 @@ apt-get install -y \
 	libxml2 \
 	libxml2-dev \
 	gnupg \
+	libssl-dev \
+	libdeflate-dev \
 	unzip
 	
 # MSSQL in QT
