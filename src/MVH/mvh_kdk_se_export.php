@@ -286,6 +286,10 @@ function json_hpos($se_data, $se_data_rep)
 		
 		//convert HPO name to id
 		$hpo_id = $db_ngsd->getValue("SELECT hpo_id FROM hpo_term WHERE name LIKE '{$hpo}'", "");
+		if ($hpo_id=="") //fallback to ID (RedCap ontology handling bug that causes terms to have ID instead of name)
+		{
+			$hpo_id = $db_ngsd->getValue("SELECT hpo_id FROM hpo_term WHERE hpo_id LIKE '{$hpo}'", "");
+		}
 		if ($hpo_id=="")
 		{
 			trigger_error("Could not convert HPO name '{$hpo}' to ID using the NGSD hpo_term table!", E_USER_WARNING);
