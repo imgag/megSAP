@@ -216,7 +216,7 @@ function generateBatchCorrectData($cohort_samples, $ps_name, $processing_systems
 	foreach($batch_correct_samples as $ref_sample)
 	{
 		$sample = $ref_sample["name"];
-		if (! in_array($ps_name, $full_cohort)) $full_cohort[] = $sample;
+		if (! in_array($sample, $full_cohort)) $full_cohort[] = $sample;
 		$full_covar[$sample] = $ref_sample["covar"];
 		$full_batches[$sample] = $ref_sample["sys"];
 	}
