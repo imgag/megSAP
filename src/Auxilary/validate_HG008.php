@@ -18,14 +18,14 @@ $parser->addString("name", "Name used in the 'stats' output. If unset, the 'vcf'
 $parser->addInt("min_dp", "If set, only regions in the 'roi' with at least the given depth are evaluated.", true, 0);
 $parser->addInt("min_qual", "If set, only input variants with QUAL greater or equal to the given value are evaluated.", true, 5);
 $parser->addInt("max_indel", "Maximum indel size (larger indels are ignored). Disabled if set to 0.", true, 50);
-$parser->addString("build", "The genome build to use.", true, "GRCh38");
+$parser->addString("build", "The genome build to use.", true, "GRCh38_GIABv3");
 $parser->addString("ref_sample", "Reference sample to use for validation.", true, "HG008");
 $parser->addFlag("matches", "Do not only show variants that were missed (-), are novel (+) or with genotype mismatch (g), but also show matches (=) in output.");
 $parser->addFlag("skip_depth_calculation", "Do not calculate depth of missed variants to speed up calculation.");
 extract($parser->parse($argv));
 
 //returns the variants of a VCF file in the given ROI
-function get_variants($vcf_gz, $roi, $max_indel, $min_qual, &$skipped)
+function get_variants($vcf_gz, $roi, $max_indel, $min_qual, &$skipped) //TODO Kilian maybe add flag to distinguish between truth set parsing and called set parsing
 {
 	global $parser;
 	global $genome;
@@ -52,6 +52,7 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, &$skipped)
 		//get variant infos
 		$columns = explode("\t", $line);
 		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info) = $columns;
+		if ($qual == ".") $qual = 0;
 		$info = explode(";",$info);
 		
 		if (!starts_with($chr, "chr")) $chr = "chr".$chr;
@@ -128,6 +129,10 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, &$skipped)
 		if ($idx!==FALSE) $var['RO'] = $sample[$idx];
 		$idx = array_search("GQ", $format);
 		if ($idx!==FALSE) $var['GQ'] = $sample[$idx]; */
+
+		//TODO Kilian maybe distinguish between HighConf and MedConf variants in truth set
+		// maybe add extra evaluation of MedConf as softer benchmark
+
 		if (strlen($ref)>1 || strlen($alt)>1)
 		{
 			$var["TYPE"] = "INDELS";

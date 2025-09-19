@@ -20,14 +20,15 @@ $parser->addString("normal_id", "Sample name for normal sample. If not specified
 $parser->addString("tumor_id", "Sample name for tumor sample. If not specified, will be inferred from the header information from --bam_tumor", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addString("gvcf", "Enable output of gVCF files and define output filepath for gVCF files.", true, "");
-$parser->addFloat("min_af_indels", "Minimum allele frequency cutoff for InDels used for variant calling.", true, 0.05);
-$parser->addFloat("min_af_snps", "Minimum allele frequency cutoff for SNPs used for variant calling.", true, 0.05);
-$parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 20);
+$parser->addFloat("min_af_indels", "Minimum allele frequency cutoff for InDels used for variant calling.", true, 0.01);
+$parser->addFloat("min_af_snps", "Minimum allele frequency cutoff for SNPs used for variant calling.", true, 0.01);
+$parser->addInt("min_mq", "Minimum mapping quality cutoff used for variant calling.", true, 15);
 $parser->addInt("min_bq", "Minimum base quality cutoff used for variant calling.", true, 10);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addFlag("raw_output", "return the raw output of deepsomatic with no post-processing.");
 $parser->addFlag("allow_empty_examples", "allows deepsomatic to call variants even if no examples were created with make_examples.");
 $parser->addFlag("tumor_only", "run DeepSomatic in tumor-only mode");
+$parser->addInfile("debug_region", "Debug option to limit analysis to regions in the given BED file.", true);
 extract($parser->parse($argv));
 
 //init
@@ -51,6 +52,7 @@ $args[] = "--reads_tumor=$bam_tumor";
 $args[] = "--sample_name_tumor=$tumor_id";
 $args[] = "--num_shards=".$threads;
 
+if (isset($debug_region)) $args[] = "--regions $debug_region";
 if (!empty($gvcf)) $args[] = "--output_gvcf=$gvcf";
 if (!$tumor_only) 
 {
