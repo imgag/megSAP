@@ -440,7 +440,7 @@ if (in_array("vc", $steps))
 			// log running state
 			if (!$finished)
 			{
-				$state = explode(" ", preg_replace('/\s+/', ' ', $stdout[0]))[5];
+				$state = explode(" ", preg_replace('/\s+/', ' ', $stdout[0]))[4];
 				trigger_error("SGE job $sge_id still queued/running (state: {$state}).", E_USER_NOTICE);
 			}
 		}

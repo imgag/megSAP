@@ -18,6 +18,7 @@ $parser->addString("model", "Model used for calling.", false);
 //optional
 $parser->addInt("target_extend",  "Call variants up to n bases outside the target region (they are flagged as 'off-target' in the filter column).", true, 0);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
+$parser->addFlag("gpu", "Enable Clair3 GPU support.", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 
 extract($parser->parse($argv));
@@ -33,16 +34,33 @@ $out = "{$folder}/{$name}_var.vcf.gz";
 $out_gvcf = "{$folder}/{$name}_var.gvcf.gz";
 
 //create basic variant calls
+$container = "clair3";
+$command = "run_clair3.sh";
+
 $args = array();
 $args[] = "--bam_fn={$bam}";
 $args[] = "--ref_fn=$genome";
-$args[] = "--threads={$threads}";
 $args[] = "--platform=\"ont\"";
 $args[] = "--model_path={$model}";
 $args[] = "--keep_iupac_bases";
 $args[] = "--gvcf";
 $args[] = "--sample_name={$name}";
+$args[] = "--threads={$threads}";
 
+if ($gpu)
+{
+	exec("nvidia-smi -L 2>/dev/null", $output, $status);
+	if ($status != 0 || empty($output)) 
+	{
+		trigger_error("No GPU available to run GPU accelerated Clair3. Falling back to CPU-only version", E_USER_NOTICE);
+	}
+	else
+	{
+		$args[] = "--use_gpu";
+		$container = "clair3-gpu";
+		$command = "/opt/bin/run_clair3.sh";
+	}
+}
 
 //set bind paths for clair3 container
 $in_files = array();
@@ -84,7 +102,7 @@ if(isset($target))
 }
 
 //run Clair3 container
-$parser->execApptainer("clair3", "run_clair3.sh", implode(" ", $args), $in_files);
+$parser->execApptainer($container, $command, implode(" ", $args), $in_files);
 $clair_vcf = $clair_temp."/merge_output.vcf.gz";
 $clair_gvcf = $clair_temp."/merge_output.gvcf.gz";
 
@@ -95,7 +113,7 @@ file_put_contents($target_mito, "chrMT\t0\t16569");
 $args_mito[] = "--bed_fn={$target_mito}";
 $args_mito[] = "--haploid_sensitive";
 
-$parser->execApptainer("clair3", "run_clair3.sh", implode(" ", $args_mito), $in_files);
+$parser->execApptainer($container, $command, implode(" ", $args_mito), $in_files);
 $clair_mito_vcf = $clair_mito_temp."/merge_output.vcf.gz";
 $clair_mito_gvcf = $clair_mito_temp."/merge_output.gvcf.gz";
 

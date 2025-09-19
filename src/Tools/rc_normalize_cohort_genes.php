@@ -140,7 +140,6 @@ for($sample_col=1; $sample_col < $corrected_cohort_counts->cols(); ++$sample_col
 {
 	$sample = $corrected_cohort_counts->getHeader($sample_col);
 	$sample_counts = $corrected_cohort_counts->getCol($sample_col);
-	echo "$sample\n";
 	
 	normalize_column($methods_cohort, $out_cohort_table, $sample_counts, $gene_lengths, $sample."_");
 	

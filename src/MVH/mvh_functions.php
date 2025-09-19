@@ -259,6 +259,7 @@ function convert_diag_status($name)
 	if ($name=="Genetische Verdachtsdiagnose" || $name=="3") return "provisional";
 	if ($name=="Genetische Diagnose gesichert") return "confirmed";
 	if ($name=="klinischer Phänotyp nur partiell gelöst") return "partial";
+	if ($name=="weiterführende genetische Diagnostik empfohlen") return "unconfirmed"; //this case is not modelled by SE-DIP. This mapping was recommended by Lucien as a workaround.
 	
 	trigger_error(__FUNCTION__.": Unhandled name '{$name}'!", E_USER_ERROR);
 }
