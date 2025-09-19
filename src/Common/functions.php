@@ -735,9 +735,10 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 
 	if ($container=="subread") $apptainer_args[] = "--pwd=/tmp";
 
-	if ($container=="deepvariant-gpu") //to run a gpu supported apptainer container you need the --nv flag
+	if ($container=="deepvariant-gpu" || $container=="clair3-gpu") //to run a gpu supported apptainer container you need the --nv flag
 	{
 		$apptainer_args[] = "--nv";
+		$apptainer_args[] = "--env TF_FORCE_GPU_ALLOW_GROWTH=true"; //to avoid OOM error when using clair3-gpu container
 	}
 
 	//if ngs-bits container is executed the settings.ini is mounted into the container during execution 
