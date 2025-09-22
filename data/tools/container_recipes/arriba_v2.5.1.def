@@ -3,7 +3,7 @@ From: ubuntu:24.04
 
 %labels
     Maintainer KilianIlius
-    Version arriba_v2.4.0
+    Version arriba_v2.5.1
 
 %post
 	LANG=C.UTF-8
@@ -75,16 +75,16 @@ From: ubuntu:24.04
 	
 	# Download and build arriba
 	cd /opt
-	wget https://github.com/suhrig/arriba/releases/download/v2.4.0/arriba_v2.4.0.tar.gz
-	tar -xzf arriba_v2.4.0.tar.gz
-	rm arriba_v2.4.0.tar.gz
-	cd arriba_v2.4.0 && make
+	wget https://github.com/suhrig/arriba/releases/download/v2.5.1/arriba_v2.5.1.tar.gz
+	tar -xzf arriba_v2.5.1.tar.gz
+	rm arriba_v2.5.1.tar.gz
+	cd arriba_v2.5.1 && make
 	rm -rf documentation/
 	rm -rf test/
 	cd ..
 		
 	# Add shebang to draw_fusions.R using sed
-    sed -i '1i#!/opt/R-4.1.0/bin/Rscript' /opt/arriba_v2.4.0/draw_fusions.R
+    sed -i '1i#!/opt/R-4.1.0/bin/Rscript' /opt/arriba_v2.5.1/draw_fusions.R
 	
 	# Cleanup build dependencies
 	cd /
@@ -119,6 +119,6 @@ From: ubuntu:24.04
 %environment
 	export LANG=C.UTF-8
 	export LC_ALL=C.UTF-8
-	export PATH=/opt/arriba_v2.4.0:$PATH
-	export PATH=/opt/arriba_v2.4.0/scripts:$PATH
+	export PATH=/opt/arriba_v2.5.1:$PATH
+	export PATH=/opt/arriba_v2.5.1/scripts:$PATH
 	export PATH=/opt/R-4.1.0/bin:$PATH

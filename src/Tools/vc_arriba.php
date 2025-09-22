@@ -15,6 +15,7 @@ $parser->addOutfile("out_bam", "Output BAM file with fusion-supporting reads.", 
 $parser->addString("out_pic_dir", "Output directory which contains all fusion pictures as PNGs.", true);
 $parser->addInfile("sv", "Optional structural variants from DNA sequencing, in VCF format.", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
+$parser->addInt("threads", "The number of threads to use", true, 1);
 extract($parser->parse($argv));
 
 
@@ -33,7 +34,7 @@ $arriba_build = $arriba_str[$build];
 
 
 //reference files
-$arriba_ver = "v2.4.0";
+$arriba_ver = "v2.5.1";
 $genome = genome_fasta($build);
 $gtf = get_path("data_folder") . "/dbs/gene_annotations/{$build}.gtf";
 $arriba_ref = "/opt/arriba_{$arriba_ver}/database";
@@ -50,7 +51,8 @@ $args = [
     "-t", "{$arriba_ref}/known_fusions_{$arriba_build}_{$arriba_ver}.tsv.gz",
     "-p", "{$arriba_ref}/protein_domains_{$arriba_build}_{$arriba_ver}.gff3",
     "-X",
-    "-f", "no_genomic_support,read_through,same_gene,intragenic_exonic"
+    "-f", "no_genomic_support,read_through,same_gene,intragenic_exonic",
+    "-@", $threads
 ];
 
 if (isset($sv)) $args[] = "-d {$sv}";
