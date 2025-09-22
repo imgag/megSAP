@@ -21,6 +21,7 @@ container_bwa = v0.7.18
 container_bwa-mem2 = v2.2.1
 container_circos = 0.69.9
 container_clair3 = v1.0.10
+container_clair3-gpu = v1.2.0-20250818
 container_clair3-trio = v0.7
 container_ClinCNV = v1.18.3
 container_deepvariant = 1.8.0
@@ -87,12 +88,13 @@ custom_columns_test['ngsd_counts'] = "[path]/test/data/an_vep_custom.vcf.gz;COUN
 custom_columns_test['ngsd_nervous_system'] = "[path]/test/data/an_vep_custom.vcf.gz;GSC08;NGSD nervous system counts"
 
 [dragen]
+dragen_version = 
 ; transfer folder
 dragen_in = 
 dragen_out = 
 ; working/genome directory on the DRAGEN server
 dragen_data = 
-dragen_genomes = 
+dragen_genome = 
 ;sge settings
 dragen_log = 
 queues_dragen = 
@@ -117,6 +119,16 @@ genlab_port =
 genlab_name = ""
 genlab_user = ""
 genlab_pass = ""
+
+#Modellvorhaben
+db_host['MVH'] = ""
+db_name['MVH'] = ""
+db_port['MVH'] = 3306
+db_user['MVH'] = ""
+db_pass['MVH'] = ""
+mvh_folder = ""
+mvh_redcap_token_se = ""
+mvh_redcap_token_cm = ""
 
 [grid_engine]
 queues_default = ""

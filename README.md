@@ -13,7 +13,7 @@ The design goals of the project are:
 
 If you are interested to join the effort, please contact [Marc Sturm](https://github.com/marc-sturm).
 
-## Obtaining megSAP
+## Installation
 
 General remarks:
 - Only GRCh38 is supported.
@@ -58,3 +58,4 @@ You can cite megSAP using Zenodo DOIs:
 ## ChangeLog
 
 Change log is available on the [releases](https://github.com/imgag/megSAP/releases) page.
+
