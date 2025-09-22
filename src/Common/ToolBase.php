@@ -886,7 +886,7 @@ class ToolBase
 		//log call
 		if($log_output)
 		{
-			$version_command = "apptainer exec $container_path $command";
+			$version_command = "singularity exec $container_path $command";
 			$add_info = array();
 			foreach($in_files as $in_file)
 			{
