@@ -38,13 +38,13 @@ msisensor=$CONTAINER_FOLDER/msisensor-pro_$MSISENSOR_VERSION.sif
 cd $dbs
 mkdir -p Ensembl
 cd Ensembl
-wget -O Homo_sapiens.GRCh38.112.gff3.gz https://ftp.ensembl.org/pub/release-112/gff3/homo_sapiens/Homo_sapiens.GRCh38.112.gff3.gz
-gunzip Homo_sapiens.GRCh38.112.gff3.gz
-wget -O Homo_sapiens.GRCh38.112_original.gtf.gz https://ftp.ensembl.org/pub/release-112/gtf/homo_sapiens/Homo_sapiens.GRCh38.112.gtf.gz
-gunzip Homo_sapiens.GRCh38.112_original.gtf.gz
+wget -O Homo_sapiens.GRCh38.115.gff3.gz https://ftp.ensembl.org/pub/release-115/gff3/homo_sapiens/Homo_sapiens.GRCh38.115.gff3.gz
+gunzip Homo_sapiens.GRCh38.115.gff3.gz
+wget -O Homo_sapiens.GRCh38.115_original.gtf.gz https://ftp.ensembl.org/pub/release-115/gtf/homo_sapiens/Homo_sapiens.GRCh38.115.gtf.gz
+gunzip Homo_sapiens.GRCh38.115_original.gtf.gz
 # create sorted & indexed file for methylartist
-(grep ^"#" Homo_sapiens.GRCh38.112_original.gtf; grep -v ^"#" Homo_sapiens.GRCh38.112_original.gtf | sort -k1,1 -k4,4n | sed -e 's/^/chr/') | apptainer exec $htslib bgzip  > Homo_sapiens.GRCh38.112.gtf.gz
-apptainer exec $htslib tabix -p gff Homo_sapiens.GRCh38.112.gtf.gz
+(grep ^"#" Homo_sapiens.GRCh38.115_original.gtf; grep -v ^"#" Homo_sapiens.GRCh38.115_original.gtf | sort -k1,1 -k4,4n | sed -e 's/^/chr/') | apptainer exec $htslib bgzip  > Homo_sapiens.GRCh38.115.gtf.gz
+apptainer exec $htslib tabix -p gff Homo_sapiens.GRCh38.115.gtf.gz
 
 #Download RefSeq transcripts database
 cd $dbs
@@ -103,8 +103,8 @@ apptainer exec $ngsbits BedSort -with_name -in clinvar_cnvs_2025-09.bed -out cli
 cd $dbs
 mkdir -p HGNC
 cd HGNC
-wget -O - https://storage.googleapis.com/public-download-files/hgnc/tsv/tsv/hgnc_complete_set.txt > hgnc_complete_set.tsv
-wget -O - https://storage.googleapis.com/public-download-files/hgnc/tsv/tsv/withdrawn.txt > hgnc_withdrawn.tsv
+wget -O - https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/hgnc_complete_set_2025-09-02.tsv > hgnc_complete_set_2025-09-02.tsv
+wget -O - https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/withdrawn_2025-09-02.tsv > hgnc_withdrawn_2025-09-02.tsv
 
 #Install gnomAD (genome data) - 
 cd $dbs
