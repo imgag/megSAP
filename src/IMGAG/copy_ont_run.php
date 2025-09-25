@@ -351,7 +351,7 @@ else //bam output
 		//check on-device basecall model:
 		if (str_contains($on_device_basecall_model, $basecall_model) && !$force_basecalling)
 		{
-			trigger_error("Basecall Models match: On-device basecall model: {$on_device_basecall_model}, requested basecall model: {$basecall_model}", E_USER_NOTICE);
+			trigger_error("Basecall Models match: On-device basecall model: '{$on_device_basecall_model}', requested basecall model: '{$basecall_model}", E_USER_NOTICE);
 
 			$out_dir = $info["ps_folder"];
 				
@@ -422,7 +422,7 @@ else //bam output
 		else if ($queue_basecalling)
 		{
 			if ($force_basecalling) trigger_error("Full basecalling requested!", E_USER_NOTICE);
-			else trigger_error("Basecall Models doesn't match: On-device basecall model: {$on_device_basecall_model}, requested basecall model: {$basecall_model}. Full (re-)basecalling is needed!", E_USER_WARNING);
+			else trigger_error("Basecall Models doesn't match: On-device basecall model: '{$on_device_basecall_model}', requested basecall model: '{$basecall_model}'. Full (re-)basecalling is needed!", E_USER_WARNING);
 
 			//move basecalled files
 			$basecall_suffix = "";
@@ -481,7 +481,7 @@ else //bam output
 		}
 		else
 		{
-			trigger_error("Basecall Models doesn't match: On-device basecall model: {$on_device_basecall_model}, requested basecall model: {$basecall_model}. Please check setting or re-do basecalling!", E_USER_ERROR);
+			trigger_error("Basecall Models doesn't match: On-device basecall model: '{$on_device_basecall_model}', requested basecall model: '{$basecall_model}'. Please check setting or re-do basecalling!", E_USER_ERROR);
 		}
 
 		

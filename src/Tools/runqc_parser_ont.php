@@ -212,7 +212,8 @@ if (count(array_unique($flowcell_ids)) > 1) trigger_error("Flocell IDs of sub fo
 $flowcell_id = array_unique($flowcell_ids)[0];
 if (count(array_unique($protocol_ids)) > 1) trigger_error("Protocol IDs of sub folders differ!\n".implode(", ", $protocol_ids), E_USER_ERROR);
 $protocol_id = array_unique($protocol_ids)[0];
-if (count(array_unique($software_arguments)) > 1) trigger_error("Software arguments of sub folders differ!\n".implode(", ", $software_arguments), E_USER_ERROR);
+//workaround for restarted runs with FAST
+if (count(array_unique($software_arguments)) > 1) trigger_error("Software arguments of sub folders differ!\n".implode(", ", $software_arguments), E_USER_WARNING); 
 $software_args = array_unique($software_arguments)[0];
 if (count(array_unique($device_firmware_version_list)) > 1) trigger_error("Device firmware versions of sub folders differ!\n".implode(", ", $device_firmware_version_list), E_USER_ERROR);
 $device_firmware_versions = array_unique($device_firmware_version_list)[0];
