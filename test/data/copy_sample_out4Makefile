@@ -79,7 +79,7 @@ Sample_DX181278_05:
 	chmod -R 775 /test/project/folder/Sample_DX181278_05
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_DX181278_05
 	#queue
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181278_05 -args '-steps db -somatic' -use_dragen
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181278_05 -args '-steps db -somatic'
 
 queue_somatic:
 	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'somatic' -samples DX181278_05 DX181277_01 -info tumor normal -use_dragen

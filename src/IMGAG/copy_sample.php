@@ -669,26 +669,31 @@ foreach($sample_data as $sample => $sample_infos)
 					if(!file_exists($source_mapping_file.".bai")) trigger_error("ERROR: BAM index file '{$source_mapping_file}.bai' is missing!", E_USER_ERROR);
 				} 
 				
-				$source_vcf_file = "{$source_folder}/{$sample}.hard-filtered.vcf.gz";
-				if(!file_exists($source_vcf_file)) trigger_error("ERROR: VCF file '{$source_vcf_file}' is missing!", E_USER_ERROR);
-				if(!file_exists($source_vcf_file.".tbi")) trigger_error("ERROR: VCF index file '{$source_vcf_file}.tbi' is missing!", E_USER_ERROR);
-				$source_gvcf_file = "{$source_folder}/{$sample}.hard-filtered.gvcf.gz";
-				if(!file_exists($source_gvcf_file)) trigger_error("ERROR: gVCF file '{$source_gvcf_file}' is missing!", E_USER_ERROR);
-				if(!file_exists($source_gvcf_file.".tbi")) trigger_error("ERROR: gVCF index file '{$source_gvcf_file}.tbi' is missing!", E_USER_ERROR);
-				$source_sv_vcf_file = "{$source_folder}/{$sample}.sv.vcf.gz";
-				if(!file_exists($source_sv_vcf_file)) trigger_error("ERROR: SV VCF file '{$source_sv_vcf_file}' is missing!", E_USER_ERROR);
-				if(!file_exists($source_sv_vcf_file.".tbi")) trigger_error("ERROR: SV VCF index file '{$source_sv_vcf_file}.tbi' is missing!", E_USER_ERROR);
-				$source_cnv_vcf_file = "{$source_folder}/{$sample}.cnv.vcf.gz";
-				if(($sys_type == "WGS") && !file_exists($source_cnv_vcf_file)) trigger_error("ERROR: CNV VCF file '{$source_cnv_vcf_file}' is missing!", E_USER_ERROR);
-				if(($sys_type == "WGS") && !file_exists($source_cnv_vcf_file.".tbi")) trigger_error("ERROR: CNV VCF index file '{$source_cnv_vcf_file}.tbi' is missing!", E_USER_ERROR);
-
+				if(!$sample_is_tumor) //VC is not done on tumor samples
+				{
+					$source_vcf_file = "{$source_folder}/{$sample}.hard-filtered.vcf.gz";
+					if(!file_exists($source_vcf_file)) trigger_error("ERROR: VCF file '{$source_vcf_file}' is missing!", E_USER_ERROR);
+					if(!file_exists($source_vcf_file.".tbi")) trigger_error("ERROR: VCF index file '{$source_vcf_file}.tbi' is missing!", E_USER_ERROR);
+					$source_gvcf_file = "{$source_folder}/{$sample}.hard-filtered.gvcf.gz";
+					if(!file_exists($source_gvcf_file)) trigger_error("ERROR: gVCF file '{$source_gvcf_file}' is missing!", E_USER_ERROR);
+					if(!file_exists($source_gvcf_file.".tbi")) trigger_error("ERROR: gVCF index file '{$source_gvcf_file}.tbi' is missing!", E_USER_ERROR);
+					$source_sv_vcf_file = "{$source_folder}/{$sample}.sv.vcf.gz";
+					if(!file_exists($source_sv_vcf_file)) trigger_error("ERROR: SV VCF file '{$source_sv_vcf_file}' is missing!", E_USER_ERROR);
+					if(!file_exists($source_sv_vcf_file.".tbi")) trigger_error("ERROR: SV VCF index file '{$source_sv_vcf_file}.tbi' is missing!", E_USER_ERROR);
+					$source_cnv_vcf_file = "{$source_folder}/{$sample}.cnv.vcf.gz";
+					if(($sys_type == "WGS") && !file_exists($source_cnv_vcf_file)) trigger_error("ERROR: CNV VCF file '{$source_cnv_vcf_file}' is missing!", E_USER_ERROR);
+					if(($sys_type == "WGS") && !file_exists($source_cnv_vcf_file.".tbi")) trigger_error("ERROR: CNV VCF index file '{$source_cnv_vcf_file}.tbi' is missing!", E_USER_ERROR);
+				}
 
 				//get md5sum 
 				$md5sum_buffer[] = get_md5_line($source_mapping_file);
-				$md5sum_buffer[] = get_md5_line($source_vcf_file);
-				$md5sum_buffer[] = get_md5_line($source_gvcf_file);
-				// $md5sum_buffer[] = get_md5_line($source_sv_vcf_file);
-				if (file_exists($source_cnv_vcf_file)) $md5sum_buffer[] = get_md5_line($source_cnv_vcf_file);
+				if(!$sample_is_tumor) //VC is not done on tumor samples
+				{
+					$md5sum_buffer[] = get_md5_line($source_vcf_file);
+					$md5sum_buffer[] = get_md5_line($source_gvcf_file);
+					// $md5sum_buffer[] = get_md5_line($source_sv_vcf_file);
+					if (file_exists($source_cnv_vcf_file)) $md5sum_buffer[] = get_md5_line($source_cnv_vcf_file);
+				}
 
 
 				//*********************** copy analyzed data *********************************************
@@ -822,10 +827,11 @@ foreach($sample_data as $sample => $sample_infos)
 			else 
 			{
 				$outputline .= " -args '-steps ma,db -somatic'";
+				//use DRAGEN mapping:
+				$outputline .= ($use_dragen ? " -use_dragen": "");
 			}
 			
-			//use DRAGEN mapping:
-			$outputline .= ($use_dragen ? " -use_dragen": "");
+			
 			
 			
 			if (isset($tumor2normal[$sample]))
