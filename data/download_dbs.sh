@@ -38,13 +38,13 @@ msisensor=$CONTAINER_FOLDER/msisensor-pro_$MSISENSOR_VERSION.sif
 cd $dbs
 mkdir -p Ensembl
 cd Ensembl
-wget -O Homo_sapiens.GRCh38.112.gff3.gz https://ftp.ensembl.org/pub/release-112/gff3/homo_sapiens/Homo_sapiens.GRCh38.112.gff3.gz
-gunzip Homo_sapiens.GRCh38.112.gff3.gz
-wget -O Homo_sapiens.GRCh38.112_original.gtf.gz https://ftp.ensembl.org/pub/release-112/gtf/homo_sapiens/Homo_sapiens.GRCh38.112.gtf.gz
-gunzip Homo_sapiens.GRCh38.112_original.gtf.gz
+wget -O Homo_sapiens.GRCh38.115.gff3.gz https://ftp.ensembl.org/pub/release-115/gff3/homo_sapiens/Homo_sapiens.GRCh38.115.gff3.gz
+gunzip Homo_sapiens.GRCh38.115.gff3.gz
+wget -O Homo_sapiens.GRCh38.115_original.gtf.gz https://ftp.ensembl.org/pub/release-115/gtf/homo_sapiens/Homo_sapiens.GRCh38.115.gtf.gz
+gunzip Homo_sapiens.GRCh38.115_original.gtf.gz
 # create sorted & indexed file for methylartist
-(grep ^"#" Homo_sapiens.GRCh38.112_original.gtf; grep -v ^"#" Homo_sapiens.GRCh38.112_original.gtf | sort -k1,1 -k4,4n | sed -e 's/^/chr/') | apptainer exec $htslib bgzip  > Homo_sapiens.GRCh38.112.gtf.gz
-apptainer exec $htslib tabix -p gff Homo_sapiens.GRCh38.112.gtf.gz
+(grep ^"#" Homo_sapiens.GRCh38.115_original.gtf; grep -v ^"#" Homo_sapiens.GRCh38.115_original.gtf | sort -k1,1 -k4,4n | sed -e 's/^/chr/') | apptainer exec $htslib bgzip  > Homo_sapiens.GRCh38.115.gtf.gz
+apptainer exec $htslib tabix -p gff Homo_sapiens.GRCh38.115.gtf.gz
 
 #Download RefSeq transcripts database
 cd $dbs
@@ -92,19 +92,19 @@ cat hg38.fa.out | php $src/Install/db_converter_repeatmasker.php | apptainer exe
 cd $dbs
 mkdir -p ClinVar 
 cd ClinVar
-wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2025/clinvar_20250128.vcf.gz | gunzip | php $src/Install/db_converter_clinvar.php | apptainer exec $ngsbits VcfStreamSort | apptainer exec $htslib bgzip > clinvar_20250128_converted_GRCh38.vcf.gz
-apptainer exec $htslib tabix -C -m 9 -p vcf clinvar_20250128_converted_GRCh38.vcf.gz
+wget -O - https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2025/clinvar_20250907.vcf.gz | gunzip | php $src/Install/db_converter_clinvar.php | apptainer exec $ngsbits VcfStreamSort | apptainer exec $htslib bgzip > clinvar_20250907_converted_GRCh38.vcf.gz
+apptainer exec $htslib tabix -C -m 9 -p vcf clinvar_20250907_converted_GRCh38.vcf.gz
 #CNVs
-wget -O - http://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2025-02.txt.gz | gunzip > variant_summary_2025-02.txt
-cat variant_summary_2025-02.txt | php $src/Install/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2025-02.bed
-apptainer exec $ngsbits BedSort -with_name -in clinvar_cnvs_2025-02.bed -out clinvar_cnvs_2025-02.bed
+wget -O - https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2025-09.txt.gz | gunzip > variant_summary_2025-09.txt
+cat variant_summary_2025-09.txt | php $src/Install/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2025-09.bed
+apptainer exec $ngsbits BedSort -with_name -in clinvar_cnvs_2025-09.bed -out clinvar_cnvs_2025-09.bed
 
 #Install HGNC - http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/
 cd $dbs
 mkdir -p HGNC
 cd HGNC
-wget -O - https://storage.googleapis.com/public-download-files/hgnc/tsv/tsv/hgnc_complete_set.txt > hgnc_complete_set.tsv
-wget -O - https://storage.googleapis.com/public-download-files/hgnc/tsv/tsv/withdrawn.txt > hgnc_withdrawn.tsv
+wget -O - https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/hgnc_complete_set_2025-09-02.tsv > hgnc_complete_set_2025-09-02.tsv
+wget -O - https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/withdrawn_2025-09-02.tsv > hgnc_withdrawn_2025-09-02.tsv
 
 #Install gnomAD (genome data) - 
 cd $dbs
@@ -271,23 +271,23 @@ wget -O human_GRCh38_no_alt_analysis_set.trf.bed https://raw.githubusercontent.c
 # cd $dbs
 # mkdir -p HGMD
 # cd HGMD
-# # manual download of files HGMD_Pro_2024.4_hg38.vcf.gz and hgmd_pro-2024.4.dump.gz from https://apps.ingenuity.com/ingsso/login
-# zcat HGMD_Pro_2024.4_hg38.vcf.gz | php $src/Install/db_converter_hgmd.php | apptainer exec $htslib bgzip > HGMD_PRO_2024_4_fixed.vcf.gz
-# apptainer exec $htslib tabix -p vcf HGMD_PRO_2024_4_fixed.vcf.gz
+# # manual download of files HGMD_Pro_2025.2_hg38.vcf.gz and hgmd_pro-2025.2.dump.gz from https://apps.ingenuity.com/ingsso/login
+# zcat HGMD_Pro_2025.2_hg38.vcf.gz | php $src/Install/db_converter_hgmd.php | apptainer exec $htslib bgzip > HGMD_PRO_2025_2_fixed.vcf.gz
+# apptainer exec $htslib tabix -p vcf HGMD_PRO_2025_2_fixed.vcf.gz
 # #CNVs
-# zcat hgmd_pro-2024.4.dump.gz | php $src/Install/db_converter_hgmd_cnvs.php > HGMD_CNVS_2024_4.bed
-# apptainer exec $ngsbits BedSort -with_name -in HGMD_CNVS_2024_4.bed -out HGMD_CNVS_2024_4.bed
+# zcat hgmd_pro-2025.2.dump.gz | php $src/Install/db_converter_hgmd_cnvs.php > HGMD_CNVS_2025_2.bed
+# apptainer exec $ngsbits BedSort -with_name -in HGMD_CNVS_2025_2.bed -out HGMD_CNVS_2025_2.bed
 
 # # when using the containerized megSAP version:
 # cd <path-to-host-data-folder>/dbs/
 # mkdir -p HGMD
 # cd HGMD
-# # manual download of files HGMD_Pro_2024.4_hg38.vcf.gz and hgmd_pro-2024.4.dump.gz from https://apps.ingenuity.com/ingsso/login
-# apptainer exec -B <path-to-host-data-folder>:/megSAP/data/data_folder/ --pwd /megSAP/data/data_folder/dbs/HGMD megSAP_[version].sif sh -c "zcat HGMD_Pro_2024.4_hg38.vcf.gz | php /megSAP/src/Install/db_converter_hgmd.php | apptainer exec $htslib bgzip > HGMD_PRO_2024_4_fixed.vcf.gz"
-# apptainer exec $htslib tabix -p vcf HGMD_PRO_2024_4_fixed.vcf.gz
+# # manual download of files HGMD_Pro_2025.2_hg38.vcf.gz and hgmd_pro-2025.2.dump.gz from https://apps.ingenuity.com/ingsso/login
+# apptainer exec -B <path-to-host-data-folder>:/megSAP/data/data_folder/ --pwd /megSAP/data/data_folder/dbs/HGMD megSAP_[version].sif sh -c "zcat HGMD_Pro_2025.2_hg38.vcf.gz | php /megSAP/src/Install/db_converter_hgmd.php | apptainer exec $htslib bgzip > HGMD_PRO_2025_2_fixed.vcf.gz"
+# apptainer exec $htslib tabix -p vcf HGMD_PRO_2025_2_fixed.vcf.gz
 # #CNVs
-# apptainer exec -B <path-to-host-data-folder>:/megSAP/data/data_folder/,<path-to-settings.ini-with-NGSD-credentials>:/megSAP/settings.ini --pwd /megSAP/data/data_folder/dbs/HGMD megSAP_[version].sif sh -c "zcat hgmd_pro-2024.4.dump.gz | php /megSAP/src/Install/db_converter_hgmd_cnvs.php > HGMD_CNVS_2024_4.bed"
-# apptainer exec <downloaded-ngs-bits-container> BedSort -with_name -in HGMD_CNVS_2024_4.bed -out HGMD_CNVS_2024_4.bed
+# apptainer exec -B <path-to-host-data-folder>:/megSAP/data/data_folder/,<path-to-settings.ini-with-NGSD-credentials>:/megSAP/settings.ini --pwd /megSAP/data/data_folder/dbs/HGMD megSAP_[version].sif sh -c "zcat hgmd_pro-2025.2.dump.gz | php /megSAP/src/Install/db_converter_hgmd_cnvs.php > HGMD_CNVS_2025_2.bed"
+# apptainer exec <downloaded-ngs-bits-container> BedSort -with_name -in HGMD_CNVS_2025_2.bed -out HGMD_CNVS_2025_2.bed
 
 
 # # install COSMIC Cancer Mutation Census CMC (you need a license)

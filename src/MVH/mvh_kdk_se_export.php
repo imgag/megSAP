@@ -11,6 +11,7 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data, $se_data_rep)
 {
 	global $db_mvh;
 	global $sub_id;
+	global $parser;
 	
 	//Teilnahmeerklärung
 	$te_present_date = xml_str($cm_data->mvconsentpresenteddate);
@@ -71,11 +72,11 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data, $se_data_rep)
 			{
 				$form[] = "\"{$key}\": \"".xml_str($bc_item->$key)."\"";
 			}
-			$tmp = temp_file(".json");
+			$tmp = $parser->tempFile(".json");
 			file_put_contents($tmp, "[\n  {},\n    {\n    ".implode(",\n    ", $form)."\n  }\n]");
 			
 			//generate consent JSON
-			$tmp2 = temp_file(".json");
+			$tmp2 = $parser->tempFile(".json");
 			$birthdate = new DateTime($se_data->birthdate);
 			exec2("java -jar /mnt/storage2/MVH/tools/mii_broad_consent_mapper/build/libs/consent-mapper-all.jar --redcap_formular {$tmp} --output {$tmp2} --date_of_birth ".$birthdate->format("m.Y"));
 			
@@ -286,6 +287,10 @@ function json_hpos($se_data, $se_data_rep)
 		
 		//convert HPO name to id
 		$hpo_id = $db_ngsd->getValue("SELECT hpo_id FROM hpo_term WHERE name LIKE '{$hpo}'", "");
+		if ($hpo_id=="") //fallback to ID (RedCap ontology handling bug that causes terms to have ID instead of name)
+		{
+			$hpo_id = $db_ngsd->getValue("SELECT hpo_id FROM hpo_term WHERE hpo_id LIKE '{$hpo}'", "");
+		}
 		if ($hpo_id=="")
 		{
 			trigger_error("Could not convert HPO name '{$hpo}' to ID using the NGSD hpo_term table!", E_USER_WARNING);
@@ -601,16 +606,20 @@ function json_ngs_report($cm_data, $se_data, $info, $results)
 function genes_overlapping($chr, $start, $end)
 {
 	global $db_ngsd;
+	global $parser;
 	
 	//determine overlapping genes
-	list($stdout) = exec2("echo '{$chr}\t".($start-1)."\t{$end}' | BedAnnotateGenes | cut -f4");
-	$tmp = trim(implode("", $stdout));
+	$tmp_file = $parser->tempFile(".bed");
+	file_put_contents($tmp_file, "{$chr}\t".($start-1)."\t{$end}");
+	list($stdout) = $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in {$tmp_file}");
+	$tmp = explode("\t", nl_trim($stdout[0]))[3];
 	
 	//no gene > extend by 5000 bases
 	if ($tmp=="")
 	{
-		list($stdout) = exec2("echo '{$chr}\t".($start-1)."\t{$end}' | BedAnnotateGenes -extend 5000 | cut -f4");
-		$tmp = trim(implode("", $stdout));
+		file_put_contents($tmp_file, "{$chr}\t".($start-5000)."\t".($end+5000));
+		list($stdout) = $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in {$tmp}");
+		$tmp = explode("\t", nl_trim($stdout[0]))[3];
 	}
 	
 	$genes = [];
@@ -630,6 +639,7 @@ function json_results($se_data, $se_data_rep, $info)
 {
 	global $var2id; //we need variant IDs to link to variants, so we store the association in a global variable
 	global $db_ngsd;
+	global $parser;
 	
 	$results = [];
 	
@@ -696,15 +706,21 @@ function json_results($se_data, $se_data_rep, $info)
 			$var_data['inheritance'] = ['code' => convert_inheritance($inheritance)];
 			
 			//cDNAChange, proteinChange
+			$tmp_file = $parser->tempFile(".bed");
 			$transcripts = []; //best transcripts of overlapping 
 			foreach($genes as $gene => $hgnc_id)
 			{
-				list($stdout) = exec2("echo '{$gene}' | GenesToTranscripts -mode best | grep '{$gene}' | cut -f2");
+				file_put_contents($tmp_file, $gene);
+				list($stdout) = $parser->execApptainer("ngs-bits", "GenesToTranscripts", "-in {$tmp_file} -mode best");
 				foreach($stdout as $line)
 				{
-					$line = trim($line);
-					if ($line=="") continue;
-					$transcripts[] = $line;
+					$line = nl_trim($line);
+					if (!starts_with($line, $gene)) continue;
+					
+					$transcript = trim(explode("\t", $line)[1]);
+					if ($transcript=="") continue;
+
+					$transcripts[] = $transcript;
 				}
 			}
 			$consequences = [];
