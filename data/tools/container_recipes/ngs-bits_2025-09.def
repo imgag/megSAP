@@ -29,6 +29,8 @@ apt-get install -y \
 	libxml2 \
 	libxml2-dev \
 	gnupg \
+	libssl-dev \
+	libdeflate-dev \
 	unzip
 	
 # MSSQL in QT
@@ -42,7 +44,7 @@ mkdir -p /opt
 cd /opt
 git clone https://github.com/imgag/ngs-bits.git
 cd ngs-bits
-git checkout 2025_07 && git submodule update --recursive --init
+git checkout 2025_09 && git submodule update --recursive --init
 make build_3rdparty
 make build_libs_release
 make build_tools_release
