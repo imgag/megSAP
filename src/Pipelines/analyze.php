@@ -189,13 +189,13 @@ if (!in_array("ma", $steps) && !file_exists($bamfile) && !file_exists($cramfile)
 {
 	if (file_exists("{$folder}/dragen/{$name}.cram"))
 	{
-		$parser->moveFile("{$folder}/dragen/{$name}.cram", $folder);
-		$parser->moveFile("{$folder}/dragen/{$name}.cram.crai", $folder);
+		$parser->moveFile("{$folder}/dragen/{$name}.cram", "{$folder}/{$name}.cram");
+		$parser->moveFile("{$folder}/dragen/{$name}.cram.crai", "{$folder}/{$name}.cram.crai");
 	}
 	else if (file_exists("{$folder}/dragen/{$name}.bam"))
 	{
-		$parser->moveFile("{$folder}/dragen/{$name}.bam", $folder);
-		$parser->moveFile("{$folder}/dragen/{$name}.bam.bai", $folder);
+		$parser->moveFile("{$folder}/dragen/{$name}.bam", "{$folder}/{$name}.bam");
+		$parser->moveFile("{$folder}/dragen/{$name}.bam.bai", "{$folder}/{$name}.bam.bai");
 	}
 	else
 	{

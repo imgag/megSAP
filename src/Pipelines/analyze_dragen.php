@@ -17,7 +17,7 @@ $parser->addString("name", "Base file name, typically the processed sample ID (e
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
 $steps_all = array("ma", "vc", "cn", "sv", "re", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, db=import into NGSD.", true, "ma,vc,cn,sv,re,db");
-$parser->addInt("threads", "The maximum number of threads used.", true, 2);
+$parser->addInt("threads", "The maximum number of threads used for later megSAP analysis.", true, 2);
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
 $parser->addFlag("no_queuing", "Do not queue megSAP analysis afterwards.");
 $parser->addFlag("mapping_only", "Only map the data and remove variant calling.");
