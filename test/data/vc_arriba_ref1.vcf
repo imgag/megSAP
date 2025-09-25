@@ -1,4 +1,5 @@
 ##fileformat=VCFv4.3
+##reference=file:///tmp/local_ngs_data_GRCh38/GRCh38.fa
 ##contig=<ID=chr1,length=248956422>
 ##contig=<ID=chr5,length=181538259>
 ##contig=<ID=chr15,length=101991189>
