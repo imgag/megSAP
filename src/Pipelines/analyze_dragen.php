@@ -21,7 +21,6 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
 $parser->addFlag("no_queuing", "Do not queue megSAP analysis afterwards.");
 $parser->addFlag("mapping_only", "Only map the data and remove variant calling.");
-$parser->addFlag("dragen_only", "Perform only DRAGEN analysis and copy all output files without renaming (not compatible with later megSAP analysis).");
 $parser->addFlag("debug", "Add debug output to the log file.");
 $parser->addFlag("high_priority", "Queue megSAP analysis with high priority.");
 $parser->addFlag("somatic", "Queue megSAP analysis with somatic flag.");
@@ -80,9 +79,6 @@ else
 {
 	trigger_error("Cannot perform DRAGEN analysis without mapping!", E_USER_ERROR);
 }
-
-//disable megSAP queuing for DRAGEN only analyses
-if ($dragen_only) $no_queuing = true;
 
 // create empty folder for analysis
 $working_dir = get_path("dragen_data")."/megSAP_working_dir/";
