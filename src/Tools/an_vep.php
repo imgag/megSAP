@@ -102,7 +102,7 @@ if (file_exists($warn_file))
 }
 
 //add consequences (Ensembl)
-$gff = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.112.gff3";
+$gff = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.115.gff3";
 $vcf_output_consequence = $parser->tempFile("_consequence.vcf");
 $parser->execApptainer("ngs-bits", "VcfAnnotateConsequence", "-in {$vep_output} -out {$vcf_output_consequence} -ref $genome -threads {$threads} -tag CSQ2 -gff {$gff}", [$gff, $genome]);
 
@@ -153,11 +153,11 @@ fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_G
 $in_files[] = annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz");
 
 // add clinVar annotation
-fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20250128_converted_GRCh38.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
-$in_files[] = annotation_file_path("/dbs/ClinVar/clinvar_20250128_converted_GRCh38.vcf.gz");
+fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20250907_converted_GRCh38.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
+$in_files[] = annotation_file_path("/dbs/ClinVar/clinvar_20250907_converted_GRCh38.vcf.gz");
 
 // add HGMD annotation
-$hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2024_4_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
+$hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2025_2_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
 if(file_exists($hgmd_file) && !$test)
 {
 	fwrite($config_file, $hgmd_file."\tHGMD\tCLASS,MUT,GENE,PHEN\tID\n");

@@ -942,7 +942,9 @@ if (in_array("fu",$steps))
 		"-out_pdf", $fusions_arriba_pdf,
 		"-out_pic_dir", $fusions_arriba_pic_dir,
 		"-build", $build,
-		"--log", $parser->getLogFile()
+		"-threads", $threads,
+		"--log", $parser->getLogFile(),
+		
 	];
 	$parser->execTool("Tools/vc_arriba.php", implode(" ", $arriba_args));
 }

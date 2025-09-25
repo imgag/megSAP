@@ -199,7 +199,7 @@ function convert_coverage($accounting_mode)
 	else if ($accounting_mode=="Beihilfe") $converage_type = "Beihilfe";
 	else if ($accounting_mode=="sonstiger Kostenträger") $converage_type = "SKT";
 	else if ($accounting_mode=="unknown") $converage_type = "UNK";
-	else trigger_error("Could not determine coverage type from GenLab accounting mode '{$accounting_mode}'!", E_USER_ERROR);
+	else trigger_error("Could not determine coverage type from case-management accounting mode '{$accounting_mode}'!", E_USER_ERROR);
 	
 	return $converage_type;
 }
@@ -259,6 +259,7 @@ function convert_diag_status($name)
 	if ($name=="Genetische Verdachtsdiagnose" || $name=="3") return "provisional";
 	if ($name=="Genetische Diagnose gesichert") return "confirmed";
 	if ($name=="klinischer Phänotyp nur partiell gelöst") return "partial";
+	if ($name=="weiterführende genetische Diagnostik empfohlen") return "unconfirmed"; //this case is not modelled by SE-DIP. This mapping was recommended by Lucien as a workaround.
 	
 	trigger_error(__FUNCTION__.": Unhandled name '{$name}'!", E_USER_ERROR);
 }
