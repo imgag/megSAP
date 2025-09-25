@@ -122,6 +122,11 @@ if (!$no_sync)
 
 $genome = genome_fasta($build);
 
+//dragen output files:
+$dragen_output_vcf = "{$folder}/dragen/{$name}.hard-filtered.vcf.gz";
+$dragen_output_sv_vcf = "{$folder}/dragen/{$name}.sv.vcf.gz";
+
+
 //output file names:
 //mapping
 $bamfile = $folder."/".$name.".bam";
@@ -174,9 +179,28 @@ if ($annotation_only)
 }
 
 // prevent accidentally re-mapping if Dragen already ran
-if (!$no_dragen && in_array("ma", $steps) && (file_exists($bamfile) || file_exists($cramfile)) && file_exists($folder."/dragen_variant_calls")) 
+if (!$no_dragen && in_array("ma", $steps) && (file_exists($bamfile) || file_exists($cramfile)) && file_exists($folder."/dragen")) 
 {
 	trigger_error("'ma' step requested, but sample is already analyzed with DRAGEN. Use '-no_dragen' if you really want to do a re-mapping!", E_USER_ERROR);
+}
+
+// move BAM/CRAM from DRAGEN folder
+if (!in_array("ma", $steps) && !file_exists($bamfile) && !file_exists($cramfile) && file_exists($folder."/dragen"))
+{
+	if (file_exists("{$folder}/dragen/{$name}.cram"))
+	{
+		$parser->moveFile("{$folder}/dragen/{$name}.cram", $folder);
+		$parser->moveFile("{$folder}/dragen/{$name}.cram.crai", $folder);
+	}
+	else if (file_exists("{$folder}/dragen/{$name}.bam"))
+	{
+		$parser->moveFile("{$folder}/dragen/{$name}.bam", $folder);
+		$parser->moveFile("{$folder}/dragen/{$name}.bam.bai", $folder);
+	}
+	else
+	{
+		trigger_error("No BAM/CRAM file found for analysis!", E_USER_ERROR);
+	}
 }
 
 //mapping
@@ -425,6 +449,10 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 		}
 	}
 }
+else
+{
+	trigger_error("No BAM/CRAM file found for analysis!", E_USER_ERROR);
+}
 
 //check gender after mapping
 if(db_is_enabled("NGSD") && $used_bam_or_cram!="" && !$no_gender_check)
@@ -466,8 +494,7 @@ if (in_array("vc", $steps))
 
 		//perform main variant calling on autosomes/genosomes
 		if(!$only_mito_in_target_region)
-		{
-			$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen.vcf.gz";
+		{			
 			if (!$no_dragen && file_exists($dragen_output_vcf))
 			{
 				trigger_error("DRAGEN analysis found in sample folder. Using this data for small variant calling. ", E_USER_NOTICE);
@@ -580,7 +607,6 @@ if (in_array("vc", $steps))
 		if ($mito)
 		{
 			$vcffile_mito = $parser->tempFile("_mito.vcf.gz");
-			$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen.vcf.gz";
 			if (!$no_dragen && file_exists($dragen_output_vcf) && contains_mito($dragen_output_vcf))
 			{
 				trigger_error("DRAGEN analysis found in sample folder. Using this data for mito small variant calling. ", E_USER_NOTICE);
@@ -1022,8 +1048,8 @@ if (in_array("sv", $steps))
 	// skip SV calling if only annotation should be done	
 	if (!$annotation_only)
 	{
-		$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz";
-		if (!$no_dragen && file_exists($dragen_output_vcf))
+		
+		if (!$no_dragen && file_exists($dragen_output_sv_vcf))
 		{
 			trigger_error("DRAGEN analysis found in sample folder. Using this data for structural variant calling. ", E_USER_NOTICE);
 					
@@ -1031,8 +1057,8 @@ if (in_array("sv", $steps))
 			$vcf_inv_corrected = $parser->tempFile("_sv_inv_corrected.vcf");
 			$inv_script = repository_basedir()."/src/Tools/convertInversion.py";
 			$vc_manta_command = "python2 ".$inv_script;
-			$vc_manta_parameters = "/usr/bin/samtools {$genome} {$dragen_output_vcf} dragen > {$vcf_inv_corrected}";
-			$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, [$genome, $inv_script], [dirname($dragen_output_vcf)]);
+			$vc_manta_parameters = "/usr/bin/samtools {$genome} {$dragen_output_sv_vcf} dragen > {$vcf_inv_corrected}";
+			$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, [$genome, $inv_script, $dragen_output_sv_vcf]);
 
 			// fix VCF file (remove variants with empty "REF" entry and duplicates)
 			$vcf_fixed = $parser->tempFile("_sv_fixed.vcf");

@@ -219,7 +219,7 @@ foreach($bams as $bam)
 {
 	$folder = dirname($bam);
 	$ps = basename2($bam);
-	$gvcf = "{$folder}/dragen_variant_calls/{$ps}_dragen.gvcf.gz";
+	$gvcf = "{$folder}/dragen/{$ps}.hard-filtered.gvcf.gz";
 	if (file_exists($gvcf)) $gvcfs[] = $gvcf;
 }
 $dragen_gvcfs_exist = count($gvcfs)==count($bams);

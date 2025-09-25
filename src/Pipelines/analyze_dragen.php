@@ -155,13 +155,13 @@ if (count($files_forward) == 0)
 }
 
 //define output files
-$out_cram = $folder."/".$name.".cram";
-$dragen_out_folder = $folder."/dragen_variant_calls/";
-$out_vcf = $dragen_out_folder."/".$name."_dragen.vcf.gz";
-$out_gvcf = $dragen_out_folder."/".$name."_dragen.gvcf.gz";
-$out_sv = $dragen_out_folder."/".$name."_dragen_svs.vcf.gz";
-$out_cnv = $dragen_out_folder."/".$name."_dragen_cnvs.vcf.gz";
-$out_cnv_raw = $dragen_out_folder."/".$name."_dragen_cnvs.bw";
+// $out_cram = $folder."/".$name.".cram";
+$dragen_out_folder = $folder."/dragen/";
+// $out_vcf = $dragen_out_folder."/".$name."_dragen.vcf.gz";
+// $out_gvcf = $dragen_out_folder."/".$name."_dragen.gvcf.gz";
+// $out_sv = $dragen_out_folder."/".$name."_dragen_svs.vcf.gz";
+// $out_cnv = $dragen_out_folder."/".$name."_dragen_cnvs.vcf.gz";
+// $out_cnv_raw = $dragen_out_folder."/".$name."_dragen_cnvs.bw";
 
 //check if input files are readable and output file is writeable
 foreach ($files_forward as $in_file) 
@@ -173,12 +173,12 @@ foreach ($files_reverse as $in_file)
 	if (!is_readable($in_file)) trigger_error("Input file '{$in_file}' is not readable!", E_USER_ERROR);
 }
 $parser->exec("mkdir", "-p {$dragen_out_folder}");
-if (!is_writable2($out_cram)) trigger_error("Output file '{$out_cram}' is not writable!", E_USER_ERROR);
-if (!is_writable2($out_vcf)) trigger_error("Output file '{$out_vcf}' is not writable!", E_USER_ERROR);
-if (!is_writable2($out_gvcf)) trigger_error("Output file '{$out_gvcf}' is not writable!", E_USER_ERROR);
-if (!is_writable2($out_sv)) trigger_error("Output file '{$out_sv}' is not writable!", E_USER_ERROR);
-if (!is_writable2($out_cnv)) trigger_error("Output file '{$out_cnv}' is not writable!", E_USER_ERROR);
-if (!is_writable2($out_cnv_raw)) trigger_error("Output file '{$out_cnv_raw}' is not writable!", E_USER_ERROR);
+// if (!is_writable2($out_cram)) trigger_error("Output file '{$out_cram}' is not writable!", E_USER_ERROR);
+// if (!is_writable2($out_vcf)) trigger_error("Output file '{$out_vcf}' is not writable!", E_USER_ERROR);
+// if (!is_writable2($out_gvcf)) trigger_error("Output file '{$out_gvcf}' is not writable!", E_USER_ERROR);
+// if (!is_writable2($out_sv)) trigger_error("Output file '{$out_sv}' is not writable!", E_USER_ERROR);
+// if (!is_writable2($out_cnv)) trigger_error("Output file '{$out_cnv}' is not writable!", E_USER_ERROR);
+// if (!is_writable2($out_cnv_raw)) trigger_error("Output file '{$out_cnv_raw}' is not writable!", E_USER_ERROR);
 
 
 // ********************************* call dragen *********************************//
@@ -360,6 +360,16 @@ foreach (glob("{$working_dir}/{$name}_BamToFastq_R?_00?.fastq.gz") as $tmp_fastq
 
 // ********************************* copy data to Sample folder *********************************//
 
+$parser->log("Copying complete DRAGEN folder to output...");
+//remove already existing output folder
+if (file_exists($dragen_out_folder)) 
+{
+	$parser->exec("rm", "-rf $dragen_out_folder");
+	mkdir($dragen_out_folder);
+}
+$parser->exec("cp", "-rf {$working_dir}/* {$dragen_out_folder}");
+
+/*
 if ($dragen_only)
 {
 	$parser->log("Copying complete DRAGEN folder to output...");
@@ -405,6 +415,7 @@ else
 	}
 
 }
+*/
 
 // ********************************* cleanup *********************************//
 

@@ -54,15 +54,15 @@ clean2:
 	rm -rf *.vcf.gz *.vcf.gz.tbi *.cram *.crai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe manta_evid repeat_expansions *_bafs.igv *_circos.png *_mosaic_cnvs.tsv *_repeats_expansionhunter.json *_repeats_expansionhunter.vcf *_rohs.tsv *_ancestry.tsv dragen_variant_calls
 
 link2: 
-	php ../link_test_data.php NA12878_17.cram . -copy
-	php ../link_test_data.php NA12878_17.cram.crai . -copy
-	mkdir -p dragen_variant_calls
-	php ../link_test_data.php NA12878_17_dragen.vcf.gz dragen_variant_calls -copy
-	php ../link_test_data.php NA12878_17_dragen.vcf.gz.tbi dragen_variant_calls -copy
-	php ../link_test_data.php NA12878_17_dragen_svs.vcf.gz dragen_variant_calls -copy
-	php ../link_test_data.php NA12878_17_dragen_svs.vcf.gz.tbi dragen_variant_calls -copy
-	php ../link_test_data.php NA12878_17_dragen.gvcf.gz dragen_variant_calls -copy
-	php ../link_test_data.php NA12878_17_dragen.gvcf.gz.tbi dragen_variant_calls -copy
+	mkdir -p dragen
+	php ../link_test_data.php NA12878_17.cram dragen -copy
+	php ../link_test_data.php NA12878_17.cram.crai dragen -copy
+	php ../link_test_data.php NA12878_17.hard-filtered.vcf.gz dragen -copy
+	php ../link_test_data.php NA12878_17.hard-filtered.vcf.gz.tbi dragen -copy
+	php ../link_test_data.php NA12878_17.sv.vcf.gz dragen -copy
+	php ../link_test_data.php NA12878_17.sv.vcf.gz.tbi dragen -copy
+	php ../link_test_data.php NA12878_17.hard-filtered.gvcf.gz dragen -copy
+	php ../link_test_data.php NA12878_17.hard-filtered.gvcf.gz.tbi dragen -copy
 
 dragen_analysis:
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps vc,cn,sv,re -threads 5

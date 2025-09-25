@@ -633,9 +633,6 @@ foreach($sample_data as $sample => $sample_infos)
 				trigger_error("ERROR: Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found in {$fastq_folder}: ".count($fastq_files).")", E_USER_ERROR);
 			}
 
-			$move_cmd = "mv ".($overwrite ? "-f " : "");
-
-
 			//check & copy analyzed data
 			if ($nsx_analysis_done && !$merge_sample)
 			{
@@ -697,16 +694,21 @@ foreach($sample_data as $sample => $sample_infos)
 
 
 				//*********************** copy analyzed data *********************************************
-				$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}/dragen_variant_calls";
+				$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}/dragen";
 				//copy logs
-				$target_to_copylines[$tag][] = "\tcp -r {$log_folder} {$project_folder}Sample_{$sample}/dragen_variant_calls/";
+				$target_to_copylines[$tag][] = "\tcp -r ".($overwrite ? "-f " : "")."{$log_folder} {$project_folder}Sample_{$sample}/dragen/";
+
+				//copy analzed data to dragen folder
+				$target_to_copylines[$tag][] = "\tcp -r ".($overwrite ? "-f " : "")."{$source_folder}/* {$project_folder}Sample_{$sample}/dragen/";
 
 				//touch all indices (to prevent warnings)
-				$target_to_copylines[$tag][] = "\ttouch {$source_folder}/*.bai";
-				$target_to_copylines[$tag][] = "\ttouch {$source_folder}/*.crai";
-				$target_to_copylines[$tag][] = "\ttouch {$source_folder}/*.tbi";
-				$target_to_copylines[$tag][] = "\ttouch {$source_folder}/*.csi";
+				$target_to_copylines[$tag][] = "\ttouch {$project_folder}Sample_{$sample}/dragen/*.bai";
+				$target_to_copylines[$tag][] = "\ttouch {$project_folder}Sample_{$sample}/dragen/*.crai";
+				$target_to_copylines[$tag][] = "\ttouch {$project_folder}Sample_{$sample}/dragen/*.tbi";
+				$target_to_copylines[$tag][] = "\ttouch {$project_folder}Sample_{$sample}/dragen/*.csi";
 
+				/*
+				$move_cmd = "mv ".($overwrite ? "-f " : "");
 				//move BAM
 				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_mapping_file} {$project_folder}Sample_{$sample}/";
 				if (file_exists($source_mapping_file.".bai"))
@@ -734,6 +736,7 @@ foreach($sample_data as $sample => $sample_infos)
 						$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_cnv_vcf_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen_cnv.vcf.gz";
 					}
 				}
+				*/
 			}
 			
 
