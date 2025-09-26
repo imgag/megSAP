@@ -102,7 +102,7 @@ if (file_exists($warn_file))
 }
 
 //add consequences (Ensembl)
-$gff = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.112.gff3";
+$gff = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.115.gff3";
 $vcf_output_consequence = $parser->tempFile("_consequence.vcf");
 $parser->execApptainer("ngs-bits", "VcfAnnotateConsequence", "-in {$vep_output} -out {$vcf_output_consequence} -ref $genome -threads {$threads} -tag CSQ2 -gff {$gff}", [$gff, $genome]);
 

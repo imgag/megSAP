@@ -15,9 +15,6 @@ $parser->addString("name", "Name used for the genome. ", true, "Human (hg38) mas
 $parser->addString("id", "ID used for the genome. ", true, "hg38_ensembl_masked");
 extract($parser->parse($argv));
 
-//init
-$data_folder = get_path("data_folder");
-
 //create output folder
 if (!file_exists($output_folder))
 {
@@ -30,8 +27,8 @@ $parser->copyFile($genome_fasta, $output_folder."/".$build.".fa");
 $parser->copyFile($genome_fasta.".fai", $output_folder."/".$build.".fa.fai");
 
 //copy from data folder
-$parser->copyFile("{$data_folder}/igv/cytoBandIdeo.txt.gz", "{$output_folder}/cytoBandIdeo.txt.gz");
-$parser->copyFile("{$data_folder}/igv/hg38_alias.tab", "{$output_folder}/hg38_alias.tab");
+$parser->copyFile(repository_basedir()."/data/igv/cytoBandIdeo.txt.gz", "{$output_folder}/cytoBandIdeo.txt.gz");
+$parser->copyFile(repository_basedir()."/data/igv/hg38_alias.tab", "{$output_folder}/hg38_alias.tab");
 
 //export gene track
 print "Export Ensembl gene track from NGSD ...\n";

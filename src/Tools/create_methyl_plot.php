@@ -22,7 +22,7 @@ extract($parser->parse($argv));
 
 $ref_genome = genome_fasta($build);
 exec2("mkdir -p {$folder}/methylartist");
-$gtf = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.112.gtf.gz";
+$gtf = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.115.gtf.gz";
 $cram_input = false;
 
 if ($local_bam != "")
