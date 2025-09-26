@@ -90,7 +90,7 @@ If you want to use the NGSD and it is not initialized already, perform the follo
 	> NGSDImportOMIM --help  
 	> NGSDImportORPHA --help  
 
-**Note:** To call ngs-bits tools, you have to call the apptainer container like that `apptainer exec data/tools/apptainer_container/ngs-bits_[version].sif [tool] [parameters]`.
+**Note:** To call ngs-bits tools, you have to call the apptainer container like that `singularity exec data/tools/apptainer_container/ngs-bits_[version].sif [tool] [parameters]`.
 
 **Note:** To annotate variants with NGSD in-house counts, classifications, etc., NGSD data has to be exported regularly. To do so, adapt the file `data\dbs\NGSD\Makefile` and execute `make export` once a week using a cronjob.
 
