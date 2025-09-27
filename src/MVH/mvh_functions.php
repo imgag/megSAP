@@ -4,6 +4,10 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
+// REDCAP API URL
+// Change this to match your local RedCap installation
+const REDCAP_API_URL = 'https://redcap.extern.medizin.uni-tuebingen.de/api/';
+
 ################# data from different sources #################
 
 //returns case management data as an XML object
@@ -101,7 +105,7 @@ function get_raw_value($record_id, $field)
 		'returnFormat' => 'csv'
 	);
 	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, 'https://redcap.extern.medizin.uni-tuebingen.de/api/');
+	curl_setopt($ch, CURLOPT_URL, REDCAP_API_URL);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 	curl_setopt($ch, CURLOPT_VERBOSE, 0);
@@ -148,7 +152,7 @@ function add_submission_to_redcap($record_id, $data_type, $tan)
 		'data' => $xml,
 	);
 	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, 'https://redcap.extern.medizin.uni-tuebingen.de/api/');
+	curl_setopt($ch, CURLOPT_URL, REDCAP_API_URL);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 	curl_setopt($ch, CURLOPT_VERBOSE, 0);
