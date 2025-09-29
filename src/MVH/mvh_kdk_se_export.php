@@ -164,6 +164,9 @@ function json_diagnoses($se_data, $se_data_rep)
 	$icd10_ver = xml_str($se_data->diag_icd10_ver);
 	if ($icd10!="")
 	{
+		//TODO remove workarounds when KDK has found out why the sub-terms are missing
+		if (starts_with($icd10, "F70.") || starts_with($icd10, "F79.")) $icd10 = substr($icd10,0, 3);
+		
 		$codes[] = [
 			"code" => get_raw_value($se_data->psn, "diag_icd10"),
 			"display" => $icd10,
