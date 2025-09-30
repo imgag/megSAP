@@ -5,8 +5,8 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 $parser = new ToolBase("20250930_rename_dragen_files", "Rename DRAGEN output files back to Illumina schema.");
-$parser->addString("ps", "Processed sample name.", true, "");
-$parser->addString("folder", "Processed sample folder.", true, "");
+$parser->addString("ps", "Processed sample name.", false);
+$parser->addString("folder", "Processed sample folder.", false);
 extract($parser->parse($argv));
 
 //rename DRAGEN folder
