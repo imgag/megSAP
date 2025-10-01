@@ -349,7 +349,7 @@ if (in_array("ma", $steps))
 		}
 	}
 }
-else if (file_exists($bamfile) || file_exists($cramfile))
+else if ($bam_or_cram_exists)
 {	
 	//set BAM/CRAM to use
 	$used_bam_or_cram = file_exists($bamfile) ? $bamfile : $cramfile;
