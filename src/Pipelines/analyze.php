@@ -189,7 +189,7 @@ if (in_array("ma", $steps) && !$no_dragen && file_exists($dragen_folder) && ($ba
 }
 
 //move BAM/CRAM from DRAGEN folder to sample folder (on first analysis)
-if (!in_array("ma", $steps) && !$no_dragen && !$bam_or_cram_exists && file_exists(dragen_folder))
+if (!in_array("ma", $steps) && !$no_dragen && !$bam_or_cram_exists && file_exists($dragen_folder))
 {
 	if (file_exists($dragen_cram))
 	{
