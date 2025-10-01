@@ -122,15 +122,19 @@ if (!$no_sync)
 
 $genome = genome_fasta($build);
 
-//dragen output files:
-$dragen_output_vcf = "{$folder}/dragen/{$name}.hard-filtered.vcf.gz";
-$dragen_output_sv_vcf = "{$folder}/dragen/{$name}.sv.vcf.gz";
-
+//dragen files
+$dragen_folder = "{$folder}/dragen/";
+$dragen_bam = "{$dragen_folder}/{$name}.bam";
+$dragen_cram = "{$dragen_folder}/{$name}.cram";
+$dragen_bam_or_cram_exists = file_exists($dragen_bam) || file_exists($dragen_cram);
+$dragen_output_vcf = "{$dragen_folder}/{$name}.hard-filtered.vcf.gz";
+$dragen_output_sv_vcf = "{$dragen_folder}/{$name}.sv.vcf.gz";
 
 //output file names:
 //mapping
 $bamfile = $folder."/".$name.".bam";
 $cramfile = $folder."/".$name.".cram";
+$bam_or_cram_exists = file_exists($bamfile) || file_exists($cramfile);
 $used_bam_or_cram = ""; //BAM/CRAM file used for calling etc. This is a local tmp file if mapping was done and a file in the output folder if no mapping was done
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
 $somatic_custom_panel = get_path("data_folder") . "/enrichment/somatic_VirtualPanel_v5.bed";
@@ -178,28 +182,28 @@ if ($annotation_only)
 	} 
 }
 
-// prevent accidentally re-mapping if Dragen already ran
-if (!$no_dragen && in_array("ma", $steps) && (file_exists($bamfile) || file_exists($cramfile)) && file_exists($folder."/dragen")) 
+//prevent accidentally re-mapping if DRAGEN already ran
+if (in_array("ma", $steps) && !$no_dragen && file_exists($dragen_folder) && ($bam_or_cram_exists || $dragen_bam_or_cram_exists)) 
 {
 	trigger_error("'ma' step requested, but sample is already analyzed with DRAGEN. Use '-no_dragen' if you really want to do a re-mapping!", E_USER_ERROR);
 }
 
-// move BAM/CRAM from DRAGEN folder
-if (!in_array("ma", $steps) && !file_exists($bamfile) && !file_exists($cramfile) && file_exists($folder."/dragen"))
+//move BAM/CRAM from DRAGEN folder to sample folder (on first analysis)
+if (!in_array("ma", $steps) && !$bam_or_cram_exists && file_exists(dragen_folder))
 {
-	if (file_exists("{$folder}/dragen/{$name}.cram"))
+	if (file_exists($dragen_cram))
 	{
-		$parser->moveFile("{$folder}/dragen/{$name}.cram", "{$folder}/{$name}.cram");
-		$parser->moveFile("{$folder}/dragen/{$name}.cram.crai", "{$folder}/{$name}.cram.crai");
+		$parser->moveFile($dragen_cram, $cramfile);
+		$parser->moveFile($dragen_cram.".crai", $cramfile.".crai");
 	}
-	else if (file_exists("{$folder}/dragen/{$name}.bam"))
+	else if (file_exists($dragen_bam))
 	{
-		$parser->moveFile("{$folder}/dragen/{$name}.bam", "{$folder}/{$name}.bam");
-		$parser->moveFile("{$folder}/dragen/{$name}.bam.bai", "{$folder}/{$name}.bam.bai");
+		$parser->moveFile($dragen_bam, $bamfile);
+		$parser->moveFile($dragen_bam.".bai", $bamfile.".bai");
 	}
 	else
 	{
-		trigger_error("No BAM/CRAM file found for analysis!", E_USER_ERROR);
+		trigger_error("Anaylsis without mapping requested, but no BAM/CRAM file found in {$dragen_folder}", E_USER_ERROR);
 	}
 }
 
