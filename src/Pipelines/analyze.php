@@ -189,7 +189,7 @@ if (in_array("ma", $steps) && !$no_dragen && file_exists($dragen_folder) && ($ba
 }
 
 //move BAM/CRAM from DRAGEN folder to sample folder (on first analysis)
-if (!in_array("ma", $steps) && !$bam_or_cram_exists && file_exists(dragen_folder))
+if (!in_array("ma", $steps) && !$no_dragen && !$bam_or_cram_exists && file_exists(dragen_folder))
 {
 	if (file_exists($dragen_cram))
 	{
@@ -205,6 +205,8 @@ if (!in_array("ma", $steps) && !$bam_or_cram_exists && file_exists(dragen_folder
 	{
 		trigger_error("Anaylsis without mapping requested, but no BAM/CRAM file found in {$dragen_folder}", E_USER_ERROR);
 	}
+	
+	$dragen_bam_or_cram_exists = true;
 }
 
 //mapping
