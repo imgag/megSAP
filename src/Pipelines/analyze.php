@@ -206,7 +206,7 @@ if (!in_array("ma", $steps) && !$no_dragen && !$bam_or_cram_exists && file_exist
 		trigger_error("Anaylsis without mapping requested, but no BAM/CRAM file found in {$dragen_folder}", E_USER_ERROR);
 	}
 	
-	$dragen_bam_or_cram_exists = true;
+	$bam_or_cram_exists = true;
 }
 
 //mapping
