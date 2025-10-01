@@ -826,16 +826,16 @@ if(in_array("cn",$steps))
 		"-bed", $target_bed,
 		"-baf_folder", $baf_folder,
 		"-cohort_folder", $cohort_folder,
-		"-threads {$threads}"
 		];
 		
 		if ($sys["type"] != "WGS" && $sys["type"] != "WGS (shallow)")
 		{
-			$args[] = "-bed_off {$off_target_bed}";
-			$args[] = "-t_cov_off {$t_cov_off_target}";
-			$args[] = "-n_cov_off {$n_cov_off_target}";
-			$args[] = "-cov_folder_t_off {$ref_folder_t_off_target}";
-			$args[] = "-cov_folder_n_off {$ref_folder_n_off_target}";
+			$args_clincnv[] = "-bed_off {$off_target_bed}";
+			$args_clincnv[] = "-t_cov_off {$t_cov_off_target}";
+			$args_clincnv[] = "-n_cov_off {$n_cov_off_target}";
+			$args_clincnv[] = "-cov_folder_t_off {$ref_folder_t_off_target}";
+			$args_clincnv[] = "-cov_folder_n_off {$ref_folder_n_off_target}";
+			$args_clincnv[] = "-threads {$threads}";
 		}
 
 		if($sys['type'] == "WES")
@@ -851,6 +851,8 @@ if(in_array("cn",$steps))
 			$args_clincnv[] = "-scoreS 1500";
 			$args_clincnv[] = "-filterStep 2";
 			$args_clincnv[] = "-clonePenalty 10000";
+			//for WGS samples use at max 2 threads as it uses a lot of RAM
+			$args_clincnv[] = "-threads ".min(2, $threads);
 		}
 		
 		if(isset($cnv_baseline_pos))
