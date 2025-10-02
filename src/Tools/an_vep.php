@@ -125,9 +125,10 @@ $vcf_output_mes = $parser->tempFile("_mes.vcf");
 $in_files = [$gff, $genome];
 $parser->execApptainer("ngs-bits", "VcfAnnotateMaxEntScan", "-gff {$gff} -in {$vcf_output_phylop} -out {$vcf_output_mes} -ref $genome -swa -threads {$threads} -min_score 0.0 -decimals 1", [$gff, $genome]);
 
-// create config file
+// create config file for VcfAnnotateFromVcf
 $config_file_path = $parser->tempFile(".config");
 $config_file = fopen2($config_file_path, 'w');
+$in_files = array();
 
 //custom annotation using VcfAnnotateFromVcf
 if ($custom!="")
@@ -139,12 +140,10 @@ if ($custom!="")
 		{
 			list($vcf, $col, $desc) = explode(";", $tmp, 3);
 			fwrite($config_file, "{$vcf}\tCUSTOM\t{$col}\t\n");
+			$in_files[] = $vcf;
 		}
 	}
 }
-
-// input files for VcfAnnotateFromVcf
-$in_files = array();
 
 // add gnomAD annotation
 fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz")."\tgnomADg\tAC,AF,Hom,Hemi,Het,Wt,AFR_AF,AMR_AF,EAS_AF,NFE_AF,SAS_AF\t\ttrue\n");
