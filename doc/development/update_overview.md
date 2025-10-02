@@ -26,10 +26,10 @@
 
 |database               |used for                |last update/check               |notes                                                                                                                           |url                                                                     |
 |-----------------------|------------------------|--------------------------------|--------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-|CancerHotspots         |pipeline (somatic)      |08.2024                         |version is final and does not change                                                                                            |https://www.cancerhotspots.org                                          |
-|NCG7.1                 |pipeline (somatic)      |08.2024 (v7.1)                  |manually update data/gene_lists/somatic_tmb_tsg.bed if NCG file changes                                                         |http://ncg.kcl.ac.uk/                                                   |
+|CancerHotspots         |pipeline (somatic)      |10.2025                         |version is final and does not change                                                                                            |https://www.cancerhotspots.org                                          |
+|NCG7.2                 |pipeline (somatic)      |10.2025 (v7.2)                  |manually update data/gene_lists/somatic_tmb_tsg.bed if NCG file changes                                                         |http://ncg.kcl.ac.uk/                                                   |
 |COSMIC CMC             |pipeline (somatic)      |08.2024 (v99)                   |                                                                                                                                |https://cancer.sanger.ac.uk/cmc                                         |
-|Human Protein Atlas    |pipeline (somatic)      |08.2024 (v23)                   |                                                                                                                                |https://www.proteinatlas.org/about/download                             |
+|Human Protein Atlas    |pipeline (somatic)      |10.2025 (v24)                   |                                                                                                                                |https://www.proteinatlas.org/about/download                             |
 
 ## Databases for RNA pipelines
 

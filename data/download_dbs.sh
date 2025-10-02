@@ -75,10 +75,10 @@ singularity exec $ngsbits BedSort -in dosage_sensitive_disease_genes_GRCh38.bed 
 
 #Install NCG7.1 - information about oncogenes and tumor suppressor genes
 cd $dbs
-mkdir -p NCG7.1
-cd NCG7.1
+mkdir -p NCG7.2
+cd NCG7.2
 curl 'http://network-cancer-genes.org/download.php' --silent -X POST --data-raw 'downloadcancergenes=Download' | sed -e "1s/^/#/" > ncg.tsv
-php $src/Install/db_converter_ncg.php -in ncg.tsv -prefix NCG7.1 -outfolder "."
+php $src/Install/db_converter_ncg.php -in ncg.tsv -prefix NCG7.2 -outfolder "."
 
 #Install REPEATMASKER - http://www.repeatmasker.org/species/hg.html
 cd $dbs
@@ -189,11 +189,12 @@ wget https://megsap.de/download/SpliceAI/spliceai_scores_2024_08_26_GRCh38.vcf.g
 singularity exec $htslib tabix -C -m 9 -p vcf spliceai_scores_2024_08_26_GRCh38.vcf.gz
 
 #download reference data for gene expression
+#Human Protein Atlas HPA
 cd $dbs
 mkdir -p gene_expression
 cd gene_expression
 #change version number on update
-wget -O - https://www.proteinatlas.org/download/tsv/rna_tissue_consensus.tsv.zip | gunzip > rna_tissue_consensus_v23.tsv
+wget -O - https://www.proteinatlas.org/download/tsv/rna_tissue_consensus.tsv.zip | gunzip > rna_tissue_consensus_v24.tsv
 
 #download Ensembl data in GTF format - KEEP AT ENSEMBL VERSION 107, DB import for RNA works on Transcript base and will break if the transcripts change.
 cd $dbs
