@@ -71,7 +71,7 @@ if ($no_splice) $args[] = "-no_splice";
 $parser->execTool("Tools/an_vep.php", implode(" ", $args));
 
 //annotate COSMIC
-$cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export_v99.vcf.gz";
+$cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export_v102.vcf.gz";
 if(file_exists($cosmic_cmc) && $somatic)
 {
 	$temp_annfile = temp_file(".vcf","cosmic_cmc_an_");

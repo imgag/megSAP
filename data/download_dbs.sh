@@ -293,15 +293,15 @@ wget -O human_GRCh38_no_alt_analysis_set.trf.bed https://raw.githubusercontent.c
 # # install COSMIC Cancer Mutation Census CMC (you need a license)
 # cd $dbs
 # mkdir -p COSMIC
+# # manual download of CancerMutationCensus_AllData_Tsv_v102_GRCh37.tar, Cosmic_GenomeScreensMutant_Vcf_v102_GRCh38.tar, Cosmic_CompleteTargetedScreensMutant_Vcf_v102_GRCh38.tar and Cosmic_NonCodingVariants_Vcf_v102_GRCh38.tar from https://apps.ingenuity.com/ingsso/login
 # cd COSMIC
-# # manual download of CancerMutationCensus_AllData_Tsv_v99_GRCh38.tar, Cosmic_GenomeScreensMutant_Vcf_v99_GRCh38.tar, Cosmic_CompleteTargetedScreensMutant_Vcf_v99_GRCh38.tar and Cosmic_NonCodingVariants_Vcf_v99_GRCh38.tar from https://apps.ingenuity.com/ingsso/login
 # ls *.tar | xargs -l1 tar -xf 
-# gunzip -c CancerMutationCensus_AllData_v99_GRCh38.tsv.gz | php $src/Install/db_converter_cosmic.php -in_genome_vcf Cosmic_GenomeScreensMutant_v99_GRCh38.vcf.gz -in_non_coding_vcf Cosmic_NonCodingVariants_v99_GRCh38.vcf.gz -in_target_screens_vcf Cosmic_CompleteTargetedScreensMutant_v99_GRCh38.vcf.gz -out cmc_export_v99.vcf.gz
+# gunzip -c CancerMutationCensus_AllData_v102_GRCh37.tsv.gz | php $src/Install/db_converter_cosmic.php -in_genome_vcf Cosmic_GenomeScreensMutant_v102_GRCh38.vcf.gz -in_non_coding_vcf Cosmic_NonCodingVariants_v102_GRCh38.vcf.gz -in_target_screens_vcf Cosmic_CompleteTargetedScreensMutant_v102_GRCh38.vcf.gz -out cmc_export_v102.vcf.gz
 
 # # when using the containerized megSAP version:
 # cd <path-to-host-data-folder>/dbs/
 # mkdir -p COSMIC
 # cd COSMIC
-# # manual download of CancerMutationCensus_AllData_Tsv_v99_GRCh38.tar, Cosmic_GenomeScreensMutant_Vcf_v99_GRCh38.tar, Cosmic_CompleteTargetedScreensMutant_Vcf_v99_GRCh38.tar and Cosmic_NonCodingVariants_Vcf_v99_GRCh38.tar from https://apps.ingenuity.com/ingsso/login
+# # manual download of CancerMutationCensus_AllData_Tsv_v102_GRCh37.tar, Cosmic_GenomeScreensMutant_Vcf_v102_GRCh38.tar, Cosmic_CompleteTargetedScreensMutant_Vcf_v102_GRCh38.tar and Cosmic_NonCodingVariants_Vcf_v102_GRCh38.tar from https://apps.ingenuity.com/ingsso/login
 # ls *.tar | xargs -l1 tar -xf 
-#singularity exec -B <path-to-host-data-folder>:/megSAP/data/data_folder/ --pwd /megSAP/data/data_folder/dbs/COSMIC megSAP_[version].sif sh -c "gunzip -c CancerMutationCensus_AllData_v99_GRCh38.tsv.gz | php /megSAP/src/Install/db_converter_cosmic.php -in_genome_vcf Cosmic_GenomeScreensMutant_v99_GRCh38.vcf.gz -in_non_coding_vcf Cosmic_NonCodingVariants_v99_GRCh38.vcf.gz -in_target_screens_vcf Cosmic_CompleteTargetedScreensMutant_v99_GRCh38.vcf.gz -out cmc_export_v99.vcf.gz"
+#singularity exec -B <path-to-host-data-folder>:/megSAP/data/data_folder/ --pwd /megSAP/data/data_folder/dbs/COSMIC megSAP_[version].sif sh -c "gunzip -c CancerMutationCensus_AllData_v102_GRCh37.tsv.gz | php /megSAP/src/Install/db_converter_cosmic.php -in_genome_vcf Cosmic_GenomeScreensMutant_v102_GRCh38.vcf.gz -in_non_coding_vcf Cosmic_NonCodingVariants_v102_GRCh38.vcf.gz -in_target_screens_vcf Cosmic_CompleteTargetedScreensMutant_v102_GRCh38.vcf.gz -out cmc_export_v102.vcf.gz"
