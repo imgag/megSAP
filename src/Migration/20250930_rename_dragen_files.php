@@ -26,6 +26,7 @@ else
 }
 
 //rename files inside DRAGEN folder
+$unexpected = [];
 list($stdout) = exec2("ls {$folder}/dragen/");
 foreach($stdout as $file)
 {
@@ -87,13 +88,27 @@ foreach($stdout as $file)
 	{
 		exec2("mv {$filepath} {$base}.sv.vcf.gz.tbi");
 	}
-	
-	//unexpected file > abort
-	else
+	else if ($file=="{$ps}_svs.vcf.gz")
 	{
-		print "UNEXPECTED: {$filepath}\n";
-		die(1);
+		exec2("mv {$filepath} {$base}.sv.vcf.gz");
+	}
+	else if ($file=="{$ps}_svs.vcf.gz.tbi")
+	{
+		exec2("mv {$filepath} {$base}.sv.vcf.gz.tbi");
+	}
+	
+	//unexpected file
+	else if (!contains($filepath, "+origin_files") && !contains($filepath, ".hard-filtered.") && !contains($filepath, ".sv.vcf.gz"))
+	{
+		$unexpected[] = $filepath;
 	}
 }
+
+if (count($unexpected)>0)
+{
+		print "UNEXPECTED: ".implode(", ", $unexpected)."\n";
+		die(1);
+}
+
 
 ?>
