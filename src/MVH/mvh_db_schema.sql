@@ -25,6 +25,7 @@ CREATE TABLE `submission_grz` (
   `date` date NOT NULL,
   `type` enum('test','initial','followup','addition','correction') NOT NULL,
   `tang` varchar(64) NOT NULL,
+  `pseudog` varchar(64) NOT NULL DEFAULT '',
   `status` enum('pending','done','failed') NOT NULL,
   `submission_id` text DEFAULT NULL,
   `submission_output` text DEFAULT NULL
@@ -40,6 +41,7 @@ CREATE TABLE `submission_kdk_se` (
   `date` date NOT NULL,
   `type` enum('test','initial','followup','addition','correction') NOT NULL,
   `tank` varchar(64) NOT NULL,
+  `pseudok` varchar(64) NOT NULL DEFAULT '',
   `status` enum('pending','done','failed') NOT NULL,
   `submission_id` text DEFAULT NULL,
   `submission_output` text DEFAULT NULL

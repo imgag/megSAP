@@ -313,11 +313,8 @@ else trigger_error("Unhandled network type '{$network}'!", E_USER_ERROR);
 $seq_mode = xml_str($cm_data->seq_mode);
 if ($seq_mode!="WGS" && $seq_mode!="WES") trigger_error("Unhandled seq_mode '{$seq_mode}'!", E_USER_ERROR);
 
-//get patient identifer (pseudonym from case management) - this is the ID that is used to identify submissions from the same case by GRZ/KDK
-$patient_id = xml_str($cm_data->case_id);
-if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}'!", E_USER_ERROR);
-
-print "CM ID: {$cm_id} (MVH DB id: {$id} / CM Fallnummer: {$patient_id} / seq_mode: {$seq_mode} / network: {$network})\n";
+//start export
+print "CM ID: {$cm_id} (MVH DB id: {$id} / CM Fallnummer: ".xml_str($cm_data->case_id)." / seq_mode: {$seq_mode} / network: {$network})\n";
 print "Export start: ".date('Y-m-d H:i:s')."\n";
 $time_start = microtime(true);
 
@@ -357,6 +354,8 @@ $sub_id = $sub_ids[0];
 print "ID in submission_grz table: {$sub_id}\n";
 $tan_g = $db_mvh->getValue("SELECT tang FROM submission_grz WHERE id='{$sub_id}'");
 print "TAN: {$tan_g}\n";
+$patient_id = $db_mvh->getValue("SELECT pseudog FROM submission_grz WHERE id='{$sub_id}'");
+print "patient pseudonym: {$patient_id}\n";
 
 //determine megSAP version from germline GSvar file
 $megsap_ver = megsap_version($info['ps_folder']."/{$ps}.GSvar");
