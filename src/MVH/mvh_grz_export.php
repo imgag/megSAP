@@ -191,7 +191,7 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 				"labDataName" => "DNA ".($is_tumor ? "tumor" : "normal"),
 				"tissueOntology" => [
 						"name" => "BRENDA tissue ontology",
-						"version" => "2021-10-26"
+						"version" => "2021-10-23"
 					],
 				"tissueTypeId" => convert_tissue($info["tissue"]),
 				"tissueTypeName" => $info["tissue"],
