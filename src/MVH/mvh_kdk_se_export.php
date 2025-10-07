@@ -168,6 +168,8 @@ function json_diagnoses($se_data, $se_data_rep)
 		
 		//TODO remove workarounds when KDK has found out why the sub-terms are missing
 		if (starts_with($code, "F70.") || starts_with($code, "F79.")) $code = substr($code,0, 3);
+		if (starts_with($code, "M62.5")) $code = substr($code,0, 5);
+		
 		
 		$codes[] = [
 			"code" => $code,
