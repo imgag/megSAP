@@ -84,7 +84,7 @@ php $src/Install/db_converter_ncg.php -in ncg.tsv -prefix NCG7.2 -outfolder "."
 cd $dbs
 mkdir -p RepeatMasker
 cd RepeatMasker
-wget -O - http://www.repeatmasker.org/genomes/hg38/RepeatMasker-rm405-db20140131/hg38.fa.out.gz | gunzip > hg38.fa.out
+wget -O - https://www.repeatmasker.org/genomes/hg38/rmsk4.0.5_rb20140131/hg38.fa.out.gz | gunzip > hg38.fa.out
 cat hg38.fa.out | php $src/Install/db_converter_repeatmasker.php | singularity exec $ngsbits BedSort > RepeatMasker_GRCh38.bed
 
 #Install ClinVar - https://www.ncbi.nlm.nih.gov/clinvar/
