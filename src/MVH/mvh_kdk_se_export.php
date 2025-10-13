@@ -158,6 +158,8 @@ function json_episode_of_care($se_data)
 
 function json_diagnoses($se_data, $se_data_rep)
 {
+	global $no_seq;
+	
 	//prepare codes
 	$codes = [];
 	$icd10 = xml_str($se_data->diag_icd10);
@@ -235,9 +237,6 @@ function json_diagnoses($se_data, $se_data_rep)
 			"id"=>"ID_DIAG_1",
 			"patient" => json_patient_ref(),
 			"recordedOn" => xml_str($se_data->datum_fallkonferenz),
-			"familyControlLevel" => [
-				"code" => convert_diag_recommendation(xml_str($se_data->diagnostik_empfehlung)),
-				],
 			"verificationStatus" => [
 				"code" => convert_diag_status(xml_str($se_data->bewertung_gen_diagnostik)),
 				],
@@ -245,6 +244,12 @@ function json_diagnoses($se_data, $se_data_rep)
 			//missing fields: notes
 			];
 	if ($onset_date!="") $output["onsetDate"] = $onset_date;
+	if (!$no_seq)
+	{
+		$output["familyControlLevel"] = [
+				"code" => convert_diag_recommendation(xml_str($se_data->diagnostik_empfehlung)),
+				];
+	}
 	
 	if (count($codes)!=3)
 	{
