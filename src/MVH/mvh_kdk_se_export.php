@@ -209,7 +209,8 @@ function json_diagnoses($se_data, $se_data_rep)
 			"system" => "https://www.bfarm.de/DE/Kodiersysteme/Terminologien/Alpha-ID-SE",
 		];
 	}
-	if (count($codes)==0) trigger_error("No disease code found in SE data!", E_USER_ERROR);
+	//TODO we should no longer need this, so it is commented out for now
+	//if (count($codes)==0) trigger_error("No disease code found in SE data!", E_USER_ERROR);
 	
 	//determine onset date from HPO terms
 	$onset_date = [];
@@ -884,7 +885,7 @@ $time_start = microtime(true);
 $id = $db_mvh->getValue("SELECT id FROM case_data WHERE cm_id='{$cm_id}'");
 if ($id=="") trigger_error("No case with id '{$cm_id}' in MVH database!", E_USER_ERROR);
 
-//get patient identifer (Fallnummer from CM) //TODO pseudonymize with different hashes für GRZ/KDK
+//get patient identifer (Fallnummer from CM)
 $cm_data = get_cm_data($db_mvh, $id);
 
 //start export

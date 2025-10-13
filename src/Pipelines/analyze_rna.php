@@ -535,8 +535,8 @@ if (in_array("ma", $steps))
 
 	if (isset($target_file) && $target_file != "")
 	{
-		$mappingqc_params[] = "-roi {$target_file}";
-		$in_files[] = $target_file;
+		$mappingqc_params[] = "-roi ".realpath($target_file);
+		$in_files[] = realpath($target_file);
 
 	}
 	else

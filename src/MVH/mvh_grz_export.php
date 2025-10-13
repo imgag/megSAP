@@ -611,11 +611,10 @@ $json['donors'] = [
 						],
 				]
 			],
-		"researchConsents" => [],
+		"researchConsents" => [], //TODO implement until 1.1.26: presentationDate mandatory, set 'noScoreJustification' if no consent data given
 		"labData" => $lab_data		 
 		]
 	];
-
 
 //add optional data
 if ($active_consent_count>0)
