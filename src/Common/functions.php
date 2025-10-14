@@ -913,7 +913,7 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 	}
 
 	//compose Apptainer command
-	$apptainer_command = "apptainer exec ".implode(" ", $apptainer_args)." {$container_path} {$command} {$parameters}";
+	$apptainer_command = "singularity exec ".implode(" ", $apptainer_args)." {$container_path} {$command} {$parameters}";
 
 	if ($container=="deepvariant" || $container=="deepvariant-gpu")
 	{
@@ -923,7 +923,7 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 	//if command only option is true, only the apptainer command is being returned, without execution
 	if($command_only) 
 	{
-		$apptainer_command = "apptainer -q exec ".implode(" ", $apptainer_args)." {$container_path} {$command} {$parameters}";
+		$apptainer_command = "singularity -q exec ".implode(" ", $apptainer_args)." {$container_path} {$command} {$parameters}";
 		return $apptainer_command;
 	}
 

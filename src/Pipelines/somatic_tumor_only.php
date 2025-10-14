@@ -313,6 +313,9 @@ if(in_array("cn",$steps))
 	$args[] = "--log ".$parser->getLogFile();
 	$parser->execTool("Tools/vc_clincnv_germline.php", implode(" ", $args), true);
 
+	//Annotate cytoband and data from network of cancer genes
+	$parser->execTool("Tools/an_somatic_cnvs.php","-cnv_in $som_clincnv -out $som_clincnv -include_ncg -include_cytoband");
+
 	// annotate CNV file
 	$repository_basedir = repository_basedir();
 	$data_folder = get_path("data_folder");

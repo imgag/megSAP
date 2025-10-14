@@ -17,12 +17,12 @@ This folder contains scripts that are used during installation only.
 
 ## Tools
 
-This folder contains scripts that are used in pipelines or other scripts, e.g. wrappers for BWA, freebayes, etc.
+This folder contains scripts that are used in pipelines or other scripts, e.g. wrappers for BWA, DeepVariant, etc.
 
 ## Auxilary
 
 This folder contains auxilary scripts that are not part of the pipeline.  
-They are mainly used by the developers in Tübingen.
+They are mainly used by the developers.
 
 ## IMGAG
 
@@ -30,8 +30,13 @@ This folder contains scripts that are used by the developers in Tübingen only.
 
 ## MVH
 
-This folder contains scripts used for the "Modellvorhaben Genomsequenzierung"
+This folder contains scripts used for the "Modellvorhaben Genomsequenzierung".
+
+## Migration
+
+This folder contains scrips that are used to migrate between megSAP versions.  
+All scripts are prefixed with the date, so that it is easy to find out which scripts are relevant for a migration from version X to Y.
 
 ## Deprecated
 
-This folcer contains deprecated scrips that will be removed in the next release unless we get feedback that they are still needed.
+This folder contains deprecated scrips that will be removed in the next release unless we get feedback that they are still needed.

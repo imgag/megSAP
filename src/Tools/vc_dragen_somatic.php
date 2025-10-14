@@ -26,6 +26,9 @@ $parser->addFlag("debug", "Add debug output to the log file.");
 
 extract($parser->parse($argv));
 
+//log server again as there can be multiple dragen servers
+$parser->logServerEnvronment();
+
 // ********************************* init *********************************//
 $dragen_path = "/opt/dragen/".get_path("dragen_version")."/bin/";
 
