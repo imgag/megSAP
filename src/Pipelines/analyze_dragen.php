@@ -17,11 +17,10 @@ $parser->addString("name", "Base file name, typically the processed sample ID (e
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
 $steps_all = array("ma", "vc", "cn", "sv", "re", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, db=import into NGSD.", true, "ma,vc,cn,sv,re,db");
-$parser->addInt("threads", "The maximum number of threads used.", true, 2);
+$parser->addInt("threads", "The maximum number of threads used for later megSAP analysis.", true, 2);
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
 $parser->addFlag("no_queuing", "Do not queue megSAP analysis afterwards.");
 $parser->addFlag("mapping_only", "Only map the data and remove variant calling.");
-$parser->addFlag("dragen_only", "Perform only DRAGEN analysis and copy all output files without renaming (not compatible with later megSAP analysis).");
 $parser->addFlag("debug", "Add debug output to the log file.");
 $parser->addFlag("high_priority", "Queue megSAP analysis with high priority.");
 $parser->addFlag("somatic", "Queue megSAP analysis with somatic flag.");
@@ -80,9 +79,6 @@ else
 {
 	trigger_error("Cannot perform DRAGEN analysis without mapping!", E_USER_ERROR);
 }
-
-//disable megSAP queuing for DRAGEN only analyses
-if ($dragen_only) $no_queuing = true;
 
 // create empty folder for analysis
 $working_dir = get_path("dragen_data")."/megSAP_working_dir/";
@@ -154,14 +150,8 @@ if (count($files_forward) == 0)
 	$files_reverse = [$in_fq_rev];
 }
 
-//define output files
-$out_cram = $folder."/".$name.".cram";
-$dragen_out_folder = $folder."/dragen_variant_calls/";
-$out_vcf = $dragen_out_folder."/".$name."_dragen.vcf.gz";
-$out_gvcf = $dragen_out_folder."/".$name."_dragen.gvcf.gz";
-$out_sv = $dragen_out_folder."/".$name."_dragen_svs.vcf.gz";
-$out_cnv = $dragen_out_folder."/".$name."_dragen_cnvs.vcf.gz";
-$out_cnv_raw = $dragen_out_folder."/".$name."_dragen_cnvs.bw";
+//define output folder
+$dragen_out_folder = $folder."/dragen/";
 
 //check if input files are readable and output file is writeable
 foreach ($files_forward as $in_file) 
@@ -173,13 +163,6 @@ foreach ($files_reverse as $in_file)
 	if (!is_readable($in_file)) trigger_error("Input file '{$in_file}' is not readable!", E_USER_ERROR);
 }
 $parser->exec("mkdir", "-p {$dragen_out_folder}");
-if (!is_writable2($out_cram)) trigger_error("Output file '{$out_cram}' is not writable!", E_USER_ERROR);
-if (!is_writable2($out_vcf)) trigger_error("Output file '{$out_vcf}' is not writable!", E_USER_ERROR);
-if (!is_writable2($out_gvcf)) trigger_error("Output file '{$out_gvcf}' is not writable!", E_USER_ERROR);
-if (!is_writable2($out_sv)) trigger_error("Output file '{$out_sv}' is not writable!", E_USER_ERROR);
-if (!is_writable2($out_cnv)) trigger_error("Output file '{$out_cnv}' is not writable!", E_USER_ERROR);
-if (!is_writable2($out_cnv_raw)) trigger_error("Output file '{$out_cnv_raw}' is not writable!", E_USER_ERROR);
-
 
 // ********************************* call dragen *********************************//
 
@@ -360,51 +343,14 @@ foreach (glob("{$working_dir}/{$name}_BamToFastq_R?_00?.fastq.gz") as $tmp_fastq
 
 // ********************************* copy data to Sample folder *********************************//
 
-if ($dragen_only)
+$parser->log("Copying complete DRAGEN folder to output...");
+//remove already existing output folder
+if (file_exists($dragen_out_folder)) 
 {
-	$parser->log("Copying complete DRAGEN folder to output...");
-	//remove already existing output folder
-	if (file_exists($dragen_out_folder)) 
-	{
-		$parser->exec("rm", "-rf $dragen_out_folder");
-		mkdir($dragen_out_folder);
-	}
-	$parser->exec("cp", "-rf {$working_dir}/* {$dragen_out_folder}");
+	$parser->exec("rm", "-rf $dragen_out_folder");
+	mkdir($dragen_out_folder);
 }
-else
-{
-	//copy CRAM/CRAI to sample folder
-	$parser->log("Copying CRAM/CRAI to output folder");
-	$parser->copyFile($working_dir.$name.".cram", $out_cram);
-	$parser->copyFile($working_dir.$name.".cram.crai", $out_cram.".crai");
-
-	if (!$mapping_only)
-	{
-		// copy small variant calls to sample folder
-		$parser->log("Copying small variants to output folder");
-		$parser->exec("mkdir", "-p {$dragen_out_folder}");
-		$parser->copyFile($working_dir.$name.".hard-filtered.vcf.gz", $out_vcf);
-		$parser->copyFile($working_dir.$name.".hard-filtered.vcf.gz.tbi", $out_vcf.".tbi");
-		$parser->copyFile($working_dir.$name.".hard-filtered.gvcf.gz", $out_gvcf);
-		$parser->copyFile($working_dir.$name.".hard-filtered.gvcf.gz.tbi", $out_gvcf.".tbi");
-
-		// copy SV calls to sample folder
-		$parser->log("Copying SVs to output folder");
-		$parser->copyFile($working_dir.$name.".sv.vcf.gz", $out_sv);
-		$parser->copyFile($working_dir.$name.".sv.vcf.gz.tbi", $out_sv.".tbi");
-	}
-	// copy CNV calls
-	if ($is_wgs && ! $mapping_only)
-	{
-		$parser->log("Copying CNVs to output folder");
-		$parser->copyFile($working_dir.$name.".cnv.vcf.gz", $out_cnv);
-		$parser->copyFile($working_dir.$name.".cnv.vcf.gz.tbi", $out_cnv.".tbi");
-		if (file_exists($working_dir.$name.".target.counts.diploid.bw")) $parser->copyFile($working_dir.$name.".target.counts.diploid.bw", $out_cnv_raw);
-		else if (file_exists($working_dir.$name.".target.counts.bw")) $parser->copyFile($working_dir.$name.".target.counts.bw", $out_cnv_raw);
-		else trigger_error("BigWig CNV file '{$working_dir}{$name}.target.counts.diploid.bw' not found!", E_USER_WARNING);
-	}
-
-}
+$parser->exec("cp", "-rf {$working_dir}/* {$dragen_out_folder}");
 
 // ********************************* cleanup *********************************//
 

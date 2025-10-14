@@ -84,11 +84,6 @@ foreach($steps as $step)
 	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
 }
 
-//log server name
-list($server) = exec2("hostname -f");
-$user = exec('whoami');
-$parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
-
 if ($annotation_only)
 {
 	// check if required VC files for annotation is available and print warning otherwise
@@ -219,7 +214,7 @@ foreach($bams as $bam)
 {
 	$folder = dirname($bam);
 	$ps = basename2($bam);
-	$gvcf = "{$folder}/dragen_variant_calls/{$ps}_dragen.gvcf.gz";
+	$gvcf = "{$folder}/dragen/{$ps}.hard-filtered.gvcf.gz";
 	if (file_exists($gvcf)) $gvcfs[] = $gvcf;
 }
 $dragen_gvcfs_exist = count($gvcfs)==count($bams);

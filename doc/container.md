@@ -1,3 +1,5 @@
+//TODO
+
 ## Tools encapsulated in Apptainer container
 
 The following tools are encapsulated in Apptainer container and used throughout the megSAP pipelines. All containers can be found in the `container_folder` specified in the settings.ini.
@@ -53,7 +55,7 @@ By default they are downloaded to `data/tools/apptainer_container/`. They can al
 
 With Apptainer installed each container can be invoked with the following command:
 
-    > apptainer exec -B bind/paths tool_version.sif command parameters
+    > singularity exec -B bind/paths tool_version.sif command parameters
 
 ## Building a new Apptainer container
 
@@ -137,7 +139,7 @@ To implement the invocation of a containerized tool in megSAP you can use the `e
                 $parameters,                        parameters for the given command (e.g. --bam_fn={$bam} --ref_fn=$genome --threads={$threads} ...)
                 $in_files = array(),                host system directories/files used as input (needed for read file access from inside the container)
                 $out_files = array(),               host system directories used as output (needed for read and write access from inside the container)
-                $command_only=false,                if `true` only the apptainer exec command is returned without executing it (needed when the tool execution is part of a pipeline)
+                $command_only=false,                if `true` only the singularity exec command is returned without executing it (needed when the tool execution is part of a pipeline)
                 $log_output=true,                   Flag (true/false) to turn on/off logging of stdout, stderr and execution time of the containerised tool
                 $abort_on_error=true,               Flag (true/false) whether to throw an error when execution fails
                 $warn_on_error=true)                Flag (true/false) whether to throw a warning when execution fails

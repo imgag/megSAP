@@ -158,14 +158,23 @@ function json_episode_of_care($se_data)
 
 function json_diagnoses($se_data, $se_data_rep)
 {
+	global $no_seq;
+	
 	//prepare codes
 	$codes = [];
 	$icd10 = xml_str($se_data->diag_icd10);
 	$icd10_ver = xml_str($se_data->diag_icd10_ver);
 	if ($icd10!="")
 	{
+		$code = get_raw_value($se_data->psn, "diag_icd10");
+		
+		//TODO remove workarounds when KDK has found out why the sub-terms are missing
+		if (starts_with($code, "F70.") || starts_with($code, "F79.")) $code = substr($code,0, 3);
+		if (starts_with($code, "M62.5")) $code = substr($code,0, 5);
+		
+		
 		$codes[] = [
-			"code" => get_raw_value($se_data->psn, "diag_icd10"),
+			"code" => $code,
 			"display" => $icd10,
 			"system" => "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
 			"version" => $icd10_ver
@@ -202,7 +211,8 @@ function json_diagnoses($se_data, $se_data_rep)
 			"system" => "https://www.bfarm.de/DE/Kodiersysteme/Terminologien/Alpha-ID-SE",
 		];
 	}
-	if (count($codes)==0) trigger_error("No disease code found in case-management data!", E_USER_ERROR);
+	//TODO we should no longer need this, so it is commented out for now
+	//if (count($codes)==0) trigger_error("No disease code found in SE data!", E_USER_ERROR);
 	
 	//determine onset date from HPO terms
 	$onset_date = [];
@@ -227,9 +237,6 @@ function json_diagnoses($se_data, $se_data_rep)
 			"id"=>"ID_DIAG_1",
 			"patient" => json_patient_ref(),
 			"recordedOn" => xml_str($se_data->datum_fallkonferenz),
-			"familyControlLevel" => [
-				"code" => convert_diag_recommendation(xml_str($se_data->diagnostik_empfehlung)),
-				],
 			"verificationStatus" => [
 				"code" => convert_diag_status(xml_str($se_data->bewertung_gen_diagnostik)),
 				],
@@ -237,6 +244,12 @@ function json_diagnoses($se_data, $se_data_rep)
 			//missing fields: notes
 			];
 	if ($onset_date!="") $output["onsetDate"] = $onset_date;
+	if (!$no_seq)
+	{
+		$output["familyControlLevel"] = [
+				"code" => convert_diag_recommendation(xml_str($se_data->diagnostik_empfehlung)),
+				];
+	}
 	
 	if (count($codes)!=3)
 	{
@@ -877,13 +890,11 @@ $time_start = microtime(true);
 $id = $db_mvh->getValue("SELECT id FROM case_data WHERE cm_id='{$cm_id}'");
 if ($id=="") trigger_error("No case with id '{$cm_id}' in MVH database!", E_USER_ERROR);
 
-//get patient identifer (pseudonym from case management) - this is the ID that is used to identify submissions from the same case by GRZ/KDK
+//get patient identifer (Fallnummer from CM)
 $cm_data = get_cm_data($db_mvh, $id);
-$patient_id = xml_str($cm_data->case_id);
-if ($patient_id=="") trigger_error("No patient identifier set for sample with MVH case ID '{$cm_id}'!", E_USER_ERROR);
 
-//create export folder
-print "CM ID: {$cm_id} (MVH DB id: {$id} / CM Fallnummer: {$patient_id})\n";
+//start export
+print "CM ID: {$cm_id} (MVH DB id: {$id} / CM Fallnummer: ".xml_str($cm_data->case_id).")\n";
 print "Export start: ".date('Y-m-d H:i:s')."\n";
 $folder = realpath($mvh_folder)."/kdk_se_export/{$cm_id}/";
 if ($clear) exec2("rm -rf {$folder}");
@@ -897,6 +908,9 @@ $sub_id = $sub_ids[0];
 print "ID in submission_kdk_se table: {$sub_id}\n";
 $tan_k = $db_mvh->getValue("SELECT tank FROM submission_kdk_se WHERE id='{$sub_id}'");
 print "TAN: {$tan_k}\n";
+$patient_id = $db_mvh->getValue("SELECT pseudok FROM submission_kdk_se WHERE id='{$sub_id}'");
+print "patient pseudonym: {$patient_id}\n";
+
 
 //get data from MVH database
 $se_data = get_se_data($db_mvh, $id);
