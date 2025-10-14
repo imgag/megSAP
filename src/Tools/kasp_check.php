@@ -538,8 +538,8 @@ foreach($file as $line)
 			}
 			else
 			{
-				print "error - Invalid DNA number '".$genotypes[0]."' given!\n";
-				$output[] = "##Invalid DNA number '".$genotypes[0]."'\n";
+			print "error - Invalid DNA number '".$name."' given!\n";
+			$output[] = "##Invalid DNA number '".$name."'\n";
 				continue;
 			}
 		}
