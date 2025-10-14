@@ -349,8 +349,11 @@ $parser->addString("user", "Name of the user performing the KASP analysis and im
 $parser->addFlag("no_db_import", "Do not import results into the NGSD");
 $parser->addString("lanes", "Comma-separated list of lanes which will be used for cross-check with processed samples.", true, "");
 $parser->addString("samples", "Comma-separated list of processed samples which will be used for cross-check with lanes.", true, "");
+$parser->addFlag("debug", "Enable debug logging.");
 extract($parser->parse($argv));
 
+$location = trim(get_path("location", false));
+if ($debug && $location!="") $parser->log("Using location '$location'.");
 
 //get user ID from NGSD
 if ($user=="") $user = exec('whoami');
