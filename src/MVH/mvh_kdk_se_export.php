@@ -12,12 +12,13 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data, $se_data_rep)
 	global $db_mvh;
 	global $sub_id;
 	global $parser;
+	global $submission_type;
 	
 	//Teilnahmeerklärung
 	$te_present_date = xml_str($cm_data->mvconsentpresenteddate);
 	$te_date = xml_str($cm_data->datum_teilnahme);
 	$output = [
-			"type" => $db_mvh->getValue("SELECT type FROM submission_kdk_se WHERE id='{$sub_id}'"),
+			"type" => $submission_type,
 			"transferTAN" => $tan_k,
 			"modelProjectConsent" => [
 				"version" => "",
@@ -936,6 +937,7 @@ print "\n";
 print "### creating JSON ###\n";
 
 //create results section (contained variants are referenced in therapy and study recommendations, so we need to create them first to have to the IDs later on)
+$submission_type = $db_mvh->getValue("SELECT type FROM submission_kdk_se WHERE id='{$sub_id}'");
 $var2id = [];
 $results = $no_seq ? [] : json_results($se_data, $se_data_rep, $info);
 $json = [
@@ -1049,7 +1051,7 @@ print "uploading JSON took ".time_readable(microtime(true)-$time_start)."\n";
 $time_start = microtime(true);
 
 //if upload successfull, add 'Pruefbericht' to CM RedCap
-if (!$test)
+if ($submission_type=='initial' && !$test)
 {
 	print "Adding Pruefbericht to CM RedCap...\n";
 	add_submission_to_redcap($cm_id, "K", $tan_k);

@@ -621,11 +621,12 @@ $research_consent = [
 
 //create meta data JSON
 print "  creating metadata...\n";
+$submission_type = $db_mvh->getValue("SELECT type FROM submission_grz WHERE id='{$sub_id}'");
 $json = [];
 $json['$schema'] = "https://raw.githubusercontent.com/BfArM-MVH/MVGenomseq/refs/tags/v1.2.1/GRZ/grz-schema.json";
 $json['submission'] = [
 	"submissionDate" => date('Y-m-d'),
-	"submissionType" => $db_mvh->getValue("SELECT type FROM submission_grz WHERE id='{$sub_id}'"),
+	"submissionType" => $submission_type,
 	"tanG" => $tan_g,
 	"localCaseId" => $patient_id,
 	"coverageType" => convert_coverage($cm_data->coveragetype),
@@ -743,7 +744,7 @@ print "uploading submission took ".time_readable(microtime(true)-$time_start)."\
 $time_start = microtime(true);
 
 //if upload successfull, add 'Pruefbericht' to CM RedCap
-if (!$test)
+if ($submission_type=='initial' && !$test)
 {
 	print "Adding Pruefbericht to CM RedCap...\n";
 	add_submission_to_redcap($cm_id, "G", $tan_g);
