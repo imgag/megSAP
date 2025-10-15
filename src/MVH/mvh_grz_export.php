@@ -432,7 +432,7 @@ if ($is_lrgs) //fix BAM header if DS tag in @RG line is present more than once
 		file_put_contents($header, implode("\n", $stdout));
 		
 		//reheader to tmp
-		$tmp_bam = $parser->tempFile(".bam");
+		$tmp_bam = "{$folder}/files/tmp.bam";
 		$parser->execApptainer("samtools", "samtools reheader", "{$header} {$lrgs_bam} > {$tmp_bam}", [], [dirname($lrgs_bam)]);
 		
 		//replace BAM and index it
