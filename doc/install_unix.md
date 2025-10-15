@@ -27,9 +27,9 @@ Install Apptainer:
 
 ## Downloading
 
-Clone megSAP repository with containerized tools:
+Clone the last release of megSAP:
 
-	> git clone https://github.com/imgag/megSAP.git
+	> it clone --branch 2025_10 https://github.com/imgag/megSAP.git
 
 ### Resolving proxy issues with git
 
