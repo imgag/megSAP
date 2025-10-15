@@ -215,11 +215,11 @@ function generateBatchCorrectData($cohort_samples, $ps_name, $processing_systems
 	$full_covar = array_fill_keys($cohort_samples, $cohort_covar);
 	foreach($batch_correct_samples as $ref_sample)
 	{
-		$ps_name = $ref_sample["name"];
-		if (! in_array($ps_name, $full_cohort)) $full_cohort[] = $ps_name;
-		$full_covar[$ps_name] = $ref_sample["covar"];
-		$full_batches[$ps_name] = $ref_sample["sys"];
-	}	
+		$sample = $ref_sample["name"];
+		if (! in_array($sample, $full_cohort)) $full_cohort[] = $sample;
+		$full_covar[$sample] = $ref_sample["covar"];
+		$full_batches[$sample] = $ref_sample["sys"];
+	}
 	
 	//write raw cohort count files
 	$removed_samples = writeCohortCounts($full_cohort, $ps_name, $raw_cohort_counts_file, $exons);
@@ -535,8 +535,8 @@ if (in_array("ma", $steps))
 
 	if (isset($target_file) && $target_file != "")
 	{
-		$mappingqc_params[] = "-roi {$target_file}";
-		$in_files[] = $target_file;
+		$mappingqc_params[] = "-roi ".realpath($target_file);
+		$in_files[] = realpath($target_file);
 
 	}
 	else
@@ -619,6 +619,11 @@ if (in_array("rc", $steps))
 		////check if cohort actally differing processing systems
 		$cohort_strategy = getCohortStrategy($ps_info);
 		$cohort_samples = getCohortSamples($db, $name, $cohort_strategy);
+		
+		if (! in_array($name, $cohort_samples))
+		{
+			array_unshift($cohort_samples, $name);
+		}
 		
 		$processing_systems = processingSystems($db, $cohort_samples);
 		$processing_system_counts = array_count_values($processing_systems);
@@ -768,17 +773,26 @@ if (in_array("an", $steps))
 					}					
 				}
 				$in_files[] = $out_folder;
-				$parser->execApptainer("ngs-bits", "NGSDAnnotateRNA", "-mode genes -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr} -corr {$expr_corr} {$hpa_parameter}", $in_files);
-				$parser->execApptainer("ngs-bits", "NGSDAnnotateRNA", "-mode exons -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_exon_normalized} -out {$expr_exon}", [$out_folder]);
 				
 				if (is_file($uncorrected_counts_genes_normalized))
 				{
+					$in_files[] = $cohort_counts_normalized_genes_file;
+					$parser->execApptainer("ngs-bits", "NGSDAnnotateRNA", "-mode genes -cohort_data $cohort_counts_normalized_genes_file -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr} -corr {$expr_corr} {$hpa_parameter}", $in_files);
 					$parser->execApptainer("ngs-bits", "NGSDAnnotateRNA", "-mode genes -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$uncorrected_counts_genes_normalized} -out {$uncorrected_expr_genes} -corr {$uncorrected_expr_corr} {$hpa_parameter}", $in_files);
+				}
+				else
+				{
+					$parser->execApptainer("ngs-bits", "NGSDAnnotateRNA", "-mode genes -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_normalized} -out {$expr} -corr {$expr_corr} {$hpa_parameter}", $in_files);
 				}
 				
 				if (is_file($uncorrected_counts_exons_normalized))
 				{
+					$parser->execApptainer("ngs-bits", "NGSDAnnotateRNA", "-mode exons -cohort_data $cohort_counts_normalized_exons_file -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_exon_normalized} -out {$expr_exon}", [$out_folder, $cohort_counts_normalized_genes_file]);
 					$parser->execApptainer("ngs-bits", "NGSDAnnotateRNA", "-mode exons -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$uncorrected_counts_exons_normalized} -out {$uncorrected_expr_exons}", [$out_folder]);
+				} 
+				else
+				{
+					$parser->execApptainer("ngs-bits", "NGSDAnnotateRNA", "-mode exons -update_genes -ps {$name} -cohort_strategy {$cohort_strategy} -in {$counts_exon_normalized} -out {$expr_exon}", [$out_folder]);
 				}
 			}
 			
@@ -937,7 +951,9 @@ if (in_array("fu",$steps))
 		"-out_pdf", $fusions_arriba_pdf,
 		"-out_pic_dir", $fusions_arriba_pic_dir,
 		"-build", $build,
-		"--log", $parser->getLogFile()
+		"-threads", $threads,
+		"--log", $parser->getLogFile(),
+		
 	];
 	$parser->execTool("Tools/vc_arriba.php", implode(" ", $arriba_args));
 }

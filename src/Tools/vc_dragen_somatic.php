@@ -26,6 +26,9 @@ $parser->addFlag("debug", "Add debug output to the log file.");
 
 extract($parser->parse($argv));
 
+//log server again as there can be multiple dragen servers
+$parser->logServerEnvronment();
+
 // ********************************* init *********************************//
 $dragen_path = "/opt/dragen/".get_path("dragen_version")."/bin/";
 
@@ -144,7 +147,6 @@ if ($n_bam != "")
 $parser->log("DRAGEN parameters:", $dragen_parameter);
 
 //run
-$dragen_path = 
 $parser->exec("{$dragen_path}dragen_reset", "");
 $parser->exec("LANG=en_US.UTF-8 {$dragen_path}dragen", implode(" ", $dragen_parameter)); //LANG is necessary to avoid the error "locale::facet::_S_create_c_locale name not valid" if the locale from the ssh source shell is not available on the Dragen server 
 if ($debug)

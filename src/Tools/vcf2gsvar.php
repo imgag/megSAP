@@ -238,7 +238,7 @@ function load_hgnc_db()
 	$output = array();
 	
 	//parse approved genes
-	$filename = get_path("data_folder")."/dbs/HGNC/hgnc_complete_set.tsv";
+	$filename = get_path("data_folder")."/dbs/HGNC/hgnc_complete_set_2025-09-02.tsv";
 	foreach (file($filename) as $line)
 	{
 		$line = trim($line);
@@ -256,7 +256,7 @@ function load_hgnc_db()
 	
 	//try to replace withdrawn symbols by current symbols
 	$withdrawn = array();
-	$filename = get_path("data_folder")."/dbs/HGNC/hgnc_withdrawn.tsv";
+	$filename = get_path("data_folder")."/dbs/HGNC/hgnc_withdrawn_2025-09-02.tsv";
 	foreach (file($filename) as $line)
 	{
 		$line = nl_trim($line);

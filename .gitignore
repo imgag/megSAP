@@ -227,5 +227,5 @@ data/misc/human_hemoglobin_tx.fa
 data/tools/ngsbits_settings.ini
 /test/data_longread/paraphase
 /*.sif
-/test/data_chrx/dragen_variant_calls
 Clair3-v1.0.10
+/test/data_chrx/dragen

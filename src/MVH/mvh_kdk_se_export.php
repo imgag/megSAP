@@ -11,12 +11,14 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data, $se_data_rep)
 {
 	global $db_mvh;
 	global $sub_id;
+	global $parser;
+	global $submission_type;
 	
 	//Teilnahmeerklärung
 	$te_present_date = xml_str($cm_data->mvconsentpresenteddate);
 	$te_date = xml_str($cm_data->datum_teilnahme);
 	$output = [
-			"type" => $db_mvh->getValue("SELECT type FROM submission_kdk_se WHERE id='{$sub_id}'"),
+			"type" => $submission_type,
 			"transferTAN" => $tan_k,
 			"modelProjectConsent" => [
 				"version" => "",
@@ -71,11 +73,11 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data, $se_data_rep)
 			{
 				$form[] = "\"{$key}\": \"".xml_str($bc_item->$key)."\"";
 			}
-			$tmp = temp_file(".json");
+			$tmp = $parser->tempFile(".json");
 			file_put_contents($tmp, "[\n  {},\n    {\n    ".implode(",\n    ", $form)."\n  }\n]");
 			
 			//generate consent JSON
-			$tmp2 = temp_file(".json");
+			$tmp2 = $parser->tempFile(".json");
 			$birthdate = new DateTime($se_data->birthdate);
 			exec2("java -jar /mnt/storage2/MVH/tools/mii_broad_consent_mapper/build/libs/consent-mapper-all.jar --redcap_formular {$tmp} --output {$tmp2} --date_of_birth ".$birthdate->format("m.Y"));
 			
@@ -103,6 +105,10 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data, $se_data_rep)
 		{
 			$output["researchConsents"] = [ $active_rcs[0] ];
 		}
+	}
+	else
+	{
+		//TODO implement until 1.1.26: reasonResearchConsentMissing (bc_reason_missing)
 	}
 			
 	return $output;
@@ -157,14 +163,18 @@ function json_episode_of_care($se_data)
 
 function json_diagnoses($se_data, $se_data_rep)
 {
+	global $no_seq;
+	
 	//prepare codes
 	$codes = [];
 	$icd10 = xml_str($se_data->diag_icd10);
 	$icd10_ver = xml_str($se_data->diag_icd10_ver);
 	if ($icd10!="")
 	{
+		$code = get_raw_value($se_data->psn, "diag_icd10");
+		
 		$codes[] = [
-			"code" => get_raw_value($se_data->psn, "diag_icd10"),
+			"code" => $code,
 			"display" => $icd10,
 			"system" => "http://fhir.de/CodeSystem/bfarm/icd-10-gm",
 			"version" => $icd10_ver
@@ -201,7 +211,8 @@ function json_diagnoses($se_data, $se_data_rep)
 			"system" => "https://www.bfarm.de/DE/Kodiersysteme/Terminologien/Alpha-ID-SE",
 		];
 	}
-	if (count($codes)==0) trigger_error("No disease code found in case-management data!", E_USER_ERROR);
+	//TODO we should no longer need this, so it is commented out for now
+	//if (count($codes)==0) trigger_error("No disease code found in SE data!", E_USER_ERROR);
 	
 	//determine onset date from HPO terms
 	$onset_date = [];
@@ -226,16 +237,19 @@ function json_diagnoses($se_data, $se_data_rep)
 			"id"=>"ID_DIAG_1",
 			"patient" => json_patient_ref(),
 			"recordedOn" => xml_str($se_data->datum_fallkonferenz),
-			"familyControlLevel" => [
-				"code" => convert_diag_recommendation(xml_str($se_data->diagnostik_empfehlung)),
-				],
 			"verificationStatus" => [
-				"code" => convert_diag_status(xml_str($se_data->bewertung_gen_diagnostik)),
+				"code" => ($no_seq ? "unconfirmed" : convert_diag_status(xml_str($se_data->bewertung_gen_diagnostik))),
 				],
 			"codes" => $codes,
 			//missing fields: notes
 			];
 	if ($onset_date!="") $output["onsetDate"] = $onset_date;
+	if (!$no_seq)
+	{
+		$output["familyControlLevel"] = [
+				"code" => convert_diag_recommendation(xml_str($se_data->diagnostik_empfehlung)),
+				];
+	}
 	
 	if (count($codes)!=3)
 	{
@@ -286,6 +300,10 @@ function json_hpos($se_data, $se_data_rep)
 		
 		//convert HPO name to id
 		$hpo_id = $db_ngsd->getValue("SELECT hpo_id FROM hpo_term WHERE name LIKE '{$hpo}'", "");
+		if ($hpo_id=="") //fallback to ID (RedCap ontology handling bug that causes terms to have ID instead of name)
+		{
+			$hpo_id = $db_ngsd->getValue("SELECT hpo_id FROM hpo_term WHERE hpo_id LIKE '{$hpo}'", "");
+		}
 		if ($hpo_id=="")
 		{
 			trigger_error("Could not convert HPO name '{$hpo}' to ID using the NGSD hpo_term table!", E_USER_WARNING);
@@ -601,16 +619,20 @@ function json_ngs_report($cm_data, $se_data, $info, $results)
 function genes_overlapping($chr, $start, $end)
 {
 	global $db_ngsd;
+	global $parser;
 	
 	//determine overlapping genes
-	list($stdout) = exec2("echo '{$chr}\t".($start-1)."\t{$end}' | BedAnnotateGenes | cut -f4");
-	$tmp = trim(implode("", $stdout));
+	$tmp_file = $parser->tempFile(".bed");
+	file_put_contents($tmp_file, "{$chr}\t".($start-1)."\t{$end}");
+	list($stdout) = $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in {$tmp_file}");
+	$tmp = explode("\t", nl_trim($stdout[0]))[3];
 	
 	//no gene > extend by 5000 bases
 	if ($tmp=="")
 	{
-		list($stdout) = exec2("echo '{$chr}\t".($start-1)."\t{$end}' | BedAnnotateGenes -extend 5000 | cut -f4");
-		$tmp = trim(implode("", $stdout));
+		file_put_contents($tmp_file, "{$chr}\t".($start-5000)."\t".($end+5000));
+		list($stdout) = $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in {$tmp}");
+		$tmp = explode("\t", nl_trim($stdout[0]))[3];
 	}
 	
 	$genes = [];
@@ -630,6 +652,7 @@ function json_results($se_data, $se_data_rep, $info)
 {
 	global $var2id; //we need variant IDs to link to variants, so we store the association in a global variable
 	global $db_ngsd;
+	global $parser;
 	
 	$results = [];
 	
@@ -696,15 +719,21 @@ function json_results($se_data, $se_data_rep, $info)
 			$var_data['inheritance'] = ['code' => convert_inheritance($inheritance)];
 			
 			//cDNAChange, proteinChange
+			$tmp_file = $parser->tempFile(".bed");
 			$transcripts = []; //best transcripts of overlapping 
 			foreach($genes as $gene => $hgnc_id)
 			{
-				list($stdout) = exec2("echo '{$gene}' | GenesToTranscripts -mode best | grep '{$gene}' | cut -f2");
+				file_put_contents($tmp_file, $gene);
+				list($stdout) = $parser->execApptainer("ngs-bits", "GenesToTranscripts", "-in {$tmp_file} -mode best");
 				foreach($stdout as $line)
 				{
-					$line = trim($line);
-					if ($line=="") continue;
-					$transcripts[] = $line;
+					$line = nl_trim($line);
+					if (!starts_with($line, $gene)) continue;
+					
+					$transcript = trim(explode("\t", $line)[1]);
+					if ($transcript=="") continue;
+
+					$transcripts[] = $transcript;
 				}
 			}
 			$consequences = [];
@@ -725,8 +754,14 @@ function json_results($se_data, $se_data_rep, $info)
 			{
 				list($t_gene, $t_trans, $t_type, $t_impact, $t_exon, $t_cdna, $t_prot) = $consequences[0];
 				
-				$var_data['cDNAChange'] = $t_trans.":".$t_cdna;
-				$var_data['proteinChange'] = $t_trans.":".$t_prot;
+				if ($t_cdna!="")
+				{
+					$var_data['cDNAChange'] = $t_trans.":".$t_cdna;
+				}
+				if($t_prot!="")
+				{
+					$var_data['proteinChange'] = $t_trans.":".$t_prot;
+				}
 				if (count($consequences)>1) trigger_error("More than one variant consequence found. Only one is allowed in KDK-SE. Using first variant consequence!", E_USER_WARNING);
 			}
 			
@@ -855,13 +890,11 @@ $time_start = microtime(true);
 $id = $db_mvh->getValue("SELECT id FROM case_data WHERE cm_id='{$cm_id}'");
 if ($id=="") trigger_error("No case with id '{$cm_id}' in MVH database!", E_USER_ERROR);
 
-//get patient identifer (pseudonym from case management) - this is the ID that is used to identify submissions from the same case by GRZ/KDK
+//get patient identifer (Fallnummer from CM)
 $cm_data = get_cm_data($db_mvh, $id);
-$patient_id = xml_str($cm_data->case_id);
-if ($patient_id=="") trigger_error("No patient identifier set for sample with MVH case ID '{$cm_id}'!", E_USER_ERROR);
 
-//create export folder
-print "CM ID: {$cm_id} (MVH DB id: {$id} / CM Fallnummer: {$patient_id})\n";
+//start export
+print "CM ID: {$cm_id} (MVH DB id: {$id} / CM Fallnummer: ".xml_str($cm_data->case_id).")\n";
 print "Export start: ".date('Y-m-d H:i:s')."\n";
 $folder = realpath($mvh_folder)."/kdk_se_export/{$cm_id}/";
 if ($clear) exec2("rm -rf {$folder}");
@@ -875,6 +908,9 @@ $sub_id = $sub_ids[0];
 print "ID in submission_kdk_se table: {$sub_id}\n";
 $tan_k = $db_mvh->getValue("SELECT tank FROM submission_kdk_se WHERE id='{$sub_id}'");
 print "TAN: {$tan_k}\n";
+$patient_id = $db_mvh->getValue("SELECT pseudok FROM submission_kdk_se WHERE id='{$sub_id}'");
+print "patient pseudonym: {$patient_id}\n";
+
 
 //get data from MVH database
 $se_data = get_se_data($db_mvh, $id);
@@ -901,6 +937,7 @@ print "\n";
 print "### creating JSON ###\n";
 
 //create results section (contained variants are referenced in therapy and study recommendations, so we need to create them first to have to the IDs later on)
+$submission_type = $db_mvh->getValue("SELECT type FROM submission_kdk_se WHERE id='{$sub_id}'");
 $var2id = [];
 $results = $no_seq ? [] : json_results($se_data, $se_data_rep, $info);
 $json = [
@@ -1014,7 +1051,7 @@ print "uploading JSON took ".time_readable(microtime(true)-$time_start)."\n";
 $time_start = microtime(true);
 
 //if upload successfull, add 'Pruefbericht' to CM RedCap
-if (!$test)
+if ($submission_type=='initial' && !$test)
 {
 	print "Adding Pruefbericht to CM RedCap...\n";
 	add_submission_to_redcap($cm_id, "K", $tan_k);

@@ -354,7 +354,7 @@ else trigger_error("No NGSD connection! Cannot perform cohort analysis.", E_USER
 
 $ref_genome = genome_fasta($build);
 exec2("mkdir -p {$folder}/methylartist");
-$gtf = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.112.gtf.gz";
+$gtf = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.115.gtf.gz";
 
 if ($local_bam != "")
 {

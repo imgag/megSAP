@@ -4,6 +4,10 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
+// REDCAP API URL
+// Change this to match your local RedCap installation
+const REDCAP_API_URL = 'https://redcap.extern.medizin.uni-tuebingen.de/api/';
+
 ################# data from different sources #################
 
 //returns case management data as an XML object
@@ -101,7 +105,7 @@ function get_raw_value($record_id, $field)
 		'returnFormat' => 'csv'
 	);
 	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, 'https://redcap.extern.medizin.uni-tuebingen.de/api/');
+	curl_setopt($ch, CURLOPT_URL, REDCAP_API_URL);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 	curl_setopt($ch, CURLOPT_VERBOSE, 0);
@@ -148,7 +152,7 @@ function add_submission_to_redcap($record_id, $data_type, $tan)
 		'data' => $xml,
 	);
 	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, 'https://redcap.extern.medizin.uni-tuebingen.de/api/');
+	curl_setopt($ch, CURLOPT_URL, REDCAP_API_URL);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 	curl_setopt($ch, CURLOPT_VERBOSE, 0);
@@ -199,7 +203,7 @@ function convert_coverage($accounting_mode)
 	else if ($accounting_mode=="Beihilfe") $converage_type = "Beihilfe";
 	else if ($accounting_mode=="sonstiger Kostenträger") $converage_type = "SKT";
 	else if ($accounting_mode=="unknown") $converage_type = "UNK";
-	else trigger_error("Could not determine coverage type from GenLab accounting mode '{$accounting_mode}'!", E_USER_ERROR);
+	else trigger_error("Could not determine coverage type from case-management accounting mode '{$accounting_mode}'!", E_USER_ERROR);
 	
 	return $converage_type;
 }
@@ -259,6 +263,7 @@ function convert_diag_status($name)
 	if ($name=="Genetische Verdachtsdiagnose" || $name=="3") return "provisional";
 	if ($name=="Genetische Diagnose gesichert") return "confirmed";
 	if ($name=="klinischer Phänotyp nur partiell gelöst") return "partial";
+	if ($name=="weiterführende genetische Diagnostik empfohlen") return "unconfirmed"; //this case is not modelled by SE-DIP. This mapping was recommended by Lucien as a workaround.
 	
 	trigger_error(__FUNCTION__.": Unhandled name '{$name}'!", E_USER_ERROR);
 }
