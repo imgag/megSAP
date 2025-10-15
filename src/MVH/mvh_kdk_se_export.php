@@ -105,6 +105,10 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data, $se_data_rep)
 			$output["researchConsents"] = [ $active_rcs[0] ];
 		}
 	}
+	else
+	{
+		//TODO implement until 1.1.26: reasonResearchConsentMissing (bc_reason_missing)
+	}
 			
 	return $output;
 }
@@ -167,11 +171,6 @@ function json_diagnoses($se_data, $se_data_rep)
 	if ($icd10!="")
 	{
 		$code = get_raw_value($se_data->psn, "diag_icd10");
-		
-		//TODO remove workarounds when KDK has found out why the sub-terms are missing
-		if (starts_with($code, "F70.") || starts_with($code, "F79.")) $code = substr($code,0, 3);
-		if (starts_with($code, "M62.5")) $code = substr($code,0, 5);
-		
 		
 		$codes[] = [
 			"code" => $code,

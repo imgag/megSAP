@@ -269,6 +269,7 @@ extract($parser->parse($argv));
 $db_mvh = DB::getInstance("MVH");
 $db_ngsd = DB::getInstance("NGSD");
 $mvh_folder = get_path("mvh_folder");
+$threads = 10;
 
 //check that case ID is valid
 $id = $db_mvh->getValue("SELECT id FROM case_data WHERE cm_id='{$cm_id}'");
@@ -387,7 +388,58 @@ $lrgs_bam = "{$folder}/files/normal.bam";
 if ($is_lrgs && !file_exists($lrgs_bam)) //for lrGS we submit BAM: convert CRAM to BAM
 {
 	print "  generating BAM file for germline sample {$ps}...\n";
-	$parser->execTool("Tools/cram_to_bam.php", "-cram {$n_bam} -bam {$lrgs_bam} -threads 10");
+	$parser->execTool("Tools/cram_to_bam.php", "-cram {$n_bam} -bam {$lrgs_bam} -threads {$threads}");
+}
+if ($is_lrgs) //fix BAM header if DS tag in @RG line is present more than once
+{
+	$ds_twice = false;
+	list($stdout) = exec2("samtools view -H {$lrgs_bam}");  
+	for ($i=0; $i<count($stdout); ++$i)
+	{
+		$line = $stdout[$i];
+		
+		if (substr_count($line, "\tDS:")>1)
+		{
+			$ds_twice = true;
+			
+			$new = [];
+			$first_done = false;
+			foreach(explode("\t", nl_trim($line)) as $entry)
+			{
+				if (starts_with($entry, "DS:"))
+				{
+					if (!$first_done)
+					{
+						$new[] = $entry;
+						$first_done = true;
+					}
+				}
+				else
+				{
+					$new[] = $entry;
+				}
+			}
+			
+			$stdout[$i] = implode("\t", $new)."\n";
+		}
+	}
+	if ($ds_twice)
+	{
+		print "  fixing BAM header {$ps}...\n";
+		
+		//store header
+		$header = $parser->tempFile(".txt");
+		file_put_contents($header, implode("\n", $stdout));
+		
+		//reheader to tmp
+		$tmp_bam = $parser->tempFile(".bam");
+		$parser->execApptainer("samtools", "samtools reheader", "{$header} {$lrgs_bam} > {$tmp_bam}", [], [dirname($lrgs_bam)]);
+		
+		//replace BAM and index it
+		exec2("rm -rf {$lrgs_bam}*");
+		$parser->moveFile($tmp_bam, $lrgs_bam);
+		$parser->execApptainer("samtools", "samtools index", "-@ {$threads} {$lrgs_bam}", [], [dirname($lrgs_bam)]);
+	}
 }
 if (!$is_lrgs && (!file_exists($n_fq1) || !file_exists($n_fq2)))
 {
@@ -611,7 +663,7 @@ $json['donors'] = [
 						],
 				]
 			],
-		"researchConsents" => [], //TODO implement until 1.1.26: presentationDate mandatory, set 'noScoreJustification' if no consent data given
+		"researchConsents" => [], //TODO implement until 1.1.26: presentationDate mandatory, set 'noScoreJustification' if no consent data given (bc_reason_missing)
 		"labData" => $lab_data		 
 		]
 	];
