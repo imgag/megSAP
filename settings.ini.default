@@ -11,6 +11,7 @@ ngs-bits_local =
 [tools-data]
 vep_data = [path]/data/dbs/ensembl-vep-112/
 clincnv_cohorts = [path]/data/ClinCNV-cohorts/
+methylation_cohorts = [path]/data/methylation-cohorts/
 clair3_models = [path]/data/tools/Clair3-v1.0.10/models
 
 [apptainer-container]
