@@ -238,7 +238,7 @@ function json_diagnoses($se_data, $se_data_rep)
 			"patient" => json_patient_ref(),
 			"recordedOn" => xml_str($se_data->datum_fallkonferenz),
 			"verificationStatus" => [
-				"code" => convert_diag_status(xml_str($se_data->bewertung_gen_diagnostik)),
+				"code" => ($no_seq ? "unconfirmed" : convert_diag_status(xml_str($se_data->bewertung_gen_diagnostik))),
 				],
 			"codes" => $codes,
 			//missing fields: notes
