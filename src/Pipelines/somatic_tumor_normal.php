@@ -52,11 +52,28 @@ extract($parser->parse($argv));
 ###################################### AUXILARY FUNCTIONS ######################################
 
 //Checks $baf_folder for missing B-AF files and creates them if neccessary
-function complement_baf_folder($t_n_id_file,$baf_folder,&$db_conn, $build)
+function complement_baf_folder($t_id, $n_id, $t_n_id_file, $baf_folder, &$db_conn, $build)
 {
 	global $parser;
-
+	
 	$ids = file($t_n_id_file);
+	
+	$already_in_list = false;
+	//Check whether tumor-normal pair is already included in csv list in tumor coverage folder or not
+	foreach($ids as $line)
+	{
+		if(starts_with($line,'#')) continue;
+		if(empty(trim($line))) continue;
+		list($t,$n) = explode(",",trim($line));
+		if($t == $t_id && $n == $n_id)
+		{
+			$already_in_list = true;
+			break;
+		}
+	}
+	
+	if (!$already_in_list) $ids[] = "{$t_id},{$n_id}";
+	
 	foreach($ids as $line)
 	{
 		if(starts_with($line,"#")) continue;
@@ -76,6 +93,12 @@ function complement_baf_folder($t_n_id_file,$baf_folder,&$db_conn, $build)
 			$t_bam = $tinfo["ps_bam"];
 			$parser->execTool("Auxilary/create_baf_file.php", "-gsvar $n_gsvar -bam $t_bam -build $build -out_file {$baf_folder}/{$tid}.tsv");
 		}
+	}
+	
+	//add it to the file after bafs were succesfully created if it wasn't in the list yet
+	if(!$already_in_list)
+	{
+		file_put_contents($t_n_id_file,"{$t_id},{$n_id}\n", FILE_APPEND | LOCK_EX);
 	}
 }
 
@@ -774,31 +797,13 @@ if(in_array("cn",$steps))
 		$t_n_list_file = $tmp_file_name;
 	}
 	
-	//Append tumor-normal pair to csv list in tumor coverage folder if not included yet
-	$already_in_list = false;
-	foreach(file($t_n_list_file) as $line)
-	{
-		if(starts_with($line,'#')) continue;
-		if(empty(trim($line))) continue;
-		list($t,$n) = explode(",",trim($line));
-		if($t == $t_id && $n == $n_id)
-		{
-			$already_in_list = true;
-			break;
-		}
-	}
-	if(!$already_in_list)
-	{
-		file_put_contents($t_n_list_file,"{$t_id},{$n_id}\n", FILE_APPEND | LOCK_EX);
-	}
-
 	$baf_folder = get_path("data_folder")."/coverage/". $sys['name_short']."_bafs";
 	create_directory($baf_folder);
 	if(db_is_enabled("NGSD"))
 	{
 		$db_conn = DB::getInstance("NGSD");
 		//Create BAF file for each sample with the same processing system if not existing
-		complement_baf_folder($t_n_list_file,$baf_folder,$db_conn, $sys['build']);
+		complement_baf_folder($t_id, $n_id, $t_n_list_file,$baf_folder,$db_conn, $sys['build']);
 	}
 	else
 	{
