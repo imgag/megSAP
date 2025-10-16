@@ -52,12 +52,13 @@ extract($parser->parse($argv));
 ###################################### AUXILARY FUNCTIONS ######################################
 
 //Checks $baf_folder for missing B-AF files and creates them if neccessary
-function complement_baf_folder($t_id, $n_id, $t_n_id_file,$baf_folder,&$db_conn, $build)
+function complement_baf_folder($t_id, $n_id, $t_n_id_file, $baf_folder, &$db_conn, $build)
 {
 	global $parser;
 	
 	$ids = file($t_n_id_file);
 	
+	$already_in_list = false;
 	//Check whether tumor-normal pair is already included in csv list in tumor coverage folder or not
 	foreach($ids as $line)
 	{
@@ -97,7 +98,7 @@ function complement_baf_folder($t_id, $n_id, $t_n_id_file,$baf_folder,&$db_conn,
 	//add it to the file after bafs were succesfully created if it wasn't in the list yet
 	if(!$already_in_list)
 	{
-		file_put_contents($t_n_list_file,"{$t_id},{$n_id}\n", FILE_APPEND | LOCK_EX);
+		file_put_contents($t_n_id_file,"{$t_id},{$n_id}\n", FILE_APPEND | LOCK_EX);
 	}
 }
 
