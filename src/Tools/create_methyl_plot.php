@@ -439,7 +439,6 @@ for($r=0; $r<$regions_table->rows(); ++$r)
             "--highlight", "{$row[6]}-{$row[7]}",
             "--ref", $ref_genome,
             "--motif", "CG",
-            "--phased",
             "--color_by_hp",
             "--labelgenes",
             "--genes", $row[2],
@@ -449,6 +448,10 @@ for($r=0; $r<$regions_table->rows(); ++$r)
             "--outfile", "{$folder}/methylartist/{$name}_{$row[0]}.png",
             "--gtf", $gtf
         ];
+
+        // use phased plots not for chrX/Y on male samples
+        if (!(($gender == "male") && (($row[3] == "chrX") || ($row[3] == "chrX")))) $args[] =  "--phased";
+
         //optional parameters
         if ($skip_align_plot) $args[] = "--skip_align_plot";
         

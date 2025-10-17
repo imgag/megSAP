@@ -1,6 +1,5 @@
 """
 creates a methylation plot over a given cohort
-
 """
 
 import sys
@@ -35,7 +34,10 @@ def parse_methylation(filename, sample_name="", column_suffix=""):
         # extract sample name from file name
         sample_name = "_".join(str(os.path.basename(filename)).split("_")[0:2])
 
-    methylation = pd.read_csv(filename, sep="\t", header=None)
+    try:
+        methylation = pd.read_csv(filename, sep="\t", header=None)
+    except pd.errors.EmptyDataError:
+        return pd.DataFrame()
     # slice to keep only methyl fraq and pos
     methylation["position"] = methylation.iloc[:, 2].astype(int)
     methylation = methylation.set_index("position")
@@ -139,7 +141,8 @@ def main():
     axes[0].set_ylim(-0.1, 1.1)
     for col in columns_hp1:
         sns.lineplot(methylation[col], ax=axes[0], color=colors[0], alpha=0.2)
-    sns.lineplot(methylation["case_hp1"], ax=axes[0], color=colors[0], linewidth=3)
+    if "case_hp1" in methylation.columns:
+        sns.lineplot(methylation["case_hp1"], ax=axes[0], color=colors[0], linewidth=3)
     axes[0].set(xlabel=None, ylabel=None)
 
     axes[1].set_title("allele 2")
@@ -148,7 +151,8 @@ def main():
     axes[1].set_ylim(-0.1, 1.1)
     for col in columns_hp2:
         sns.lineplot(methylation[col], ax=axes[1], color=colors[1], alpha=0.2)
-    sns.lineplot(methylation["case_hp2"], ax=axes[1], color=colors[1], linewidth=3)
+    if "case_hp2" in methylation.columns:
+        sns.lineplot(methylation["case_hp2"], ax=axes[1], color=colors[1], linewidth=3)
     axes[1].set(xlabel=None, ylabel=None)
 
     plt.tight_layout(pad=1.0, w_pad=1.0, h_pad=1.0)
