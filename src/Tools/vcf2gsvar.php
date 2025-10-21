@@ -311,7 +311,6 @@ $column_desc = array(
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
 	array("AlphaMissense", "AlphaMissense pathogenicity score. Deleterious threshold > 0.564."),
 	array("MaxEntScan", "MaxEntScan reference score and alternate score for (1) native splice site, (2) acceptor gain and (3) donor gain. Comma-separated list if there are different predictions for several transcripts."),
-	array("COSMIC", "COSMIC somatic variant database anntotation."),
 	array("SpliceAI", "SpliceAI prediction. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG), acceptor loss (AL), donor gain (DG), and donor loss (DL). Format: GENE|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL."),
 	array("PubMed", "PubMed ids to publications on the given variant.")
 );
@@ -936,7 +935,6 @@ while(!gzeof($handle))
 	
 	//variant details
 	$dbsnp = array();
-	$cosmic = array();
 	$genes = array();
 	$variant_details = array();
 	$coding_and_splicing_details = array();
@@ -972,17 +970,13 @@ while(!gzeof($handle))
 			
 			//######################### general information (not transcript-specific) #########################
 			
-			//dbSNP, COSMIC
+			//dbSNP //TODO replace with dbSNP info from https://ftp.ncbi.nih.gov/snp/archive/b157/VCF/GCF_000001405.40.gz instead of VEP, if this makes the annotation faster.
 			$ids = explode("&", $parts[$i_existingvariation]);
 			foreach($ids as $id)
 			{
 				if (starts_with($id, "rs"))
 				{
 					$dbsnp[] = $id;
-				}
-				if (starts_with($id, "COSM") || starts_with($id, "COSN") || starts_with($id, "COSV"))
-				{
-					$cosmic[] = $id;
 				}
 			}
 			
@@ -1569,9 +1563,6 @@ while(!gzeof($handle))
 	//MaxEntScan
 	$maxentscan = implode(",", collapse($tag, "MaxEntScan", $maxentscan, "unique"));
 	
-	//COSMIC
-	$cosmic = implode(",", collapse($tag, "COSMIC", $cosmic, "unique"));
-	
 	//custom columns
 	foreach($custom_columns as $key => $tmp)
 	{
@@ -1601,7 +1592,7 @@ while(!gzeof($handle))
 	{
 		fwrite($handle_out,"\t".$phasing_info);
 	}
-	fwrite($handle_out,"\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$cadd\t$revel\t$alphamissense\t$maxentscan\t$cosmic\t$spliceai\t$pubmed");
+	fwrite($handle_out,"\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$cadd\t$revel\t$alphamissense\t$maxentscan\t$spliceai\t$pubmed");
 	if ($annotate_refseq_consequences)
 	{
 		fwrite($handle_out, "\t".implode(",", $coding_and_splicing_refseq));
