@@ -34,6 +34,14 @@ htslib=$CONTAINER_FOLDER/htslib_$HTSLIB_VERSION.sif
 ngsbits=$CONTAINER_FOLDER/ngs-bits_$NGSBITS_VERSION.sif
 msisensor=$CONTAINER_FOLDER/msisensor-pro_$MSISENSOR_VERSION.sif
 
+#Install dbSNP
+cd $dbs
+mkdir -p dbSNP
+cd dbSNP
+wget https://ftp.ncbi.nih.gov/snp/archive/b157/VCF/GCF_000001405.40.gz
+zcat GCF_000001405.40.gz | php $src/Install/db_converter_dbsnp.php | singularity exec $ngsbits VcfBreakMulti | singularity exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | singularity exec $ngsbits VcfStreamSort | singularity exec $htslib bgzip > dbSNP_b157.vcf.gz
+singularity exec $htslib tabix -p vcf -C -m9 -f dbSNP_b157.vcf.gz
+
 #Download ensembl transcripts database
 cd $dbs
 mkdir -p Ensembl

@@ -2,6 +2,19 @@
 
 require_once("framework.php");
 
+
+//##################################################################################
+start_test("chr2NC");
+
+check(chr2NC("chr1"), "NC_000001.11");
+check(chr2NC("chr11"), "NC_000011.10");
+check(chr2NC("chrMT"), "NC_012920.1");
+
+check(chr2NC("NC_000001.11", true), "chr1");
+check(chr2NC("NC_000011.10", true), "chr11");
+check(chr2NC("NC_012920.1", true), "chrMT");
+end_test();
+
 //##################################################################################
 start_test("bound");
 

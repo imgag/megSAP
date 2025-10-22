@@ -539,7 +539,6 @@ while(!gzeof($handle))
 			$i_featuretype = index_of($cols, "Feature_type", "CSQ");
 			$i_biotype = index_of($cols, "BIOTYPE", "CSQ");
 			$i_domains = index_of($cols, "DOMAINS", "CSQ");
-			$i_existingvariation = index_of($cols, "Existing_variation", "CSQ");
 			$i_pubmed = index_of($cols, "PUBMED", "CSQ"); 
 		}
 
@@ -970,16 +969,6 @@ while(!gzeof($handle))
 			
 			//######################### general information (not transcript-specific) #########################
 			
-			//dbSNP //TODO replace with dbSNP info from https://ftp.ncbi.nih.gov/snp/archive/b157/VCF/GCF_000001405.40.gz instead of VEP, if this makes the annotation faster.
-			$ids = explode("&", $parts[$i_existingvariation]);
-			foreach($ids as $id)
-			{
-				if (starts_with($id, "rs"))
-				{
-					$dbsnp[] = $id;
-				}
-			}
-			
 			//PubMed ids
 			if ($i_pubmed!==FALSE)
 			{
@@ -1187,7 +1176,16 @@ while(!gzeof($handle))
 			$coding_and_splicing_refseq[] = "{$gene}:{$transcript_id}:".$consequence.":".$parts[$i_vac_impact].":{$exon}{$intron}:{$hgvs_c}:{$hgvs_p}";
 		}	
 	}
-			
+	
+
+	//dbSNP
+	$dbsnp = [];
+	if (isset($info["RS"]))
+	{
+		$rs = trim($info["RS"]);
+		if ($rs!="") $dbsnp[] = $rs;
+	}
+	
 	//MaxEntScan
 	$mes_by_trans = [];
 	if (isset($info["MES"])) //parse MES scores for native splice site
