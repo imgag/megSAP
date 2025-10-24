@@ -94,6 +94,13 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data, $se_data_rep)
 					//skip not active
 					if ($entry['status']!='active') continue;
 					
+					//skip if V9
+					if ($entry['identifier'][0]['system']=="source.ish.document.v09")
+					{
+						print "SKIPPED";
+						continue;
+					}
+					
 					$active_rcs[] = $entry;
 				}
 			}
