@@ -20,7 +20,7 @@
 1. Update the release version in `doc/install_unix.md`, commit and push.
 1. Compile changelog for the new release:
 
-	> git log [last-tag]..master --oneline
+	> git log [last-tag]..master --oneline  
 	> git diff -w [last-tag] master src/Pipelines/
  
 1. Create a new release on GitHub.

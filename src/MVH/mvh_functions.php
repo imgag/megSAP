@@ -427,38 +427,6 @@ function convert_cn_to_type($cn, $chr, $gender)
 	trigger_error(__FUNCTION__.": Unhandled combination: {$cn}/{$chr}/{$gender}", E_USER_ERROR);
 }
 
-
-function chr2NC($chr)
-{
-	if ($chr=="chr1") return "NC_000001.11";
-	if ($chr=="chr2") return "NC_000002.12";
-	if ($chr=="chr3") return "NC_000003.12";
-	if ($chr=="chr4") return "NC_000004.12";
-	if ($chr=="chr5") return "NC_000005.10";
-	if ($chr=="chr6") return "NC_000006.12";
-	if ($chr=="chr7") return "NC_000007.14";
-	if ($chr=="chr8") return "NC_000008.11";
-	if ($chr=="chr9") return "NC_000009.12";
-	if ($chr=="chr10") return "NC_000010.11";
-	if ($chr=="chr11") return "NC_000011.10";
-	if ($chr=="chr12") return "NC_000012.12";
-	if ($chr=="chr13") return "NC_000013.11";
-	if ($chr=="chr14") return "NC_000014.9";
-	if ($chr=="chr15") return "NC_000015.10";
-	if ($chr=="chr16") return "NC_000016.10";
-	if ($chr=="chr17") return "NC_000017.11";
-	if ($chr=="chr18") return "NC_000018.10";
-	if ($chr=="chr19") return "NC_000019.10";
-	if ($chr=="chr20") return "NC_000020.11";
-	if ($chr=="chr21") return "NC_000021.9";
-	if ($chr=="chr22") return "NC_000022.11";
-	if ($chr=="chrX") return "NC_000023.11";
-	if ($chr=="chrY") return "NC_000024.10";
-	if ($chr=="chrMT") return "NC_012920.1";
-	
-	trigger_error(__FUNCTION__.": Unhandled chromosome name '{$chr}'!", E_USER_ERROR);
-}
-
 function sv_type_to_table($type)
 {
 	if ($type=="DEL") return "sv_deletion";
