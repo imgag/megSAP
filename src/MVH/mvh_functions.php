@@ -75,14 +75,14 @@ function xml_str($value)
 	return trim((string)$value);
 }
 
-function xml_bool($value, $allow_unset)
+function xml_bool($value, $allow_unset, $name)
 {
 	$value = strtolower(xml_str($value));
 	if ($value=="yes" || $value=="checked") return true;
 	if ($value=="no" || $value=="unchecked") return false;
 	if ($allow_unset && $value=="") return null;
 	
-	trigger_error(__FUNCTION__.": Unhandled value '{$value}'!", E_USER_ERROR);
+	trigger_error(__FUNCTION__.": Unhandled value '{$value}' for call with name '{$name}'!", E_USER_ERROR);
 }
 
 //returns the raw value for a drop-down file (our man query returns the label only)
