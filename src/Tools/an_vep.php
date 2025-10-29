@@ -55,7 +55,7 @@ function annotation_file_path($rel_path, $is_optional=false)
 $vep_output = $parser->tempFile("_vep.vcf");
 
 //annotate only fields we really need to prevent bloating the VCF file 
-$fields = array("Allele", "Consequence", "Feature", "Feature_type", "DOMAINS", "Existing_variation");
+$fields = array("Allele", "Consequence", "Feature", "Feature_type", "DOMAINS");
 
 $local_data = get_path("local_data");
 $vep_data_path = "{$local_data}/".basename(get_path("vep_data"))."/"; //the data is copied to the local data folder by 'data_setup' to speed up annotations (and prevent hanging annotation jobs)
@@ -82,7 +82,6 @@ if (!$all_transcripts)
 {
 	$args[] = "--gencode_basic";
 }
-
 $args[] = "--fields ".implode(",", $fields);
 
 $parser->execApptainer("vep", "vep", implode(" ", $args), $in_files);
@@ -102,7 +101,7 @@ if (file_exists($warn_file))
 }
 
 //add consequences (Ensembl)
-$gff = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.112.gff3";
+$gff = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.115.gff3";
 $vcf_output_consequence = $parser->tempFile("_consequence.vcf");
 $parser->execApptainer("ngs-bits", "VcfAnnotateConsequence", "-in {$vep_output} -out {$vcf_output_consequence} -ref $genome -threads {$threads} -tag CSQ2 -gff {$gff}", [$gff, $genome]);
 
@@ -125,9 +124,10 @@ $vcf_output_mes = $parser->tempFile("_mes.vcf");
 $in_files = [$gff, $genome];
 $parser->execApptainer("ngs-bits", "VcfAnnotateMaxEntScan", "-gff {$gff} -in {$vcf_output_phylop} -out {$vcf_output_mes} -ref $genome -swa -threads {$threads} -min_score 0.0 -decimals 1", [$gff, $genome]);
 
-// create config file
+// create config file for VcfAnnotateFromVcf
 $config_file_path = $parser->tempFile(".config");
 $config_file = fopen2($config_file_path, 'w');
+$in_files = array();
 
 //custom annotation using VcfAnnotateFromVcf
 if ($custom!="")
@@ -139,12 +139,14 @@ if ($custom!="")
 		{
 			list($vcf, $col, $desc) = explode(";", $tmp, 3);
 			fwrite($config_file, "{$vcf}\tCUSTOM\t{$col}\t\n");
+			$in_files[] = $vcf;
 		}
 	}
 }
 
-// input files for VcfAnnotateFromVcf
-$in_files = array();
+// add dbSNP annotation
+fwrite($config_file, annotation_file_path("/dbs/dbSNP/dbSNP_b157.vcf.gz")."\t\tRS\t\n");
+$in_files[] = annotation_file_path("/dbs/dbSNP/dbSNP_b157.vcf.gz");
 
 // add gnomAD annotation
 fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz")."\tgnomADg\tAC,AF,Hom,Hemi,Het,Wt,AFR_AF,AMR_AF,EAS_AF,NFE_AF,SAS_AF\t\ttrue\n");
@@ -153,11 +155,11 @@ fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_G
 $in_files[] = annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz");
 
 // add clinVar annotation
-fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20250128_converted_GRCh38.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
-$in_files[] = annotation_file_path("/dbs/ClinVar/clinvar_20250128_converted_GRCh38.vcf.gz");
+fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20250907_converted_GRCh38.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
+$in_files[] = annotation_file_path("/dbs/ClinVar/clinvar_20250907_converted_GRCh38.vcf.gz");
 
 // add HGMD annotation
-$hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2024_4_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
+$hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2025_2_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
 if(file_exists($hgmd_file) && !$test)
 {
 	fwrite($config_file, $hgmd_file."\tHGMD\tCLASS,MUT,GENE,PHEN\tID\n");

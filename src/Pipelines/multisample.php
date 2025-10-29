@@ -62,7 +62,7 @@ extract($parser->parse($argv));
 //init
 $repository_basedir = repository_basedir();
 $data_folder = get_path("data_folder");
-$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2024_4.bed";
+$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2025_2.bed";
 $omim_file = "{$data_folder}/dbs/OMIM/omim.bed";
 $vcf_all = "{$out_folder}/all.vcf.gz";
 $vcf_all_mito = "{$out_folder}/all_mito.vcf.gz";
@@ -83,11 +83,6 @@ foreach($steps as $step)
 {
 	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
 }
-
-//log server name
-list($server) = exec2("hostname -f");
-$user = exec('whoami');
-$parser->log("Executed on server: ".implode(" ", $server)." as ".$user);
 
 if ($annotation_only)
 {
@@ -219,7 +214,7 @@ foreach($bams as $bam)
 {
 	$folder = dirname($bam);
 	$ps = basename2($bam);
-	$gvcf = "{$folder}/dragen_variant_calls/{$ps}_dragen.gvcf.gz";
+	$gvcf = "{$folder}/dragen/{$ps}.hard-filtered.gvcf.gz";
 	if (file_exists($gvcf)) $gvcfs[] = $gvcf;
 }
 $dragen_gvcfs_exist = count($gvcfs)==count($bams);
@@ -706,7 +701,6 @@ if (in_array("cn", $steps))
 				"##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.",
 				"##DESCRIPTION=AlphaMissense=AlphaMissense pathogenicity prediction score. Deleterious threshold > 0.564.",
 				"##DESCRIPTION=MaxEntScan=MaxEntScan splicing prediction (reference bases score/alternate bases score).",
-				"##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.",
 				"##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.",
 				"##DESCRIPTION=NGSD_het=Heterozygous variant count in NGSD.",
 				"##DESCRIPTION=NGSD_group=Homozygous / heterozygous variant count in NGSD with the same disease group (Neoplasms).",
@@ -719,7 +713,7 @@ if (in_array("cn", $steps))
 				"##FILTER=off-target=Variant marked as 'off-target'."
 				);
 			$content = array_merge($content, $desc_and_filter);
-			$content[] = "#chr	start	end	ref	obs	".implode("\t", array_values($names))."	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	CADD	REVEL	MaxEntScan	COSMIC	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info";
+			$content[] = "#chr	start	end	ref	obs	".implode("\t", array_values($names))."	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	CADD	REVEL	MaxEntScan	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info";
 			file_put_contents($gsvar, implode("\n", $content));
 		}
 	}
@@ -748,7 +742,7 @@ if (in_array("cn", $steps))
 	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -out {$cnv_multi}", [$out_folder, "{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed"]);
 	
 	//pathogenic ClinVar CNVs
-	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-02.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", [$out_folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-02.bed"]);
+	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-09.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", [$out_folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-09.bed"]);
 	
 	//HGMD CNVs
 	if (file_exists($hgmd_file)) //optional because of license

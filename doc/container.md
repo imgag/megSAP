@@ -1,3 +1,5 @@
+//TODO
+
 ## Tools encapsulated in Apptainer container
 
 The following tools are encapsulated in Apptainer container and used throughout the megSAP pipelines. All containers can be found in the `container_folder` specified in the settings.ini.
@@ -6,12 +8,13 @@ By default they are downloaded to `data/tools/apptainer_container/`. They can al
 | container name                        | tool                      | version           | command                                                                                           |
 |---------------------------------------|---------------------------|-------------------|---------------------------------------------------------------------------------------------------|
 | abra2_v2.23.sif	                    | abra2                     | 2.23	            | java -Xmx16G -jar /opt/abra2.jar                                                                  |
-| arriba_v2.4.0.sif	                    | arriba	                | 2.4.0	            | arriba                                                                                            |
+| arriba_v2.4.0-20250904.sif            | arriba	                | 2.5.1	            | arriba                                                                                            |
 | blastn_v2.9.0+.sif                    | blastn                    | 2.9.0+	        | blastn                                                                                            |
 | bwa_v0.7.18.sif	                    | bwa                       | 0.7.18	        | bwa                                                                                               |
 | bwa-mem2_v2.2.1.sif                   | bwa-mem2	                | 2.2.1             | bwa-mem2                                                                                          |
 | circos_0.69.9.sif	                    | circos	                | 0.69.9	        | circos                                                                                            |
 | clair3_v1.0.10.sif                    | clair3	                | 1.0.10	        | run_clair3.sh                                                                                     |
+| clair3-gpu_v1.2.0-20250818.sif        | clair3 GPU support        | 1.2.0 	        | /opt/bin/run_clair3.sh                                                                            |
 | clair3-trio_v0.7.sif                  | clair3-trio               | 0.7	            | /opt/bin/run_clair3_trio.sh                                                                       |
 | ClinCNV_v1.18.3.sif	                | ClinCNV                   | 1.18.3	        | clinCNV.R                                                                                         |
 | deepvariant_1.8.0.sif	                | DeepVariant               | 1.8.0 	        | run_deepvariant                                                                                   |
@@ -29,23 +32,24 @@ By default they are downloaded to `data/tools/apptainer_container/`. They can al
 | minimap2_v2.28.sif                    | minimap2	                | 2.28	            | minimap2                                                                                          |
 | modkit_v0.3.2.sif	                    | modkit	                | 0.3.2	            | modkit                                                                                            |
 | msisensor-pro_v1.2.0.sif              | msisensor-pro             | 1.2.0	            | msisensor-pro                                                                                     |
-| ngs-bits_2025-01.sif	                | ngs-bits	                | 2025-01	        | "tool_name" (e.g. BedAdd)                                                                         |
+| ngs-bits_2025-09-20250925.sif	        | ngs-bits	                | 2025-09	        | "tool_name" (e.g. BedAdd)                                                                         |
 | orad_v2.6.1.sif	                    | orad	                    | 2.6.1	            | orad                                                                                              |
-| python_v3.10.9.sif	                | python	                | 3.10.9	        | python3                                                                                           |
+| paraphase_v3.2.1.sif                  | paraphase                 | 3.2.1	            | paraphase                                                                                         |
+| python_v3.10.9-20250729.sif           | python	                | 3.10.9	        | python3                                                                                           |
 | REViewer_v0.2.7.sif                   | REViewer	                | 0.2.7	            | REViewer                                                                                          |
 | samblaster_v0.1.26.sif	            | samblaster	            | 0.1.26	        | samblaster                                                                                        |
-| samtools_1.20.sif	                    | samtools	                | 1.20	            | samtools                                                                                          |
+| samtools_1.20-20250812.sif            | samtools	                | 1.20	            | samtools                                                                                          |
 | scarHRD_v1.sif	                    | scarHRD	                | 1	                | cli_scarHRD.R                                                                                     |
-| SigProfilerExtractor_v1.1.24.sif      | SigProfilerExtractor      | 1.1.24	        | python3 -c 'from SigProfilerExtractor import sigpro as sig; sig.sigProfilerExtractor("parameter")' |
+| SigProfilerExtractor_v1.1.24.sif      | SigProfilerExtractor      | 1.1.24	        | python3 -c 'from SigProfilerExtractor import sigpro as sig; sig.sigProfilerExtractor("parameter")'|
 | sniffles_v2.4.sif	                    | sniffles	                | 2.4	            | sniffles                                                                                          |
 | spliceai_v1.3.1.sif	                | spliceai	                | 1.3.1	            | spliceai                                                                                          |
 | STAR_v2.7.11b.sif                     | STAR	                    | 2.7.11b	        | STAR                                                                                              |
-| straglr_v1.5.1.sif	                | straglr	                | 1.5.1	            | straglr.py                                                                                        |
-| straglrOn_v0.2.2.sif	                | straglrOn                 | 0.2.2	            | straglron.py                                                                                      |
+| straglr_v1.5.4-20250729.sif	        | straglr	                | 1.5.4	            | straglr.py                                                                                        |
+| straglrOn_v0.2.4-20250730.sif	        | straglrOn                 | 0.2.4	            | straglron.py                                                                                      |
 | strelka2_v2.9.10.sif	                | strelka2                  | 2.9.10	        | python2 /opt/strelka2/bin/"script.py" (e.g.:runWorkflow.py)                                       |
 | subread_v2.0.6.sif                    | subread                   | 2.0.6	            | featureCounts                                                                                     |
 | umi-tools_v1.1.5.sif                  | umi-tools                 | 1.1.5	            | umi_tools                                                                                         |
-| umiVar_2024-11.sif                    | umiVar                    | 2024-11           | "script.py" (e.g. umiVar.py)                                                                      |
+| umiVar_2025-08.sif                    | umiVar                    | 2025-08           | "script.py" (e.g. umiVar.py)                                                                      |
 | varscan2_v2.4.6.sif	                | varscan2                  | 2.4.6	            | java -jar /opt/VarScan.jar                                                                        |
 | vcflib_v1.0.3.sif	                    | vcflib	                | 1.0.3	            | "tool_name" (e.g. vcfallelicprimitives)                                                           |
 | vep_release-112.0.sif                 | vep	                    | release-112.0	    | vep                                                                                               |
@@ -53,7 +57,7 @@ By default they are downloaded to `data/tools/apptainer_container/`. They can al
 
 With Apptainer installed each container can be invoked with the following command:
 
-    > apptainer exec -B bind/paths tool_version.sif command parameters
+    > singularity exec -B bind/paths tool_version.sif command parameters
 
 ## Building a new Apptainer container
 
@@ -137,7 +141,7 @@ To implement the invocation of a containerized tool in megSAP you can use the `e
                 $parameters,                        parameters for the given command (e.g. --bam_fn={$bam} --ref_fn=$genome --threads={$threads} ...)
                 $in_files = array(),                host system directories/files used as input (needed for read file access from inside the container)
                 $out_files = array(),               host system directories used as output (needed for read and write access from inside the container)
-                $command_only=false,                if `true` only the apptainer exec command is returned without executing it (needed when the tool execution is part of a pipeline)
+                $command_only=false,                if `true` only the singularity exec command is returned without executing it (needed when the tool execution is part of a pipeline)
                 $log_output=true,                   Flag (true/false) to turn on/off logging of stdout, stderr and execution time of the containerised tool
                 $abort_on_error=true,               Flag (true/false) whether to throw an error when execution fails
                 $warn_on_error=true)                Flag (true/false) whether to throw a warning when execution fails

@@ -633,9 +633,6 @@ foreach($sample_data as $sample => $sample_infos)
 				trigger_error("ERROR: Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found in {$fastq_folder}: ".count($fastq_files).")", E_USER_ERROR);
 			}
 
-			$move_cmd = "mv ".($overwrite ? "-f " : "");
-
-
 			//check & copy analyzed data
 			if ($nsx_analysis_done && !$merge_sample)
 			{
@@ -669,66 +666,47 @@ foreach($sample_data as $sample => $sample_infos)
 					if(!file_exists($source_mapping_file.".bai")) trigger_error("ERROR: BAM index file '{$source_mapping_file}.bai' is missing!", E_USER_ERROR);
 				} 
 				
-				$source_vcf_file = "{$source_folder}/{$sample}.hard-filtered.vcf.gz";
-				if(!file_exists($source_vcf_file)) trigger_error("ERROR: VCF file '{$source_vcf_file}' is missing!", E_USER_ERROR);
-				if(!file_exists($source_vcf_file.".tbi")) trigger_error("ERROR: VCF index file '{$source_vcf_file}.tbi' is missing!", E_USER_ERROR);
-				$source_gvcf_file = "{$source_folder}/{$sample}.hard-filtered.gvcf.gz";
-				if(!file_exists($source_gvcf_file)) trigger_error("ERROR: gVCF file '{$source_gvcf_file}' is missing!", E_USER_ERROR);
-				if(!file_exists($source_gvcf_file.".tbi")) trigger_error("ERROR: gVCF index file '{$source_gvcf_file}.tbi' is missing!", E_USER_ERROR);
-				$source_sv_vcf_file = "{$source_folder}/{$sample}.sv.vcf.gz";
-				if(!file_exists($source_sv_vcf_file)) trigger_error("ERROR: SV VCF file '{$source_sv_vcf_file}' is missing!", E_USER_ERROR);
-				if(!file_exists($source_sv_vcf_file.".tbi")) trigger_error("ERROR: SV VCF index file '{$source_sv_vcf_file}.tbi' is missing!", E_USER_ERROR);
-				$source_cnv_vcf_file = "{$source_folder}/{$sample}.cnv.vcf.gz";
-				if(($sys_type == "WGS") && !file_exists($source_cnv_vcf_file)) trigger_error("ERROR: CNV VCF file '{$source_cnv_vcf_file}' is missing!", E_USER_ERROR);
-				if(($sys_type == "WGS") && !file_exists($source_cnv_vcf_file.".tbi")) trigger_error("ERROR: CNV VCF index file '{$source_cnv_vcf_file}.tbi' is missing!", E_USER_ERROR);
-
+				if(!$sample_is_tumor) //VC is not done on tumor samples
+				{
+					$source_vcf_file = "{$source_folder}/{$sample}.hard-filtered.vcf.gz";
+					if(!file_exists($source_vcf_file)) trigger_error("ERROR: VCF file '{$source_vcf_file}' is missing!", E_USER_ERROR);
+					if(!file_exists($source_vcf_file.".tbi")) trigger_error("ERROR: VCF index file '{$source_vcf_file}.tbi' is missing!", E_USER_ERROR);
+					$source_gvcf_file = "{$source_folder}/{$sample}.hard-filtered.gvcf.gz";
+					if(!file_exists($source_gvcf_file)) trigger_error("ERROR: gVCF file '{$source_gvcf_file}' is missing!", E_USER_ERROR);
+					if(!file_exists($source_gvcf_file.".tbi")) trigger_error("ERROR: gVCF index file '{$source_gvcf_file}.tbi' is missing!", E_USER_ERROR);
+					$source_sv_vcf_file = "{$source_folder}/{$sample}.sv.vcf.gz";
+					if(!file_exists($source_sv_vcf_file)) trigger_error("ERROR: SV VCF file '{$source_sv_vcf_file}' is missing!", E_USER_ERROR);
+					if(!file_exists($source_sv_vcf_file.".tbi")) trigger_error("ERROR: SV VCF index file '{$source_sv_vcf_file}.tbi' is missing!", E_USER_ERROR);
+					$source_cnv_vcf_file = "{$source_folder}/{$sample}.cnv.vcf.gz";
+					if(($sys_type == "WGS") && !file_exists($source_cnv_vcf_file)) trigger_error("ERROR: CNV VCF file '{$source_cnv_vcf_file}' is missing!", E_USER_ERROR);
+					if(($sys_type == "WGS") && !file_exists($source_cnv_vcf_file.".tbi")) trigger_error("ERROR: CNV VCF index file '{$source_cnv_vcf_file}.tbi' is missing!", E_USER_ERROR);
+				}
 
 				//get md5sum 
 				$md5sum_buffer[] = get_md5_line($source_mapping_file);
-				$md5sum_buffer[] = get_md5_line($source_vcf_file);
-				$md5sum_buffer[] = get_md5_line($source_gvcf_file);
-				// $md5sum_buffer[] = get_md5_line($source_sv_vcf_file);
-				if (file_exists($source_cnv_vcf_file)) $md5sum_buffer[] = get_md5_line($source_cnv_vcf_file);
+				if(!$sample_is_tumor) //VC is not done on tumor samples
+				{
+					$md5sum_buffer[] = get_md5_line($source_vcf_file);
+					$md5sum_buffer[] = get_md5_line($source_gvcf_file);
+					// $md5sum_buffer[] = get_md5_line($source_sv_vcf_file);
+					if (file_exists($source_cnv_vcf_file)) $md5sum_buffer[] = get_md5_line($source_cnv_vcf_file);
+				}
 
 
 				//*********************** copy analyzed data *********************************************
-				$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}/dragen_variant_calls";
+				$target_to_copylines[$tag][] = "\tmkdir -p {$project_folder}Sample_{$sample}/dragen";
 				//copy logs
-				$target_to_copylines[$tag][] = "\tcp -r {$log_folder} {$project_folder}Sample_{$sample}/dragen_variant_calls/";
+				$target_to_copylines[$tag][] = "\tcp -r ".($overwrite ? "-f " : "")."{$log_folder} {$project_folder}Sample_{$sample}/dragen/";
+
+				//copy analzed data to dragen folder
+				$target_to_copylines[$tag][] = "\tcp -r ".($overwrite ? "-f " : "")."{$source_folder}/* {$project_folder}Sample_{$sample}/dragen/";
 
 				//touch all indices (to prevent warnings)
-				$target_to_copylines[$tag][] = "\ttouch {$source_folder}/*.bai";
-				$target_to_copylines[$tag][] = "\ttouch {$source_folder}/*.crai";
-				$target_to_copylines[$tag][] = "\ttouch {$source_folder}/*.tbi";
-				$target_to_copylines[$tag][] = "\ttouch {$source_folder}/*.csi";
+				$target_to_copylines[$tag][] = "\ttouch {$project_folder}Sample_{$sample}/dragen/*.bai";
+				$target_to_copylines[$tag][] = "\ttouch {$project_folder}Sample_{$sample}/dragen/*.crai";
+				$target_to_copylines[$tag][] = "\ttouch {$project_folder}Sample_{$sample}/dragen/*.tbi";
+				$target_to_copylines[$tag][] = "\ttouch {$project_folder}Sample_{$sample}/dragen/*.csi";
 
-				//move BAM
-				$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_mapping_file} {$project_folder}Sample_{$sample}/";
-				if (file_exists($source_mapping_file.".bai"))
-				{
-					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_mapping_file}.bai {$project_folder}Sample_{$sample}/";
-				}
-				else
-				{
-					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_mapping_file}.crai {$project_folder}Sample_{$sample}/";
-				}
-				
-				if(!$sample_is_tumor)
-				{
-					//move (g)VCFs
-					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_vcf_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen.vcf.gz";
-					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_vcf_file}.tbi {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen.vcf.gz.tbi";
-					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_gvcf_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen.gvcf.gz";
-					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_gvcf_file}.tbi {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen.gvcf.gz.tbi";
-					//move SV VCFs
-					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_sv_vcf_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen_svs.vcf.gz";
-					$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_sv_vcf_file}.tbi {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen_svs.vcf.gz.tbi";
-					//move CNVs (DRAGEN >= 4.3)
-					if (file_exists($source_cnv_vcf_file))
-					{
-						$target_to_copylines[$tag][] = "\t{$move_cmd} {$source_cnv_vcf_file} {$project_folder}Sample_{$sample}/dragen_variant_calls/{$sample}_dragen_cnv.vcf.gz";
-					}
-				}
 			}
 			
 
@@ -822,10 +800,11 @@ foreach($sample_data as $sample => $sample_infos)
 			else 
 			{
 				$outputline .= " -args '-steps ma,db -somatic'";
+				//use DRAGEN mapping:
+				$outputline .= ($use_dragen ? " -use_dragen": "");
 			}
 			
-			//use DRAGEN mapping:
-			$outputline .= ($use_dragen ? " -use_dragen": "");
+			
 			
 			
 			if (isset($tumor2normal[$sample]))
@@ -1067,38 +1046,6 @@ foreach($sample_data as $sample => $sample_infos)
 //add to Makefile
 $all_parts = array_merge($all_parts, $urgent_samples, $normal_samples);
 $output = array_merge($output, $urgent_sample_buffer, $normal_sample_buffer);
-
-// //target(s) 'copy_...'
-// foreach ($target_to_copylines as $target => $lines)
-// {
-// 	$all_parts[] = "copy_{$target}";
-	
-// 	$output = array_merge($output, array_unique($lines));
-// 	$output[] = "";
-// }
-
-// //target 'merge'
-// if(count($merge_files) > 0)
-// {
-// 	$all_parts[] = "merge";
-// 	$output = array_merge($output, $merge_files);
-// 	$output[] = "";
-
-// 	//report merged samples
-// 	print(implode("\n", $merge_notice)."\n");
-// }
-	
-// //target(s) 'queue_...'
-// if (!$no_queuing)
-// {
-// 	foreach ($target_to_queuelines as $target => $lines)
-// 	{
-// 		$all_parts[] = "queue_{$target}";
-		
-// 		$output = array_merge($output, array_unique($lines));
-// 		$output[] = "";	
-// 	}
-// }
 
 //target 'queue_somatic'
 if (count($queue_somatic)>0)

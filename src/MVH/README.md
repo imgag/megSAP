@@ -1,5 +1,68 @@
 # Modellvorhaben Genomsequenzierung
 
+
+## Projektübersicht
+
+### Grundlagen
+
+Das Institut für Medizinische Genetik und Angewandte Genomik (IMGAG) führt den Datenexport für das Modellvorhaben durch 
+
+- für KDK-Daten des SE Netzwerks (KDK-Export für OE wird vom ZPM gemacht)
+- für GRZ-Daten aller Netzwerke
+
+Voraussetzungen/Zuständigkeiten:
+
+- Modellvorhaben-Fall abgeschlossen/abgebrochen
+- Documentation abgeschlossen in:
+  - RedCap `Fallverwaltung Modellvorhaben Genomsequenzierung` für SE (ZSE) und OE (ZPM)
+  - RedCap `Netzwerk Seltene Erkankungen` für SE (ZSE)
+  - NGSD (NGS-Datenbank IMGAG)
+
+### Schritt 1 – Datenaggregation + Prüfung
+
+Um den Datenexport durchzuführen wurde die Applikation MVHub entwickelt:
+
+![MVHub](MVHub.png)
+
+MVHub ermöglicht einen Gesamtübersicht aller Daten zu den Fällen im Modellvorhaben.
+Dazu werden für jeden Fall die Daten aus folgenden Quellen in einem Datenbank-Backend von MVHub gesammelt:
+
+- Daten aus RedCap `Fallverwaltung Modellvorhaben Genomsequenzierung` via XML-Export
+- Daten aus RedCap `Netzwerk Seltene Erkankungen` via XML-Export
+- Proben-IDs der Genetik aus NGSD (NGS-Datenbank IMGAG)
+- Einwilligung Forschung (REST API des meDIC für Broad Consent)
+
+Die primäre Datenquelle ist dabei das RedCap der Fallverwaltung.
+Alle anderen Daten werden über die Patienten-ID von SAP mit den Daten der Fallverwaltung zusammengeführt.
+
+Vor dem Datenexport muss geprüft werden ob die Daten bereit sind für den Upload:
+
+- Fall abgeschlossen oder abgebrochen
+- Grobe Prüfung der Daten (alles vorhanden, keine Wiedersprüche)
+
+### Schritt 2 - Upload
+
+Nach positiver Prüfung eines Datensatzes kann aus MVHub der Upload der Daten angestoßen werden.  
+Dazu wird der Auftrag zum Export an KDK/GRZ in der MVHub-Datenbank hinterlegt.
+
+Auf dem IMGAG Applikationsserver läuft ein Background-Prozess der den eigentlichen Export durchführt. Das Ergebnis jedes Exports (erfolgreich/abgebrochen und Ausgabe auf stdout/stderr) werden in der Datenbank gespeichert (siehe Screenshot). Falls ein Upload nicht erfolgreich ist, kann er nach Korrektur der Metadaten wiederholt werden.
+
+Für jeden Upload wird eine TAN über das Trustcenter des meDIC generiert.
+
+### Schritt 3 - Meldebestätigung
+
+Nach erfolgreichem Upload, wird im RedCap „ Fallverwaltung” die Information zum Upload hinterlegt (Datum, TAN, …):
+
+![Pruefbericht](Pruefbericht.png)
+
+Nach Prüfung der hochgeladenen Daten schickt das KDK/GRZ einen Prüfbericht ans BfArM.
+Das BfArM schickt dann eine Meldebestätigung mit der TAN per Email an ein Funktionspostfach des UKT.
+
+ZSE/ZPM dokumentieren die Meldebestätigung dann im RedCap und SAP:
+
+
+![Meldebestaetigung](Meldebestaetigung.png)
+
 ## Installation of GRZ QC workflow (not used right now because of the Nextflow problems
 
 ### Installation nexflow

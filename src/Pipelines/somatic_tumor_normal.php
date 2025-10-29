@@ -52,11 +52,28 @@ extract($parser->parse($argv));
 ###################################### AUXILARY FUNCTIONS ######################################
 
 //Checks $baf_folder for missing B-AF files and creates them if neccessary
-function complement_baf_folder($t_n_id_file,$baf_folder,&$db_conn, $build)
+function complement_baf_folder($t_id, $n_id, $t_n_id_file, $baf_folder, &$db_conn, $build)
 {
 	global $parser;
-
+	
 	$ids = file($t_n_id_file);
+	
+	$already_in_list = false;
+	//Check whether tumor-normal pair is already included in csv list in tumor coverage folder or not
+	foreach($ids as $line)
+	{
+		if(starts_with($line,'#')) continue;
+		if(empty(trim($line))) continue;
+		list($t,$n) = explode(",",trim($line));
+		if($t == $t_id && $n == $n_id)
+		{
+			$already_in_list = true;
+			break;
+		}
+	}
+	
+	if (!$already_in_list) $ids[] = "{$t_id},{$n_id}";
+	
 	foreach($ids as $line)
 	{
 		if(starts_with($line,"#")) continue;
@@ -75,6 +92,12 @@ function complement_baf_folder($t_n_id_file,$baf_folder,&$db_conn, $build)
 			$t_bam = $tinfo["ps_bam"];
 			$parser->execTool("Auxilary/create_baf_file.php", "-tumor -t_bam {$t_bam} -n_gsvar {$n_gsvar} -build $build -out_folder {$baf_folder}");
 		}
+	}
+	
+	//add it to the file after bafs were succesfully created if it wasn't in the list yet
+	if(!$already_in_list)
+	{
+		file_put_contents($t_n_id_file,"{$t_id},{$n_id}\n", FILE_APPEND | LOCK_EX);
 	}
 }
 
@@ -438,7 +461,7 @@ if (in_array("vc", $steps))
 			// log running state
 			if (!$finished)
 			{
-				$state = explode(" ", preg_replace('/\s+/', ' ', $stdout[0]))[5];
+				$state = explode(" ", preg_replace('/\s+/', ' ', $stdout[0]))[4];
 				trigger_error("SGE job $sge_id still queued/running (state: {$state}).", E_USER_NOTICE);
 			}
 		}
@@ -773,24 +796,6 @@ if(in_array("cn",$steps))
 		$t_n_list_file = $tmp_file_name;
 	}
 	
-	//Append tumor-normal pair to csv list in tumor coverage folder if not included yet
-	$already_in_list = false;
-	foreach(file($t_n_list_file) as $line)
-	{
-		if(starts_with($line,'#')) continue;
-		if(empty(trim($line))) continue;
-		list($t,$n) = explode(",",trim($line));
-		if($t == $t_id && $n == $n_id)
-		{
-			$already_in_list = true;
-			break;
-		}
-	}
-	if(!$already_in_list)
-	{
-		file_put_contents($t_n_list_file,"{$t_id},{$n_id}\n", FILE_APPEND | LOCK_EX);
-	}
-
 	//TODO reanable real baf folder
 	#$baf_folder = get_path("data_folder")."/coverage/". $sys['name_short']."_bafs";
 	#$baf_folder = "/mnt/storage2/users/ahiliuk1/issues/2025_04_08_create_baf_file/twistCustomExomeV2_used_bafs_new";
@@ -803,7 +808,7 @@ if(in_array("cn",$steps))
 	{
 		$db_conn = DB::getInstance("NGSD");
 		//Create BAF file for each sample with the same processing system if not existing
-		complement_baf_folder($t_n_list_file,$baf_folder,$db_conn, $sys['build']);
+		complement_baf_folder($t_id, $n_id, $t_n_list_file,$baf_folder,$db_conn, $sys['build']);
 	}
 	else
 	{
@@ -830,16 +835,16 @@ if(in_array("cn",$steps))
 		"-bed", $target_bed,
 		"-baf_folder", $baf_folder,
 		"-cohort_folder", $cohort_folder,
-		"-threads {$threads}"
 		];
 		
 		if ($sys["type"] != "WGS" && $sys["type"] != "WGS (shallow)")
 		{
-			$args[] = "-bed_off {$off_target_bed}";
-			$args[] = "-t_cov_off {$t_cov_off_target}";
-			$args[] = "-n_cov_off {$n_cov_off_target}";
-			$args[] = "-cov_folder_t_off {$ref_folder_t_off_target}";
-			$args[] = "-cov_folder_n_off {$ref_folder_n_off_target}";
+			$args_clincnv[] = "-bed_off {$off_target_bed}";
+			$args_clincnv[] = "-t_cov_off {$t_cov_off_target}";
+			$args_clincnv[] = "-n_cov_off {$n_cov_off_target}";
+			$args_clincnv[] = "-cov_folder_t_off {$ref_folder_t_off_target}";
+			$args_clincnv[] = "-cov_folder_n_off {$ref_folder_n_off_target}";
+			$args_clincnv[] = "-threads {$threads}";
 		}
 
 		if($sys['type'] == "WES")
@@ -855,6 +860,8 @@ if(in_array("cn",$steps))
 			$args_clincnv[] = "-scoreS 1500";
 			$args_clincnv[] = "-filterStep 2";
 			$args_clincnv[] = "-clonePenalty 10000";
+			//for WGS samples use at max 2 threads as it uses a lot of RAM
+			$args_clincnv[] = "-threads ".min(2, $threads);
 		}
 		
 		if(isset($cnv_baseline_pos))

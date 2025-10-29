@@ -260,35 +260,44 @@ function ngs_geno($bam, $chr, $pos, $ref, $min_depth)
 function sample_from_ngsd(&$db, $dna_number, $irp, $itp, $ibad)
 {
 	global $parser;
+	global $location;
 	$output = [];
 	
 	$project_conditions = "(p.type='diagnostic'".($irp ? " OR p.type='research'" : "").($itp ? " OR p.type='test'" : "").")";
 	
 	//### get sample name ###
 
-	if (!starts_with($dna_number, "FO"))
+	if ($location == "MHH-Humangenetik") 
 	{
-		//1. try (DNA prefix (new schema))
-		$res = $db->executeQuery("SELECT s.name FROM sample s WHERE s.name LIKE 'DNA{$dna_number}%' AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
-		
-		//2. try (DX prefix and external name (old schema))
-		if (count($res)==0)
+		//MHH-Humangenetik: no prefixes
+		$res = $db->executeQuery("SELECT s.name FROM sample s WHERE s.name = '{$dna_number}' AND EXISTS (SELECT ps.id FROM processed_sample ps WHERE ps.sample_id=s.id)");
+	} 
+	else 
+	{
+		if (!starts_with($dna_number, "FO"))
 		{
-			$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name LIKE 'DX{$dna_number}%' OR s.name_external LIKE '%{$dna_number}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
+			//1. try (DNA prefix (new schema))
+			$res = $db->executeQuery("SELECT s.name FROM sample s WHERE s.name LIKE 'DNA{$dna_number}%' AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
+			
+			//2. try (DX prefix and external name (old schema))
+			if (count($res)==0)
+			{
+				$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name LIKE 'DX{$dna_number}%' OR s.name_external LIKE '%{$dna_number}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
+			}
+		}
+		else //search for FO number
+		{
+			$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name LIKE '{$dna_number}%' OR s.name_external LIKE '%{$dna_number}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
+			
+			if (count($res)==0)
+			{
+				//2. try (without '-')
+				$dna_number = str_replace("-", "", $dna_number);
+				$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name LIKE 'DX{$dna_number}%' OR s.name_external LIKE '%{$dna_number}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
+			}
 		}
 	}
-	else //search for FO number
-	{
-		$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name LIKE '{$dna_number}%' OR s.name_external LIKE '%{$dna_number}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
-		
-		
-		if (count($res)==0)
-		{
-			//2. try (without '-')
-			$dna_number = str_replace("-", "", $dna_number);
-			$res = $db->executeQuery("SELECT s.name FROM sample s WHERE (s.name LIKE 'DX{$dna_number}%' OR s.name_external LIKE '%{$dna_number}%') AND EXISTS (SELECT ps.id FROM processed_sample ps, project p WHERE ps.project_id=p.id AND ps.sample_id=s.id AND {$project_conditions})");
-		}
-	}
+
 	
 	//determine processed sample meta data
 	foreach($res as $row)
@@ -349,8 +358,11 @@ $parser->addString("user", "Name of the user performing the KASP analysis and im
 $parser->addFlag("no_db_import", "Do not import results into the NGSD");
 $parser->addString("lanes", "Comma-separated list of lanes which will be used for cross-check with processed samples.", true, "");
 $parser->addString("samples", "Comma-separated list of processed samples which will be used for cross-check with lanes.", true, "");
+$parser->addFlag("debug", "Enable debug logging.");
 extract($parser->parse($argv));
 
+$location = trim(get_path("location", false));
+if ($debug && $location!="") $parser->log("Using location '$location'.");
 
 //get user ID from NGSD
 if ($user=="") $user = exec('whoami');
@@ -520,25 +532,36 @@ foreach($file as $line)
 	else
 	{
 		//extract DNA number
-		preg_match("/[0-9]{6,}/", $name, $matches);
-		if (count($matches) == 1)
+		if ($location == "MHH-Humangenetik")
 		{
-			$dna_number = $matches[0];
+			preg_match("/[0-9]{6,}(PR[0-9]+)?/", $name, $matches);
+			if (count($matches) >= 1 && count($matches) <= 2)
+			{
+				$dna_number = $matches[0];
+			}
 		}
 		else
 		{
-			//check FO number
-			preg_match("/FO[-]{0,1}[0-9]{5}/", $name, $matches);
+			preg_match("/[0-9]{6,}/", $name, $matches);
 			if (count($matches) == 1)
 			{
 				$dna_number = $matches[0];
 			}
 			else
 			{
-				print "error - Invalid DNA number '".$genotypes[0]."' given!\n";
-				$output[] = "##Invalid DNA number '".$genotypes[0]."'\n";
-				continue;
+				//check FO number
+				preg_match("/FO[-]{0,1}[0-9]{5}/", $name, $matches);
+				if (count($matches) == 1)
+				{
+					$dna_number = $matches[0];
+				}
 			}
+		}
+		if (!isset($dna_number))
+		{
+			print "error - Invalid DNA number '".$name."' given!\n";
+			$output[] = "##Invalid DNA number '".$name."'\n";
+			continue;
 		}
 
 		//determine BAM file of sample

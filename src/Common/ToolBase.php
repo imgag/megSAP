@@ -643,10 +643,16 @@ class ToolBase
 	///Logs server name, user name and working directory.
 	public function logServerEnvronment()
 	{
-		list($server) = exec2("hostname -f");
-		$user = exec('whoami');
-		$cwd = getcwd();
-		$this->log("Executed on server: ".implode(" ", $server)." as {$user} in WD {$cwd}");
+		$server = trim(implode(" ", exec2("hostname -f")[0]));
+		$this->log("Environment/server: {$server}");
+		$os = trim(implode(" ", exec2("cat /etc/issue")[0]));
+		$this->log("Environment/OS: {$os}");
+		$user = trim(exec('whoami'));
+		$this->log("Environment/user: {$user}");
+		$lang = trim(exec('echo $LANG'));
+		$this->log("Environment/LANG: {$lang}");
+		$server = trim(implode(" ", exec2("singularity --version")[0]));
+		$this->log("Environment/container platform: {$server}");
 	}
 	
 	/// Prints a message (string or array of strings) to the stderr stream
@@ -886,7 +892,7 @@ class ToolBase
 		//log call
 		if($log_output)
 		{
-			$version_command = "apptainer exec $container_path $command";
+			$version_command = "singularity exec $container_path $command";
 			$add_info = array();
 			foreach($in_files as $in_file)
 			{

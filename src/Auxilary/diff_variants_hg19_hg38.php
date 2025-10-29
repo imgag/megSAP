@@ -105,7 +105,7 @@ foreach($old as $var => $annos)
 }
 print "##Matching variants based on dbSNP: {$matches_dbsnp} (".number_format($matches_dbsnp * 100.0 / count($old), 2)."%)\n";
 
-$text_cols = ["regulatory", "OMIM", "ClinVar", "HGMD", "RepeatMasker", "COSMIC", "MaxEntScan"]; //check text present/absent
+$text_cols = ["regulatory", "OMIM", "ClinVar", "HGMD", "RepeatMasker", "MaxEntScan"]; //check text present/absent
 $num_cols = ["1000g", "gnomAD", "phyloP", "CADD", "REVEL", "SpliceAI"]; //numeric comparison
 $num_cols_sep = ["gnomAD_hom_hemi"=>",", "gnomAD_sub"=>","]; //numeric comparison (several values possible, max is taken)
 $special_cols = ["quality"=>"depth", "coding_and_splicing"=>"impact", "NA12878_58"=>"genotype"]; //special handling

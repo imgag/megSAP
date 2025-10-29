@@ -2,6 +2,19 @@
 
 require_once("framework.php");
 
+
+//##################################################################################
+start_test("chr2NC");
+
+check(chr2NC("chr1"), "NC_000001.11");
+check(chr2NC("chr11"), "NC_000011.10");
+check(chr2NC("chrMT"), "NC_012920.1");
+
+check(chr2NC("NC_000001.11", true), "chr1");
+check(chr2NC("NC_000011.10", true), "chr11");
+check(chr2NC("NC_012920.1", true), "chrMT");
+end_test();
+
 //##################################################################################
 start_test("bound");
 
@@ -50,10 +63,10 @@ end_test();
 start_test("repository_revision");
 
 $rev = repository_revision();
-check(starts_with($rev, "2025_03"), true);
+check(starts_with($rev, "2025_10"), true);
 
 $rev = repository_revision(true);
-check(starts_with($rev, "megSAP 2025_03-"), true);
+check(starts_with($rev, "megSAP 2025_10-"), true);
 
 end_test();
 

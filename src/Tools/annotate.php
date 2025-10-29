@@ -71,15 +71,15 @@ if ($no_splice) $args[] = "-no_splice";
 $parser->execTool("Tools/an_vep.php", implode(" ", $args));
 
 //annotate COSMIC
-$cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export_v99.vcf.gz";
-if(file_exists($cosmic_cmc) && $somatic)
+$cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export_v102.vcf.gz";
+if($somatic && file_exists($cosmic_cmc))
 {
 	$temp_annfile = temp_file(".vcf","cosmic_cmc_an_");
 	$parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", "-in {$annfile} -source {$cosmic_cmc} -info_keys COSMIC_CMC -out {$temp_annfile} -threads {$threads}", [$cosmic_cmc]);
 	$parser->moveFile($temp_annfile, $annfile);
 }
 
-if( $somatic && file_exists(get_path("data_folder")."/dbs/cancerhotspots/cancerhotspots_snv.tsv") )
+if($somatic && file_exists(get_path("data_folder")."/dbs/cancerhotspots/cancerhotspots_snv.tsv") )
 {
 	$temp_annfile = temp_file(".vcf","cosmic_cmc_an_");
 	$parser->execTool("Tools/an_somatic_cancerhotspots.php", "-in $annfile -out $temp_annfile");
