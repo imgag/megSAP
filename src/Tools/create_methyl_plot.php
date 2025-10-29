@@ -44,26 +44,30 @@ function get_bam($bam, $ps_name, $chr, $start, $end, $ref_genome, $threads)
 }
 
 // run modkit for a region and returns (tmp) output folder with the results 
-function extract_methylation($bam, $chr, $start, $end, $highlight_start, $highlight_end, $name, $ref_genome, $threads)
+function extract_methylation($bam, $chr, $start, $end, $highlight_start, $highlight_end, $name, $ref_genome, $threads, $unphased=false)
 {
     global $parser; //get ToolBase
     // create methyl track for cohort plots
-    $tmp_out = $parser->tempFolder();
+    $tmp_out = $parser->tempFolder()."/";
     $prefix = "{$name}";
     $prefix_highlight = "{$name}_highlight";
     $args_modkit = [
         "pileup",
+        $bam,
+        (($unphased)? "{$tmp_out}{$prefix}_all.bed": $tmp_out), //for phased output provide folder, otherwise output bed file
         "--ref", $ref_genome,
         "--cpg",
         "--region", "{$chr}:{$start}-{$end}",
         "--combine-strands",
         "--ignore", "h",
-        "--partition-tag", "HP",
-        "--prefix", $prefix,
         "--threads", $threads,
-        $bam,
-        $tmp_out . "/",
     ];
+    if (!$unphased)
+    {
+        $args_modkit[] = "--partition-tag HP";
+        $args_modkit[] = "--prefix {$prefix}";
+    } 
+
     list($stdout, $stderr, $ec) = $parser->execApptainer("modkit", "modkit", implode(" ", $args_modkit), [$ref_genome, $bam], [$tmp_out], false, true, false, true);
     // workaround to allow 0 reads in BAM region (e.g. in test cases)
     if (($ec != 0) && (end($stderr) != "> Error! zero reads found in bam index")) 
@@ -74,9 +78,11 @@ function extract_methylation($bam, $chr, $start, $end, $highlight_start, $highli
     }
 
     //slice BED to target region
-    foreach ([1, 2, "ungrouped"] as $hp)
+    $haplotypes = [1, 2, "ungrouped"];
+    if ($unphased) $haplotypes = ["all"];
+    foreach ($haplotypes as $hp)
     {
-        $input_bed = "{$tmp_out}/{$prefix}_{$hp}.bed";
+        $input_bed = "{$tmp_out}{$prefix}_{$hp}.bed";
         //create empty file in case input doesn't exists
         if (!file_exists($input_bed)) touch($input_bed);
         $output_bed = "{$tmp_out}/{$prefix_highlight}_{$hp}.bed";
@@ -84,7 +90,7 @@ function extract_methylation($bam, $chr, $start, $end, $highlight_start, $highli
             ["", "echo '{$chr}\t{$highlight_start}\t{$highlight_end}'"],
             ["", $parser->execApptainer("ngs-bits", "BedIntersect", "-mode in2 -in2 {$input_bed} -out {$output_bed}", [$input_bed], [$tmp_out], true)]
         ];
-        $parser->execPipeline($pipeline, "extract highlight region");   
+        $parser->execPipeline($pipeline, "extract highlight region", false);   
     }
 
     return $tmp_out;
@@ -303,7 +309,6 @@ function get_cohort(&$db, $cohort_ps_name, $bam, $size=100)
        if (!file_exists($sample_table->get($row_idx, $i_path)."/{$sample}_var_methylation.tsv")) continue;
 
        // sample (line) passed all filters
-       print "add sample {$sample}\n";
        $filtered_sample_table->addRow($sample_table->getRow($row_idx));
        
        //add time diff to current run
@@ -340,7 +345,28 @@ function get_run_dates(&$db)
     return $run_dates;
 }
 
+// get haplotype count
+function get_haplotype_count($gender, $chr, $start, $end)
+{
+    if($gender == 'female') return 2;
+    if($chr == "chrX")
+    {
+        //check pseudo-autosomal region
+        if (range_overlap($start, $end, 10001, 2781479) || range_overlap($start, $end, 155701383, 156030895)) return 2;
+        return 1;
+    }
+    if($chr == "chrY") 
+    {
+        //check pseudo-autosomal region
+        if (range_overlap($start, $end, 10001, 2781479) || range_overlap($start, $end, 56887903, 57217415)) return 2;
+        return 1;
+    }
+    if($chr == "chrMT") return 1;
+    if($chr == "chrM") return 1;
 
+    // all other chromosomes are diploid
+    return 2;
+}
 
 // init NGSD
 $gender = "n/a";
@@ -370,6 +396,8 @@ else
         if (!file_exists($bam)) trigger_error("BAM/CRAM file not found!", E_USER_ERROR);
     }
 }
+
+
 
 /*
 if (ends_with($bam, ".cram")) $cram_input = true;
@@ -410,6 +438,7 @@ $cohort_plot_data = array();
 
 
 $jobs_plotting = array();
+$jobs_plotting_cohort = array();
 for($r=0; $r<$regions_table->rows(); ++$r)
 {
     $row = $regions_table->getRow($r);  
@@ -427,6 +456,9 @@ for($r=0; $r<$regions_table->rows(); ++$r)
         $tmp_bam = $bam;
     }
     */
+
+    //create combined plot for male samples on X/Y
+    $only_one_haplotype = (get_haplotype_count($gender, $row[3], $row[6], $row[7]) == 1);
 
     $tmp_bam = get_bam($bam, $name, $row[3], $row[6], $row[7], $ref_genome, $threads);
 
@@ -450,7 +482,7 @@ for($r=0; $r<$regions_table->rows(); ++$r)
         ];
 
         // use phased plots not for chrX/Y on male samples
-        if (!(($gender == "male") && (($row[3] == "chrX") || ($row[3] == "chrX")))) $args[] =  "--phased";
+        if (!$only_one_haplotype) $args[] =  "--phased";
 
         //optional parameters
         if ($skip_align_plot) $args[] = "--skip_align_plot";
@@ -515,6 +547,10 @@ for($r=0; $r<$regions_table->rows(); ++$r)
     $prefix_highlight = "{$name}_highlight";
     $modkit_temp_folder = extract_methylation($tmp_bam, $row[3], $row[4], $row[5], $row[6], $row[7], $name, $ref_genome, $threads);
     $haplotypes = [1, 2, "ungrouped"];
+    if ($only_one_haplotype)
+    {
+        $modkit_temp_folder_all = extract_methylation($tmp_bam, $row[3], $row[4], $row[5], $row[6], $row[7], $name, $ref_genome, $threads, true);
+    }
     
     if (db_is_enabled("NGSD"))
     {
@@ -532,7 +568,13 @@ for($r=0; $r<$regions_table->rows(); ++$r)
             $parser->copyFile("{$modkit_temp_folder}/{$prefix}_{$hp}.bed", "{$target_path}/{$prefix}_{$hp}.bed");
             $parser->copyFile("{$modkit_temp_folder}/{$prefix_highlight}_{$hp}.bed", "{$target_path_highlight}/{$prefix}_{$hp}.bed");
         }
+        if ($only_one_haplotype) 
+        {
+            $parser->copyFile("{$modkit_temp_folder_all}/{$prefix_highlight}_all.bed", "{$target_path_highlight}/{$prefix}_all.bed");
+        }
     }
+
+
 
     
     
@@ -593,18 +635,18 @@ for($r=0; $r<$regions_table->rows(); ++$r)
 
     $methylation = get_avg_methylation("{$modkit_temp_folder}/{$prefix_highlight}");
 
-    $methyl_all_avg[] = number_format($methylation["all"]["avg"], 2);
-    $methyl_all_std[] = number_format($methylation["all"]["std"], 2);
-    $methyl_hp1_avg[] = number_format($methylation[1]["avg"], 2);
-    $methyl_hp1_std[] = number_format($methylation[1]["std"], 2);
-    $methyl_hp2_avg[] = number_format($methylation[2]["avg"], 2);
-    $methyl_hp2_std[] = number_format($methylation[2]["std"], 2);
-    $methyl_nohp_avg[] = number_format($methylation["ungrouped"]["avg"], 2);
-    $methyl_nohp_std[] = number_format($methylation["ungrouped"]["std"], 2);
-    $coverage_all[] = number_format($methylation["all"]["cov"], 2);
-    $coverage_hp1[] = number_format($methylation[1]["cov"], 2);
-    $coverage_hp2[] = number_format($methylation[2]["cov"], 2);
-    $coverage_nohp[] = number_format($methylation["ungrouped"]["cov"], 2); 
+    $methyl_all_avg[] = number_format($methylation["all"]["avg"], 3);
+    $methyl_all_std[] = number_format($methylation["all"]["std"], 3);
+    $methyl_hp1_avg[] = number_format($methylation[1]["avg"], 3);
+    $methyl_hp1_std[] = number_format($methylation[1]["std"], 3);
+    $methyl_hp2_avg[] = number_format($methylation[2]["avg"], 3);
+    $methyl_hp2_std[] = number_format($methylation[2]["std"], 3);
+    $methyl_nohp_avg[] = number_format($methylation["ungrouped"]["avg"], 3);
+    $methyl_nohp_std[] = number_format($methylation["ungrouped"]["std"], 3);
+    $coverage_all[] = number_format($methylation["all"]["cov"], 3);
+    $coverage_hp1[] = number_format($methylation[1]["cov"], 3);
+    $coverage_hp2[] = number_format($methylation[2]["cov"], 3);
+    $coverage_nohp[] = number_format($methylation["ungrouped"]["cov"], 3); 
 
     //store raw data
     $raw_methylation_data[$row[0]] = array();
@@ -627,16 +669,27 @@ for($r=0; $r<$regions_table->rows(); ++$r)
     $cohort_plot_data[$row[0]]["sample_name"] = $name;
     $cohort_plot_data[$row[0]]["highlight_start"] = $row[6];
     $cohort_plot_data[$row[0]]["highlight_end"] = $row[7];
-    if ($methylation["hp1_hp2_switched"])
+    $cohort_plot_data[$row[0]]["unphased"] = $only_one_haplotype;
+
+
+    if ($only_one_haplotype)
     {
-        $cohort_plot_data[$row[0]]["hp1_file"] = "{$modkit_temp_folder}/{$prefix}_2.bed";
-        $cohort_plot_data[$row[0]]["hp2_file"] = "{$modkit_temp_folder}/{$prefix}_1.bed";
+        $cohort_plot_data[$row[0]]["hp1_file"] = "{$modkit_temp_folder_all}/{$prefix}_all.bed";
     }
     else
     {
-        $cohort_plot_data[$row[0]]["hp1_file"] = "{$modkit_temp_folder}/{$prefix}_1.bed";
-        $cohort_plot_data[$row[0]]["hp2_file"] = "{$modkit_temp_folder}/{$prefix}_2.bed";
+        if ($methylation["hp1_hp2_switched"])
+        {
+            $cohort_plot_data[$row[0]]["hp1_file"] = "{$modkit_temp_folder}/{$prefix}_2.bed";
+            $cohort_plot_data[$row[0]]["hp2_file"] = "{$modkit_temp_folder}/{$prefix}_1.bed";
+        }
+        else
+        {
+            $cohort_plot_data[$row[0]]["hp1_file"] = "{$modkit_temp_folder}/{$prefix}_1.bed";
+            $cohort_plot_data[$row[0]]["hp2_file"] = "{$modkit_temp_folder}/{$prefix}_2.bed";
+        }
     }
+    
     
 
     /*
@@ -706,21 +759,21 @@ for($r=0; $r<$regions_table->rows(); ++$r)
 }
 
 
-$regions_table->addCol($filter_column, "FILTER", "");
-$regions_table->addCol($methyl_all_avg, "meth_all_avg", "average methylation");
-$regions_table->addCol($methyl_all_std, "meth_all_std", "standard deviation of methylation");
+$regions_table->addCol($filter_column, "filter", "");
+
 $regions_table->addCol($methyl_hp1_avg, "meth_hp1_avg", "average methylation in haplotype 1 (higher mean methylation)");
 $regions_table->addCol($methyl_hp1_std, "meth_hp1_std", "standard deviation of methylation in haplotype 1 (higher mean methylation)");
+$regions_table->addCol($coverage_hp1, "cov_hp1", "average CpG coverage in haplotype 1 (higher mean methylation)");
 $regions_table->addCol($methyl_hp2_avg, "meth_hp2_avg", "average methylation in haplotype 2 (lower mean methylation)");
 $regions_table->addCol($methyl_hp2_std, "meth_hp2_std", "standard deviation of methylation in haplotype 2 (lower mean methylation)");
+$regions_table->addCol($coverage_hp2, "cov_hp2", "average CpG coverage in haplotype 2 (lower mean methylation)");
 $regions_table->addCol($methyl_nohp_avg, "meth_nohp_avg", "average methylation in non-haplotyped");
 $regions_table->addCol($methyl_nohp_std, "meth_nohp_std", "standard deviation of methylation in non-haplotyped");
-$regions_table->addCol($coverage_all, "cov_all", "average CpG coverage");
-$regions_table->addCol($coverage_hp1, "cov_hp1", "average CpG coverage in haplotype 1 (higher mean methylation)");
-$regions_table->addCol($coverage_hp2, "cov_hp2", "average CpG coverage in haplotype 2 (lower mean methylation)");
 $regions_table->addCol($coverage_nohp, "cov_nohp", "average CpG coverage in non-haplotyped");
+$regions_table->addCol($methyl_all_avg, "meth_all_avg", "average methylation");
+$regions_table->addCol($methyl_all_std, "meth_all_std", "standard deviation of methylation");
+$regions_table->addCol($coverage_all, "cov_all", "average CpG coverage");
 
-//TODO: add phasing blocks/check phasing block consistantcy
 
 $regions_table->toTSV($out);
 
@@ -753,6 +806,7 @@ if (!$skip_cohort_annotation && db_is_enabled("NGSD"))
     $i_gene_end = $meth_table->getColumnIndex("gene end");
     $i_meth_hp1_avg = $meth_table->getColumnIndex("meth_hp1_avg");
     $i_meth_hp2_avg = $meth_table->getColumnIndex("meth_hp2_avg");
+    $i_meth_all_avg = $meth_table->getColumnIndex("meth_all_avg");
     
     $highlight_regions = array();
     $cohort_values = array();
@@ -773,6 +827,7 @@ if (!$skip_cohort_annotation && db_is_enabled("NGSD"))
         $cohort_values[$identifier]["hp2"] = array();
         $sample_methylation[$identifier]["hp1"] = $meth_table->get($r, $i_meth_hp1_avg);
         $sample_methylation[$identifier]["hp2"] = $meth_table->get($r, $i_meth_hp2_avg); 
+        $sample_methylation[$identifier]["all"] = $meth_table->get($r, $i_meth_all_avg); 
 
     }
 
@@ -780,6 +835,7 @@ if (!$skip_cohort_annotation && db_is_enabled("NGSD"))
     $i_sample_name = $cohort_table->getColumnIndex("name");
     $i_path = $cohort_table->getColumnIndex("path");
     $cohort_sample_list = array();
+    $excluded_samples = array();
     for ($i=0; $i < $cohort_table->rows(); $i++) 
     { 
         $cohort_ps_name = $cohort_table->get($i, $i_sample_name);
@@ -808,15 +864,20 @@ if (!$skip_cohort_annotation && db_is_enabled("NGSD"))
             //check phasing
             if(get_phasing_info($cohort_phasing_track_file, $chr, $start, $end, $gender) != "")
             {
-                trigger_error("Region {$chr}:{$start}-{$end} of sample {$cohort_ps_name} is not continously phased, ignoring this region from cohort calculation!", E_USER_WARNING);
+                if (!isset($excluded_samples[$identifier])) $excluded_samples[$identifier] = array();
+                $excluded_samples[$identifier][] = $cohort_ps_name;
+                // trigger_error("Region {$chr}:{$start}-{$end} of sample {$cohort_ps_name} is not continously phased, ignoring this region from cohort calculation!", E_USER_WARNING);
                 continue;
             }
+            $only_one_haplotype = (get_haplotype_count($gender, $chr, $start, $end) == 1);
             
             //check for existing file
             $modkit_file_highlight_prefix = "{$cohort_folder}/{$identifier}_highlight_{$chr}_{$start}-{$end}/{$cohort_ps_name}";
             $modkit_file_prefix = "{$cohort_folder}/{$identifier}_{$chr}_{$gene_start}-{$gene_end}/{$cohort_ps_name}";
 
-            if (!file_exists($modkit_file_highlight_prefix."_1.bed") || !file_exists($modkit_file_highlight_prefix."_2.bed") || !file_exists($modkit_file_highlight_prefix."_ungrouped.bed"))
+            $tmp_bam = "";
+            if (!file_exists($modkit_file_highlight_prefix."_1.bed") || !file_exists($modkit_file_highlight_prefix."_2.bed") || !file_exists($modkit_file_highlight_prefix."_ungrouped.bed") 
+                || !file_exists($modkit_file_prefix."_1.bed") || !file_exists($modkit_file_prefix."_2.bed") || !file_exists($modkit_file_prefix."_ungrouped.bed"))
             {
                 //re-create modkit files
                 $tmp_bam = get_bam($cohort_sample_info["ps_bam"], $cohort_ps_name, $chr, $gene_start, $gene_end, $ref_genome, $threads);
@@ -830,10 +891,20 @@ if (!$skip_cohort_annotation && db_is_enabled("NGSD"))
                 }
             }
 
+            // for male samples: also generate an unphased methylation file for X/Y
+            if ($only_one_haplotype && (!file_exists($modkit_file_highlight_prefix."_all.bed") || !file_exists($modkit_file_prefix."_all.bed")))
+            {
+                if ($tmp_bam == "") $tmp_bam = get_bam($cohort_sample_info["ps_bam"], $cohort_ps_name, $chr, $gene_start, $gene_end, $ref_genome, $threads);
+                $modkit_temp_folder = extract_methylation($tmp_bam, $chr, $gene_start, $gene_end, $start, $end, $cohort_ps_name, $ref_genome, $threads, true);
+                $parser->copyFile("{$modkit_temp_folder}/{$cohort_ps_name}_all.bed", "{$modkit_file_prefix}_all.bed");
+                $parser->copyFile("{$modkit_temp_folder}/{$cohort_ps_name}_highlight_all.bed", "{$modkit_file_highlight_prefix}_all.bed");
+            }
+
             //get avg methylation
             $methylation = get_avg_methylation($modkit_file_highlight_prefix);
-            $cohort_values[$identifier]["hp1"][] = $methylation[1]["avg"];
-            $cohort_values[$identifier]["hp2"][] = $methylation[2]["avg"];
+            if (!is_nan($methylation[1]["avg"])) $cohort_values[$identifier]["hp1"][] = $methylation[1]["avg"];
+            if (!is_nan($methylation[2]["avg"])) $cohort_values[$identifier]["hp2"][] = $methylation[2]["avg"];
+            if (!is_nan($methylation["all"]["avg"])) $cohort_values[$identifier]["all"][] = $methylation["all"]["avg"];
 
             //store raw data
             foreach ($methylation["all"]["fraction_modified"] as $pos => $all) 
@@ -844,24 +915,35 @@ if (!$skip_cohort_annotation && db_is_enabled("NGSD"))
             }
 
             // get cohort plot data
-            if (!$skip_plot && count($cohort_plot_data[$identifier]["hp1_cohort_files"]) < 20)
+            if (!$skip_plot)
             {
-                if (get_phasing_info($cohort_phasing_track_file, $chr, $gene_start, $gene_end, $gender) == "")
+                if ($only_one_haplotype)
                 {
-                    if ($methylation["hp1_hp2_switched"])
+                    if (get_phasing_info($cohort_phasing_track_file, $chr, $gene_start, $gene_end, $gender) == "")
                     {
-                        $cohort_plot_data[$identifier]["hp1_cohort_files"][] = $modkit_file_prefix."_2.bed";
-                        $cohort_plot_data[$identifier]["hp2_cohort_files"][] = $modkit_file_prefix."_1.bed";
+                        $cohort_plot_data[$identifier]["hp1_cohort_files"][] = $modkit_file_prefix."_all.bed";
                     }
                     else
                     {
-                        $cohort_plot_data[$identifier]["hp1_cohort_files"][] = $modkit_file_prefix."_1.bed";
-                        $cohort_plot_data[$identifier]["hp2_cohort_files"][] = $modkit_file_prefix."_2.bed";
+                        $cohort_plot_data[$identifier]["hp1_cohort_files_fallback"][] = $modkit_file_prefix."_all.bed";
                     }
                 }
                 else
                 {
-                    if (count($cohort_plot_data[$identifier]["hp1_cohort_files_fallback"]) < 20)
+                    if (get_phasing_info($cohort_phasing_track_file, $chr, $gene_start, $gene_end, $gender) == "")
+                    {
+                        if ($methylation["hp1_hp2_switched"])
+                        {
+                            $cohort_plot_data[$identifier]["hp1_cohort_files"][] = $modkit_file_prefix."_2.bed";
+                            $cohort_plot_data[$identifier]["hp2_cohort_files"][] = $modkit_file_prefix."_1.bed";
+                        }
+                        else
+                        {
+                            $cohort_plot_data[$identifier]["hp1_cohort_files"][] = $modkit_file_prefix."_1.bed";
+                            $cohort_plot_data[$identifier]["hp2_cohort_files"][] = $modkit_file_prefix."_2.bed";
+                        }
+                    }
+                    else
                     {
                         if ($methylation["hp1_hp2_switched"])
                         {
@@ -875,8 +957,20 @@ if (!$skip_cohort_annotation && db_is_enabled("NGSD"))
                         }
                     }
                 }
+                
             }
             
+        }
+
+        //log excudeded samples:
+        if (count($excluded_samples) > 0)
+        {
+            $buffer = array();
+            foreach ($excluded_samples as $identifier => $sample_list) 
+            {
+                $buffer[] = "{$identifier}:\t".count($sample_list)."\t".implode(",", $sample_list);
+            }
+            $parser->log("The following samples were excluded for cohort computation due to phasing issues:", $buffer);
         }
 
         /*
@@ -927,34 +1021,43 @@ if (!$skip_cohort_annotation && db_is_enabled("NGSD"))
     $cohort_stdev_hp1 = array();
     $cohort_mean_hp2 = array();
     $cohort_stdev_hp2 = array();
+    $cohort_mean_all = array();
+    $cohort_stdev_all = array();
     $cohort_size = array();
     $zscore_hp1 = array();
     $zscore_hp2 = array();
+    $zscore_all = array();
     foreach ($cohort_values as $identifier => $values) 
     {
-        // var_dump($values);
         //TODO: filter too small cohort
-        $cohort_mean_hp1[$identifier] = mean($values["hp1"]);
-        $cohort_stdev_hp1[$identifier] = stdev($values["hp1"]);
-        $cohort_mean_hp2[$identifier] = mean($values["hp2"]);
-        $cohort_stdev_hp2[$identifier] = stdev($values["hp2"]);
-        $cohort_size[$identifier] = count($values["hp1"]);
+        $cohort_mean_hp1[$identifier] = number_format(mean($values["hp1"]), 3);
+        $cohort_stdev_hp1[$identifier] = number_format(stdev($values["hp1"]), 3);
+        $cohort_mean_hp2[$identifier] = number_format(mean($values["hp2"]), 3);
+        $cohort_stdev_hp2[$identifier] = number_format(stdev($values["hp2"]), 3);
+        $cohort_mean_all[$identifier] = number_format(mean($values["all"]), 3);
+        $cohort_stdev_all[$identifier] = number_format(stdev($values["all"]), 3);
+        $cohort_size[$identifier] = count($values["hp1"]).", ".count($values["hp2"]).", ".count($values["all"]);
 
         //calculate zscore
         $zscore_hp1[$identifier] = NAN;
         $zscore_hp2[$identifier] = NAN;
-        if (floatval($cohort_stdev_hp1[$identifier]) != 0.0) $zscore_hp1[$identifier] = (floatval($sample_methylation[$identifier]["hp1"]) - floatval($cohort_mean_hp1[$identifier])) / floatval($cohort_stdev_hp1[$identifier]);
-        if (floatval($cohort_stdev_hp2[$identifier]) != 0.0) $zscore_hp2[$identifier] = (floatval($sample_methylation[$identifier]["hp2"]) - floatval($cohort_mean_hp2[$identifier])) / floatval($cohort_stdev_hp2[$identifier]);
+        $zscore_all[$identifier] = NAN;
+        if (floatval($cohort_stdev_hp1[$identifier]) != 0.0) $zscore_hp1[$identifier] = number_format((floatval($sample_methylation[$identifier]["hp1"]) - floatval($cohort_mean_hp1[$identifier])) / floatval($cohort_stdev_hp1[$identifier]), 3);
+        if (floatval($cohort_stdev_hp2[$identifier]) != 0.0) $zscore_hp2[$identifier] = number_format((floatval($sample_methylation[$identifier]["hp2"]) - floatval($cohort_mean_hp2[$identifier])) / floatval($cohort_stdev_hp2[$identifier]), 3);
+        if (floatval($cohort_stdev_all[$identifier]) != 0.0) $zscore_all[$identifier] = number_format((floatval($sample_methylation[$identifier]["all"]) - floatval($cohort_mean_all[$identifier])) / floatval($cohort_stdev_all[$identifier]), 3);
     }
 
-    $meth_table->addComment("Background cohort:\t".implode(",", $cohort_sample_list));
+    $meth_table->addComment("#Background cohort:\t".implode(",", $cohort_sample_list));
     $meth_table->addCol(array_values($cohort_mean_hp1), "cohort_mean_hp1");
     $meth_table->addCol(array_values($cohort_stdev_hp1), "cohort_stdev_hp1");
+    $meth_table->addCol(array_values($zscore_hp1), "zscore_hp1");
     $meth_table->addCol(array_values($cohort_mean_hp2), "cohort_mean_hp2");
     $meth_table->addCol(array_values($cohort_stdev_hp2), "cohort_stdev_hp2");
-    $meth_table->addCol(array_values($cohort_size), "cohort_size");
-    $meth_table->addCol(array_values($zscore_hp1), "zscore_hp1");
     $meth_table->addCol(array_values($zscore_hp2), "zscore_hp2");
+    $meth_table->addCol(array_values($cohort_mean_all), "cohort_mean_all");
+    $meth_table->addCol(array_values($cohort_stdev_all), "cohort_stdev_all");
+    $meth_table->addCol(array_values($zscore_all), "zscore_all");
+    $meth_table->addCol(array_values($cohort_size), "cohort_size");
 
     $meth_table->toTSV($out);
 
@@ -993,56 +1096,74 @@ if (!$skip_cohort_annotation && db_is_enabled("NGSD"))
     }
 
     //create cohort plotting commands
-    foreach ($cohort_plot_data as $identifier => $plot_data) 
+    if (!$skip_plot)
     {
-
-        $python_script = repository_basedir()."/src/Tools/generate_methylation_cohort_plot.py";
-
-        $args = array();
-        $args[] = "--hp1_file ".$plot_data["hp1_file"];
-        $args[] = "--hp2_file ".$plot_data["hp2_file"];
-
-        if (count($plot_data["hp1_cohort_files"]) < 4)
+        foreach ($cohort_plot_data as $identifier => $plot_data) 
         {
-            trigger_error("Not enough continously phased samples, filling up with others!", E_USER_WARNING);
-            $plot_data["hp1_cohort_files"] = array_merge($plot_data["hp1_cohort_files"], $plot_data["hp1_cohort_files_fallback"]);
-            $plot_data["hp2_cohort_files"] = array_merge($plot_data["hp2_cohort_files"], $plot_data["hp2_cohort_files_fallback"]);
-            if (count($plot_data["hp1_cohort_files"]) > 20)
+
+            $python_script = repository_basedir()."/src/Tools/generate_methylation_cohort_plot.py";
+
+            $args = array();
+            $args[] = "--hp1_file ".$plot_data["hp1_file"];
+            if (count($plot_data["hp1_cohort_files"]) > 0) $args[] = "--hp1_cohort_files ".implode(" ", $plot_data["hp1_cohort_files"]);
+            if (count($plot_data["hp1_cohort_files_fallback"]) > 0) $args[] = "--hp1_cohort_files_fallback ".implode(" ", $plot_data["hp1_cohort_files_fallback"]);
+            
+            if ($plot_data["unphased"])
             {
-                $plot_data["hp1_cohort_files"] = array_slice($plot_data["hp1_cohort_files"], 0, 20);
-                $plot_data["hp2_cohort_files"] = array_slice($plot_data["hp2_cohort_files"], 0, 20);
+                $args[] = "--unphased";
             }
+            else
+            {
+                $args[] = "--hp2_file ".$plot_data["hp2_file"];
+                if (count($plot_data["hp2_cohort_files"]) > 0) $args[] = "--hp2_cohort_files ".implode(" ", $plot_data["hp2_cohort_files"]);
+                if (count($plot_data["hp2_cohort_files_fallback"]) > 0) $args[] = "--hp2_cohort_files_fallback ".implode(" ", $plot_data["hp2_cohort_files_fallback"]);
+            }
+            $args[] = "--out ".$plot_data["out"];
+            $args[] = "--site ".$plot_data["site"];
+            $args[] = "--sample_name ".$plot_data["sample_name"];
+            $args[] = "--highlight_start ".$plot_data["highlight_start"];
+            $args[] = "--highlight_end ".$plot_data["highlight_end"];
+
+            $in_files = array();
+            $in_files[] = $python_script;
+            $in_files[] = $plot_data["hp1_file"];
+            if (isset($plot_data["hp2_file"])) $in_files[] = $plot_data["hp2_file"];
+            $in_files = array_merge($in_files, $plot_data["hp1_cohort_files"]);
+            $in_files = array_merge($in_files, $plot_data["hp2_cohort_files"]);
+            $in_files = array_merge($in_files, $plot_data["hp1_cohort_files_fallback"]);
+            $in_files = array_merge($in_files, $plot_data["hp2_cohort_files_fallback"]);
+            $out_files = array("{$folder}/methylartist/");
+
+            $jobs_plotting_cohort[] = array("Plotting_".$plot_data["site"]."_cohort", 
+                $parser->execApptainer("python", "python3", repository_basedir()."/src/Tools/generate_methylation_cohort_plot.py ".implode(" ", $args), $in_files, $out_files, true));
+
         }
-
-        $args[] = "--hp1_cohort_files ".implode(" ", $plot_data["hp1_cohort_files"]);
-        $args[] = "--hp2_cohort_files ".implode(" ", $plot_data["hp2_cohort_files"]);
-        $args[] = "--out ".$plot_data["out"];
-        $args[] = "--site ".$plot_data["site"];
-        $args[] = "--sample_name ".$plot_data["sample_name"];
-        $args[] = "--highlight_start ".$plot_data["highlight_start"];
-        $args[] = "--highlight_end ".$plot_data["highlight_end"];
-
-        $in_files = array();
-        $in_files[] = $python_script;
-        $in_files[] = $plot_data["hp1_file"];
-        $in_files[] = $plot_data["hp2_file"];
-        $in_files = array_merge($in_files, $plot_data["hp1_cohort_files"]);
-        $in_files = array_merge($in_files, $plot_data["hp2_cohort_files"]);
-        $out_files = array("{$folder}/methylartist/");
-
-        $jobs_plotting[] = array("Plotting_".$plot_data["site"]."_cohort", 
-            $parser->execApptainer("python", "python3", repository_basedir()."/src/Tools/generate_methylation_cohort_plot.py ".implode(" ", $args), $in_files, $out_files, true));
-
     }
 }
 
 
 # run plots in parallel (reverse array since plotting of REs takes longer)
-if (count($jobs_plotting) > 0) $parser->execParallel(array_reverse($jobs_plotting), $threads); 
+if (count($jobs_plotting) > 0) 
+{
+    $return = $parser->execParallel(array_reverse($jobs_plotting), $threads, false, false, false, true); 
+    
+    //check failed jobs
+    foreach ($return["jobs_failed"] as $job_id) 
+    {
+        $job_info = $return["jobs"][$job_id];
 
-//TODO: remove debug
-// var_dump($cohort_plot_data);
+        // ignore failed jobs beacuse of coverage
+        if (($job_info["exit_code"] == 1) && (str_contains(implode("\n", $job_info["stderr"]), "insufficient coverage for plot"))) 
+        {
+            trigger_error("Processing of job {$job_id} failed due to insufficient coverage!", E_USER_WARNING);
+            continue;
+        }
 
+        trigger_error("Processing of job {$job_id} failed: ".implode("\n\t", $job_info["stderr"]), E_USER_ERROR);
+    }
 
+}
+
+if (count($jobs_plotting_cohort) > 0) $parser->execParallel(array_reverse($jobs_plotting_cohort), $threads, true, true, true, true); 
 
 ?>
