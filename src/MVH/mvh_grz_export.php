@@ -524,7 +524,7 @@ if ($is_somatic)
 {
 	$lab_data[] = create_lab_data_json($files_t, $info_t, $grz_qc_t, true);
 }
-
+//TODO add support for kids (SE: RedCap, OE: ???, FBREK: ???)
 //prepare research consent data - for format see https://www.medizininformatik-initiative.de/Kerndatensatz/KDS_Consent_V2025/MII-IG-Modul-Consent-TechnischeImplementierung-FHIRProfile-Consent.html
 $active_consent_count = 0;
 $research_use_allowed = false;

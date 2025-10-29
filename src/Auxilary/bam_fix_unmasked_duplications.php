@@ -24,7 +24,6 @@ extract($parser->parse($argv));
 $out_folder = realpath(dirname($out));
 $ref = genome_fasta("GRCh38");
 if ($sample == "") $sample = basename2($in);
-print $sample;
 $removed_chromosomes = array();
 
 //set default region
@@ -71,7 +70,6 @@ if ($remap_missing_chr)
 	{
 		trigger_error("No missing chromosomes found.", E_USER_NOTICE);
 	}
-
 }
 
 //extract read names

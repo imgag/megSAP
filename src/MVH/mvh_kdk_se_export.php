@@ -94,6 +94,9 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data, $se_data_rep)
 					//skip not active
 					if ($entry['status']!='active') continue;
 					
+					//skip if V9
+					if ($entry['identifier'][0]['system']=="source.ish.document.v09") continue;
+					
 					$active_rcs[] = $entry;
 				}
 			}
@@ -193,7 +196,7 @@ function json_diagnoses($se_data, $se_data_rep)
 			"version" => $orpha_ver
 		];
 	}
-	if (xml_bool($se_data->orphacode_undiagnostiziert___1, false))
+	if (xml_bool($se_data->orphacode_undiagnostiziert___1, false, "orphacode_undiagnostiziert"))
 	{
 		$codes[] = [
 			"code" => "ORPHA:616874",
@@ -558,13 +561,13 @@ function json_care_plan_2($se_data, $se_data_rep) //'carePlan' is misleading. Th
 			];
 	
 	//optional stuff
-	$recom_counceling = xml_bool($se_data->empf_hg_beratung, true);
+	$recom_counceling = xml_bool($se_data->empf_hg_beratung, true, "empf_hg_beratung");
 	if (!is_null($recom_counceling))
 	{
 		$output["geneticCounselingRecommended"] = $recom_counceling;
 	}
 	
-	$recom_reeval = xml_bool($se_data->empf_reeval, true);
+	$recom_reeval = xml_bool($se_data->empf_reeval, true, "empf_reeval");
 	if (!is_null($recom_reeval))
 	{
 		$output["reevaluationRecommended"] = $recom_reeval;
@@ -918,7 +921,7 @@ $se_data_rep = get_se_data($db_mvh, $id, true);
 $rc_data_json = get_rc_data_json($db_mvh, $id);
 
 //check if that patient was included into the Modellvorhaben, i.e. sequencing is/was performed
-$no_seq = !xml_bool($se_data->aufnahme_mvh, false);
+$no_seq = !xml_bool($se_data->aufnahme_mvh, false, "aufnahme_mvh");
 
 //get data from NGSD
 if ($no_seq)

@@ -5,8 +5,9 @@ require_once("framework.php");
 $name = "an_somatic_cancerhotspots";
 
 start_test($name);
-check_exec("php ".src_folder()."/Tools/{$name}.php -in " . data_folder() ."{$name}_in1.vcf -out " . output_folder(). "{$name}_out1.vcf");
-check_file(output_folder(). "{$name}_out1.vcf", data_folder().$name."_ref1.vcf");
+$out1 = output_folder()."{$name}_out1.vcf";
+check_exec("php ".src_folder()."/Tools/{$name}.php -in ".data_folder()."{$name}_in1.vcf -out {$out1}");
+check_file($out1, data_folder().$name."_out1.vcf");
 end_test();
 
 ?>
