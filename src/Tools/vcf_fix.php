@@ -7,7 +7,7 @@
 	--mosaic_mode: Like default freebayes modes, but doesn't remove variants with genotype '0/0' instead changes them to het '0/1'
 	--dragen_mode: short-read DRAGEN input; keeps AF instead of AO
 	--clair3_mode: long-read Clair3 input; preserves phasing information; keeps AF instead of AO
-	--deepvariant_mode: long-read DeepVariant input; keeps AF instead of AO
+	--deepvariant_mode: long-read DeepVariant input; keeps AF instead of VAF
 	
 	Fixes VCF file problems produced by variant callers:
 	- Merges duplicate heterozygous variants into one homozygous variant

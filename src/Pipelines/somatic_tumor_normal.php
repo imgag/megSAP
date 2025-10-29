@@ -65,13 +65,15 @@ function complement_baf_folder($t_n_id_file,$baf_folder,&$db_conn, $build)
 		{
 			$ninfo = get_processed_sample_info($db_conn,$nid);
 			$n_vcf = $ninfo["ps_folder"] ."/{$nid}_var.vcf.gz";
-			$parser->execTool("Auxilary/create_baf_file.php", "-vcf $n_vcf -build $build -out_folder {$baf_folder}");
+			if (file_exists($n_vcf)) $parser->execTool("Auxilary/create_baf_file.php", "-vcf $n_vcf -build $build -out_folder {$baf_folder}");
 		}
 		if(!file_exists("{$baf_folder}/{$tid}.tsv"))
 		{
+			$ninfo = get_processed_sample_info($db_conn,$nid);
+			$n_gsvar = $ninfo["ps_folder"] ."/{$nid}.GSvar";
 			$tinfo = get_processed_sample_info($db_conn,$tid);
-			$t_vcf = $tinfo["ps_folder"] ."/{$tid}_var.vcf.gz";
-			$parser->execTool("Auxilary/create_baf_file.php", "-vcf $t_vcf -build $build -out_folder {$baf_folder}");
+			$t_bam = $tinfo["ps_bam"];
+			$parser->execTool("Auxilary/create_baf_file.php", "-tumor -t_bam {$t_bam} -n_gsvar {$n_gsvar} -build $build -out_folder {$baf_folder}");
 		}
 	}
 }
@@ -792,11 +794,12 @@ if(in_array("cn",$steps))
 	//TODO reanable real baf folder
 	#$baf_folder = get_path("data_folder")."/coverage/". $sys['name_short']."_bafs";
 	#$baf_folder = "/mnt/storage2/users/ahiliuk1/issues/2025_04_08_create_baf_file/twistCustomExomeV2_used_bafs_new";
-	#$baf_folder = "/mnt/storage2/users/ahiliuk1/issues/2025_04_08_create_baf_file/twistCutsomExomeV2_used_bafs_old";
+	#$baf_folder = "/mnt/storage2/users/ahiliuk1/issues/2025_04_08_create_baf_file/twistCustomExomeV2_used_bafs_old";
 	#$baf_folder = "/mnt/storage2/users/ahiliuk1/issues/2025_04_08_create_baf_file/twistCustomExomeV2_all_DNA_bafs_old";
-	$baf_folder = "/mnt/storage2/users/ahiliuk1/issues/2025_04_08_create_baf_file/twistCustomExomeV2_all_DNA_bafs_new";
+	#$baf_folder = "/mnt/storage2/users/ahiliuk1/issues/2025_04_08_create_baf_file/twistCustomExomeV2_all_DNA_bafs_new";
+	$baf_folder = "/mnt/storage2/users/ahiliuk1/issues/2025_04_08_create_baf_file/twistCustomExomeV2Covaris_bafs";
 	create_directory($baf_folder);
-	if(db_is_enabled("NGSD") && !$validation)
+	if(db_is_enabled("NGSD"))
 	{
 		$db_conn = DB::getInstance("NGSD");
 		//Create BAF file for each sample with the same processing system if not existing

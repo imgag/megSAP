@@ -13,9 +13,13 @@ $parser->addString("out_folder", "Target folder to store BAF file.", false);
 //optional
 $parser->addInfile("vcf", "Input VCF file.", true);
 $parser->addInfile("sample_list", "TXT File with multiple sample names to create baf file for", true);
+$parser->addInfile("t_bam", "Input tumor bam/cram.", true);
+$parser->addInfile("n_gsvar", "Input normal GSvar file for tumor sample baf creation.", true);
 $parser->addString("sample_name", "Processed sample name. Inferred from vcf file if none is given", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
+$parser->addString("old_baf_folder", "Original baf folder", true);
 $parser->addInt("mq_thresh", "Sets a mapping quality threshold for variants to be flagged as n/a in BAF", true, 1);
+$parser->addFlag("tumor", "flag for baf creation of tumor samples. Needs normal GSvar file and tumor bam!");
 $parser->addFlag("test", "test flag to skip out_file existence check");
 extract($parser->parse($argv));
 
@@ -100,7 +104,7 @@ function create_baf($vcf, $out_file, $s_col)
 	if($source_lines!=1) trigger_error("Found ".($source_lines==0 ? "no" : "several")." 'source' entries in VCF header of vcf '{$vcf}' (needed to identify the variant caller).", E_USER_ERROR);
 	if($var_caller===false) trigger_error("Unknown variant caller from 'source' entry in VCF header.", E_USER_ERROR);
 	if($sample_idx===false) trigger_error("Could not identify sample column '$s_col' in VCF header.", E_USER_ERROR);
-
+	
 	//process variants
 	while(!feof($in_handle))
 	{
@@ -131,7 +135,7 @@ function create_baf($vcf, $out_file, $s_col)
 		{
 			$formats = explode(":",$format);
 			if (in_array("AO", $formats)) list($dp, $af) = vcf_freebayes($format, $cols[$sample_idx], $pos);
-			else if (in_array("VAF", $formats)) list($dp, $af) = vcf_deepvariant($format, $cols[$sample_idx]);
+			else if (in_array("AF", $formats) || in_array("VAF", $formats)) list($dp, $af) = vcf_deepvariant($format, $cols[$sample_idx]);
 		}
 		else if($var_caller=="freebayes" || str_contains($filter, "mosaic")) //mosaic is always called with freebayes
 		{
@@ -164,47 +168,89 @@ function create_baf($vcf, $out_file, $s_col)
 	fclose($out_handle);
 }
 
-//Abort if out_file exists to prevent interference with other jobs
-if(file_exists($vcf) && file_exists($sample_list)) trigger_error("You can either provide a single 'vcf' or a 'sample_list' as input, not both", E_USER_ERROR);
-
 //get genome
 $genome = genome_fasta($build);
 
-if (file_exists($vcf))
+if (!$tumor)
 {
-	//get sample name from input vcf
-	is_null($sample_name) ? $s_col = basename($vcf, "_var.vcf.gz") : $s_col = $sample_name;
-	$out_file = $out_folder."/{$s_col}.tsv";
-	if(file_exists($out_file) && !$test) return;
-	create_baf($vcf, $out_file, $s_col);
-}
-elseif (file_exists($sample_list))
-{
-	$in_list_handle = fopen($sample_list, "r");
-	while(!feof($in_list_handle))
+	if (isset($vcf))
 	{
-		$line = trim(fgets($in_list_handle));
-		$out_file = $out_folder."/{$line}.tsv";
+		//check that vcf OR sample_list is given as input
+		if (isset($sample_list)) trigger_error("You can either provide a single 'vcf' or a 'sample_list' as input, not both", E_USER_ERROR);
 
-		if(empty($line)) continue;
-		if(file_exists($out_file) && !$test) continue;
-
-		list($stdout, $stderr) = execApptainer("ngs-bits", "SamplePath", "-ps $line");
-		$ps_folder = trim(implode("", $stdout));
-		$vcf = $ps_folder."/{$line}_var.vcf.gz";
-
-		if (!file_exists($vcf)) 
+		//check that vcf file exists
+		if (!file_exists($vcf))
 		{
-			echo "$line\n";
-			#trigger_error("Vcf '{$vcf}' not found for sample '{$line}' in sample folder '{$ps_folder}', skipping sample", E_USER_WARNING);
-			continue;
-		}
+			trigger_error("VCF file '{$vcf}' not found. Cannot generate BAF file for this sample!", E_USER_WARNING);
+			return;
+		} 
 
-		create_baf($vcf, $out_file, $line);
+		//get sample name from input vcf
+		is_null($sample_name) ? $s_col = basename($vcf, "_var.vcf.gz") : $s_col = $sample_name;
+		$out_file = $out_folder."/{$s_col}.tsv";	
+
+		//Abort if out_file exists to prevent interference with other jobs
+		if(file_exists($out_file) && !$test) return;
+
+		//generate baf file
+		create_baf($vcf, $out_file, $s_col);
+	}
+	elseif (isset($sample_list))
+	{
+		if (!file_exists($sample_list)) trigger_error("Given list of samples is not readable: $sample_list", E_USER_ERROR);
+
+		$in_list_handle = fopen($sample_list, "r");
+		while(!feof($in_list_handle))
+		{
+			$line = trim(fgets($in_list_handle));
+			$out_file = $out_folder."/{$line}.tsv";
+
+			//Abort if out_file exists to prevent interference with other jobs
+			if(file_exists($out_file) && !$test) continue;
+
+			if(empty($line)) continue;
+			if(file_exists($out_file) && !$test) continue;
+
+			list($stdout, $stderr) = execApptainer("ngs-bits", "SamplePath", "-ps $line");
+			$ps_folder = trim(implode("", $stdout));
+			$vcf = $ps_folder."/{$line}_var.vcf.gz";
+
+			if (!file_exists($vcf)) 
+			{
+				if (isset($old_baf_folder))	$parser->exec("cp","{$old_baf_folder}/{$line}.tsv {$out_file}");
+				else trigger_error("Vcf '{$vcf}' not found for sample '{$line}' in sample folder '{$ps_folder}', skipping sample", E_USER_WARNING);
+			}
+			else create_baf($vcf, $out_file, $line);
+		}
+	}
+	else
+	{
+		trigger_error("Either 'vcf' or 'sample_list' must be given as parameter", E_USER_ERROR);
 	}
 }
 else
 {
-	trigger_error("Either 'vcf' or 'sample_list' must be given as parameter", E_USER_ERROR);
+	$tmp_out = $parser->tempFile(".tsv");
+	$parser->execApptainer("ngs-bits", "VariantAnnotateFrequency", "-in {$n_gsvar} -bam {$t_bam} -depth -out {$tmp_out} -ref {$genome}", [$n_gsvar, $t_bam, $genome]);
+
+	$in_handle  = fopen2($tmp_out,"r");
+	$out_handle = fopen2($out_file,"w");
+
+	while(!feof($in_handle))
+	{
+		$line = trim(fgets($in_handle));
+		if(starts_with($line,"#")) continue;
+		if(empty($line)) continue;
+		
+		$parts = explode("\t",$line);
+		list($chr,$start,$end,$ref,$alt) = $parts;
+		if(strlen($ref) != 1 || $ref == "-" || $alt == "-" || strlen($alt) != 1 ) continue; //Skip INDELs
+
+		$freq = $parts[count($parts)-2]; //freq annotation is 2nd last col
+		$depth= $parts[count($parts)-1]; //depth annotation is last col
+		fputs($out_handle,"{$chr}\t{$start}\t{$end}\t{$chr}_{$start}\t{$freq}\t{$depth}\n");
+	}
+	fclose($in_handle);
+	fclose($out_handle);
 }
 ?>

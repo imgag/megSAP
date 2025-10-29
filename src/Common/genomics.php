@@ -1036,7 +1036,7 @@ function vcf_deepvariant($format_col, $sample_col)
 	for($i=0;$i<count($g);++$i)
 	{
 		if($g[$i]=="DP")	$index_DP = $i;
-		if($g[$i]=="VAF")	$index_VAF = $i;
+		if($g[$i]=="VAF" || $g[$i]=="AF")	$index_VAF = $i;
 		if($g[$i]=="GT")	$index_GT = $i;
 	}
 	if(is_null($index_DP) || is_null($index_VAF) ||is_null($index_GT))	trigger_error("Invalid DeepVariant format; either field DP, GT or VAF not available.",E_USER_ERROR);	
@@ -1063,7 +1063,7 @@ function vcf_dragen_var($format_col, $sample_col, $pos)
 		if($g[$i]=="AF")	$index_AF = $i;
 	}
 
-	if(is_null($index_DP) || is_null($index_AF)) trigger_error("Invalid dragon vcf format; either field DP or AF not available. Position: $pos", E_USER_ERROR);	
+	if(is_null($index_DP) || is_null($index_AF)) trigger_error("Invalid dragen vcf format; either field DP or AF not available. Position: $pos", E_USER_ERROR);	
 	
 	$s = explode(":",$sample_col);	
 	
