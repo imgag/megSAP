@@ -1,6 +1,6 @@
-# Developers documentation
+# Development documentation
 
-## Installing megSAP for development (on Linux or Wiundows WSL)
+## Installing megSAP for development (on Linux or Windows WSL)
 
 In order to run the megSAP function and tool tests, perform the following steps:
 
@@ -13,3 +13,12 @@ In order to run the megSAP function and tool tests, perform the following steps:
 	mysql> CREATE USER 'ngsd_test'@'%' IDENTIFIED BY 'password';  
 	mysql> CREATE DATABASE ngsd_test;  
 	mysql> GRANT ALL ON ngsd_test.* TO 'ngsd_test'@'%';  
+
+
+## Misc
+
+Other stuff:
+
+* [release checklist](checklist_new_release.md)
+
+[Back to main page](../../README.md)

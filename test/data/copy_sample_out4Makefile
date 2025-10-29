@@ -46,20 +46,13 @@ Sample_DX180049_05:
 Sample_DX181277_05:
 	#copy
 	mkdir -p /test/project/folder/Sample_DX181277_05
-	mkdir -p /test/project/folder/Sample_DX181277_05/dragen_variant_calls
-	cp -r Analysis/3/Data/DragenEnrichment/DX181277_05/logs /test/project/folder/Sample_DX181277_05/dragen_variant_calls/
-	touch Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/*.bai
-	touch Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/*.crai
-	touch Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/*.tbi
-	touch Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/*.csi
-	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.bam /test/project/folder/Sample_DX181277_05/
-	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.bam.bai /test/project/folder/Sample_DX181277_05/
-	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.hard-filtered.vcf.gz /test/project/folder/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen.vcf.gz
-	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.hard-filtered.vcf.gz.tbi /test/project/folder/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen.vcf.gz.tbi
-	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.hard-filtered.gvcf.gz /test/project/folder/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen.gvcf.gz
-	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.hard-filtered.gvcf.gz.tbi /test/project/folder/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen.gvcf.gz.tbi
-	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.sv.vcf.gz /test/project/folder/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen_svs.vcf.gz
-	mv  Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/DX181277_05.sv.vcf.gz.tbi /test/project/folder/Sample_DX181277_05/dragen_variant_calls/DX181277_05_dragen_svs.vcf.gz.tbi
+	mkdir -p /test/project/folder/Sample_DX181277_05/dragen
+	cp -r Analysis/3/Data/DragenEnrichment/DX181277_05/logs /test/project/folder/Sample_DX181277_05/dragen/
+	cp -r Analysis/3/Data/DragenEnrichment/DX181277_05/enrichment_seq/* /test/project/folder/Sample_DX181277_05/dragen/
+	touch /test/project/folder/Sample_DX181277_05/dragen/*.bai
+	touch /test/project/folder/Sample_DX181277_05/dragen/*.crai
+	touch /test/project/folder/Sample_DX181277_05/dragen/*.tbi
+	touch /test/project/folder/Sample_DX181277_05/dragen/*.csi
 	chmod -R 775 /test/project/folder/Sample_DX181277_05
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_DX181277_05
 	#queue
@@ -68,18 +61,17 @@ Sample_DX181277_05:
 Sample_DX181278_05:
 	#copy
 	mkdir -p /test/project/folder/Sample_DX181278_05
-	mkdir -p /test/project/folder/Sample_DX181278_05/dragen_variant_calls
-	cp -r Analysis/3/Data/DragenEnrichment/DX181278_05/logs /test/project/folder/Sample_DX181278_05/dragen_variant_calls/
-	touch Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/*.bai
-	touch Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/*.crai
-	touch Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/*.tbi
-	touch Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/*.csi
-	mv  Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/DX181278_05.bam /test/project/folder/Sample_DX181278_05/
-	mv  Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/DX181278_05.bam.bai /test/project/folder/Sample_DX181278_05/
+	mkdir -p /test/project/folder/Sample_DX181278_05/dragen
+	cp -r Analysis/3/Data/DragenEnrichment/DX181278_05/logs /test/project/folder/Sample_DX181278_05/dragen/
+	cp -r Analysis/3/Data/DragenEnrichment/DX181278_05/enrichment_seq/* /test/project/folder/Sample_DX181278_05/dragen/
+	touch /test/project/folder/Sample_DX181278_05/dragen/*.bai
+	touch /test/project/folder/Sample_DX181278_05/dragen/*.crai
+	touch /test/project/folder/Sample_DX181278_05/dragen/*.tbi
+	touch /test/project/folder/Sample_DX181278_05/dragen/*.csi
 	chmod -R 775 /test/project/folder/Sample_DX181278_05
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_DX181278_05
 	#queue
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181278_05 -args '-steps db -somatic' -use_dragen
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181278_05 -args '-steps db -somatic'
 
 queue_somatic:
 	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'somatic' -samples DX181278_05 DX181277_01 -info tumor normal -use_dragen

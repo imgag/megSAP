@@ -68,8 +68,8 @@
 ##DESCRIPTION=normal_dp=Normal depth (Sample GS110169_03).
 ##DESCRIPTION=somatic_classification_comment=Somatic classification comment from the NGSD.
 ##DESCRIPTION=somatic_classification=Somatic classification from the NGSD.
-##DESCRIPTION=ncg_oncogene=1:gene is oncogene according NCG7.1, 0:No oncogene according NCG7.1, na: no information available about gene in NCG7.1. Order is the same as in column gene.
-##DESCRIPTION=ncg_tsg=1:gene is TSG according NCG7.1, 0:No TSG according NCG7.1, na: no information available about gene in NCG7.1. Order is the same as in column gene.
+##DESCRIPTION=ncg_oncogene=1:gene is oncogene according NCG7.2, 0:No oncogene according NCG7.2, na: no information available about gene in NCG7.2. Order is the same as in column gene.
+##DESCRIPTION=ncg_tsg=1:gene is TSG according NCG7.2, 0:No TSG according NCG7.2, na: no information available about gene in NCG7.2. Order is the same as in column gene.
 ##RNA_REF_TPM_TISSUE=gallbladder
 ##DESCRIPTION=rna_ref_tpm=RNA reference data in transcripts per million for tissue gallbladder from proteinatlas.org.
 #chr	start	end	ref	obs	tumor_af	tumor_dp	normal_af	normal_dp	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	gnomAD	gnomAD_sub	gnomAD_hom_hemi	gnomAD_het	gnomAD_wt	phyloP	CADD	REVEL	AlphaMissense	MaxEntScan	COSMIC	SpliceAI	PubMed	NGSD_som_c	NGSD_som_p	NGSD_som_vicc_interpretation	NGSD_som_vicc_comment	NGSD_hom	NGSD_het	NGSD_mosaic	NGSD_group	classification	classification_comment	somatic_classification	somatic_classification_comment	validation	comment	gene_info	CMC_genes	CMC_MUTATION_ID	CMC_disease	CMC_DNDS_ratio	CMC_mutation_significance	CANCERHOTSPOTS_AA_CHANGE	CANCERHOTSPOTS_TOTAL_MUT	CANCERHOTSPOTS_ALT_COUNT	ncg_oncogene	ncg_tsg	rna_ref_tpm

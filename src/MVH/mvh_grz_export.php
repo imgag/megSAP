@@ -191,7 +191,7 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 				"labDataName" => "DNA ".($is_tumor ? "tumor" : "normal"),
 				"tissueOntology" => [
 						"name" => "BRENDA tissue ontology",
-						"version" => "2021-10-26"
+						"version" => "2021-10-23"
 					],
 				"tissueTypeId" => convert_tissue($info["tissue"]),
 				"tissueTypeName" => $info["tissue"],
@@ -269,6 +269,7 @@ extract($parser->parse($argv));
 $db_mvh = DB::getInstance("MVH");
 $db_ngsd = DB::getInstance("NGSD");
 $mvh_folder = get_path("mvh_folder");
+$threads = 10;
 
 //check that case ID is valid
 $id = $db_mvh->getValue("SELECT id FROM case_data WHERE cm_id='{$cm_id}'");
@@ -313,11 +314,8 @@ else trigger_error("Unhandled network type '{$network}'!", E_USER_ERROR);
 $seq_mode = xml_str($cm_data->seq_mode);
 if ($seq_mode!="WGS" && $seq_mode!="WES") trigger_error("Unhandled seq_mode '{$seq_mode}'!", E_USER_ERROR);
 
-//get patient identifer (pseudonym from case management) - this is the ID that is used to identify submissions from the same case by GRZ/KDK
-$patient_id = xml_str($cm_data->case_id);
-if ($patient_id=="") trigger_error("No patient identifier set for sample '{$ps}'!", E_USER_ERROR);
-
-print "CM ID: {$cm_id} (MVH DB id: {$id} / CM Fallnummer: {$patient_id} / seq_mode: {$seq_mode} / network: {$network})\n";
+//start export
+print "CM ID: {$cm_id} (MVH DB id: {$id} / CM Fallnummer: ".xml_str($cm_data->case_id)." / seq_mode: {$seq_mode} / network: {$network})\n";
 print "Export start: ".date('Y-m-d H:i:s')."\n";
 $time_start = microtime(true);
 
@@ -357,6 +355,8 @@ $sub_id = $sub_ids[0];
 print "ID in submission_grz table: {$sub_id}\n";
 $tan_g = $db_mvh->getValue("SELECT tang FROM submission_grz WHERE id='{$sub_id}'");
 print "TAN: {$tan_g}\n";
+$patient_id = $db_mvh->getValue("SELECT pseudog FROM submission_grz WHERE id='{$sub_id}'");
+print "patient pseudonym: {$patient_id}\n";
 
 //determine megSAP version from germline GSvar file
 $megsap_ver = megsap_version($info['ps_folder']."/{$ps}.GSvar");
@@ -388,7 +388,58 @@ $lrgs_bam = "{$folder}/files/normal.bam";
 if ($is_lrgs && !file_exists($lrgs_bam)) //for lrGS we submit BAM: convert CRAM to BAM
 {
 	print "  generating BAM file for germline sample {$ps}...\n";
-	$parser->execTool("Tools/cram_to_bam.php", "-cram {$n_bam} -bam {$lrgs_bam} -threads 10");
+	$parser->execTool("Tools/cram_to_bam.php", "-cram {$n_bam} -bam {$lrgs_bam} -threads {$threads}");
+}
+if ($is_lrgs) //fix BAM header if DS tag in @RG line is present more than once
+{
+	$ds_twice = false;
+	list($stdout) = exec2("samtools view -H {$lrgs_bam}");  
+	for ($i=0; $i<count($stdout); ++$i)
+	{
+		$line = $stdout[$i];
+		
+		if (substr_count($line, "\tDS:")>1)
+		{
+			$ds_twice = true;
+			
+			$new = [];
+			$first_done = false;
+			foreach(explode("\t", nl_trim($line)) as $entry)
+			{
+				if (starts_with($entry, "DS:"))
+				{
+					if (!$first_done)
+					{
+						$new[] = $entry;
+						$first_done = true;
+					}
+				}
+				else
+				{
+					$new[] = $entry;
+				}
+			}
+			
+			$stdout[$i] = implode("\t", $new)."\n";
+		}
+	}
+	if ($ds_twice)
+	{
+		print "  fixing BAM header {$ps}...\n";
+		
+		//store header
+		$header = $parser->tempFile(".txt");
+		file_put_contents($header, implode("\n", $stdout));
+		
+		//reheader to tmp
+		$tmp_bam = "{$folder}/files/tmp.bam";
+		$parser->execApptainer("samtools", "samtools reheader", "{$header} {$lrgs_bam} > {$tmp_bam}", [], [dirname($lrgs_bam)]);
+		
+		//replace BAM and index it
+		exec2("rm -rf {$lrgs_bam}*");
+		$parser->moveFile($tmp_bam, $lrgs_bam);
+		$parser->execApptainer("samtools", "samtools index", "-@ {$threads} {$lrgs_bam}", [], [dirname($lrgs_bam)]);
+	}
 }
 if (!$is_lrgs && (!file_exists($n_fq1) || !file_exists($n_fq2)))
 {
@@ -473,7 +524,7 @@ if ($is_somatic)
 {
 	$lab_data[] = create_lab_data_json($files_t, $info_t, $grz_qc_t, true);
 }
-
+//TODO add support for kids (SE: RedCap, OE: ???, FBREK: ???)
 //prepare research consent data - for format see https://www.medizininformatik-initiative.de/Kerndatensatz/KDS_Consent_V2025/MII-IG-Modul-Consent-TechnischeImplementierung-FHIRProfile-Consent.html
 $active_consent_count = 0;
 $research_use_allowed = false;
@@ -570,11 +621,12 @@ $research_consent = [
 
 //create meta data JSON
 print "  creating metadata...\n";
+$submission_type = $db_mvh->getValue("SELECT type FROM submission_grz WHERE id='{$sub_id}'");
 $json = [];
 $json['$schema'] = "https://raw.githubusercontent.com/BfArM-MVH/MVGenomseq/refs/tags/v1.2.1/GRZ/grz-schema.json";
 $json['submission'] = [
 	"submissionDate" => date('Y-m-d'),
-	"submissionType" => $db_mvh->getValue("SELECT type FROM submission_grz WHERE id='{$sub_id}'"),
+	"submissionType" => $submission_type,
 	"tanG" => $tan_g,
 	"localCaseId" => $patient_id,
 	"coverageType" => convert_coverage($cm_data->coveragetype),
@@ -612,11 +664,10 @@ $json['donors'] = [
 						],
 				]
 			],
-		"researchConsents" => [],
+		"researchConsents" => [], //TODO implement until 1.1.26: presentationDate mandatory, set 'noScoreJustification' if no consent data given (bc_reason_missing)
 		"labData" => $lab_data		 
 		]
 	];
-
 
 //add optional data
 if ($active_consent_count>0)
@@ -693,7 +744,7 @@ print "uploading submission took ".time_readable(microtime(true)-$time_start)."\
 $time_start = microtime(true);
 
 //if upload successfull, add 'Pruefbericht' to CM RedCap
-if (!$test)
+if ($submission_type=='initial' && !$test)
 {
 	print "Adding Pruefbericht to CM RedCap...\n";
 	add_submission_to_redcap($cm_id, "G", $tan_g);

@@ -2629,11 +2629,12 @@
 ##INFO=<ID=MIN_DP,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
 ##INFO=<ID=END,Number=1,Type=Integer,Description="Last position (inclusive) in gVCF output record.">
 ##INFO=<ID=technology.ILLUMINA,Number=A,Type=Float,Description="Fraction of observations supporting the alternate observed in reads from ILLUMINA">
-##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|Feature|Feature_type|DOMAINS|Existing_variation|BIOTYPE|PUBMED">
+##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|Feature|Feature_type|DOMAINS|BIOTYPE|PUBMED">
 ##INFO=<ID=CSQ2,Number=.,Type=String,Description="Consequence annotations from VcfAnnotateConsequence. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp">
 ##INFO=<ID=PHYLOP,Number=1,Type=Float,Description="Annotation from hg38.phyloP100way.bw (mode max)">
 ##INFO=<ID=MES,Number=1,Type=String,Description="The MaxEntScan scores. FORMAT: A | separated list of maxentscan_ref&maxentscan_alt&transcript_name items.">
 ##INFO=<ID=MES_SWA,Number=1,Type=String,Description="The MaxEntScan SWA scores. FORMAT: A | separated list of maxentscan_ref_donor&maxentscan_alt_donor&maxentscan_donor_comp&maxentscan_ref_acceptor&maxentscan_alt_acceptor&maxentscan_acceptor_comp&transcript_name items.">
+##INFO=<ID=RS,Number=1,Type=String,Description="dbSNP ID (from file dbSNP_b157.vcf.gz)">
 ##INFO=<ID=gnomADg_AF,Number=A,Type=Float,Description="Alternate allele frequency in samples (from file gnomAD_genome_v4.1_GRCh38.vcf.gz)">
 ##INFO=<ID=gnomADg_AFR_AF,Number=A,Type=Float,Description="Alternate allele frequency in AFR samples (from file gnomAD_genome_v4.1_GRCh38.vcf.gz)">
 ##INFO=<ID=gnomADg_AMR_AF,Number=A,Type=Float,Description="Alternate allele frequency in AMR samples (from file gnomAD_genome_v4.1_GRCh38.vcf.gz)">
@@ -2646,8 +2647,8 @@
 ##INFO=<ID=gnomADg_Het,Number=A,Type=Integer,Description="Count of heterozygous alleles in all samples. (from file gnomAD_genome_v4.1_GRCh38.vcf.gz)">
 ##INFO=<ID=gnomADg_Wt,Number=A,Type=Integer,Description="Count of wildtype alleles in all samples. (from file gnomAD_genome_v4.1_GRCh38.vcf.gz)">
 ##INFO=<ID=gnomADm_AF_hom,Number=1,Type=Float,Description="Allele frequency restricted to variants with a heteroplasmy level > (from file gnomAD_genome_v3.1.mito_GRCh38.vcf.gz)">
-##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="ClinVar disease/significance annotation (from file clinvar_20250128_converted_GRCh38.vcf.gz)">
-##INFO=<ID=CLINVAR_ID,Number=.,Type=String,Description="ID column (from file clinvar_20250128_converted_GRCh38.vcf.gz)">
+##INFO=<ID=CLINVAR_DETAILS,Number=.,Type=String,Description="ClinVar disease/significance annotation (from file clinvar_20250907_converted_GRCh38.vcf.gz)">
+##INFO=<ID=CLINVAR_ID,Number=.,Type=String,Description="ID column (from file clinvar_20250907_converted_GRCh38.vcf.gz)">
 ##INFO=<ID=CADD_SNV,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_SNVs_1.7_GRCh38.vcf.gz)">
 ##INFO=<ID=CADD_INDEL,Number=1,Type=Float,Description="CADD PHRED score of this variant. (from file CADD_InDels_1.7_GRCh38.vcf.gz)">
 ##INFO=<ID=REVEL,Number=1,Type=Float,Description="Maximum REVEL score of all scored transcripts. (from file REVEL_1.3.vcf.gz)">

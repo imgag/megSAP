@@ -108,7 +108,7 @@ print "Building container finished.\n";
 if ($tool =="ngs-bits")
 {
 	//determine version
-	list($stdout) = exec2("apptainer exec {$sif} MappingQC --version");
+	list($stdout) = exec2("singularity exec {$sif} MappingQC --version");
 	$version = trim(strtr(implode("", $stdout), ["MappingQC"=>""]));
 	print "ngs-bits version determined from container: {$version}\n";
 

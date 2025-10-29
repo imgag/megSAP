@@ -122,10 +122,19 @@ if (!$no_sync)
 
 $genome = genome_fasta($build);
 
+//dragen files
+$dragen_folder = "{$folder}/dragen/";
+$dragen_bam = "{$dragen_folder}/{$name}.bam";
+$dragen_cram = "{$dragen_folder}/{$name}.cram";
+$dragen_bam_or_cram_exists = file_exists($dragen_bam) || file_exists($dragen_cram);
+$dragen_output_vcf = "{$dragen_folder}/{$name}.hard-filtered.vcf.gz";
+$dragen_output_sv_vcf = "{$dragen_folder}/{$name}.sv.vcf.gz";
+
 //output file names:
 //mapping
 $bamfile = $folder."/".$name.".bam";
 $cramfile = $folder."/".$name.".cram";
+$bam_or_cram_exists = file_exists($bamfile) || file_exists($cramfile);
 $used_bam_or_cram = ""; //BAM/CRAM file used for calling etc. This is a local tmp file if mapping was done and a file in the output folder if no mapping was done
 $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
 $somatic_custom_panel = get_path("data_folder") . "/enrichment/somatic_VirtualPanel_v5.bed";
@@ -173,10 +182,31 @@ if ($annotation_only)
 	} 
 }
 
-// prevent accidentally re-mapping if Dragen already ran
-if (!$no_dragen && in_array("ma", $steps) && (file_exists($bamfile) || file_exists($cramfile)) && file_exists($folder."/dragen_variant_calls")) 
+//prevent accidentally re-mapping if DRAGEN already ran
+if (in_array("ma", $steps) && !$no_dragen && file_exists($dragen_folder) && ($bam_or_cram_exists || $dragen_bam_or_cram_exists)) 
 {
 	trigger_error("'ma' step requested, but sample is already analyzed with DRAGEN. Use '-no_dragen' if you really want to do a re-mapping!", E_USER_ERROR);
+}
+
+//move BAM/CRAM from DRAGEN folder to sample folder (on first analysis)
+if (!in_array("ma", $steps) && !$no_dragen && !$bam_or_cram_exists && file_exists($dragen_folder))
+{
+	if (file_exists($dragen_cram))
+	{
+		$parser->moveFile($dragen_cram, $cramfile);
+		$parser->moveFile($dragen_cram.".crai", $cramfile.".crai");
+	}
+	else if (file_exists($dragen_bam))
+	{
+		$parser->moveFile($dragen_bam, $bamfile);
+		$parser->moveFile($dragen_bam.".bai", $bamfile.".bai");
+	}
+	else
+	{
+		trigger_error("Anaylsis without mapping requested, but no BAM/CRAM file found in {$dragen_folder}", E_USER_ERROR);
+	}
+	
+	$bam_or_cram_exists = true;
 }
 
 //mapping
@@ -321,7 +351,7 @@ if (in_array("ma", $steps))
 		}
 	}
 }
-else if (file_exists($bamfile) || file_exists($cramfile))
+else if ($bam_or_cram_exists)
 {	
 	//set BAM/CRAM to use
 	$used_bam_or_cram = file_exists($bamfile) ? $bamfile : $cramfile;
@@ -425,6 +455,10 @@ else if (file_exists($bamfile) || file_exists($cramfile))
 		}
 	}
 }
+else
+{
+	trigger_error("No BAM/CRAM file found for analysis!", E_USER_ERROR);
+}
 
 //check gender after mapping
 if(db_is_enabled("NGSD") && $used_bam_or_cram!="" && !$no_gender_check)
@@ -466,8 +500,7 @@ if (in_array("vc", $steps))
 
 		//perform main variant calling on autosomes/genosomes
 		if(!$only_mito_in_target_region)
-		{
-			$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen.vcf.gz";
+		{			
 			if (!$no_dragen && file_exists($dragen_output_vcf))
 			{
 				trigger_error("DRAGEN analysis found in sample folder. Using this data for small variant calling. ", E_USER_NOTICE);
@@ -580,7 +613,6 @@ if (in_array("vc", $steps))
 		if ($mito)
 		{
 			$vcffile_mito = $parser->tempFile("_mito.vcf.gz");
-			$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen.vcf.gz";
 			if (!$no_dragen && file_exists($dragen_output_vcf) && contains_mito($dragen_output_vcf))
 			{
 				trigger_error("DRAGEN analysis found in sample folder. Using this data for mito small variant calling. ", E_USER_NOTICE);
@@ -981,10 +1013,10 @@ if (in_array("cn", $steps))
 		}
 		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnvfile}", [$folder, "{$repository_basedir}/data/misc/cn_pathogenic.bed"]);
 		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnvfile}", [$folder, "{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed"]);
-		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-02.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", [$folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-02.bed"]);
+		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-09.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", [$folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-09.bed"]);
 
 
-		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2024_4.bed"; //optional because of license
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2025_2.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
 			$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnvfile} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnvfile}", [$folder, $hgmd_file]);
@@ -1022,8 +1054,8 @@ if (in_array("sv", $steps))
 	// skip SV calling if only annotation should be done	
 	if (!$annotation_only)
 	{
-		$dragen_output_vcf = $folder."/dragen_variant_calls/{$name}_dragen_svs.vcf.gz";
-		if (!$no_dragen && file_exists($dragen_output_vcf))
+		
+		if (!$no_dragen && file_exists($dragen_output_sv_vcf))
 		{
 			trigger_error("DRAGEN analysis found in sample folder. Using this data for structural variant calling. ", E_USER_NOTICE);
 					
@@ -1031,8 +1063,8 @@ if (in_array("sv", $steps))
 			$vcf_inv_corrected = $parser->tempFile("_sv_inv_corrected.vcf");
 			$inv_script = repository_basedir()."/src/Tools/convertInversion.py";
 			$vc_manta_command = "python2 ".$inv_script;
-			$vc_manta_parameters = "/usr/bin/samtools {$genome} {$dragen_output_vcf} dragen > {$vcf_inv_corrected}";
-			$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, [$genome, $inv_script], [dirname($dragen_output_vcf)]);
+			$vc_manta_parameters = "/usr/bin/samtools {$genome} {$dragen_output_sv_vcf} dragen > {$vcf_inv_corrected}";
+			$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, [$genome, $inv_script, $dragen_output_sv_vcf]);
 
 			// fix VCF file (remove variants with empty "REF" entry and duplicates)
 			$vcf_fixed = $parser->tempFile("_sv_fixed.vcf");

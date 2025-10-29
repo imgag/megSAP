@@ -4,6 +4,10 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
+// REDCAP API URL
+// Change this to match your local RedCap installation
+const REDCAP_API_URL = 'https://redcap.extern.medizin.uni-tuebingen.de/api/';
+
 ################# data from different sources #################
 
 //returns case management data as an XML object
@@ -71,14 +75,14 @@ function xml_str($value)
 	return trim((string)$value);
 }
 
-function xml_bool($value, $allow_unset)
+function xml_bool($value, $allow_unset, $name)
 {
 	$value = strtolower(xml_str($value));
 	if ($value=="yes" || $value=="checked") return true;
 	if ($value=="no" || $value=="unchecked") return false;
 	if ($allow_unset && $value=="") return null;
 	
-	trigger_error(__FUNCTION__.": Unhandled value '{$value}'!", E_USER_ERROR);
+	trigger_error(__FUNCTION__.": Unhandled value '{$value}' for call with name '{$name}'!", E_USER_ERROR);
 }
 
 //returns the raw value for a drop-down file (our man query returns the label only)
@@ -101,7 +105,7 @@ function get_raw_value($record_id, $field)
 		'returnFormat' => 'csv'
 	);
 	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, 'https://redcap.extern.medizin.uni-tuebingen.de/api/');
+	curl_setopt($ch, CURLOPT_URL, REDCAP_API_URL);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 	curl_setopt($ch, CURLOPT_VERBOSE, 0);
@@ -148,7 +152,7 @@ function add_submission_to_redcap($record_id, $data_type, $tan)
 		'data' => $xml,
 	);
 	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, 'https://redcap.extern.medizin.uni-tuebingen.de/api/');
+	curl_setopt($ch, CURLOPT_URL, REDCAP_API_URL);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 	curl_setopt($ch, CURLOPT_VERBOSE, 0);
@@ -199,7 +203,7 @@ function convert_coverage($accounting_mode)
 	else if ($accounting_mode=="Beihilfe") $converage_type = "Beihilfe";
 	else if ($accounting_mode=="sonstiger Kostenträger") $converage_type = "SKT";
 	else if ($accounting_mode=="unknown") $converage_type = "UNK";
-	else trigger_error("Could not determine coverage type from GenLab accounting mode '{$accounting_mode}'!", E_USER_ERROR);
+	else trigger_error("Could not determine coverage type from case-management accounting mode '{$accounting_mode}'!", E_USER_ERROR);
 	
 	return $converage_type;
 }
@@ -421,38 +425,6 @@ function convert_cn_to_type($cn, $chr, $gender)
 	}
 	
 	trigger_error(__FUNCTION__.": Unhandled combination: {$cn}/{$chr}/{$gender}", E_USER_ERROR);
-}
-
-
-function chr2NC($chr)
-{
-	if ($chr=="chr1") return "NC_000001.11";
-	if ($chr=="chr2") return "NC_000002.12";
-	if ($chr=="chr3") return "NC_000003.12";
-	if ($chr=="chr4") return "NC_000004.12";
-	if ($chr=="chr5") return "NC_000005.10";
-	if ($chr=="chr6") return "NC_000006.12";
-	if ($chr=="chr7") return "NC_000007.14";
-	if ($chr=="chr8") return "NC_000008.11";
-	if ($chr=="chr9") return "NC_000009.12";
-	if ($chr=="chr10") return "NC_000010.11";
-	if ($chr=="chr11") return "NC_000011.10";
-	if ($chr=="chr12") return "NC_000012.12";
-	if ($chr=="chr13") return "NC_000013.11";
-	if ($chr=="chr14") return "NC_000014.9";
-	if ($chr=="chr15") return "NC_000015.10";
-	if ($chr=="chr16") return "NC_000016.10";
-	if ($chr=="chr17") return "NC_000017.11";
-	if ($chr=="chr18") return "NC_000018.10";
-	if ($chr=="chr19") return "NC_000019.10";
-	if ($chr=="chr20") return "NC_000020.11";
-	if ($chr=="chr21") return "NC_000021.9";
-	if ($chr=="chr22") return "NC_000022.11";
-	if ($chr=="chrX") return "NC_000023.11";
-	if ($chr=="chrY") return "NC_000024.10";
-	if ($chr=="chrMT") return "NC_012920.1";
-	
-	trigger_error(__FUNCTION__.": Unhandled chromosome name '{$chr}'!", E_USER_ERROR);
 }
 
 function sv_type_to_table($type)

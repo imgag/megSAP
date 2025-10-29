@@ -52,8 +52,8 @@ If you want to use our full software stack (megSAP, GSvar and NGSD) in a clinica
 
 You can cite megSAP using Zenodo DOIs:
 
+* 2025_10: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17357942.svg)](https://doi.org/10.5281/zenodo.17357942)
 * 2025_03: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15063428.svg)](https://doi.org/10.5281/zenodo.15063428)
-* 2024_09: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13744183.svg)](https://doi.org/10.5281/zenodo.13744183)
 
 ## ChangeLog
 
