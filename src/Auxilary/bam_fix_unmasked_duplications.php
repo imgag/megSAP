@@ -110,6 +110,7 @@ $args[] = "-out {$bam_mapped}";
 $args[] = "-sample {$sample}";
 $args[] = "-threads {$threads}";
 $args[] = "-dedup";
+$args[] = "-use_bwa1";
 $parser->execTool("Tools/mapping_bwa.php", implode(" ", $args));
 print "  took ".time_readable(microtime(true)-$time_start)."\n";
 
