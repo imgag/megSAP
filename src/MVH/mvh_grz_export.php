@@ -475,7 +475,7 @@ if ($is_somatic)
 	{
 		print "  generating VCF file for tumor/normal pair {$ps_t}/{$ps}...\n";
 		
-		$vcf = $info_t['ps_folder']."/../Somatic_{$ps_t}-{$ps}/{$ps_t}-{$ps}_var.vcf.gz";
+		$vcf = dirname($info_t['ps_folder'])."/Somatic_{$ps_t}-{$ps}/{$ps_t}-{$ps}_var.vcf.gz";
 		$parser->execApptainer("ngs-bits", "VcfReplaceSamples", "-in {$vcf} -out {$tn_vcf} -ids {$ps}=SAMPLE_GERMLINE,{$ps_t}=SAMPLE_TUMOR", [$vcf], ["{$folder}/files/"]);
 	}
 	$files_to_submit_t = [$t_fq1, $t_fq2, $tn_vcf];
@@ -757,7 +757,5 @@ if (!$test)
 }
 
 print "cleanup took ".time_readable(microtime(true)-$time_start)."\n";
-
-//TODO add tests: SE WGS, SE lrGS, SE WGS trio, T/N
 
 ?>

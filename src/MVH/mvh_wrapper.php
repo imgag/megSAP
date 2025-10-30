@@ -15,12 +15,16 @@ $parser->addFlag("clear", "Clear date (passed to export script).");
 $parser->addFlag("test", "Test mode (passed to export script).");
 extract($parser->parse($argv));
 
+//create folder if missing
+$folder = realpath(get_path("mvh_folder"))."/".strtolower($type)."_export/{$cm_id}/";
+
 //execute export script
 print "Performing export\n";
 $args = [];
 $args[] = "-cm_id {$cm_id}";
 if ($clear) $args[] = "-clear";
 if ($test) $args[] = "-test";
+$args[] = "--log {$folder}/export.log";
 $script = dirname(realpath($_SERVER['SCRIPT_FILENAME']))."/mvh_".strtolower($type)."_export.php";
 $command = "php {$script} ".implode(" ", $args)." 2>&1";
 list($stdout, , $exit_code) = exec2($command, false);
