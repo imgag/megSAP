@@ -20,6 +20,7 @@ $parser->addFlag("export_methylation_data", "Also exports table with all methyla
 $parser->addInfile("custom_cohort_table", "Custom sample table with path in TSV format (NGSDExportSamples) used as background cohort.", true);
 $parser->addString("build", "The genome build to use. ", true, "GRCh38");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
+$parser->addFlag("test", "Run in test-mode with hard-coded cohort.");
 
 extract($parser->parse($argv));
 
@@ -368,15 +369,29 @@ function get_haplotype_count($gender, $chr, $start, $end)
     return 2;
 }
 
-// init NGSD
+
 $gender = "n/a";
-if (db_is_enabled("NGSD"))
+if ($test)
 {
-    $db = DB::getInstance("NGSD");
-    $sample_info = get_processed_sample_info($db, $name);
-    $gender = $sample_info["gender"];
-} 
-else trigger_error("No NGSD connection! Cannot perform cohort analysis.", E_USER_WARNING);
+    // init test run
+    trigger_error("Running in test mode!", E_USER_WARNING);
+    $sample_info["sys_name_short"] = "ProcessingSystemForTesting";
+    $gender = "male";
+    if ($custom_cohort_table == "") trigger_error("Custom cohort table required for testing!", E_USER_ERROR);
+    $cohort_folder = repository_basedir()."/test/data_out/tool_test_create_methyl_plot/cohort/ProcessingSystemForTesting";
+}
+else
+{
+    // init NGSD
+    if (db_is_enabled("NGSD"))
+    {
+        $db = DB::getInstance("NGSD");
+        $sample_info = get_processed_sample_info($db, $name);
+        $gender = $sample_info["gender"];
+        $cohort_folder = get_path("methylation_cohorts")."/".$sample_info["sys_name_short"];
+    } 
+    else trigger_error("No NGSD connection! Cannot perform cohort analysis.", E_USER_WARNING);
+}
 
 $ref_genome = genome_fasta($build);
 exec2("mkdir -p {$folder}/methylartist");
@@ -396,15 +411,6 @@ else
         if (!file_exists($bam)) trigger_error("BAM/CRAM file not found!", E_USER_ERROR);
     }
 }
-
-
-
-/*
-if (ends_with($bam, ".cram")) $cram_input = true;
-
-//create temp folder for bam
-if ($cram_input) $bam_tmp_folder = $parser->tempFolder("bam");
-*/
 
 $regions_table = Matrix::fromTSV($regions);
 
@@ -441,21 +447,7 @@ $jobs_plotting = array();
 $jobs_plotting_cohort = array();
 for($r=0; $r<$regions_table->rows(); ++$r)
 {
-    $row = $regions_table->getRow($r);  
-    /*
-    if ($cram_input)
-    {
-        //create tmp bam file for modkit if input is cram
-        $tmp_bam = "{$bam_tmp_folder}/{$name}.bam";
-        $parser->execApptainer("samtools", "samtools view", "-o {$tmp_bam} -T {$ref_genome} -u --use-index -@ {$threads} {$bam} {$row[3]}:{$row[6]}-{$row[7]}", [$ref_genome, $bam]);
-        $parser->indexBam($tmp_bam, $threads);
-    }
-    else
-    {
-        //use bam directly
-        $tmp_bam = $bam;
-    }
-    */
+    $row = $regions_table->getRow($r);
 
     //create combined plot for male samples on X/Y
     $only_one_haplotype = (get_haplotype_count($gender, $row[3], $row[6], $row[7]) == 1);
@@ -493,56 +485,6 @@ for($r=0; $r<$regions_table->rows(); ++$r)
         
     }
 
-    
-    /*
-    // create methyl track for cohort plots
-    $tmp_out = $parser->tempFolder();
-    //TODO: remove
-    // $tmp_out = "{$folder}/methylartist/"; //store files in methylartist folder
-
-    // $prefix = "{$name}_{$row[0]}_{$row[3]}_{$row[4]}-{$row[5]}";
-    // $prefix_highlight = "{$name}_{$row[0]}_highlight_{$row[3]}_{$row[6]}-{$row[7]}";
-    $prefix = "{$name}";
-    $prefix_highlight = "{$name}_highlight";
-    $args_modkit = [
-        "pileup",
-        "--ref", $ref_genome,
-        "--cpg",
-        "--region", "{$row[3]}:{$row[4]}-{$row[5]}",
-        "--combine-strands",
-        "--ignore", "h",
-        "--partition-tag", "HP",
-        "--prefix", $prefix,
-        "--threads", $threads,
-        $tmp_bam,
-        $tmp_out . "/",
-    ];
-    list($stdout, $stderr, $ec) = $parser->execApptainer("modkit", "modkit", implode(" ", $args_modkit), [$ref_genome, $tmp_bam], [$tmp_out], false, true, false, true);
-    // workaround to allow 0 reads in BAM region (e.g. in test cases)
-    if (($ec != 0) && (end($stderr) != "> Error! zero reads found in bam index")) 
-    {
-        $this->toStderr($stdout);
-		$this->toStderr($stderr);
-		trigger_error("Call of external tool 'modkit' returned error code '$ec'.", E_USER_ERROR);
-    }
-
-    //slice BED to target region
-    foreach ($haplotypes as $hp)
-    {
-        $input_bed = "{$tmp_out}/{$prefix}_{$hp}.bed";
-        //create empty file in case input doesn't exists
-        if (!file_exists($input_bed)) touch($input_bed);
-        $output_bed = "{$tmp_out}/{$prefix_highlight}_{$hp}.bed";
-        $pipeline = [
-            ["", "echo '{$row[3]}\t{$row[6]}\t{$row[7]}'"],
-            ["", $parser->execApptainer("ngs-bits", "BedIntersect", "-mode in2 -in2 {$input_bed} -out {$output_bed}", [$input_bed], [$tmp_out], true)]
-        ];
-        $parser->execPipeline($pipeline, "extract highlight region");   
-    }
-
-    */
-
-
     $prefix = "{$name}";
     $prefix_highlight = "{$name}_highlight";
     $modkit_temp_folder = extract_methylation($tmp_bam, $row[3], $row[4], $row[5], $row[6], $row[7], $name, $ref_genome, $threads);
@@ -552,86 +494,36 @@ for($r=0; $r<$regions_table->rows(); ++$r)
         $modkit_temp_folder_all = extract_methylation($tmp_bam, $row[3], $row[4], $row[5], $row[6], $row[7], $name, $ref_genome, $threads, true);
     }
     
-    if (db_is_enabled("NGSD"))
+    if (isset($db))
     {
-        //copy to cohort folder
-        //TODO: exclude samples not in main path
-
-        $cohort_folder = get_path("methylation_cohorts")."/".$sample_info["sys_name_short"];
-        $target_path = "{$cohort_folder}/{$row[0]}_{$row[3]}_{$row[4]}-{$row[5]}/";
-        if (!file_exists($target_path)) mkdir($target_path, 0777, true);
-        $target_path_highlight = "{$cohort_folder}/{$row[0]}_highlight_{$row[3]}_{$row[6]}-{$row[7]}/";
-        if (!file_exists($target_path_highlight)) mkdir($target_path_highlight, 0777, true);
-
-        foreach ($haplotypes as $hp)
+        //ignore if sample is not in main path
+        if (realpath($folder) == $sample_info["ps_folder"])
         {
-            $parser->copyFile("{$modkit_temp_folder}/{$prefix}_{$hp}.bed", "{$target_path}/{$prefix}_{$hp}.bed");
-            $parser->copyFile("{$modkit_temp_folder}/{$prefix_highlight}_{$hp}.bed", "{$target_path_highlight}/{$prefix}_{$hp}.bed");
-        }
-        if ($only_one_haplotype) 
-        {
-            $parser->copyFile("{$modkit_temp_folder_all}/{$prefix_highlight}_all.bed", "{$target_path_highlight}/{$prefix}_all.bed");
-        }
-    }
+            //copy to cohort folder
+            $target_path = "{$cohort_folder}/{$row[0]}_{$row[3]}_{$row[4]}-{$row[5]}/";
+            if (!file_exists($target_path)) mkdir($target_path, 0777, true);
+            $target_path_highlight = "{$cohort_folder}/{$row[0]}_highlight_{$row[3]}_{$row[6]}-{$row[7]}/";
+            if (!file_exists($target_path_highlight)) mkdir($target_path_highlight, 0777, true);
 
-
-
-    
-    
-    //TODO: use BED from first modkit call
-    /*
-    // calculate average methylation
-    $tmp_out = $parser->tempFolder();
-    $args_modkit = [
-        "pileup",
-        "--ref", $ref_genome,
-        "--cpg",
-        "--region", "{$row[3]}:{$row[6]}-{$row[7]}",
-        "--combine-strands",
-        "--ignore", "h",
-        "--partition-tag", "HP",
-        "--prefix", "haplotyped",
-        "--threads", $threads,
-        $tmp_bam,
-        $tmp_out . "/",
-    ];
-    list($stdout, $stderr, $ec) = $parser->execApptainer("modkit", "modkit", implode(" ", $args_modkit), [$ref_genome, $tmp_bam], [$tmp_out], false, true, false, true);
-
-    // workaround to allow 0 reads in BAM region (e.g. in test cases)
-    if (($ec != 0) && (end($stderr) != "> Error! zero reads found in bam index")) 
-    {
-        $this->toStderr($stdout);
-		$this->toStderr($stderr);
-		trigger_error("Call of external tool 'modkit' returned error code '$ec'.", E_USER_ERROR);
-    }
-    
-    $modified = [];
-    $aggregated = [];
-    foreach ($haplotypes as $hp)
-    {
-        $modified[$hp] = [];
-        $pileup = $tmp_out . "/haplotyped_{$hp}.bed";
-        if (file_exists($pileup))
-        {
-            $handle = fopen2($pileup, "r");
-            while(!feof($handle))
+            foreach ($haplotypes as $hp)
             {
-                $line = trim(fgets($handle));
-                if(empty($line)) continue;
-                $parts = explode("\t", $line);
-                if ($parts[3] !== "m") continue;
-                $percent_modified = (float) $parts[10];
-                $modified[$hp][] = $percent_modified;
+                $parser->copyFile("{$modkit_temp_folder}/{$prefix}_{$hp}.bed", "{$target_path}/{$prefix}_{$hp}.bed");
+                $parser->copyFile("{$modkit_temp_folder}/{$prefix_highlight}_{$hp}.bed", "{$target_path_highlight}/{$prefix}_{$hp}.bed");
+            }
+            if ($only_one_haplotype) 
+            {
+                $parser->copyFile("{$modkit_temp_folder_all}/{$prefix_highlight}_all.bed", "{$target_path_highlight}/{$prefix}_all.bed");
             }
         }
+        else
+        {
+            trigger_error("Sample is not in correct folder according to NGSD! Skip copying/replacing of cohort methylation files.", E_USER_WARNING);
+        }
         
-        if (count($modified[$hp]) > 0) $aggregated[$hp] = [ mean($modified[$hp]), stdev($modified[$hp]) ];
-        else $aggregated[$hp] = [NAN, NAN];
     }
-    */
 
     //check phasing
-    $filter_column[] = get_phasing_info($phasing_track_file, $row[3], $row[6], $row[7], $sample_info["gender"]);
+    $filter_column[] = get_phasing_info($phasing_track_file, $row[3], $row[6], $row[7], $gender);
 
     $methylation = get_avg_methylation("{$modkit_temp_folder}/{$prefix_highlight}");
 
@@ -689,73 +581,6 @@ for($r=0; $r<$regions_table->rows(); ++$r)
             $cohort_plot_data[$row[0]]["hp2_file"] = "{$modkit_temp_folder}/{$prefix}_2.bed";
         }
     }
-    
-    
-
-    /*
-    // calculate average depth
-    $haplotypes = [1, 2];
-    $hap_bams = [];
-    foreach ($haplotypes as $hp)
-    {
-        $hap_bams[$hp] = $parser->tempFile(".bam", "hap");
-        $args_samtools_view = [
-            "-o", $hap_bams[$hp],
-            "-u",
-            "--use-index",
-            "--tag", "HP:{$hp}",
-            "-F", "SECONDARY,SUPPLEMENTARY",
-            "-@", $threads,
-            $tmp_bam,
-            "{$row[3]}:{$row[6]}-{$row[7]}",
-			"-T {$ref_genome}"
-        ];       
-        $parser->execApptainer("samtools", "samtools view", implode(" ", $args_samtools_view), [$ref_genome, $tmp_bam]);
-        $parser->indexBam($hap_bams[$hp], $threads);
-    }
-
-
-    $target_bed = $parser->tempFile(".bed", "hap");
-    $coord_start = $row[6]-1;
-    file_put_contents($target_bed, "{$row[3]}\t{$coord_start}\t{$row[7]}");
-    $result = $parser->execApptainer("ngs-bits", "BedCoverage", "-threads {$threads} -random_access -decimals 6 -bam {$hap_bams[1]} {$hap_bams[2]} {$tmp_bam} -in {$target_bed} -clear -ref {$ref_genome}", [$tmp_bam, $ref_genome]);
-    $result_parts = explode("\t", $result[0][1]);
-    $average_coverage = array_map("floatval", array_slice($result_parts, 3, 3));
-
-    $all_data = array_merge($modified[1], $modified[2], $modified["ungrouped"]);
-    $aggregated["all"] = ["nan", "nan"];
-	if (count($all_data)>0)
-	{
-		$aggregated["all"] = [ number_format(mean($all_data),2), number_format(stdev($all_data), 2) ];
-	}
-    $methyl_all_avg[] = $aggregated["all"][0];
-    $methyl_all_std[] = $aggregated["all"][1];
-    if (floatval($aggregated[1][0]) < $aggregated[2][0])
-    {
-        //switch hp1 and hp2 to put higher methylation at front
-        $methyl_hp2_avg[] = number_format($aggregated[1][0], 2);
-        $methyl_hp2_std[] = number_format($aggregated[1][1], 2);
-        $methyl_hp1_avg[] = number_format($aggregated[2][0], 2);
-        $methyl_hp1_std[] = number_format($aggregated[2][1], 2);
-        $coverage_hp2[] = number_format($average_coverage[0], 2);
-        $coverage_hp1[] = number_format($average_coverage[1], 2);
-    }
-    else
-    {
-        $methyl_hp1_avg[] = number_format($aggregated[1][0], 2);
-        $methyl_hp1_std[] = number_format($aggregated[1][1], 2);
-        $methyl_hp2_avg[] = number_format($aggregated[2][0], 2);
-        $methyl_hp2_std[] = number_format($aggregated[2][1], 2);
-        $coverage_hp1[] = number_format($average_coverage[0], 2);
-        $coverage_hp2[] = number_format($average_coverage[1], 2);
-    }
-
-    $coverage_all[] = number_format($average_coverage[2], 2);
-    $methyl_nohp_avg[] = number_format($aggregated["ungrouped"][0], 2);
-    $methyl_nohp_std[] = number_format($aggregated["ungrouped"][1], 2);
-    $coverage_nohp[] = number_format($average_coverage[2] - $average_coverage[1] - $average_coverage[0], 2); 
-
-    */
 }
 
 
@@ -786,15 +611,10 @@ if (!$skip_cohort_annotation && db_is_enabled("NGSD"))
     }
     else
     {
-        //TODO: increase
+        if (!isset($db)) trigger_error("No connection to NGSD! Cannot generate cohort!", E_USER_ERROR);
         $cohort_size = 100;
         $cohort_table = get_cohort($db, $name, $bam, $cohort_size);
     }
-    
-
-    //TODO: remove
-    $cohort_table->toTSV($folder."/debug_cohort_table.tsv");
-    // file_put_contents($folder."/debug_cohort_table.tsv", $cohort_table);
 
     //parse current table 
     $meth_table = Matrix::fromTSV($out);
@@ -825,6 +645,7 @@ if (!$skip_cohort_annotation && db_is_enabled("NGSD"))
         ];
         $cohort_values[$identifier]["hp1"] = array();
         $cohort_values[$identifier]["hp2"] = array();
+        $cohort_values[$identifier]["all"] = array();
         $sample_methylation[$identifier]["hp1"] = $meth_table->get($r, $i_meth_hp1_avg);
         $sample_methylation[$identifier]["hp2"] = $meth_table->get($r, $i_meth_hp2_avg); 
         $sample_methylation[$identifier]["all"] = $meth_table->get($r, $i_meth_all_avg); 
@@ -840,23 +661,22 @@ if (!$skip_cohort_annotation && db_is_enabled("NGSD"))
     { 
         $cohort_ps_name = $cohort_table->get($i, $i_sample_name);
         $cohort_sample_folder = $cohort_table->get($i, $i_path);
+        //modify cohort folder path for testing:
+        if ($test)$cohort_sample_folder = repository_basedir()."/test/data/create_methyl_plot/".$cohort_sample_folder;
+
+        //get files
+        //BAM/CRAM
+        $cohort_bam_file = "{$cohort_sample_folder}/{$cohort_ps_name}.bam";
+        if (!file_exists($cohort_bam_file)) $cohort_bam_file = "{$cohort_sample_folder}/{$cohort_ps_name}.cram";
+        if (!file_exists($cohort_bam_file)) trigger_error("No BAM/CRAM file found in sample folder '{$cohort_sample_folder}'!", E_USER_ERROR);
+        //phasing track
         $cohort_phasing_track_file = "{$cohort_sample_folder}/{$cohort_ps_name}_phasing_track.bed";
         if (!file_exists($cohort_phasing_track_file))
         {
             trigger_error("Phasing track file for sample {$cohort_ps_name} ({$cohort_phasing_track_file}) not found! Ignoring for cohort.", E_USER_WARNING);
             continue;
         }
-        $cohort_sample_info = get_processed_sample_info($db, $cohort_ps_name);
         
-        /*
-        $file_path = $cohort_table->get($i, $i_path)."/{$cohort_ps_name}_var_methylation.tsv";
-        if (!file_exists($file_path))
-        {
-            trigger_error("Methylation file for sample {$cohort_ps_name} ({$file_path}) not found! Ignoring for cohort.", E_USER_WARNING);
-            continue;
-        }
-        */
-
         $cohort_sample_list[] = $cohort_ps_name;
 
         foreach ($highlight_regions as $identifier => list($chr, $start, $end, $gene_start, $gene_end)) 
@@ -866,38 +686,57 @@ if (!$skip_cohort_annotation && db_is_enabled("NGSD"))
             {
                 if (!isset($excluded_samples[$identifier])) $excluded_samples[$identifier] = array();
                 $excluded_samples[$identifier][] = $cohort_ps_name;
-                // trigger_error("Region {$chr}:{$start}-{$end} of sample {$cohort_ps_name} is not continously phased, ignoring this region from cohort calculation!", E_USER_WARNING);
                 continue;
             }
             $only_one_haplotype = (get_haplotype_count($gender, $chr, $start, $end) == 1);
             
             //check for existing file
-            $modkit_file_highlight_prefix = "{$cohort_folder}/{$identifier}_highlight_{$chr}_{$start}-{$end}/{$cohort_ps_name}";
-            $modkit_file_prefix = "{$cohort_folder}/{$identifier}_{$chr}_{$gene_start}-{$gene_end}/{$cohort_ps_name}";
-
+            if (isset($cohort_folder))
+            {
+                $modkit_file_highlight_prefix = "{$cohort_folder}/{$identifier}_highlight_{$chr}_{$start}-{$end}/{$cohort_ps_name}";
+                $modkit_file_prefix = "{$cohort_folder}/{$identifier}_{$chr}_{$gene_start}-{$gene_end}/{$cohort_ps_name}";
+            }
             $tmp_bam = "";
-            if (!file_exists($modkit_file_highlight_prefix."_1.bed") || !file_exists($modkit_file_highlight_prefix."_2.bed") || !file_exists($modkit_file_highlight_prefix."_ungrouped.bed") 
+            if (!isset($cohort_folder) || !file_exists($modkit_file_highlight_prefix."_1.bed") || !file_exists($modkit_file_highlight_prefix."_2.bed") || !file_exists($modkit_file_highlight_prefix."_ungrouped.bed") 
                 || !file_exists($modkit_file_prefix."_1.bed") || !file_exists($modkit_file_prefix."_2.bed") || !file_exists($modkit_file_prefix."_ungrouped.bed"))
             {
                 //re-create modkit files
-                $tmp_bam = get_bam($cohort_sample_info["ps_bam"], $cohort_ps_name, $chr, $gene_start, $gene_end, $ref_genome, $threads);
+                $tmp_bam = get_bam($cohort_bam_file, $cohort_ps_name, $chr, $gene_start, $gene_end, $ref_genome, $threads);
                 $modkit_temp_folder = extract_methylation($tmp_bam, $chr, $gene_start, $gene_end, $start, $end, $cohort_ps_name, $ref_genome, $threads);
 
                 //copy files to cohort folder
-                foreach ([1, 2, "ungrouped"] as $hp)
+                if (isset($cohort_folder))
                 {
-                    $parser->copyFile("{$modkit_temp_folder}/{$cohort_ps_name}_{$hp}.bed", "{$modkit_file_prefix}_{$hp}.bed");
-                    $parser->copyFile("{$modkit_temp_folder}/{$cohort_ps_name}_highlight_{$hp}.bed", "{$modkit_file_highlight_prefix}_{$hp}.bed");
+                    //create folders if they don't exist:
+                    foreach ([dirname($modkit_file_highlight_prefix), dirname($modkit_file_prefix)] as $target_path) 
+                    {
+                        if (!file_exists($target_path)) mkdir($target_path, 0777, true);
+                    }
+                    
+                    foreach ([1, 2, "ungrouped"] as $hp)
+                    {
+                        $parser->copyFile("{$modkit_temp_folder}/{$cohort_ps_name}_{$hp}.bed", "{$modkit_file_prefix}_{$hp}.bed");
+                        $parser->copyFile("{$modkit_temp_folder}/{$cohort_ps_name}_highlight_{$hp}.bed", "{$modkit_file_highlight_prefix}_{$hp}.bed");
+                    }
                 }
+
+                //use temp files to generate plots and stats:
+                $modkit_file_highlight_prefix = "{$modkit_temp_folder}/{$cohort_ps_name}_highlight";
+                $modkit_file_prefix = "{$modkit_temp_folder}/{$cohort_ps_name}";
+                
             }
 
             // for male samples: also generate an unphased methylation file for X/Y
-            if ($only_one_haplotype && (!file_exists($modkit_file_highlight_prefix."_all.bed") || !file_exists($modkit_file_prefix."_all.bed")))
+            if ($only_one_haplotype && (!isset($cohort_folder) || !file_exists($modkit_file_highlight_prefix."_all.bed") || !file_exists($modkit_file_prefix."_all.bed")))
             {
-                if ($tmp_bam == "") $tmp_bam = get_bam($cohort_sample_info["ps_bam"], $cohort_ps_name, $chr, $gene_start, $gene_end, $ref_genome, $threads);
+                if ($tmp_bam == "") $tmp_bam = get_bam($cohort_bam_file, $cohort_ps_name, $chr, $gene_start, $gene_end, $ref_genome, $threads);
                 $modkit_temp_folder = extract_methylation($tmp_bam, $chr, $gene_start, $gene_end, $start, $end, $cohort_ps_name, $ref_genome, $threads, true);
-                $parser->copyFile("{$modkit_temp_folder}/{$cohort_ps_name}_all.bed", "{$modkit_file_prefix}_all.bed");
-                $parser->copyFile("{$modkit_temp_folder}/{$cohort_ps_name}_highlight_all.bed", "{$modkit_file_highlight_prefix}_all.bed");
+                if (isset($cohort_folder))
+                {
+                    $parser->copyFile("{$modkit_temp_folder}/{$cohort_ps_name}_all.bed", "{$modkit_file_prefix}_all.bed");
+                    $parser->copyFile("{$modkit_temp_folder}/{$cohort_ps_name}_highlight_all.bed", "{$modkit_file_highlight_prefix}_all.bed");
+                }
+                
             }
 
             //get avg methylation
@@ -973,48 +812,7 @@ if (!$skip_cohort_annotation && db_is_enabled("NGSD"))
             $parser->log("The following samples were excluded for cohort computation due to phasing issues:", $buffer);
         }
 
-        /*
-        $tmp_meth_table = Matrix::fromTSV($file_path);
-        $i_identifier = $tmp_meth_table->getColumnIndex("identifier");
-        $i_chr = $tmp_meth_table->getColumnIndex("gene chr");
-        $i_highlight_start = $tmp_meth_table->getColumnIndex("highlight start");
-        $i_highlight_end = $tmp_meth_table->getColumnIndex("highlight end");
-        $i_meth_hp1 = $tmp_meth_table->getColumnIndex("meth_hp1_avg");
-        $i_meth_hp2 = $tmp_meth_table->getColumnIndex("meth_hp2_avg");
-        for($r=0; $r<$tmp_meth_table->rows(); ++$r)
-        {
-            $identifier = $tmp_meth_table->get($r, $i_identifier);
-            if (!in_array($identifier, array_keys($cohort_values))) 
-            {
-                trigger_error("Skipping unknown identifier '{$identifier}'.", E_USER_NOTICE);
-                continue;
-            }
-
-            $highlight_region = $tmp_meth_table->get($r, $i_chr).":".$tmp_meth_table->get($r, $i_highlight_start)."-".$tmp_meth_table->get($r, $i_highlight_end);
-            if ($highlight_regions[$identifier] != $highlight_region)
-            {
-                trigger_error("Skipping identifier '{$identifier}' because of mismatching highlight regions: ".$highlight_regions[$identifier]." vs {$highlight_region}", E_USER_WARNING);
-                continue;
-            }
-
-            //get mean methylation
-            //TODO filter n/a
-            $meth_hp1 = floatval($tmp_meth_table->get($r, $i_meth_hp1));
-            $meth_hp2 = floatval($tmp_meth_table->get($r, $i_meth_hp2));
-            if ($meth_hp2 > $meth_hp1)
-            {
-                $tmp = $meth_hp1;
-                $meth_hp1 = $meth_hp2;
-                $meth_hp2 = $tmp;
-            }
-            $cohort_values[$identifier]["hp1"][] = $meth_hp1;
-            $cohort_values[$identifier]["hp2"][] = $meth_hp2;
-        } 
-            */
     }
-
-    // var_dump($cohort_table);
-    // var_dump($cohort_values);
 
     //calcualte stats
     $cohort_mean_hp1 = array();
@@ -1030,12 +828,12 @@ if (!$skip_cohort_annotation && db_is_enabled("NGSD"))
     foreach ($cohort_values as $identifier => $values) 
     {
         //TODO: filter too small cohort
-        $cohort_mean_hp1[$identifier] = number_format(mean($values["hp1"]), 3);
-        $cohort_stdev_hp1[$identifier] = number_format(stdev($values["hp1"]), 3);
-        $cohort_mean_hp2[$identifier] = number_format(mean($values["hp2"]), 3);
-        $cohort_stdev_hp2[$identifier] = number_format(stdev($values["hp2"]), 3);
-        $cohort_mean_all[$identifier] = number_format(mean($values["all"]), 3);
-        $cohort_stdev_all[$identifier] = number_format(stdev($values["all"]), 3);
+        $cohort_mean_hp1[$identifier] = (count($values["hp1"]) > 0)?number_format(mean($values["hp1"]), 3):NAN;
+        $cohort_stdev_hp1[$identifier] = (count($values["hp1"]) > 0)?number_format(stdev($values["hp1"]), 3):NAN;
+        $cohort_mean_hp2[$identifier] = (count($values["hp2"]) > 0)?number_format(mean($values["hp2"]), 3):NAN;
+        $cohort_stdev_hp2[$identifier] = (count($values["hp2"]) > 0)?number_format(stdev($values["hp2"]), 3):NAN;
+        $cohort_mean_all[$identifier] = (count($values["all"]) > 0)?number_format(mean($values["all"]), 3):NAN;
+        $cohort_stdev_all[$identifier] = (count($values["all"]) > 0)?number_format(stdev($values["all"]), 3):NAN;
         $cohort_size[$identifier] = count($values["hp1"]).", ".count($values["hp2"]).", ".count($values["all"]);
 
         //calculate zscore
@@ -1092,7 +890,7 @@ if (!$skip_cohort_annotation && db_is_enabled("NGSD"))
 
         }
 
-        file_put_contents($out."_raw_data.tsv", implode("\n", $table));
+        file_put_contents(dirname($out)."/".basename2($out)."_raw_data.tsv", implode("\n", $table));
     }
 
     //create cohort plotting commands
