@@ -3,6 +3,8 @@
 	@page mvh_grz_export
 */
 
+//TODO update to grz-cli v1.5 until 1.1.26 (see email "GRZ Tübingen Updates" from 2025-10-30)
+
 require_once("mvh_functions.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
@@ -187,14 +189,45 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 	global $test;
 	global $is_lrgs;
 	
+	//determine tissue ontology ID
+	$tissue = "anatomical structure";
+	$tissue_id = "UBERON:0000061";
+	$ontology = "UBERON";
+	$ontology_version = "2025-08-15";
+	if (!$is_tumor)
+	{
+		$tmp = trim($info["tissue"]);
+		if ($tmp!="" && $tmp!="n/a")
+		{
+			$tissue = $tmp;
+			$tissue_id = convert_tissue($tissue);
+			if (starts_with($tissue_id, "CL:")) //Cell Ontology
+			{
+				$ontology = "CL";
+				$ontology_version = "2025-10-16";
+			}
+		}
+	}
+	else //somatic: take oncotree data from NGSD
+	{
+		$oncotree_codes = $db_ngsd->getValues("SELECT disease_info FROM sample_disease_info WHERE sample_id='".$info['s_id']."' and type='Oncotree code'");
+		if (count($oncotree_codes)>0)
+		{
+			$tissue_id = $oncotree_codes[0];
+			$tissue = $db_ngsd->getValue("SELECT name FROM oncotree_term WHERE oncotree_code='{$tissue_id}'");
+			$ontology = "OncoTree";
+			$ontology_version = "2021_11_02";
+		}
+	}
+	
 	$output = [
 				"labDataName" => "DNA ".($is_tumor ? "tumor" : "normal"),
 				"tissueOntology" => [
-						"name" => "BRENDA tissue ontology",
-						"version" => "2021-10-23"
+						"name" => $ontology,
+						"version" => $ontology_version
 					],
-				"tissueTypeId" => convert_tissue($info["tissue"]),
-				"tissueTypeName" => $info["tissue"],
+				"tissueTypeId" => $tissue_id,
+				"tissueTypeName" => $tissue,
 				"sampleDate" => not_empty($info["s_received"], "sampleDate"),
 				"sampleConservation" => ($info["is_ffpe"] ? "ffpe" : "fresh-tissue"),
 				"sequenceType" => "dna",
