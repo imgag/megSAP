@@ -36,8 +36,9 @@ function get_bam($bam, $ps_name, $chr, $start, $end, $ref_genome, $threads)
 
     //else: create temporary file over the region
     $tmp_bam = $parser->tempFolder("tmp_bam")."/{$ps_name}.bam";
-    //TODO: remove
-    //$tmp_bam = "{$folder}/tmp_{$ps_name}.bam";
+    //add 100kb in each direction for better modkit normalization 
+    $start = min(1, $start - 100000);
+    $end = $end + 100000;
     $parser->execApptainer("samtools", "samtools view", "-o {$tmp_bam} -T {$ref_genome} -u --use-index -@ {$threads} {$bam} {$chr}:{$start}-{$end}", [$ref_genome, $bam]);
     $parser->indexBam($tmp_bam, $threads);
 
@@ -211,6 +212,8 @@ function get_phasing_info($bed_file, $chr, $start, $end, $gender)
 {
     global $parser;
 
+    if (!file_exists($bed_file)) return "NoPhasingInfo";
+
     $pipeline = [
         ["", "echo '{$chr}\t{$start}\t{$end}'"],
         ["", $parser->execApptainer("ngs-bits", "BedIntersect", "-in2 {$bed_file}", [$bed_file], [], true)]
@@ -220,10 +223,7 @@ function get_phasing_info($bed_file, $chr, $start, $end, $gender)
     if (count($stdout) > 1) return "MultiplePhasingBlocks"; // region contains multiple phasing block
     if (count($stdout) < 1) // region not phased
     {
-        //ignore unphased regions on gonosomes and mito
-        if (($chr == "chrM") || ($chr == "chrMT") || ($chr == "chrY")) return "";
-        //TODO: check pseudo-autosomal region
-        if (($chr == "chrX") && $gender == "male") return "";
+        if (get_haplotype_count($gender, $chr, $start, $end) == 1) return "";
         return "UnphasedRegion";
     }  
     if (trim($stdout[0]) != "{$chr}\t{$start}\t{$end}") return "PartlyUnphasedRegion"; // phasing block doesn't cover whole region
@@ -376,6 +376,7 @@ if ($test)
     // init test run
     trigger_error("Running in test mode!", E_USER_WARNING);
     $sample_info["sys_name_short"] = "ProcessingSystemForTesting";
+    $sample_info["ps_folder"] = $folder;
     $gender = "male";
     if ($custom_cohort_table == "") trigger_error("Custom cohort table required for testing!", E_USER_ERROR);
     $cohort_folder = repository_basedir()."/test/data_out/tool_test_create_methyl_plot/cohort/ProcessingSystemForTesting";
@@ -392,6 +393,20 @@ else
     } 
     else trigger_error("No NGSD connection! Cannot perform cohort analysis.", E_USER_WARNING);
 }
+
+//check sample folder
+$skip_copy = false;
+if (!isset($db))
+{
+    $skip_copy = true;
+    trigger_error("NGSD is disabled! Skip copying/replacing of cohort methylation files.", E_USER_WARNING);
+}
+else if (realpath($folder) != realpath($sample_info["ps_folder"]))
+{
+    $skip_copy = true;
+    trigger_error("Sample is not in correct folder according to NGSD! Skip copying/replacing of cohort methylation files.", E_USER_WARNING);
+}
+
 
 $ref_genome = genome_fasta($build);
 exec2("mkdir -p {$folder}/methylartist");
@@ -437,6 +452,7 @@ if (!file_exists($phasing_track_file))
 {
     trigger_error("Phasing track file '".basename($phasing_track_file)."' not found! Cannot evaluate phasing of methylation regions.", E_USER_WARNING);
 }
+
 
 //cohort methylation table
 $raw_methylation_data = array();
@@ -497,7 +513,7 @@ for($r=0; $r<$regions_table->rows(); ++$r)
     if (isset($db))
     {
         //ignore if sample is not in main path
-        if (realpath($folder) == $sample_info["ps_folder"])
+        if (!$skip_copy)
         {
             //copy to cohort folder
             $target_path = "{$cohort_folder}/{$row[0]}_{$row[3]}_{$row[4]}-{$row[5]}/";
@@ -514,10 +530,6 @@ for($r=0; $r<$regions_table->rows(); ++$r)
             {
                 $parser->copyFile("{$modkit_temp_folder_all}/{$prefix_highlight}_all.bed", "{$target_path_highlight}/{$prefix}_all.bed");
             }
-        }
-        else
-        {
-            trigger_error("Sample is not in correct folder according to NGSD! Skip copying/replacing of cohort methylation files.", E_USER_WARNING);
         }
         
     }

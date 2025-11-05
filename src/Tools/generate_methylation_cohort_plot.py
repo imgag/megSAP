@@ -184,9 +184,9 @@ def main():
         axes[0].add_patch(patches.Rectangle((highlight_start_index, -0.1), (highlight_end_index - highlight_start_index), 1.2, edgecolor=colors[1], facecolor=colors[1], alpha=0.1))
     axes[0].set_ylim(-0.1, 1.1)
     for col in columns_hp1:
-        sns.lineplot(methylation[col], ax=axes[0], color=colors[0], alpha=0.2)
+        sns.lineplot(methylation[col], ax=axes[0], color="grey", alpha=0.2)
     for col in columns_hp1_fallback:
-        sns.lineplot(methylation[col], ax=axes[0], color=colors[0], alpha=0.1, linestyle='dashed')
+        sns.lineplot(methylation[col], ax=axes[0], color="grey", alpha=0.1, linestyle='dashed')
     if "case_hp1" in methylation.columns:
         sns.lineplot(methylation["case_hp1"], ax=axes[0], color=colors[0], linewidth=3)
     axes[0].set(xlabel=None, ylabel=None)
@@ -197,9 +197,9 @@ def main():
             axes[1].add_patch(patches.Rectangle((highlight_start_index, -0.1), (highlight_end_index - highlight_start_index), 1.2, edgecolor=colors[0], facecolor=colors[0], alpha=0.1))
         axes[1].set_ylim(-0.1, 1.1)
         for col in columns_hp2:
-            sns.lineplot(methylation[col], ax=axes[1], color=colors[1], alpha=0.2)
+            sns.lineplot(methylation[col], ax=axes[1], color="grey", alpha=0.2)
         for col in columns_hp2_fallback:
-            sns.lineplot(methylation[col], ax=axes[1], color=colors[1], alpha=0.1, linestyle='dashed')
+            sns.lineplot(methylation[col], ax=axes[1], color="grey", alpha=0.1, linestyle='dashed')
         if "case_hp2" in methylation.columns:
             sns.lineplot(methylation["case_hp2"], ax=axes[1], color=colors[1], linewidth=3)
         axes[1].set(xlabel=None, ylabel=None)

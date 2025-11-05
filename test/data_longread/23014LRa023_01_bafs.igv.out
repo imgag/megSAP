@@ -1,5 +1,5 @@
 #track graphtype=points viewLimits=-0.2:1.2 maxHeightPixels=80:80:80
-Chromosome	Start	End	Feature	23014LRa023L2_02 BAF
+Chromosome	Start	End	Feature	23014LRa023_01 BAF
 chr1	31062315	31062316	.	0.6070
 chr1	31196955	31196956	.	0.9230
 chr1	31216895	31216896	.	0.4330

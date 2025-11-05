@@ -12,8 +12,6 @@
 ##DESCRIPTION=cov_all=average CpG coverage
 ##Background cohort:	123456_01,123457_01,123458_01
 #identifier	title	gene symbol	gene chr	gene start	gene end	highlight start	highlight end	filter	meth_hp1_avg	meth_hp1_std	cov_hp1	meth_hp2_avg	meth_hp2_std	cov_hp2	meth_nohp_avg	meth_nohp_std	cov_nohp	meth_all_avg	meth_all_std	cov_all	cohort_mean_hp1	cohort_stdev_hp1	zscore_hp1	cohort_mean_hp2	cohort_stdev_hp2	zscore_hp2	cohort_mean_all	cohort_stdev_all	zscore_all	cohort_size
-PLAGL1_alt-TSS-DMR	PLAGL1:alt-TSS-DMR	PLAGL1	chr6	143940299	144064599	144006941	144008751	PartlyUnphasedRegion	99.529	3.205	9.880	8.303	25.032	8.451	nan	nan	nan	56.748	14.038	18.331	98.456	0.549	1.954	2.003	0.915	6.885	44.053	10.213	1.243	2, 2, 2
-GRB10_alt-TSS-DMR	GRB10:alt-TSS-DMR	GRB10	chr7	50590062	50793462	50781029	50783615	MultiplePhasingBlocks	96.220	10.004	8.373	20.444	37.253	6.947	nan	nan	nan	61.832	17.718	15.271	89.958	5.589	1.120	20.621	2.570	-0.069	57.135	5.591	0.840	3, 3, 3
-PEG10_TSS-DMR	PEG10:TSS-DMR	PEG10	chr7	94656324	94669695	94656225	94658648		97.732	9.347	19.144	2.131	10.300	13.874	3.279	15.335	1.557	56.364	8.596	33.874	94.839	1.516	1.908	2.239	1.820	-0.059	50.033	3.328	1.902	3, 3, 3
-RP2	RP2	RP2	chrX	46836539	46889240	46836539	46837273		nan	nan	nan	nan	nan	nan	0.155	0.821	29.211	0.155	0.821	29.211	84.503	0.000	NAN	16.119	0.000	NAN	9.308	12.418	-0.737	1, 1, 3
-PHF6	PHF6	PHF6	chrX	134372188	134428792	134372188	134374713		7.143	23.810	2.408	6.598	23.864	11.333	6.907	24.510	3.536	6.692	23.632	17.182	50.351	0.000	NAN	41.665	0.000	NAN	17.235	16.415	-0.642	1, 1, 3
+artifical_site	artifical site for pipeline test	PUM1	chr1	32010000	32016500	32014000	32014500	NoPhasingInfo	0.000	0.000	1.864	0.000	0.000	1.000	nan	nan	nan	0.000	0.000	2.667	NAN	NAN	nan	NAN	NAN	nan	NAN	NAN	nan	0, 0, 0
+PLAGL1_alt-TSS-DMR	PLAGL1:alt-TSS-DMR	PLAGL1	chr6	143940299	144064599	144006941	144008751	NoPhasingInfo	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	98.456	0.549	-179.337	2.003	0.915	-2.189	44.053	10.213	-4.313	2, 2, 2
+PHF6	PHF6	PHF6	chrX	134372188	134428792	134372188	134374713	NoPhasingInfo	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	50.351	0.000	NAN	41.665	0.000	NAN	17.235	16.415	-1.050	1, 1, 3

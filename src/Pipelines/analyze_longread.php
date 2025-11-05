@@ -24,6 +24,7 @@ $parser->addFlag("gpu", "Use GPU supported tools where possible (currently DeepV
 $parser->addFloat("min_af", "Minimum VAF cutoff used for variant calling (DeepVariant 'min-alternate-fraction' parameter).", true, 0.1);
 $parser->addFloat("min_bq", "Minimum base quality used for variant calling (DeepVariant 'min-base-quality' parameter).", true, 10);
 $parser->addFloat("min_mq", "Minimum mapping quality used for variant calling (DeepVariant 'min-mapping-quality' parameter).", true, 20);
+$parser->addFlag("test", "Run pipeline in test mode (e.g. use hard-coded cohort for methylation analysis)");
 extract($parser->parse($argv));
 
 // create logfile in output folder if no filepath is provided:
@@ -42,6 +43,8 @@ $parser->logServerEnvronment();
 $sys = load_system($system, $name);
 $build = $sys['build'];
 $platform = get_longread_sequencing_platform($sys['name_short']);
+
+if ($test) trigger_error("Pipeline running in test mode!", E_USER_WARNING);
 
 //check steps
 $steps = explode(",", $steps);
@@ -712,7 +715,25 @@ if (in_array("me", $steps))
 	if (!contains_methylation($used_bam_or_cram)) trigger_error("BAM file doesn't contain methylation info! Skipping step 'me'", E_USER_WARNING);
 	else 
 	{
-		$parser->execTool("Tools/create_methyl_plot.php", "-folder {$folder} -name {$name} ".(ends_with($used_bam_or_cram, ".bam")?"-local_bam {$used_bam_or_cram} ":"")."-out {$methylation_table} -build {$build} -regions {$methyl_regions} -threads {$threads} --log ".$parser->getLogFile());
+		$args = [];
+		$args[] = "-folder {$folder}";
+		$args[] = "-name {$name}";
+		if (ends_with($used_bam_or_cram, ".bam")) $args[] = "-local_bam {$used_bam_or_cram}";
+		$args[] = "-out {$methylation_table}";
+		$args[] = "-build {$build}";
+		$args[] = "-threads {$threads}";
+		$args[] = "--log ".$parser->getLogFile();
+		if ($test)
+		{
+			$args[] = "-regions ".repository_basedir()."/test/data/create_methyl_plot_regions_pipeline_test.tsv";
+			$args[] = "-custom_cohort_table ".repository_basedir()."/test/data/create_methyl_plot_custom_cohort.tsv";
+			$args[] = "-test";
+		}
+		else
+		{
+			$args[] = "-regions {$methyl_regions}";
+		}
+		$parser->execTool("Tools/create_methyl_plot.php", implode(" ", $args));
 	}
 }
 
