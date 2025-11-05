@@ -16,11 +16,11 @@ exec2("cp ".data_folder().$name."_in1_phasing_track.bed ".output_folder()."Tests
 check_exec("php ".src_folder()."/Tools/".$name.".php -folder ".output_folder()." -test -name Testsample_01 -out ".output_folder().$name."_out1.tsv -custom_cohort_table ".data_folder().$name."_custom_cohort.tsv -regions ".data_folder().$name."_regions.tsv --log ".output_folder().$name."_1.log");
 check_file(output_folder().$name."_out1.tsv", data_folder().$name."_out1.tsv");
 
-check(filesize(output_folder()."methylartist/Testsample_01_GRB10_alt-TSS-DMR.png"), 380521, 2048);
-check(filesize(output_folder()."methylartist/Testsample_01_PLAGL1_alt-TSS-DMR.png"), 335357, 2048);
-check(filesize(output_folder()."methylartist/Testsample_01_PEG10_TSS-DMR.png"), 281833, 2048);
-check(filesize(output_folder()."methylartist/Testsample_01_PHF6.png"), 233951, 2048);
-check(filesize(output_folder()."methylartist/Testsample_01_RP2.png"), 251063, 2048);
+check(filesize(output_folder()."methylartist/Testsample_01_GRB10_alt-TSS-DMR.png"), 321023, 2048);
+check(filesize(output_folder()."methylartist/Testsample_01_PLAGL1_alt-TSS-DMR.png"), 315217, 2048);
+check(filesize(output_folder()."methylartist/Testsample_01_PEG10_TSS-DMR.png"), 272116, 2048);
+check(filesize(output_folder()."methylartist/Testsample_01_PHF6.png"), 222518, 2048);
+check(filesize(output_folder()."methylartist/Testsample_01_RP2.png"), 264019, 2048);
 
 check(filesize(output_folder()."methylartist/Testsample_01_GRB10_alt-TSS-DMR_cohort.png"), 180102, 2048);
 check(filesize(output_folder()."methylartist/Testsample_01_PLAGL1_alt-TSS-DMR_cohort.png"), 114136, 2048);
