@@ -733,7 +733,7 @@ $stderr = "{$folder}/logs/grz_cli_validate.stderr";
 exec2("{$grz_cli} validate --submission-dir {$folder} > {$stdout} 2> {$stderr}", $output, $exit_code); //when using exec2 the process hangs indefinitely sometimes
 if ($exit_code!=0)
 {
-	trigger_error("grz-cli validate failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
+	trigger_error("grz-cli validate failed!\nSTDOUT:\n".implode("\n", file($stdout, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES))."\nSTDERR:\n".implode("\n", file($stderr, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES)), E_USER_ERROR);
 }
 
 print "validating submission took ".time_readable(microtime(true)-$time_start)."\n";
@@ -750,7 +750,7 @@ exec("{$grz_cli} encrypt --submission-dir {$folder} --config-file {$config} > {$
 if ($exit_code!=0)
 {
 	print_r($output);
-	trigger_error("grz-cli encrypt failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
+	trigger_error("grz-cli encrypt failed!\nSTDOUT:\n".implode("\n", file($stdout, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES))."\nSTDERR:\n".implode("\n", file($stderr, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES)), E_USER_ERROR);
 }
 
 print "encrypting submission took ".time_readable(microtime(true)-$time_start)."\n";
@@ -766,7 +766,7 @@ exec("{$grz_cli} upload --submission-dir {$folder} --config-file {$config} > {$s
 if ($exit_code!=0)
 {
 	print_r($output);
-	trigger_error("grz-cli upload failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
+	trigger_error("grz-cli upload failed!\nSTDOUT:\n".implode("\n", file($stdout, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES))."\nSTDERR:\n".implode("\n", file($stderr, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES)), E_USER_ERROR);
 }
 
 //print submission ID (used by wrapper script when updating status in MVH db)

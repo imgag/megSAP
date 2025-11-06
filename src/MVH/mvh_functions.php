@@ -200,7 +200,7 @@ function convert_coverage($accounting_mode)
 	else if ($accounting_mode=="Sozialamt") $converage_type = "SOZ";
 	else if ($accounting_mode=="gesetzliche Pflegeversicherung") $converage_type = "GPV";
 	else if ($accounting_mode=="private Pflegeversicherung") $converage_type = "PPV";
-	else if ($accounting_mode=="Beihilfe") $converage_type = "Beihilfe";
+	else if ($accounting_mode=="Beihilfe") $converage_type = "BEI";
 	else if ($accounting_mode=="sonstiger Kostenträger") $converage_type = "SKT";
 	else if ($accounting_mode=="unknown") $converage_type = "UNK";
 	else trigger_error("Could not determine coverage type from case-management accounting mode '{$accounting_mode}'!", E_USER_ERROR);
