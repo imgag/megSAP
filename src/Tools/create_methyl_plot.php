@@ -217,7 +217,26 @@ $regions_table->addCol($coverage_nohp, "cov_nohp", "average coverage in non-hapl
 $regions_table->toTSV($out);
 
 # run plots in parallel (reverse array since plotting of REs takes longer)
-if (count($jobs_plotting) > 0) $parser->execParallel(array_reverse($jobs_plotting), $threads); 
+if (count($jobs_plotting) > 0) 
+{
+    $return = $parser->execParallel(array_reverse($jobs_plotting), $threads, false, false, false, true); 
+    
+    //check failed jobs
+    foreach ($return["jobs_failed"] as $job_id) 
+    {
+        $job_info = $return["jobs"][$job_id];
+
+        // ignore failed jobs beacuse of coverage
+        if (($job_info["exit_code"] == 1) && (str_contains(implode("\n", $job_info["stderr"]), "insufficient coverage for plot"))) 
+        {
+            trigger_error("Processing of job {$job_id} failed due to insufficient coverage!", E_USER_WARNING);
+            continue;
+        }
+
+        trigger_error("Processing of job {$job_id} failed: ".implode("\n\t", $job_info["stderr"]), E_USER_ERROR);
+    }
+
+}
 
 
 
