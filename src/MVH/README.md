@@ -126,3 +126,5 @@ Install mapper (outside of UKT network):
 
 	> git clone https://github.com/KohlbacherLab/mii_broad_consent_mapper.git
 	> ./gradlew build 
+
+Note: now a JAR is available as well: https://github.com/orgs/KohlbacherLab/packages?repo_name=mii_broad_consent_mapper
