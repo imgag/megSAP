@@ -37,10 +37,15 @@ function get_bam($bam, $ps_name, $chr, $start, $end, $ref_genome, $threads)
     //else: create temporary file over the region
     $tmp_bam = $parser->tempFolder("tmp_bam")."/{$ps_name}.bam";
     //add 100kb in each direction for better modkit normalization 
-    $start = min(1, $start - 100000);
-    $end = $end + 100000;
-    $parser->execApptainer("samtools", "samtools view", "-o {$tmp_bam} -T {$ref_genome} -u --use-index -@ {$threads} {$bam} {$chr}:{$start}-{$end}", [$ref_genome, $bam]);
+
+    $start = max(1, intval($start) - 100000);
+    $end = intval($end) + 100000;
+    $parser->execApptainer("samtools", "samtools view", "-b -o {$tmp_bam} -T {$ref_genome} -u --use-index -@ {$threads} {$bam} {$chr}:{$start}-{$end}", [$ref_genome, $bam]);
     $parser->indexBam($tmp_bam, $threads);
+
+    //debug
+    $file_size = filesize($tmp_bam) / (1024*1024);
+    trigger_error("Temp BAM filesize: \t{$file_size}", E_USER_NOTICE);
 
     return $tmp_bam;
 }
