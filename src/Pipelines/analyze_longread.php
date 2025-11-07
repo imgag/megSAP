@@ -1096,7 +1096,7 @@ if (in_array("an", $steps))
 	{
 		if (file_exists($cnv_file2))
 		{
-			$parser->execTool("Tools/create_circos_plot.php", "-folder $folder -name $name -build ".$build);
+			$parser->execTool("Tools/create_circos_plot.php", "-folder $folder -name $name -lrgs -build ".$build);
 		}
 		else
 		{

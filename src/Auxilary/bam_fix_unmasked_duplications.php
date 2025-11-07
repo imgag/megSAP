@@ -114,17 +114,10 @@ $args[] = "-use_bwa1";
 $parser->execTool("Tools/mapping_bwa.php", implode(" ", $args));
 print "  took ".time_readable(microtime(true)-$time_start)."\n";
 
-//determine remapped regions:
-$time_start = microtime(true);
-$remapped_region = $out_folder."/remapped_regions.bed";
-print "get region of remapped reads\n";
-$parser->execApptainer("ngs-bits", "BedHighCoverage", "-bam {$bam_mapped} -out {$remapped_region} -cutoff 1 -threads {$threads}", [$bam_mapped], [dirname($remapped_region)]);
-print "  took ".time_readable(microtime(true)-$time_start)."\n";
-
+//merge sorted BAMs
 $merged_bam = $debug ? $out_folder."/merged.bam" : $parser->tempFile("_mapped.bam");
 if (!$replace_readgroup) $merged_bam = $out; //write directly to output folder
 
-//merge sorted BAMs
 $time_start = microtime(true);
 print "merging BAMs\n";
 $parser->execApptainer("samtools", "samtools merge", "--write-index -@ {$threads} -f -h {$bam_mapped} --reference {$ref} -o {$merged_bam} {$bam_mapped} {$bam_other}", [$bam_mapped, $ref, $bam_other], [dirname($merged_bam)]);

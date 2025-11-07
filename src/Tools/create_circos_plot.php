@@ -8,10 +8,8 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME']) . "/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 $parser = new ToolBase("create_circos_plot", "Creates a Circos plot with CN, CNVs, ROHs and BAFs of the current sample.");
-
 $parser->addString("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
-
 // optional
 $parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh38");
 $parser->addFloat("cn_offset", "Copy number between 2-offset and 2+offset will not be plotted to reduce the runtime of the script. Filter is deactivated if offset is 0.", true, 0.3);
@@ -20,7 +18,7 @@ $parser->addInt("cnv_min_nor", "Minimum number of regions for CNVs to be shown i
 $parser->addFloat("cnv_max_af", "Maximum overlap with CNP regions (af_genomes_imgag column) for CNVs.", true, 0.5);
 $parser->addFloat("cnv_min_length", "Minimimal CNV length (in kb) for CNVs to be shown in the plot.", true, 15.0);
 $parser->addFloat("roh_min_length", "Minimimal ROH length (in kb) for ROHs to be shown in the plot.", true, 300.0);
-
+$parser->addFlag("lrgs", "Flag to indicate that that folder contains LR data.");
 extract($parser->parse($argv));
 
 //init
@@ -200,7 +198,7 @@ $n_rohs = 0;
 
 if (!file_exists($roh_file)) 
 {
-    trigger_error("WARNING: No ROH file found!", E_USER_WARNING);
+    trigger_error("No ROH file found!", E_USER_WARNING);
     
     // create empty temp file
     touch($roh_temp_file);
@@ -245,7 +243,7 @@ $n_bafs = 0;
 
 if (!file_exists($baf_file)) 
 {
-    trigger_error("WARNING: No BAF file found!", E_USER_WARNING);
+    trigger_error("No BAF file found!", E_USER_WARNING);
 
     // create empty temp file
     touch($baf_temp_file);
@@ -280,54 +278,50 @@ else
 
 // parse SV file and extract high-quality translocations
 $sv_file = "$folder/{$name}_var_structural_variants.bedpe";
-$sv_filter = repository_basedir() . "/data/misc/circos/sv_filter.ini";
-
-//fallback for lrGS
-if (!file_exists($sv_file)) 
-{
-    $sv_file = "$folder/{$name}_var_structural_variants.bedpe";
-    $sv_filter = repository_basedir() . "/data/misc/circos/sv_filter_lrGS.ini";
-}
-
-
-
 $sv_temp_file = $temp_folder."/sv.tsv";
+touch($sv_temp_file);
 $n_bnds = 0;
-
 if (!file_exists($sv_file)) 
 {
-    trigger_error("WARNING: No SV file found!", E_USER_WARNING);
-
-    // create empty temp file
-    touch($sv_temp_file);
+    trigger_error("Skipping SVs because no SV file was found!", E_USER_WARNING);
+}
+else if (!file_exists(get_path("data_folder")."/dbs/OMIM/omim.bed")) //OMIM is optional
+{
+    trigger_error("Skipping SVs because no OMIM annotation is available!", E_USER_WARNING);
 }
 else
 {
+	//create SV filter INI
+	$filter_criteria = [];
+	$filter_criteria[] = "SV remove chr type	chromosome type=special chromosomes";
+	$filter_criteria[] = "SV allele frequency NGSD	max_af=1";
+	$filter_criteria[] = "SV filter columns	entries=PASS	action=FILTER";
+	$filter_criteria[] = "SV quality	quality=".($lrgs ? "60" : "999");
+	$filter_criteria[] = "SV type	Structural variant type=BND";
+	$filter_criteria[] = "SV OMIM genes	action=FILTER";
+	$sv_filter = $parser->tempFile(".ini");
+	file_put_contents($sv_filter, implode("\n", $filter_criteria));
+
     // filter SV file
-    list($stdout, $stderr, $return_code) = $parser->execApptainer("ngs-bits", "SvFilterAnnotations", "-in $sv_file -out $sv_temp_file -filters $sv_filter", [$sv_file, $sv_filter], [], false, true, false, true);
-
-    // abort if filter fails
-    if($return_code != 0)
+    list($stdout, $stderr, $return_code) = $parser->execApptainer("ngs-bits", "SvFilterAnnotations", "-in $sv_file -out $sv_temp_file -filters $sv_filter", [$sv_file], [], false, true, false, true);
+    if($return_code==0)
     {
-        trigger_error("WARNING: SV file filtering failed! Skipping SV break points in circos plot.", E_USER_WARNING);
-        // create empty temp file
-        touch($sv_temp_file);
+		$svs = file($sv_temp_file);
+		$sv_positions = array();
+		foreach ($svs as $sv_line) 
+		{
+			if (starts_with($sv_line, "#")) continue;
+			$pos = array_slice(explode("\t", $sv_line), 0, 6);
+			$sv_positions[] = implode("\t", $pos)."\n";
+			$n_bnds++;
+		}
+		file_put_contents($sv_temp_file, $sv_positions);
+	}
+	else
+	{
+        trigger_error("Skipping SVs because SV filtering failed!", E_USER_WARNING);
     }
-
-    // cleanup filtered SV file
-    $svs = file($sv_temp_file);
-    $sv_positions = array();
-    foreach ($svs as $sv_line) 
-    {
-        if (starts_with($sv_line, "#")) continue;
-        $pos = array_slice(explode("\t", $sv_line), 0, 6);
-        $sv_positions[] = implode("\t", $pos)."\n";
-        $n_bnds++;
-    }
-    file_put_contents($sv_temp_file, $sv_positions);
 }
-
-
 
 // create dummy file to add sample name to plot
 $sample_label = $temp_folder."/sample_label.txt";

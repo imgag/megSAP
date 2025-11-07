@@ -200,7 +200,7 @@ function convert_coverage($accounting_mode)
 	else if ($accounting_mode=="Sozialamt") $converage_type = "SOZ";
 	else if ($accounting_mode=="gesetzliche Pflegeversicherung") $converage_type = "GPV";
 	else if ($accounting_mode=="private Pflegeversicherung") $converage_type = "PPV";
-	else if ($accounting_mode=="Beihilfe") $converage_type = "Beihilfe";
+	else if ($accounting_mode=="Beihilfe") $converage_type = "BEI";
 	else if ($accounting_mode=="sonstiger Kostenträger") $converage_type = "SKT";
 	else if ($accounting_mode=="unknown") $converage_type = "UNK";
 	else trigger_error("Could not determine coverage type from case-management accounting mode '{$accounting_mode}'!", E_USER_ERROR);
@@ -208,16 +208,29 @@ function convert_coverage($accounting_mode)
 	return $converage_type;
 }
 
-function convert_tissue($tissue)
+function convert_tissue(&$tissue)
 {
-	if ($tissue=="blood") return "BTO:0000089";
-	if ($tissue=="buccal mucosa") return "BTO:0003833";
-	if ($tissue=="fibroblast") return "BTO:0000452";
-	if ($tissue=="lymphocyte") return "BTO:0000775";
-	if ($tissue=="skin") return "BTO:0001253";
-	if ($tissue=="muscle") return "BTO:0000887";
-	if ($tissue=="n/a") return "BTO:0001253"; //TODO use OncoTree for tumor
-		
+	if ($tissue=="blood") return "UBERON:0000178";
+	if ($tissue=="buccal mucosa") return "UBERON:0006956";
+	if ($tissue=="fibroblast") return "CL:0000057";
+	if ($tissue=="lymphocyte") return "CL:0000542";
+	if ($tissue=="skin")
+	{
+		$tissue = "skin of body";
+		return "UBERON:0002097";
+	}
+	if ($tissue=="muscle")
+	{
+		$tissue = "musculature";
+		return "UBERON:0001015";
+	}
+	if ($tissue=="cortical neuron")
+	{
+		$tissue = "cerebral cortex neuron";
+		return "CL:0010012";
+	}
+	if ($tissue=="peripheral blood mononuclear cell") return "CL:2000001";
+	
 	trigger_error(__FUNCTION__.": Unhandled tissue '{$tissue}'!", E_USER_ERROR);
 }
 
@@ -232,6 +245,7 @@ function convert_system_type($type)
 
 function convert_kit_manufacturer($name, $allow_ont=true)
 {
+	if ($name=="nebDNA_WGS_FFPE") return "NEB";
 	if ($name=="TruSeqPCRfree") return "Illumina";
 	if ($name=="twistCustomExomeV2") return "Twist";
 	if ($name=="twistCustomExomeV2Covaris") return "Twist";
