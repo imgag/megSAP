@@ -477,32 +477,39 @@ for($r=0; $r<$regions_table->rows(); ++$r)
 
     if (!$skip_plot)
     {
-        $args = [
-            "locus",
-            "--bams", $tmp_bam,
-            "--interval", "{$row[3]}:{$row[4]}-{$row[5]}",
-            "--highlight", "{$row[6]}-{$row[7]}",
-            "--ref", $ref_genome,
-            "--motif", "CG",
-            "--color_by_hp",
-            "--labelgenes",
-            "--genes", $row[2],
-            "--ignore_ps",
-            "--primary_only",
-            "--mods", "m",
-            "--outfile", "{$folder}/methylartist/{$name}_{$row[0]}.png",
-            "--gtf", $gtf
-        ];
-
-        // use phased plots not for chrX/Y on male samples
-        if (!$only_one_haplotype) $args[] =  "--phased";
-
-        //optional parameters
-        if ($skip_align_plot) $args[] = "--skip_align_plot";
-        
-        $in_files = array($tmp_bam, $ref_genome, $gtf);
-        $out_files = array("{$folder}/methylartist/");
-        $jobs_plotting[] = array("Plotting_".$row[0], $parser->execApptainer("methylartist", "methylartist", implode(" ", $args), $in_files, $out_files, true));
+        if (get_read_count($tmp_bam) < 1) 
+        {
+            trigger_error("No reads in BAM, skipping methylartist plot for {$row[0]}!", E_USER_WARNING);
+        }
+        else
+        {
+            $args = [
+                "locus",
+                "--bams", $tmp_bam,
+                "--interval", "{$row[3]}:{$row[4]}-{$row[5]}",
+                "--highlight", "{$row[6]}-{$row[7]}",
+                "--ref", $ref_genome,
+                "--motif", "CG",
+                "--color_by_hp",
+                "--labelgenes",
+                "--genes", $row[2],
+                "--ignore_ps",
+                "--primary_only",
+                "--mods", "m",
+                "--outfile", "{$folder}/methylartist/{$name}_{$row[0]}.png",
+                "--gtf", $gtf
+            ];
+    
+            // use phased plots not for chrX/Y on male samples
+            if (!$only_one_haplotype) $args[] =  "--phased";
+    
+            //optional parameters
+            if ($skip_align_plot) $args[] = "--skip_align_plot";
+            
+            $in_files = array($tmp_bam, $ref_genome, $gtf);
+            $out_files = array("{$folder}/methylartist/");
+            $jobs_plotting[] = array("Plotting_".$row[0], $parser->execApptainer("methylartist", "methylartist", implode(" ", $args), $in_files, $out_files, true));    
+        }
         
     }
 
