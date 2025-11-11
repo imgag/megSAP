@@ -229,3 +229,4 @@ data/tools/ngsbits_settings.ini
 /*.sif
 Clair3-v1.0.10
 /test/data_chrx/dragen
+/test/data_longread/methylartist/*.png
