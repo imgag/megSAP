@@ -632,7 +632,7 @@ function genes_overlapping($chr, $start, $end)
 	if ($tmp=="")
 	{
 		file_put_contents($tmp_file, "{$chr}\t".($start-5000)."\t".($end+5000));
-		list($stdout) = $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in {$tmp}");
+		list($stdout) = $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in {$tmp_file}");
 		$tmp = explode("\t", nl_trim($stdout[0]))[3];
 	}
 	
