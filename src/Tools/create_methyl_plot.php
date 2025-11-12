@@ -627,7 +627,7 @@ $regions_table->addCol($coverage_all, "cov_all", "average CpG coverage");
 $regions_table->toTSV($out);
 
 //annotate with cohort samples
-if (!$skip_cohort_annotation && db_is_enabled("NGSD"))
+if (!$skip_cohort_annotation && (db_is_enabled("NGSD") || $test))
 {
     if ($custom_cohort_table != "")
     {
