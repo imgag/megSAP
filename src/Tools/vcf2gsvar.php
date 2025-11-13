@@ -927,9 +927,13 @@ while(!gzeof($handle))
 	}
 	
 	$alphamissense = [];
-	if (isset($info["ALPHAMISSENSE"])) 
+	if (isset($info["AM_MAIN"])) 
 	{
-		$alphamissense = explode("&", $info["ALPHAMISSENSE"]);
+		$alphamissense = explode("&", $info["AM_MAIN"]);
+	}
+	if (isset($info["AM_ISO"])) 
+	{
+		$alphamissense = explode("&", $info["AM_ISO"]);
 	}
 	
 	//variant details

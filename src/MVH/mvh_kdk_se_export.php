@@ -95,11 +95,7 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data, $se_data_rep)
 					if ($entry['status']!='active') continue;
 					
 					//skip if V9
-					if ($entry['identifier'][0]['system']=="source.ish.document.v09")
-					{
-						print "SKIPPED";
-						continue;
-					}
+					if ($entry['identifier'][0]['system']=="source.ish.document.v09") continue;
 					
 					$active_rcs[] = $entry;
 				}
@@ -200,7 +196,7 @@ function json_diagnoses($se_data, $se_data_rep)
 			"version" => $orpha_ver
 		];
 	}
-	if (xml_bool($se_data->orphacode_undiagnostiziert___1, false))
+	if (xml_bool($se_data->orphacode_undiagnostiziert___1, false, "orphacode_undiagnostiziert"))
 	{
 		$codes[] = [
 			"code" => "ORPHA:616874",
@@ -218,8 +214,6 @@ function json_diagnoses($se_data, $se_data_rep)
 			"system" => "https://www.bfarm.de/DE/Kodiersysteme/Terminologien/Alpha-ID-SE",
 		];
 	}
-	//TODO we should no longer need this, so it is commented out for now
-	//if (count($codes)==0) trigger_error("No disease code found in SE data!", E_USER_ERROR);
 	
 	//determine onset date from HPO terms
 	$onset_date = [];
@@ -565,13 +559,13 @@ function json_care_plan_2($se_data, $se_data_rep) //'carePlan' is misleading. Th
 			];
 	
 	//optional stuff
-	$recom_counceling = xml_bool($se_data->empf_hg_beratung, true);
+	$recom_counceling = xml_bool($se_data->empf_hg_beratung, true, "empf_hg_beratung");
 	if (!is_null($recom_counceling))
 	{
 		$output["geneticCounselingRecommended"] = $recom_counceling;
 	}
 	
-	$recom_reeval = xml_bool($se_data->empf_reeval, true);
+	$recom_reeval = xml_bool($se_data->empf_reeval, true, "empf_reeval");
 	if (!is_null($recom_reeval))
 	{
 		$output["reevaluationRecommended"] = $recom_reeval;
@@ -638,7 +632,7 @@ function genes_overlapping($chr, $start, $end)
 	if ($tmp=="")
 	{
 		file_put_contents($tmp_file, "{$chr}\t".($start-5000)."\t".($end+5000));
-		list($stdout) = $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in {$tmp}");
+		list($stdout) = $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in {$tmp_file}");
 		$tmp = explode("\t", nl_trim($stdout[0]))[3];
 	}
 	
@@ -925,7 +919,7 @@ $se_data_rep = get_se_data($db_mvh, $id, true);
 $rc_data_json = get_rc_data_json($db_mvh, $id);
 
 //check if that patient was included into the Modellvorhaben, i.e. sequencing is/was performed
-$no_seq = !xml_bool($se_data->aufnahme_mvh, false);
+$no_seq = !xml_bool($se_data->aufnahme_mvh, false, "aufnahme_mvh");
 
 //get data from NGSD
 if ($no_seq)
@@ -1071,7 +1065,5 @@ if (!$test)
 }
 
 print "cleanup took ".time_readable(microtime(true)-$time_start)."\n";
-
-//TODO add tests: WGS, lrGS, no_seq
 
 ?>

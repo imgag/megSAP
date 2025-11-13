@@ -1,0 +1,17 @@
+##DESCRIPTION=meth_hp1_avg=average methylation in haplotype 1 (higher mean methylation)
+##DESCRIPTION=meth_hp1_std=standard deviation of methylation in haplotype 1 (higher mean methylation)
+##DESCRIPTION=cov_hp1=average CpG coverage in haplotype 1 (higher mean methylation)
+##DESCRIPTION=meth_hp2_avg=average methylation in haplotype 2 (lower mean methylation)
+##DESCRIPTION=meth_hp2_std=standard deviation of methylation in haplotype 2 (lower mean methylation)
+##DESCRIPTION=cov_hp2=average CpG coverage in haplotype 2 (lower mean methylation)
+##DESCRIPTION=meth_nohp_avg=average methylation in non-haplotyped
+##DESCRIPTION=meth_nohp_std=standard deviation of methylation in non-haplotyped
+##DESCRIPTION=cov_nohp=average CpG coverage in non-haplotyped
+##DESCRIPTION=meth_all_avg=average methylation
+##DESCRIPTION=meth_all_std=standard deviation of methylation
+##DESCRIPTION=cov_all=average CpG coverage
+##Background cohort:	123456_01,123457_01,123458_01
+#identifier	title	gene symbol	gene chr	gene start	gene end	highlight start	highlight end	filter	meth_hp1_avg	meth_hp1_std	cov_hp1	meth_hp2_avg	meth_hp2_std	cov_hp2	meth_nohp_avg	meth_nohp_std	cov_nohp	meth_all_avg	meth_all_std	cov_all	cohort_mean_hp1	cohort_stdev_hp1	zscore_hp1	cohort_mean_hp2	cohort_stdev_hp2	zscore_hp2	cohort_mean_all	cohort_stdev_all	zscore_all	cohort_size
+artifical_site	artifical site for pipeline test	PUM1	chr1	32010000	32016500	32014000	32014500	NoPhasingInfo	0.000	0.000	1.864	0.000	0.000	1.000	nan	nan	nan	0.000	0.000	2.667	NAN	NAN	nan	NAN	NAN	nan	NAN	NAN	nan	0, 0, 0
+PLAGL1_alt-TSS-DMR	PLAGL1:alt-TSS-DMR	PLAGL1	chr6	143940299	144064599	144006941	144008751	NoPhasingInfo	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	98.456	0.549	-179.337	2.003	0.915	-2.189	44.053	10.213	-4.313	2, 2, 2
+PHF6	PHF6	PHF6	chrX	134372188	134428792	134372188	134374713	NoPhasingInfo	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	nan	50.351	0.000	NAN	41.665	0.000	NAN	17.235	16.415	-1.050	1, 1, 3

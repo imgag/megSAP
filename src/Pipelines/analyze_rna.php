@@ -886,11 +886,27 @@ if (in_array("plt", $steps))
 	{
 		$tmp_for_cut = $parser->tempFile(".tsv", "cohort_before_cut");
 		
+		
+		$gene_data = $db->executeQuery("SELECT symbol,ensembl_id FROM bioinf_ngsd.gene WHERE ensembl_id is not null");
+		
+		$gene2ensembl = [];
+		foreach($gene_data as $row)
+		{
+			$gene2ensembl[$row["symbol"]] = $row["ensembl_id"];
+		}
+		
 		$ensemble_ids = array();
 		foreach(file($all_gene_file) as $gene)
 		{
 			$gene = trim($gene);
-			$ensemble_ids[] = $db->getValue("SELECT ensembl_id FROM gene WHERE symbol = '$gene'");
+			if (array_key_exists($gene, $gene2ensembl))
+			{
+				$ensemble_ids[] = $gene2ensembl[$gene];
+			}
+			else
+			{
+				trigger_error("No ensembl ID found for gene {$gene}!", E_USER_ERROR);
+			}
 		}
 		
 		list($stdout, $stderr, $return) = $parser->exec("zgrep", "'#gene_id' $cohort_counts_normalized_genes_file");

@@ -59,34 +59,35 @@ diff:
 
 # 2nd test with BAM input (default test)
 bam_analysis: clean
-	php ../link_test_data.php 23014LRa023L2_02.mod.unmapped.bam . -copy
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps ma,vc,cn,sv,ph,re,me,pg,an -threads 4 --log analyze_longread_bam_all_$(TIMESTAMP).log
-	cut -f1-22 23014LRa023L2_02_var_structural_variants.bedpe > 23014LRa023L2_02_var_structural_variants_cut.bedpe
+	php ../link_test_data.php 23014LRa023_01.mod.unmapped.bam . -copy
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023_01 -system system.ini -steps ma,vc,cn,sv,ph,re,me,pg,an -threads 4 --log analyze_longread_bam_all_$(TIMESTAMP).log -test
+	cut -f1-22 23014LRa023_01_var_structural_variants.bedpe > 23014LRa023_01_var_structural_variants_cut.bedpe
 
 # 3rd test with each step separate (not performed on default)
 bam_analysis_single_steps: clean
-	php ../link_test_data.php 23014LRa023L2_02.mod.unmapped.bam . -copy
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps ma -threads 4 --log analyze_longread_bam_ma_$(TIMESTAMP).log
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps vc -threads 4 --log analyze_longread_bam_vc_$(TIMESTAMP).log
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps cn -threads 4 --log analyze_longread_bam_cn_$(TIMESTAMP).log
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps sv -threads 4 --log analyze_longread_bam_sv_$(TIMESTAMP).log
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps ph -threads 4 --log analyze_longread_bam_ph_$(TIMESTAMP).log
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps re -threads 4 --log analyze_longread_bam_re_$(TIMESTAMP).log
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps me -threads 4 --log analyze_longread_bam_me_$(TIMESTAMP).log
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps pg -threads 4 --log analyze_longread_bam_pg_$(TIMESTAMP).log
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_02 -system system.ini -steps an -threads 4 --log analyze_longread_bam_an_$(TIMESTAMP).log
-	cut -f1-22 23014LRa023L2_02_var_structural_variants.bedpe > 23014LRa023L2_02_var_structural_variants_cut.bedpe
+	php ../link_test_data.php 23014LRa023_01.mod.unmapped.bam . -copy
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023_01 -system system.ini -steps ma -threads 4 --log analyze_longread_bam_ma_$(TIMESTAMP).log
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023_01 -system system.ini -steps vc -threads 4 --log analyze_longread_bam_vc_$(TIMESTAMP).log
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023_01 -system system.ini -steps cn -threads 4 --log analyze_longread_bam_cn_$(TIMESTAMP).log
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023_01 -system system.ini -steps sv -threads 4 --log analyze_longread_bam_sv_$(TIMESTAMP).log
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023_01 -system system.ini -steps ph -threads 4 --log analyze_longread_bam_ph_$(TIMESTAMP).log
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023_01 -system system.ini -steps re -threads 4 --log analyze_longread_bam_re_$(TIMESTAMP).log
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023_01 -system system.ini -steps me -threads 4 --log analyze_longread_bam_me_$(TIMESTAMP).log -test
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023_01 -system system.ini -steps pg -threads 4 --log analyze_longread_bam_pg_$(TIMESTAMP).log
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023_01 -system system.ini -steps an -threads 4 --log analyze_longread_bam_an_$(TIMESTAMP).log
+	cut -f1-22 23014LRa023_01_var_structural_variants.bedpe > 23014LRa023_01_var_structural_variants_cut.bedpe
 
 diff2:
-	php ../compare_variants.php -in1 23014LRa023L2_02.GSvar.out -in2 23014LRa023L2_02.GSvar -add 23014LRa023L2_02
-	php ../compare_qcml_xml.php 23014LRa023L2_02_stats_fastq.qcML.out 23014LRa023L2_02_stats_fastq.qcML
-	php ../compare_qcml_xml.php 23014LRa023L2_02_stats_map.qcML.out 23014LRa023L2_02_stats_map.qcML
-	php ../compare_qcml_xml.php 23014LRa023L2_02_stats_vc.qcML.out 23014LRa023L2_02_stats_vc.qcML
-	php ../compare_qcml_xml.php 23014LRa023L2_02_stats_other.qcML.out 23014LRa023L2_02_stats_other.qcML
-	diff 23014LRa023L2_02_cnvs_clincnv.tsv.out 23014LRa023L2_02_cnvs_clincnv.tsv --ignore-matching-lines="#"
-	diff 23014LRa023L2_02_var_structural_variants.bedpe.out 23014LRa023L2_02_var_structural_variants_cut.bedpe --ignore-matching-lines="^##"
-	diff 23014LRa023L2_02_prs.tsv.out 23014LRa023L2_02_prs.tsv
-	diff 23014LRa023L2_02_phasing_track.bed.out 23014LRa023L2_02_phasing_track.bed
-	diff 23014LRa023L2_02_bafs.igv.out 23014LRa023L2_02_bafs.igv
-	diff 23014LRa023L2_02_var_methylation.tsv.out 23014LRa023L2_02_var_methylation.tsv
-	diff 23014LRa023L2_02.paraphase.json.out paraphase/23014LRa023L2_02.paraphase.json
+	php ../compare_variants.php -in1 23014LRa023_01.GSvar.out -in2 23014LRa023_01.GSvar -add 23014LRa023_01
+	php ../compare_qcml_xml.php 23014LRa023_01_stats_fastq.qcML.out 23014LRa023_01_stats_fastq.qcML
+	php ../compare_qcml_xml.php 23014LRa023_01_stats_map.qcML.out 23014LRa023_01_stats_map.qcML
+	php ../compare_qcml_xml.php 23014LRa023_01_stats_vc.qcML.out 23014LRa023_01_stats_vc.qcML
+	php ../compare_qcml_xml.php 23014LRa023_01_stats_other.qcML.out 23014LRa023_01_stats_other.qcML
+	diff 23014LRa023_01_cnvs_clincnv.tsv.out 23014LRa023_01_cnvs_clincnv.tsv --ignore-matching-lines="#"
+	diff 23014LRa023_01_var_structural_variants.bedpe.out 23014LRa023_01_var_structural_variants_cut.bedpe --ignore-matching-lines="^##"
+	diff 23014LRa023_01_prs.tsv.out 23014LRa023_01_prs.tsv
+	diff 23014LRa023_01_phasing_track.bed.out 23014LRa023_01_phasing_track.bed
+	diff 23014LRa023_01_bafs.igv.out 23014LRa023_01_bafs.igv
+	diff 23014LRa023_01_var_methylation.tsv.out 23014LRa023_01_var_methylation.tsv
+	diff 23014LRa023_01.paraphase.json.out paraphase/23014LRa023_01.paraphase.json
+

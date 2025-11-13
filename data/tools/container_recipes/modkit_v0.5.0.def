@@ -1,0 +1,25 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%post
+# update ubuntu packages and install build dependencies
+apt-get update
+apt-get install build-essential wget curl cmake -y 
+
+# Download modkit
+cd /opt
+wget https://github.com/nanoporetech/modkit/releases/download/v0.5.0/modkit_v0.5.0_u16_x86_64.tar.gz
+tar xzf modkit_v0.5.0_u16_x86_64.tar.gz
+rm modkit_v0.5.0_u16_x86_64.tar.gz
+
+# cleanup build dependencies
+cd /
+apt-get remove -y wget build-essential curl cmake && \
+apt-get autoremove -y && \
+apt-get clean && \
+rm -rf /var/lib/apt/lists/*
+
+%environment
+export PATH=/opt/dist_modkit_v0.5.0_5120ef7:$PATH
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8
