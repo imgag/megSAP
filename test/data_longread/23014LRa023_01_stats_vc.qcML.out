@@ -8,13 +8,13 @@
   <runQuality ID="rq0001">
     <metaDataParameter ID="md0001" name="creation software" value="VariantQC 2025_09-24-gc5b8a611" cvRef="QC" accession="QC:1000002"/>
     <metaDataParameter ID="md0002" name="creation software parameters" value="" cvRef="QC" accession="QC:1000003"/>
-    <metaDataParameter ID="md0003" name="creation date" value="2025-10-21T23:04:50" cvRef="QC" accession="QC:1000004"/>
-    <metaDataParameter ID="md0004" name="source file" value="annotate_3XpgRv.vcf" cvRef="QC" accession="QC:1000005"/>
-    <qualityParameter ID="qp0001" name="variant count" description="Total number of variants in the target region." value="1651" cvRef="QC" accession="QC:2000013"/>
+    <metaDataParameter ID="md0003" name="creation date" value="2025-11-16T22:49:42" cvRef="QC" accession="QC:1000004"/>
+    <metaDataParameter ID="md0004" name="source file" value="annotate_PU2sTQ.vcf" cvRef="QC" accession="QC:1000005"/>
+    <qualityParameter ID="qp0001" name="variant count" description="Total number of variants in the target region." value="1650" cvRef="QC" accession="QC:2000013"/>
     <qualityParameter ID="qp0002" name="known variants percentage" description="Percentage of variants that are known polymorphisms in the dbSNP database." value="99.15" cvRef="QC" accession="QC:2000014"/>
     <qualityParameter ID="qp0003" name="high-impact variants percentage" description="Percentage of variants with high impact on the protein, i.e. stop-gain, stop-loss, frameshift, splice-acceptor or splice-donor variants." value="0.06" cvRef="QC" accession="QC:2000015"/>
-    <qualityParameter ID="qp0004" name="homozygous variants percentage" description="Percentage of variants that are called as homozygous." value="38.58" cvRef="QC" accession="QC:2000016"/>
-    <qualityParameter ID="qp0005" name="indel variants percentage" description="Percentage of variants that are insertions/deletions." value="13.57" cvRef="QC" accession="QC:2000017"/>
+    <qualityParameter ID="qp0004" name="homozygous variants percentage" description="Percentage of variants that are called as homozygous." value="38.55" cvRef="QC" accession="QC:2000016"/>
+    <qualityParameter ID="qp0005" name="indel variants percentage" description="Percentage of variants that are insertions/deletions." value="13.58" cvRef="QC" accession="QC:2000017"/>
     <qualityParameter ID="qp0006" name="transition/transversion ratio" description="Transition/transversion ratio of single nucleotide variants." value="2.42" cvRef="QC" accession="QC:2000018"/>
     <qualityParameter ID="qp0007" name="mosaic variant count" description="Number of variants that are flagged as mosaic variants (in filter column)." value="0" cvRef="QC" accession="QC:2000142"/>
     <qualityParameter ID="qp0008" name="mean phasing block size" description="Mean size of all annotated phasing blocks." value="225932.50" cvRef="QC" accession="QC:2000133"/>
