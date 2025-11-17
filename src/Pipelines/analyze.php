@@ -189,24 +189,26 @@ if (in_array("ma", $steps) && !$no_dragen && file_exists($dragen_folder) && ($ba
 }
 
 //move BAM/CRAM from DRAGEN folder to sample folder (on first analysis)
-if (!in_array("ma", $steps) && !$no_dragen && !$bam_or_cram_exists && file_exists($dragen_folder))
+if (!in_array("ma", $steps) && !$no_dragen && file_exists($dragen_folder))
 {
-	if (file_exists($dragen_cram))
+	if ($dragen_bam_or_cram_exists)
 	{
-		$parser->moveFile($dragen_cram, $cramfile);
-		$parser->moveFile($dragen_cram.".crai", $cramfile.".crai");
+		if (file_exists($dragen_cram))
+		{
+			$parser->moveFile($dragen_cram, $cramfile);
+			$parser->moveFile($dragen_cram.".crai", $cramfile.".crai");
+		}
+		else
+		{
+			$parser->moveFile($dragen_bam, $bamfile);
+			$parser->moveFile($dragen_bam.".bai", $bamfile.".bai");
+		}
+		$bam_or_cram_exists = true;
 	}
-	else if (file_exists($dragen_bam))
-	{
-		$parser->moveFile($dragen_bam, $bamfile);
-		$parser->moveFile($dragen_bam.".bai", $bamfile.".bai");
-	}
-	else
+	else if (!$bam_or_cram_exists)
 	{
 		trigger_error("Anaylsis without mapping requested, but no BAM/CRAM file found in {$dragen_folder}", E_USER_ERROR);
 	}
-	
-	$bam_or_cram_exists = true;
 }
 
 //mapping
