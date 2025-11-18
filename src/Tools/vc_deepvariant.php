@@ -10,7 +10,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 // add parameter for command line ${input1.metadata.bam_index}
 // parse command line arguments
 $parser = new ToolBase("vc_deepvariant", "Variant calling with DeepVariant.");
-$parser->addInfile("bam",  "Space-separated list of indexed BAM/CRAM files.", false);
+$parser->addInfile("bam",  "Indexed BAM/CRAM file to call variants on.", false);
 $parser->addOutfile("out", "Output file in VCF.GZ format.", false);
 $parser->addString("model_type", "Type of model to use for variant calling. Choose from <WGS|WES|PACBIO|ONT_R104|HYBRID_PACBIO_ILLUMINA|MASSEQ>.", false);
 //optional
@@ -72,7 +72,7 @@ if (!empty($gvcf))
 	$args[] = "--output_gvcf={$gvcf}";
 }
 
-//copy input BAM/CRAM files to /tmp/. Otherwise DeepVariant might hang, see: https://github.com/google/deepvariant/issues/1041
+//copy input BAM/CRAM files to /tmp/ - otherwise DeepVariant might hang, see: https://github.com/google/deepvariant/issues/1041
 if (is_in_temp_folder($bam))
 {
 	$bam_local = $bam;
@@ -80,11 +80,13 @@ if (is_in_temp_folder($bam))
 else
 {
 	$tmp_folder = $parser->tempFolder();
-	exec2("cp {$bam} {$tmp_folder}/");
-	if (file_exists("{$bam}.bai")) exec2("cp {$bam}.bai {$tmp_folder}/");
-	else if (file_exists("{$bam}.crai")) exec2("cp {$bam}.crai {$tmp_folder}/");
+	
+	$basename = basename($bam);
+	$parser->copyFile($bam, $tmp_folder."/".$basename);
+	if (file_exists($bam.".bai")) $parser->copyFile($bam.".bai", $tmp_folder."/".$basename.".bai");
+	else if (file_exists($bam.".crai")) $parser->copyFile($bam.".crai", $tmp_folder."/".$basename.".crai");
 	else trigger_error("No BAI/CRAI index found for file: {$bam}", E_USER_ERROR);
-	$bam_local = "{$tmp_folder}/".basename($bam);
+	$bam_local = $tmp_folder."/".$basename;
 }
 $args[] = "--reads={$bam_local}";
 
