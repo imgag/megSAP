@@ -85,8 +85,7 @@ class ToolBase
 	private function removeTempFolder($folder)
 	{
 		//only delete files within tmp folder
-		$tmp = sys_get_temp_dir();
-		if(!starts_with($folder, $tmp)) trigger_error("Folder '$folder' not within tmp-folder '$tmp'.", E_USER_ERROR);
+		if(!is_in_temp_folder($folder)) trigger_error("Folder '$folder' not within tmp-folder '$tmp'.", E_USER_ERROR);
 		if (substr($folder, strlen($folder) - 1, 1)!='/') $folder .= '/';
 		
 		//get all files / sub_folders

@@ -2,6 +2,14 @@
 
 require_once("framework.php");
 
+//##################################################################################
+start_test("is_in_temp_folder");
+
+check(is_in_temp_folder("/tmp/local_ngs_data_GRCh38/"), true);
+check(is_in_temp_folder("/tmp/non_existing_file"), true);
+check(is_in_temp_folder("/home/"), false);
+
+end_test();
 
 //##################################################################################
 start_test("chr2NC");
