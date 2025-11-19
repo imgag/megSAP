@@ -61,7 +61,7 @@ if(isset($target))
 }
 if ($allow_empty_examples)
 {
-	$args[] = "--call_variants_extra_args=allow_empty_examples=true";
+	$args[] = "--call_variants_extra_args=allow_empty_examples=true,writer_threads=1";
 }
 $args[] = "--model_type={$model_type}";
 $args[] = "--make_examples_extra_args=min_mapping_quality={$min_mq},min_base_quality={$min_bq},vsc_min_fraction_indels={$min_af},vsc_min_fraction_snps={$min_af}";
@@ -96,7 +96,7 @@ $container = ($gpu) ? "deepvariant-gpu" : "deepvariant";
 
 if ($raw_output)
 {
-	$parser->execApptainer($container, "run_deepvariant" ,implode(" ", $args)." --output_vcf=$out", [$genome], [dirname($out)]);
+	$parser->execApptainer($container, "run_deepvariant" ,implode(" ", $args)." --output_vcf={$out}", [$genome], [dirname($out)]);
 	return;
 }
 
