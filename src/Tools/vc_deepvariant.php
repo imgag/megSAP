@@ -35,6 +35,7 @@ $genome = genome_fasta($build);
 
 //create basic variant calls
 $args = [];
+$args[] = "--reads={$bam}";
 if(isset($target))
 {	
 	//extend by 'n' bases
@@ -61,7 +62,7 @@ if(isset($target))
 }
 if ($allow_empty_examples)
 {
-	$args[] = "--call_variants_extra_args=allow_empty_examples=true,writer_threads=1";
+	$args[] = "--call_variants_extra_args=allow_empty_examples=true";
 }
 $args[] = "--model_type={$model_type}";
 $args[] = "--make_examples_extra_args=min_mapping_quality={$min_mq},min_base_quality={$min_bq},vsc_min_fraction_indels={$min_af},vsc_min_fraction_snps={$min_af}";
@@ -72,23 +73,6 @@ if (!empty($gvcf))
 	$args[] = "--output_gvcf={$gvcf}";
 }
 
-//copy input BAM/CRAM files to /tmp/ - otherwise DeepVariant might hang, see: https://github.com/google/deepvariant/issues/1041
-if (is_in_temp_folder($bam))
-{
-	$bam_local = $bam;
-}
-else
-{
-	$tmp_folder = $parser->tempFolder();
-	
-	$basename = basename($bam);
-	$parser->copyFile($bam, $tmp_folder."/".$basename);
-	if (file_exists($bam.".bai")) $parser->copyFile($bam.".bai", $tmp_folder."/".$basename.".bai");
-	else if (file_exists($bam.".crai")) $parser->copyFile($bam.".crai", $tmp_folder."/".$basename.".crai");
-	else trigger_error("No BAI/CRAI index found for file: {$bam}", E_USER_ERROR);
-	$bam_local = $tmp_folder."/".$basename;
-}
-$args[] = "--reads={$bam_local}";
 
 // run deepvariant
 $pipeline = array();
@@ -96,12 +80,12 @@ $container = ($gpu) ? "deepvariant-gpu" : "deepvariant";
 
 if ($raw_output)
 {
-	$parser->execApptainer($container, "run_deepvariant" ,implode(" ", $args)." --output_vcf={$out}", [$genome], [dirname($out)]);
+	$parser->execApptainer($container, "run_deepvariant" ,implode(" ", $args)." --output_vcf={$out}", [$genome, $bam], [dirname($out)]);
 	return;
 }
 
 $vcf_deepvar_out = $parser->tempFile(".vcf.gz");
-$parser->execApptainer($container, "run_deepvariant", implode(" ", $args)." --output_vcf={$vcf_deepvar_out}", [$genome], [dirname($out)]);
+$parser->execApptainer($container, "run_deepvariant", implode(" ", $args)." --output_vcf={$vcf_deepvar_out}", [$genome, $bam], [dirname($out)]);
 
 //filter variants according to variant quality>5
 $pipeline[] = ["zcat", "$vcf_deepvar_out"];
