@@ -168,6 +168,12 @@ function create_baf($vcf, $out_file, $s_col)
 	fclose($out_handle);
 }
 
+function print_list($title, $arr) 
+{
+    echo "\t{$title}: " . count($arr) . "\n";
+    foreach ($arr as $ps) echo "\t\t$ps\n";
+}
+
 //get genome
 $genome = genome_fasta($build);
 
@@ -198,30 +204,80 @@ if (!$tumor)
 	elseif (isset($sample_list))
 	{
 		if (!file_exists($sample_list)) trigger_error("Given list of samples is not readable: $sample_list", E_USER_ERROR);
+		if (!file_exists($old_baf_folder)) trigger_error("Directory to old BAF files incorrect or not given as a parameter!", E_USER_ERROR);
+
+		$stats = ['tumor' => ['total' => 0,'copied' => [],'skipped' => [],],'normal' => ['total' => 0,'recalculated' => [],'copied' => [],'skipped' => [],],];
 
 		$in_list_handle = fopen($sample_list, "r");
 		while(!feof($in_list_handle))
 		{
-			$line = trim(fgets($in_list_handle));
-			$out_file = $out_folder."/{$line}.tsv";
+			$ps = trim(fgets($in_list_handle));
+			$out_file = $out_folder."/{$ps}.tsv";
 
 			//Abort if out_file exists to prevent interference with other jobs
 			if(file_exists($out_file) && !$test) continue;
 
-			if(empty($line)) continue;
+			if(empty($ps)) continue;
 			if(file_exists($out_file) && !$test) continue;
 
-			list($stdout, $stderr) = execApptainer("ngs-bits", "SamplePath", "-ps $line");
-			$ps_folder = trim(implode("", $stdout));
-			$vcf = $ps_folder."/{$line}_var.vcf.gz";
+			$db = DB::getInstance("NGSD", false);
+			$info = get_processed_sample_info($db, $ps, false);
 
-			if (!file_exists($vcf)) 
+			$ps_folder = $info['ps_folder'];
+			$vcf = $ps_folder."/{$ps}_var.vcf.gz";
+			$old_baf = "{$old_baf_folder}/{$ps}.tsv";
+
+			if ($info['is_tumor'])
 			{
-				if (isset($old_baf_folder))	$parser->exec("cp","{$old_baf_folder}/{$line}.tsv {$out_file}");
-				else trigger_error("Vcf '{$vcf}' not found for sample '{$line}' in sample folder '{$ps_folder}', skipping sample", E_USER_WARNING);
+				$stats['tumor']['total']++;
+				if (is_file($old_baf))	
+				{
+					$parser->exec("cp","{$old_baf} {$out_file}");
+					$stats['tumor']['copied'][] = $ps;
+				}
+				else
+				{
+					trigger_error("Old BAF file '{$old_baf}' not found for tumor sample '{$ps}', skipping this sample!", E_USER_WARNING);
+					$stats['tumor']['skipped'][] = $ps;
+				}
 			}
-			else create_baf($vcf, $out_file, $line);
+			else 
+			{
+				$stats['normal']['total']++;
+				if (file_exists($vcf)) 
+				{
+					create_baf($vcf, $out_file, $ps);
+					$stats['normal']['recalculated'][] = $ps;
+				}
+				else
+				{
+					trigger_error("Normal VCF file \"{$vcf}\" not found for sample $ps, trying to copy old baf file!", E_USER_NOTICE);
+
+					if (is_file($old_baf))	
+					{
+						$parser->exec("cp","{$old_baf} {$out_file}");
+						$stats['normal']['copied'][] = $ps;
+					}
+					else 
+					{
+						trigger_error("Old BAF file '{$old_baf}' not found for normal sample '{$ps}', skipping this sample!", E_USER_WARNING);
+						$stats['normal']['skipped'][] = $ps;
+					}
+				} 
+			}
+
+
 		}
+		
+		//Print statistics
+		echo "tumor samples: {$stats['tumor']['total']}\n";
+		print_list("copied", $stats['tumor']['copied']);
+		print_list("skipped", $stats['tumor']['skipped']);
+
+		echo "\nnormal samples: {$stats['normal']['total']}\n";
+		print_list("recalculated", $stats['normal']['recalculated']);
+		print_list("copied", $stats['normal']['copied']);
+		print_list("skipped", $stats['normal']['skipped']);
 	}
 	else
 	{
