@@ -214,8 +214,6 @@ function json_diagnoses($se_data, $se_data_rep)
 			"system" => "https://www.bfarm.de/DE/Kodiersysteme/Terminologien/Alpha-ID-SE",
 		];
 	}
-	//TODO we should no longer need this, so it is commented out for now
-	//if (count($codes)==0) trigger_error("No disease code found in SE data!", E_USER_ERROR);
 	
 	//determine onset date from HPO terms
 	$onset_date = [];
@@ -634,7 +632,7 @@ function genes_overlapping($chr, $start, $end)
 	if ($tmp=="")
 	{
 		file_put_contents($tmp_file, "{$chr}\t".($start-5000)."\t".($end+5000));
-		list($stdout) = $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in {$tmp}");
+		list($stdout) = $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in {$tmp_file}");
 		$tmp = explode("\t", nl_trim($stdout[0]))[3];
 	}
 	
@@ -1067,7 +1065,5 @@ if (!$test)
 }
 
 print "cleanup took ".time_readable(microtime(true)-$time_start)."\n";
-
-//TODO add tests: WGS, lrGS, no_seq
 
 ?>

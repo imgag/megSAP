@@ -18,6 +18,7 @@ $parser->addString("build", "The genome build to use. The genome must be indexed
 $parser->addString("sample", "Sample name to use in BAM header. If unset the basename of the 'out' file is used.", true, "");
 $parser->addInt("threads", "Maximum number of threads used.", true, 2);
 $parser->addFlag("dedup", "Mark duplicates after alignment.");
+$parser->addFlag("use_bwa1", "Use bwa instead of BWA-mem2.");
 extract($parser->parse($argv));
 
 //remove out file if existing
@@ -52,7 +53,7 @@ $pipeline = array();
 $bwa_params = "mem $genome -K 100000000 -Y -R '@RG\\t".implode("\\t", $group_props)."' -t $threads -v 2";
 
 //select the correct binary
-if (get_path("use_bwa1")) 
+if ($use_bwa1 || get_path("use_bwa1")) 
 {
 	$pipeline[] = array("", $parser->execApptainer("bwa", "bwa", "$bwa_params $in1 $in2", $in_files, [], true));
 }

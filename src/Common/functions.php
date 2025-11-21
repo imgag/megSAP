@@ -271,6 +271,15 @@ function temp_folder($prefix='megSAP_', $mode=0700)
     return $path;
 }
 
+//Returns if the given file/directory is in the tmp folder
+function is_in_temp_folder($filename)
+{
+	if (file_exists($filename)) $filename = realpath($filename);
+	$temp = realpath(sys_get_temp_dir())."/";
+	return starts_with($filename, $temp);
+}
+
+
 /**
 	@brief Returns if an XML string is wellformed.
 	@ingroup xml
@@ -733,9 +742,14 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 		$apptainer_args[] = "--env REF_PATH={$ref_cache_folder}/%2s/%2s/%s:http://www.ebi.ac.uk/ena/cram/md5/%s";
 	}
 
-	if ($container=="subread") $apptainer_args[] = "--pwd=/tmp";
-
-	if ($container=="deepvariant-gpu" || $container=="clair3-gpu") //to run a gpu supported apptainer container you need the --nv flag
+	//subread specific parameters 
+	if ($container=="subread")
+	{
+		$apptainer_args[] = "--pwd=/tmp/";
+	}
+		
+	//to run a gpu supported apptainer container you need the --nv flag
+	if ($container=="deepvariant-gpu" || $container=="clair3-gpu")
 	{
 		$apptainer_args[] = "--nv";
 		$apptainer_args[] = "--env TF_FORCE_GPU_ALLOW_GROWTH=true"; //to avoid OOM error when using clair3-gpu container

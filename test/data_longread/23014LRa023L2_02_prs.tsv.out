@@ -1,3 +1,0 @@
-#pgs_id	trait	score	percentile	build	variants_in_prs	variants_low_depth	variants_imputed	pgp_id	citation
-BRIDGES_306	Breast cancer	-0.421978	45	GRCh38	306	303	3	undefined	CanRisk (https://canrisk.atlassian.net/wiki/spaces/FAQS/pages/35979266/What+variants+are+used+in+the+PRS)
-OCAC_36	Ovarian cancer	-0.141483	53	GRCh38	36	36	0	undefined	CanRisk (https://canrisk.atlassian.net/wiki/spaces/FAQS/pages/35979266/What+variants+are+used+in+the+PRS)

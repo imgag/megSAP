@@ -3,6 +3,8 @@
 	@page mvh_grz_export
 */
 
+//TODO update to grz-cli v1.5 until 1.1.26 (see email "GRZ Tübingen Updates" from 2025-10-30)
+
 require_once("mvh_functions.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
@@ -187,14 +189,45 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 	global $test;
 	global $is_lrgs;
 	
+	//determine tissue ontology ID
+	$tissue = "anatomical structure";
+	$tissue_id = "UBERON:0000061";
+	$ontology = "UBERON";
+	$ontology_version = "2025-08-15";
+	if (!$is_tumor)
+	{
+		$tmp = trim($info["tissue"]);
+		if ($tmp!="" && $tmp!="n/a")
+		{
+			$tissue = $tmp;
+			$tissue_id = convert_tissue($tissue);
+			if (starts_with($tissue_id, "CL:")) //Cell Ontology
+			{
+				$ontology = "CL";
+				$ontology_version = "2025-10-16";
+			}
+		}
+	}
+	else //somatic: take oncotree data from NGSD
+	{
+		$oncotree_codes = $db_ngsd->getValues("SELECT disease_info FROM sample_disease_info WHERE sample_id='".$info['s_id']."' and type='Oncotree code'");
+		if (count($oncotree_codes)>0)
+		{
+			$tissue_id = $oncotree_codes[0];
+			$tissue = $db_ngsd->getValue("SELECT name FROM oncotree_term WHERE oncotree_code='{$tissue_id}'");
+			$ontology = "OncoTree";
+			$ontology_version = "2021_11_02";
+		}
+	}
+	
 	$output = [
 				"labDataName" => "DNA ".($is_tumor ? "tumor" : "normal"),
 				"tissueOntology" => [
-						"name" => "BRENDA tissue ontology",
-						"version" => "2021-10-23"
+						"name" => $ontology,
+						"version" => $ontology_version
 					],
-				"tissueTypeId" => convert_tissue($info["tissue"]),
-				"tissueTypeName" => $info["tissue"],
+				"tissueTypeId" => $tissue_id,
+				"tissueTypeName" => $tissue,
 				"sampleDate" => not_empty($info["s_received"], "sampleDate"),
 				"sampleConservation" => ($info["is_ffpe"] ? "ffpe" : "fresh-tissue"),
 				"sequenceType" => "dna",
@@ -475,7 +508,7 @@ if ($is_somatic)
 	{
 		print "  generating VCF file for tumor/normal pair {$ps_t}/{$ps}...\n";
 		
-		$vcf = $info_t['ps_folder']."/../Somatic_{$ps_t}-{$ps}/{$ps_t}-{$ps}_var.vcf.gz";
+		$vcf = dirname($info_t['ps_folder'])."/Somatic_{$ps_t}-{$ps}/{$ps_t}-{$ps}_var.vcf.gz";
 		$parser->execApptainer("ngs-bits", "VcfReplaceSamples", "-in {$vcf} -out {$tn_vcf} -ids {$ps}=SAMPLE_GERMLINE,{$ps_t}=SAMPLE_TUMOR", [$vcf], ["{$folder}/files/"]);
 	}
 	$files_to_submit_t = [$t_fq1, $t_fq2, $tn_vcf];
@@ -700,7 +733,7 @@ $stderr = "{$folder}/logs/grz_cli_validate.stderr";
 exec2("{$grz_cli} validate --submission-dir {$folder} > {$stdout} 2> {$stderr}", $output, $exit_code); //when using exec2 the process hangs indefinitely sometimes
 if ($exit_code!=0)
 {
-	trigger_error("grz-cli validate failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
+	trigger_error("grz-cli validate failed!\nSTDOUT:\n".implode("\n", file($stdout, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES))."\nSTDERR:\n".implode("\n", file($stderr, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES)), E_USER_ERROR);
 }
 
 print "validating submission took ".time_readable(microtime(true)-$time_start)."\n";
@@ -717,7 +750,7 @@ exec("{$grz_cli} encrypt --submission-dir {$folder} --config-file {$config} > {$
 if ($exit_code!=0)
 {
 	print_r($output);
-	trigger_error("grz-cli encrypt failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
+	trigger_error("grz-cli encrypt failed!\nSTDOUT:\n".implode("\n", file($stdout, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES))."\nSTDERR:\n".implode("\n", file($stderr, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES)), E_USER_ERROR);
 }
 
 print "encrypting submission took ".time_readable(microtime(true)-$time_start)."\n";
@@ -733,7 +766,7 @@ exec("{$grz_cli} upload --submission-dir {$folder} --config-file {$config} > {$s
 if ($exit_code!=0)
 {
 	print_r($output);
-	trigger_error("grz-cli upload failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
+	trigger_error("grz-cli upload failed!\nSTDOUT:\n".implode("\n", file($stdout, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES))."\nSTDERR:\n".implode("\n", file($stderr, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES)), E_USER_ERROR);
 }
 
 //print submission ID (used by wrapper script when updating status in MVH db)
@@ -757,7 +790,5 @@ if (!$test)
 }
 
 print "cleanup took ".time_readable(microtime(true)-$time_start)."\n";
-
-//TODO add tests: SE WGS, SE lrGS, SE WGS trio, T/N
 
 ?>
