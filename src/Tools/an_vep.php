@@ -177,8 +177,18 @@ fwrite($config_file, annotation_file_path("/dbs/REVEL/REVEL_1.3.vcf.gz")."\t\tRE
 $in_files[] = annotation_file_path("/dbs/REVEL/REVEL_1.3.vcf.gz");
 
 //add AlphaMissense score annotation
-fwrite($config_file, annotation_file_path("/dbs/AlphaMissense/AlphaMissense_hg38.vcf.gz")."\t\tALPHAMISSENSE\t\n");
-$in_files[] = annotation_file_path("/dbs/AlphaMissense/AlphaMissense_hg38.vcf.gz");
+$am_main = annotation_file_path("/dbs/AlphaMissense/AlphaMissense_hg38.vcf.gz");
+if (file_exists($am_main))
+{
+	fwrite($config_file, $am_main."\tAM\tALPHAMISSENSE=MAIN\t\n");
+	$in_files[] = $am_main;
+}
+$am_iso = annotation_file_path("/dbs/AlphaMissense/AlphaMissense_isoforms_hg38.vcf.gz");
+if (file_exists($am_iso))
+{
+	fwrite($config_file, $am_iso."\tAM\tALPHAMISSENSE=ISO\t\n");
+	$in_files[] = $am_iso;
+}
 
 //precalculated SpliceAI scores
 $spliceai_file = annotation_file_path("/dbs/SpliceAI/spliceai_scores_2024_08_26_GRCh38.vcf.gz");

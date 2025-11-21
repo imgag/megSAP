@@ -175,6 +175,12 @@ php $src/Install/db_converter_alphamissense.php AlphaMissense_hg38.tsv.gz > Alph
 singularity exec $ngsbits VcfSort -in AlphaMissense_hg38.vcf -out AlphaMissense_hg38.vcf
 singularity exec $htslib bgzip AlphaMissense_hg38.vcf
 singularity exec $htslib tabix -p vcf AlphaMissense_hg38.vcf.gz
+#also download isoforms file as backup - for some genes the main file does not contain anything, e.g. PRPH2
+wget -O AlphaMissense_isoforms_hg38.tsv.gz https://storage.googleapis.com/dm_alphamissense/AlphaMissense_isoforms_hg38.tsv.gz
+php $src/Install/db_converter_alphamissense.php AlphaMissense_isoforms_hg38.tsv.gz > AlphaMissense_isoforms_hg38.vcf
+singularity exec $ngsbits VcfSort -in AlphaMissense_isoforms_hg38.vcf -out AlphaMissense_isoforms_hg38.vcf
+singularity exec $htslib bgzip AlphaMissense_isoforms_hg38.vcf
+singularity exec $htslib tabix -p vcf AlphaMissense_isoforms_hg38.vcf.gz
 
 #download annotation file for SpliceAI
 cd $dbs

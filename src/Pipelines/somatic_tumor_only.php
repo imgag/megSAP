@@ -245,7 +245,6 @@ if(in_array("cn",$steps))
 	$tmp_folder = $parser->tempFolder();
 	//directory with reference coverage files and directory with reference off-target coverage files
 	$ref_folder_t = get_path("data_folder")."/coverage/".$sys['name_short']."-tumor";
-	$ref_folder_n = get_path("data_folder")."/coverage/".$sys['name_short'];
 	$ref_folder_t_off_target = $ref_folder_t . "_off_target";
 	
 	create_directory($ref_folder_t);
@@ -258,7 +257,7 @@ if(in_array("cn",$steps))
 	$target_bed = "";
 	
 	//get correct coverage files, target bed and off-target bed based on system type:
-	if ($sys["type"] != "WGS" && $sys['type'] != "WGS (shallow)")
+	if ($sys["type"]!="WGS" && $sys['type']!="WGS (shallow)")
 	{
 		$target_bed = $ref_folder_t."/roi_annotated.bed";
 		if (!file_exists($target_bed))
@@ -286,13 +285,9 @@ if(in_array("cn",$steps))
 			$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
 		}
 		
-		//coverage files:
-		
+		//coverage files
 		$bin_folder_t = "{$ref_folder_t}/bins{$bin_size}/";
-		$bin_folder_n = "{$ref_folder_n}/bins{$bin_size}/";
 		create_directory($bin_folder_t);
-		create_directory($bin_folder_n);
-		$ref_folder_n = $bin_folder_n;
 		$ref_folder_t = $bin_folder_t;		
 	}
 	
@@ -317,29 +312,26 @@ if(in_array("cn",$steps))
 		$parser->copyFile($t_cov, $ref_file_t); 
 		$t_cov = $ref_file_t;
 
-		$parser->copyFile($t_cov_off_target,$ref_file_t_off_target);
+		$parser->copyFile($t_cov_off_target, $ref_file_t_off_target);
 		$t_cov_off_target = $ref_file_t_off_target;
 	}
 	
 	//perform CNV analysis
-	$baf_folder = get_path("data_folder")."/coverage/". $sys['name_short']."_bafs";
-	
 	$args = array(
 		"-cov {$t_cov}",
-		"-cov_folder {$ref_folder_n}",
+		"-cov_folder {$ref_folder_t}",
 		"-bed {$target_bed}",
 		"-out {$som_clincnv}",
 		"-tumor_only",
 		"-max_cnvs 200",
 	);
-	
-	if ($sys["type"] != "WGS" && $sys["type"] != "WGS (shallow)")
+	if ($sys["type"]!="WGS" && $sys["type"]!="WGS (shallow)")
 	{
 		$args[] = "-bed_off {$off_target_bed}";
 		$args[] = "-cov_off {$t_cov_off_target}";
 		$args[] = "-cov_folder_off {$ref_folder_t_off_target}";
 	}
-	
+	$baf_folder = get_path("data_folder")."/coverage/". $sys['name_short']."_bafs";
 	if(is_dir($baf_folder))
 	{
 		$args[] = "-baf_folder {$baf_folder}";

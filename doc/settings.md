@@ -48,10 +48,10 @@ This section contains general settings:
 This section contains settings to run the germline/somatic data analysis on a on-site Illumina Dragen server:
 
 * `dragen_version` - Version of Dragen to use, e.g. `4.3.17`.
-* `dragen_in` - Folder into which FASTQ data is copied for Dragen data analysis.
-* `dragen_out` - Folder into which Dragen output files are copied after the analysis.
+* `dragen_in` - Folder into which input data is copied for Dragen data analysis. Only used for somatic tumor-normal analysis right now.
+* `dragen_out` - Folder into which Dragen output files are copied after the analysis. Only used for somatic tumor-normal analysis right now.
 * `dragen_data` - Folder used as working directory on the Dragen server.
-* `dragen_genome` - Path to the DRAGEN genome reference hash tables.
+* `dragen_genome` - Path to the Dragen genome reference hash tables.
 * `dragen_log` - Folder used to write SGE logs of Dragen analyses.
 * `queues_dragen` - Comma-separated list of SGE queues for Dragen servers (one per server).
 

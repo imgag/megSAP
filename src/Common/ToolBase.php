@@ -85,8 +85,7 @@ class ToolBase
 	private function removeTempFolder($folder)
 	{
 		//only delete files within tmp folder
-		$tmp = sys_get_temp_dir();
-		if(!starts_with($folder, $tmp)) trigger_error("Folder '$folder' not within tmp-folder '$tmp'.", E_USER_ERROR);
+		if(!is_in_temp_folder($folder)) trigger_error("Folder '$folder' not within tmp-folder '$tmp'.", E_USER_ERROR);
 		if (substr($folder, strlen($folder) - 1, 1)!='/') $folder .= '/';
 		
 		//get all files / sub_folders
@@ -822,9 +821,9 @@ class ToolBase
 			$this->log("Stdout of '$name' pipeline:", $stdout);
 		}
 		//log stderr
+		$stderr = [];
 		if($log_output || $return!=0)
 		{
-			$stderr = [];
 			foreach($stderr_files as $stderr_file)
 			{
 				foreach(file($stderr_file) as $line)
@@ -965,19 +964,26 @@ class ToolBase
 	/**
 	 	@brief Executes a list of commands in parallel
 	*/
-	function execParallel($command_list, $threads, $log_output=true, $abort_on_error=true, $log_stdout=true)
+	function execParallel($command_list, $threads, $log_output=true, $abort_on_error=true, $log_stdout=true, $log_summary=false)
 	{
 		
 		$running = array();
-		$processing_start = microtime(true);
-		//temp dir for stdout and stderr
-		$tmp_dir = $this->tempFolder("stdout_stderr");
+
+		//create array with return values
+		$return  = array();
+		$return["jobs"] = array();
+		$return["jobs_failed"] = array();
+		$return["jobs_successfully_finished"] = array();
+		$return["n_jobs_started"] = 0;
+		$return["n_jobs_successfully_finished"] = 0;
+		$return["n_jobs_failed"] = 0;
+
 		while (true) 
 		{
 			//wait 50ms
 			usleep(50000);
 			
-			//all chromosomes have been processed > exit
+			//jobs have been processed > exit
 			if (count($command_list)==0 && count($running)==0) break;
 			
 			//start new sub-processed while there are threads unused
@@ -985,49 +991,62 @@ class ToolBase
 			{
 				list($name, $command) = array_shift($command_list);
 				list($command, $parameters) = explode(" ", $command, 2);
-				//create files for stdout, stderr and exitcode
 				$job_id = $name."_".random_string(8);
-				$stderr_file = "{$tmp_dir}/{$job_id}.stderr";
-				$exitcode_file = "{$tmp_dir}/{$job_id}.exitcode";
-				if ($log_stdout)
+				$return["jobs"][$job_id] = array(); 
+
+				$descriptors = [
+					1 => ['pipe', 'w'], // stdout
+					2 => ['pipe', 'w'], // stderr
+				];
+				$process = proc_open($command.' '.$parameters, $descriptors, $pipes);
+				if (is_resource($process)) 
 				{
-					$stdout_file = "{$tmp_dir}/{$job_id}.stdout";
-					$parameters .= " > {$stdout_file}";
+					$status = proc_get_status($process);
+					//log start
+					$add_info = array();
+					$add_info[] = "version    = ".$this->extractVersion($command);
+					$add_info[] = "parameters = {$parameters}";
+					$add_info[] = "pid = ".$status['pid'];
+					if($log_output) $this->log("Executing command in background '{$command}'", $add_info);
+					$running[$job_id] = [
+						"process" => $process,
+						"pipes" => $pipes,
+						"pid" => $status['pid'],
+						"cmd" => $command.' '.$parameters,
+						"start_time" => microtime(true),
+					];
+
+					//log in return array
+					$return["jobs"][$job_id]["command"] = $command;
+					$return["jobs"][$job_id]["parameters"] = $parameters;
+					$return["jobs"][$job_id]["pid"] = $status['pid'];
+					$return["n_jobs_started"]++;
 				}
 				else
 				{
-					$stdout_file = null;
+					trigger_error("Couldn't start process for command '{$command}'!", E_USER_ERROR);
 				}
-								
-				$parameters .= " 2> {$stderr_file}";
-				
-				// run in background
-				$output = array();
-				exec('('.$command.' '.$parameters.' & PID=$!; echo $PID) && (wait $PID; echo $? > '.$exitcode_file.')', $output);
-				$pid = trim(implode("", $output));
-
-				//log start
-				$add_info = array();
-				$add_info[] = "version    = ".$this->extractVersion($command);
-				$add_info[] = "parameters = {$parameters}";
-				$add_info[] = "pid = {$pid}";
-				if($log_output) $this->log("Executing command in background '{$command}'", $add_info);
-				
-				$running[$job_id] = array($pid, $stdout_file, $stderr_file, $exitcode_file, microtime(true));
 			}
 
-			//check which started processes are still runnning
-			$cmds_running = array_keys($running);
-			foreach($cmds_running as $job_id)
+			//check if running jobs have finished
+			foreach ($running as $job_id => $info) 
 			{
-				list($pid, $stdout_file, $stderr_file, $exitcode_file, $start_time) = $running[$job_id];
-				if(!file_exists("/proc/{$pid}"))
+				$status = proc_get_status($info["process"]);
+				if (!$status["running"])
 				{
-					//prepare additional infos for logging
+					$job_aborted = false;
+					
+					// get info about this finished job
+					$stdout = stream_get_contents($info['pipes'][1]);
+    				$stderr = stream_get_contents($info['pipes'][2]);
+					fclose($info['pipes'][1]);
+					fclose($info['pipes'][2]);
+					$exit_code = proc_close($info["process"]);
+
+					//logging
 					$add_info = array();
 					if($log_stdout)
 					{
-						$stdout = trim(file_get_contents($stdout_file));
 						if ($stdout!="")
 						{
 							$add_info[] = "STDOUT:";
@@ -1037,8 +1056,6 @@ class ToolBase
 							}
 						}
 					}
-					$job_aborted = false;
-					$stderr = trim(file_get_contents($stderr_file));
 					if ($stderr!="")
 					{
 						$add_info[] = "STDERR:";
@@ -1047,22 +1064,63 @@ class ToolBase
 							$add_info[] = nl_trim($line);
 						}
 					}
-					$exit_code = trim(file_get_contents($exitcode_file));
 					$add_info[] = "EXIT CODE: ".$exit_code;
 					if(!is_numeric($exit_code) || $exit_code!=0)
 					{
 						$job_aborted = true;
 					}
+
+					//log in return array
+					$return["jobs"][$job_id]["stdout"] = explode("\n", $stdout);
+					$return["jobs"][$job_id]["stderr"] = explode("\n", $stderr);
+					$return["jobs"][$job_id]["exit_code"] = $exit_code;
+					if ($job_aborted)
+					{
+						$return["jobs_failed"][] = $job_id;
+						$return["n_jobs_failed"]++;
+					}
+					else
+					{
+						$return["n_jobs_successfully_finished"]++;
+					}
+					
 					
 					//log output
-					if($log_output) $this->log("Finshed processing job {$job_id} in ".time_readable(microtime(true)-$start_time), $add_info);
+					if($log_output) $this->log("Finshed processing job {$job_id} in ".time_readable(microtime(true)-$info["start_time"]), $add_info);
 					
 					//abort if failed
 					if ($job_aborted) trigger_error("Processing of job {$job_id} failed: ".$stderr, $abort_on_error ? E_USER_ERROR : E_USER_WARNING);
 					
 					unset($running[$job_id]);
+
+				}
+				//else: job is still running -> continue
+			}	
+		}
+
+		if ($log_summary)
+		{
+			foreach ($return["jobs"] as $job_id => $info) 
+			{
+				if ($info["exit_code"] == 0)
+				{
+					$this->log("Job {$job_id} finished successfully (exit code: 0)");
+					$this->log("\t command:\t\t".$info["command"] );
+					$this->log("\t parameters:\t".$info["parameters"] );
+				}
+				else
+				{
+					$this->log("Job {$job_id} failed with exit code ".$info["exit_code"]);
+					$this->log("\t command:\t\t".$info["command"] );
+					$this->log("\t parameters:\t".$info["parameters"] );
+					$this->log("\t stdout:\t\t".implode("\n\t\t\t\t\t", $info["stdout"]));
+					$this->log("\t stderr:\t\t".implode("\n\t\t\t\t\t", $info["stderr"]));
 				}
 			}
+
+			$this->log("SUMMARY: {$return['n_jobs_successfully_finished']} of {$return['n_jobs_started']} jobs finished successfully. ({$return['n_jobs_failed']} failed)");
+
+		return $return;
 		}
 	}
 	
