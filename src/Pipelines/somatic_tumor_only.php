@@ -31,7 +31,6 @@ $parser->addInfile("system", "Processing system file used for tumor DNA sample (
 $parser->addFlag("skip_contamination_check", "Skips check of female tumor sample for male SRY DNA.");
 $parser->addFlag("skip_correlation", "Skip sample correlation check.");
 $parser->addFlag("skip_low_cov", "Skip low coverage statistics.");
-$parser->addFlag("use_deepsomatic", "Use DeepSomatic for somatic variant calling.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 
 //default cut-offs
@@ -52,6 +51,9 @@ foreach($steps as $step)
 }
 
 ###################################### SCRIPT START ######################################
+//check which caller to use
+$use_deepsomatic = get_path("use_deepsomatic");
+
 if (!file_exists($out_folder))
 {
 	exec2("mkdir -p $out_folder");
@@ -121,7 +123,8 @@ if (in_array("vc", $steps))
 	if ($use_deepsomatic)
 	{
 		$args = [];
-		$args[] = "-model_type WGS_TUMOR_ONLY";
+		if ($sys['type'] !== "WGS") $args[] = "-model_type WES_TUMOR_ONLY";
+		else $args[] = "-model_type WGS_TUMOR_ONLY";
 		$args[] = "-bam_tumor ".$t_bam;
 		$args[] = "-out ".$variants;
 		$args[] = "-build {$build}";
@@ -131,7 +134,7 @@ if (in_array("vc", $steps))
 		$args[] = "-min_af_snps $min_af";
 		$args[] = "-tumor_only";
 		$args[] = "-min_mq 15"; //taken from vc_varscan2.php
-		$args[] = "-min_bq 30"; //taken from vc_varscan2.php
+		$args[] = "-min_bq 20"; //taken from vc_varscan2.php
 
 		if (!empty($roi))
 		{

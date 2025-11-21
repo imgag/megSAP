@@ -36,6 +36,7 @@ This section contains general settings:
 * `cnv_bin_size_shallow_wgs` - Bin size used for CNV analysis of shallow WGS samples.
 * `cnv_bin_size_longread_wgs` - Bin size used for CNV analysis of long-read WGS samples.
 * `use_freebayes` - Flag (true/false) that indicates if freebayes should be used instead of DeepVariant for short-read variant calling.
+* `use_deepsomatic` Flag (true/false) that indicates if deepsomatic should be used for tumor-normal and tumor-only variant calling.
 * `use_bwa1` - Flag (true/false) that indicates if BWA mem should be used for mapping instead of BWA mem 2 (BWA mem 2 is faster, but needs more RAM).
 * `bwa_mem2_suffix` - Suffix appended to the BWA-mem2 executable, e.g. `.avx2` for `AMD EPYC9654`.
 * `annotate_refseq_consequences` - Flag (true/false) that indicates if variant consequences based on RefSeq transcripts should be annotated in addition to variant consequences based on Ensembl transcripts.

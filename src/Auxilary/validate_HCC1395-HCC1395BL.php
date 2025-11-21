@@ -13,7 +13,7 @@ $parser->addInfile("vcf", "Called somatic variant list to validate on (VCF or VC
 $parser->addInfile("roi", "Target region of the processing system (BED format).", false);
 $parser->addInfile("bam", "Mapped tumor reads (BAM format).", false);
 $parser->addOutfile("stats", "Append statistics to this file.", false);
-$parser->addEnum("caller", "The caller used to call somatic variants", false, ["strelka2", "dragen", "deepsomatic"]);
+$parser->addEnum("caller", "The caller used to call somatic variants", false, ["strelka2", "dragen", "deepsomatic", "varscan2"]);
 //optional
 $parser->addFlag("ignore_filters", "Ignores filter column entries.");
 $parser->addFlag("with_low_evs", "Ignores 'LowEVS' filter column entry for strelka2 callings");
@@ -54,7 +54,7 @@ function get_variants_som($vcf_gz, $roi, $max_indel, $caller, &$skipped)
 		if ($line=="" || $line[0]=="#") continue;
 
 		if ($caller == "ref") list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info) = explode("\t", $line."\t");
-		else if ($caller == "deepsomatic") list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample_tumor) = explode("\t", $line."\t");
+		else if ($caller == "deepsomatic" || $caller == "varscan2") list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample_tumor) = explode("\t", $line."\t");
 		else list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample_normal, $sample_tumor) = explode("\t", $line."\t");
 
 		if (!is_numeric(chr_trim($chr))) 
@@ -100,17 +100,6 @@ function get_variants_som($vcf_gz, $roi, $max_indel, $caller, &$skipped)
 			//clear filter column
 			$filter_replace = ["PASS"=>"", "freq-tum"=>"", ";"=>""];
 			if ($with_low_evs) $filter_replace ["LowEVS"] = "";
-			$filter = trim(strtr($filter, $filter_replace));
-			if ($ignore_filters) $filter = "";
-
-			if ($filter != "") 
-			{
-				@$skipped["filtered"] += 1;
-				continue;
-			}
-			
-			$var["DP"] = $tumor_dp;
-			$var["AF"] = $tumor_af;
 		}
 		else if ($caller == "dragen")
 		{
@@ -118,17 +107,6 @@ function get_variants_som($vcf_gz, $roi, $max_indel, $caller, &$skipped)
 			
 			//clear filter column
 			$filter_replace = ["PASS"=>"", "."=>"", "freq-tum"=>"", ";"=>""];
-			$filter = trim(strtr($filter, $filter_replace));
-			if ($ignore_filters) $filter = "";
-			
-			if ($filter != "") 
-			{
-				@$skipped["filtered"] += 1;
-				continue;
-			}
-			
-			$var["DP"] = $tumor_dp;
-			$var["AF"] = $tumor_af;
 		}
 		else if ($caller == "deepsomatic")
 		{
@@ -136,17 +114,12 @@ function get_variants_som($vcf_gz, $roi, $max_indel, $caller, &$skipped)
 
 			//clear filter column
 			$filter_replace = ["PASS"=>"", "freq-tum"=>"", ";"=>""];
-			$filter = trim(strtr($filter, $filter_replace));
-			if ($ignore_filters) $filter = "";
-			
-			if ($filter != "") 
-			{
-				@$skipped["filtered"] += 1;
-				continue;
-			}
-			
-			$var["DP"] = $tumor_dp;
-			$var["AF"] = $tumor_af;
+		}
+		else if ($caller == "varscan2")
+		{
+			list($tumor_dp, $tumor_af) = vcf_varscan2($format, $sample_tumor);
+			//clear filter column
+			$filter_replace = ["PASS"=>"", "."=>"", "freq-tum"=>"", ";"=>""];
 		}
 		else if ($caller = "ref")
 		{
@@ -165,7 +138,22 @@ function get_variants_som($vcf_gz, $roi, $max_indel, $caller, &$skipped)
 		{
 			trigger_error("Unknown 'caller' given in load_vcf(): $caller", E_USER_ERROR);
 		}
+		
+		if ($caller != "ref")
+		{
+			$filter = trim(strtr($filter, $filter_replace));
+			if ($ignore_filters) $filter = "";
 
+			if ($filter != "") 
+			{
+				@$skipped["filtered"] += 1;
+				continue;
+			}
+			
+			$var["DP"] = $tumor_dp;
+			$var["AF"] = $tumor_af;
+		}
+		
 		$tag = "{$chr}:{$pos} {$ref}>{$alt}";
 		if (isset($output[$tag]))
 		{

@@ -12,7 +12,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("vc_deepsomatic", "Somatic Variant calling with DeepSomatic.");
 $parser->addInfile("bam_tumor",  "Input tumor reads. Note: .bam.bai file is required!", false);
 $parser->addOutfile("out", "Output file in VCF.gz format.", false);
-$parser->addString("model_type", "Type of model to use for variant calling. Choose from <WGS|WES|PACBIO|ONT|FFPE_WGS|FFPE_WES|WGS_TUMOR_ONLY|PACBIO_TUMOR_ONLY|ONT_TUMOR_ONLY>.", false);
+$parser->addString("model_type", "Type of model to use for variant calling. Choose from <WGS|WES|PACBIO|ONT|FFPE_WGS|FFPE_WES|FFPE_WGS_TUMOR_ONLY|FFPE_WES_TUMOR_ONLY|WGS_TUMOR_ONLY|WES_TUMOR_ONLY|PACBIO_TUMOR_ONLY|ONT_TUMOR_ONLY>.", false);
 //optional
 $parser->addInfile("bam_normal", "Input normal reads. Note: .bam.bai file is required!", true);
 $parser->addInfile("target",  "Enrichment targets BED file.", true);
@@ -28,6 +28,7 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addFlag("raw_output", "return the raw output of deepsomatic with no post-processing.");
 $parser->addFlag("allow_empty_examples", "allows deepsomatic to call variants even if no examples were created with make_examples.");
 $parser->addFlag("tumor_only", "run DeepSomatic in tumor-only mode");
+$parser->addFlag("default","Use DeepSoamtics default settings");
 $parser->addInfile("debug_region", "Debug option to limit analysis to regions in the given BED file.", true);
 extract($parser->parse($argv));
 
@@ -46,20 +47,27 @@ if ($allow_empty_examples)
 }
 
 $args[] = "--model_type=$model_type";
-$args[] = "--make_examples_extra_args=min_mapping_quality=$min_mq,min_base_quality=$min_bq,vsc_min_fraction_indels=$min_af_indels,vsc_min_fraction_snps=$min_af_snps";
+if (!$default) $args[] = "--make_examples_extra_args=min_mapping_quality=$min_mq,min_base_quality=$min_bq,vsc_min_fraction_indels=$min_af_indels,vsc_min_fraction_snps=$min_af_snps";
 $args[] = "--ref=$genome";
 $args[] = "--reads_tumor=$bam_tumor";
 $args[] = "--sample_name_tumor=$tumor_id";
 $args[] = "--num_shards=".$threads;
 
-if (isset($debug_region)) $args[] = "--regions $debug_region";
+if (isset($debug_region)) 
+{
+	$args[] = "--regions $debug_region";
+	if (is_file($debug_region)) $in_files[] = $debug_region;
+}
+
 if (!empty($gvcf)) $args[] = "--output_gvcf=$gvcf";
+
 if (!$tumor_only) 
 {
 	$args[] = "--reads_normal=$bam_normal";
 	$args[] = "--sample_name_normal=$normal_id";
 	$in_files[] = $bam_normal;
 }
+else $args[] = "--use_default_pon_filtering=true";
 
 $in_files[] = $genome;
 $in_files[] = $bam_tumor; 
@@ -79,13 +87,10 @@ $parser->execApptainer("deepsomatic", "run_deepsomatic", implode(" ", $args)." -
 //filter variants
 $pipeline[] = ["zcat", "$vcf_deepvar_out"];
 
-if (!$tumor_only)
-{
-	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-remove_invalid -ref $genome", [$genome], [], true)];
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-remove_invalid -ref $genome", [$genome], [], true)];
 
-	//split multi-allelic variants
-	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "", [], [], true)];
-}
+//split multi-allelic variants
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "", [], [], true)];
 
 //normalize all variants and align INDELs to the left
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], true)];
