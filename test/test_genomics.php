@@ -2,6 +2,20 @@
 
 include("framework.php");
 
+
+
+//##################################################################################
+start_test("get_qcml_value");
+
+$qcml = data_folder()."/test.qcML";
+
+check(get_qcml_value($qcml, "QC:2000025"), "180.11");
+check(get_qcml_value($qcml, "QC:2000027"), "93.46");
+
+check(get_qcml_value($qcml, "QC:2000026", "n/a"), "n/a");
+
+end_test();
+
 //##################################################################################
 start_test("genome_fasta");
 

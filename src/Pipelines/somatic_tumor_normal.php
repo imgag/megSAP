@@ -321,7 +321,7 @@ $manta_sv_bedpe= $full_prefix . "_manta_var_structural.bedpe"; 		// structural v
 $variants      = $full_prefix . "_var.vcf.gz";					// variants
 $ballele       = $full_prefix . "_bafs.igv";					// B-allele frequencies
 $hla_file_tumor = "{$t_basename}_hla_genotyper.tsv";
-$hla_file_normal = "{$n_basename}_hla_genotyper.tsv"; 
+$hla_file_normal = "{$n_basename}_hla_genotyper.tsv";
 
 if (in_array("vc", $steps))
 {
@@ -589,7 +589,6 @@ if (in_array("vc", $steps))
 	}
 
 	//add somatic BAF file
-
 	$variants_germline_vcf = "{$n_basename}_var.vcf.gz";
 	if (file_exists($variants_germline_vcf))
 	{
@@ -622,37 +621,23 @@ if (in_array("vc", $steps))
 	}
 }
 
-//Viral sequences alignment
-$viral         = "{$t_basename}_viral.tsv";					// viral sequences results
-$viral_bam     = "{$t_basename}_viral.bam";					// viral sequences alignment
-$viral_bam_raw = "{$t_basename}_viral_before_dedup.bam";		// viral sequences alignment (no deduplication)
-$viral_bed     = get_path("data_folder") . "/enrichment/somatic_viral.bed"; //viral enrichment
-$viral_genome  = get_path("data_folder") . "/genomes/somatic_viral.fa"; //viral reference genome
+//detection of viral DNA
 if (in_array("vi", $steps))
 {
-	if(!file_exists($viral_genome) || !file_exists($viral_bed))
-	{
-		trigger_error("Could not find viral reference genome {$viral_genome} or target file {$viral_bed}. Skipping step \"vi\".", E_USER_WARNING);
-	}
-	else
-	{
-		//detection of viral sequences
-		$t_bam_dedup = "{$t_basename}_before_dedup.bam";
-		$t_bam_map_qc = "{$t_basename}_stats_map.qcML";
-		$dedup_used = file_exists($t_bam_dedup);
-		$vc_viral_args = [
-			"-in ".($dedup_used ? $t_bam_dedup : $t_bam),
-			"-viral_bam ".$viral_bam,
-			"-viral_bam_raw ".$viral_bam_raw,
-			"-viral_cov ".$viral,
-			"-viral_chrs chrNC_007605",
-			"-build_viral somatic_viral",
-			"-in_qcml ".$t_bam_map_qc,
-			"-threads ".$threads
-		];
-		if ($dedup_used) $vc_viral_args[] = "-barcode_correction";
-		$parser->execTool("Tools/vc_viral_load.php", implode(" ", $vc_viral_args));
-	}
+	$t_bam_dedup = "{$t_basename}_before_dedup.bam";
+	$dedup_used = file_exists($t_bam_dedup);
+	$vc_viral_args = [
+		"-in ".($dedup_used ? $t_bam_dedup : $t_bam),
+		"-viral_bam {$t_basename}_viral.bam", //TODO why write to BAM folder?
+		"-viral_bam_raw {$t_basename}_viral_before_dedup.bam", //TODO why write to BAM folder?
+		"-viral_cov {$t_basename}_viral.tsv", //TODO why write to BAM folder?
+		"-viral_chrs chrNC_007605",
+		"-build_viral somatic_viral",
+		"-avg_target_cov ".get_qcml_value("{$t_basename}_stats_map.qcML", "QC:2000025"),
+		"-threads ".$threads,
+	];
+	if ($dedup_used) $vc_viral_args[] = "-barcode_correction";
+	$parser->execTool("Tools/vc_viral_load.php", implode(" ", $vc_viral_args));
 }
 
 //CNV calling
@@ -1035,7 +1020,7 @@ if (in_array("an_rna", $steps))
 $qc_other = $full_prefix."_stats_other.qcML";
 if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("msi", $steps) || in_array("cn", $steps) || in_array("db", $steps))
 {
-	$parser->execTool("Auxilary/create_qcml.php", "-full_prefix $full_prefix -t_basename $t_basename");
+	$parser->execTool("Auxilary/create_qcml.php", "-full_prefix {$full_prefix} -viral_tsv {$t_basename}_viral.tsv");
 }
 
 //DB import

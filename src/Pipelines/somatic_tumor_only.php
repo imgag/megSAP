@@ -85,15 +85,15 @@ check_genome_build($t_bam, $build);
 
 if (!$skip_contamination_check)
 {
-	$parser->execTool("Auxilary/check_sry_coverage.php", "-t_bam $t_bam -build {$build}");
+	$parser->execTool("Auxilary/check_sry_coverage.php", "-t_bam {$t_bam} -build {$build}");
 }
-else trigger_error("Skipping check of female tumor sample $t_bam for contamination with male genomic DNA.", E_USER_WARNING);
+else trigger_error("Skipping check of female tumor sample {$t_bam} for contamination with male genomic DNA.", E_USER_WARNING);
 
 //low coverage statistics
 $low_cov = "{$full_prefix}_stat_lowcov.bed";					// low coverage BED file
 if ($sys['type'] !== "WGS" && !empty($roi) && !$skip_low_cov)
 {
-	$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".realpath($roi)." -bam $t_bam -out $low_cov -cutoff $min_depth_t -threads {$threads} -ref {$ref_genome}", [$roi, $t_bam, $ref_genome], [dirname($low_cov)]);
+	$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".realpath($roi)." -bam {$t_bam} -out $low_cov -cutoff $min_depth_t -threads {$threads} -ref {$ref_genome}", [$roi, $t_bam, $ref_genome], [dirname($low_cov)]);
 
 	// annotate with gene names
 	if (db_is_enabled("NGSD"))
@@ -108,7 +108,7 @@ $manta_sv       = "{$full_prefix}_manta_var_structural.vcf.gz";		// structural v
 $manta_sv_bedpe = "{$full_prefix}_manta_var_structural.bedpe"; 		// structural variants (bedpe)
 $variants       = "{$full_prefix}_var.vcf.gz";						// variants
 $ballele        = "{$full_prefix}_bafs.igv";						// B-allele frequencies
-$hla_file_tumor = "{$full_prefix}_hla_genotyper.tsv";
+$hla_file_tumor = "{$t_basename}_hla_genotyper.tsv"; //TODO Marc/Alexander: changed location (now in tumor folder like in T/N pipeline)
 
 if (in_array("vc", $steps))
 {
@@ -170,37 +170,23 @@ if (in_array("vc", $steps))
 	$parser->execTool("Tools/baf_germline.php", implode(" ", $params));
 }
 
-//Viral sequences alignment
-$viral         = "{$t_basename}_viral.tsv";					// viral sequences results
-$viral_bam     = "{$t_basename}_viral.bam";					// viral sequences alignment
-$viral_bam_raw = "{$t_basename}_viral_before_dedup.bam";		// viral sequences alignment (no deduplication)
-$viral_bed     = get_path("data_folder") . "/enrichment/somatic_viral.bed"; //viral enrichment
-$viral_genome  = get_path("data_folder") . "/genomes/somatic_viral.fa"; //viral reference genome
+//detection of viral DNA
 if (in_array("vi", $steps))
 {
-	if(!file_exists($viral_genome) || !file_exists($viral_bed))
-	{
-		trigger_error("Could not find viral reference genome {$viral_genome} or target file {$viral_bed}. Skipping step \"vi\".", E_USER_WARNING);
-	}
-	else
-	{
-		//detection of viral sequences
-		$t_bam_dedup = "{$t_basename}_before_dedup.bam";
-		$t_bam_map_qc = "{$t_basename}_stats_map.qcML";
-		$dedup_used = file_exists($t_bam_dedup);
-		$vc_viral_args = [
-			"-in ".($dedup_used ? $t_bam_dedup : $t_bam),
-			"-viral_bam ".$viral_bam,
-			"-viral_bam_raw ".$viral_bam_raw,
-			"-viral_cov ".$viral,
-			"-viral_chrs chrNC_007605",
-			"-build_viral somatic_viral",
-			"-in_qcml ".$t_bam_map_qc,
-			"-threads ".$threads
-		];
-		if ($dedup_used) $vc_viral_args[] = "-barcode_correction";
-		$parser->execTool("Tools/vc_viral_load.php", implode(" ", $vc_viral_args));
-	}
+	$t_bam_dedup = "{$t_basename}_before_dedup.bam";
+	$dedup_used = file_exists($t_bam_dedup);
+	$vc_viral_args = [
+		"-in ".($dedup_used ? $t_bam_dedup : $t_bam),
+		"-viral_bam {$t_basename}_viral.bam",
+		"-viral_bam_raw {$t_basename}_viral_before_dedup.bam",
+		"-viral_cov {$t_basename}_viral.tsv",
+		"-viral_chrs chrNC_007605",
+		"-build_viral somatic_viral",
+		"-avg_target_cov ".get_qcml_value("{$t_basename}_stats_map.qcML", "QC:2000025"),
+		"-threads ".$threads,
+	];
+	if ($dedup_used) $vc_viral_args[] = "-barcode_correction";
+	$parser->execTool("Tools/vc_viral_load.php", implode(" ", $vc_viral_args));
 }
 
 //CNV calling
@@ -267,8 +253,8 @@ if(in_array("cn",$steps))
 	$ref_file_t = "{$ref_folder_t}/{$t_id}.cov";
 	$ref_file_t_off_target = "{$ref_folder_t_off_target}/{$t_id}.cov";
 	
-	$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam $t_bam -in $target_bed -out $t_cov -threads {$threads} -ref {$ref_genome}", [$t_bam, $target_bed, $ref_genome]);
-	$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam $t_bam -out $t_cov_off_target -threads {$threads} -ref {$ref_genome}", [$off_target_bed, $t_bam, $ref_genome]);
+	$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 0 -decimals 4 -bam {$t_bam} -in $target_bed -out $t_cov -threads {$threads} -ref {$ref_genome}", [$t_bam, $target_bed, $ref_genome]);
+	$parser->execApptainer("ngs-bits", "BedCoverage", "-clear -min_mapq 10 -decimals 4 -in $off_target_bed -bam {$t_bam} -out $t_cov_off_target -threads {$threads} -ref {$ref_genome}", [$off_target_bed, $t_bam, $ref_genome]);
 
 	
 	//copy tumor sample coverage file to reference folder (has to be done before ClinCNV call to avoid analyzing the same sample twice)
@@ -343,7 +329,6 @@ if(in_array("cn",$steps))
 //annotation
 $variants_annotated = $full_prefix . "_var_annotated.vcf.gz";	// annotated variants
 $variants_gsvar     = $full_prefix . ".GSvar";					// GSvar variants
-$somaticqc          = $full_prefix . "_stats_som.qcML";			// SomaticQC qcML
 $cfdna_folder       = $full_prefix . "_cfDNA_candidates";       // folder containing cfDNA monitoring variants 
 if (in_array("an", $steps))
 {
@@ -376,7 +361,7 @@ if (in_array("an", $steps))
 if (in_array("an_rna", $steps))
 {
 	$args = array();
-	$args[] = "-t_bam $t_bam";
+	$args[] = "-t_bam {$t_bam}";
 	$args[] = "-full_prefix $full_prefix";
 	$args[] = "-steps ".count($steps);
 	if (file_exists($system)) $args[] = "-system $system";
@@ -391,7 +376,7 @@ if (in_array("an_rna", $steps))
 $qc_other = $full_prefix."_stats_other.qcML";
 if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("cn", $steps) || in_array("db", $steps))
 {
-	$parser->execTool("Auxilary/create_qcml.php", "-full_prefix $full_prefix -t_basename $t_basename -tumor_only");
+	$parser->execTool("Auxilary/create_qcml.php", "-full_prefix {$full_prefix} -viral_tsv {$t_basename}_viral.tsv -tumor_only");
 }
 
 //DB import
@@ -400,37 +385,30 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	$db_conn = DB::getInstance("NGSD");
 	
 	$t_info = get_processed_sample_info($db_conn, $t_id, false);
-		
-	if (is_null($t_info))
-	{
-		trigger_error("No database import since no valid processing ID (T: {$t_id})", E_USER_WARNING);
-	}
-	else
-	{
-		// import qcML files
-		$qcmls = implode(" ", array_filter([
-			"{$t_basename}_stats_fastq.qcML",
-			"{$t_basename}_stats_map.qcML",
-			$somaticqc,
-			$qc_other
-		], "file_exists"));
-		$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps $t_id -files $qcmls -force", ["{$t_basename}_stats_fastq.qcML", "{$t_basename}_stats_map.qcML", $somaticqc, $qc_other]);
+	if (is_null($t_info)) trigger_error("NGSD import failed: Could not find processed sample '$t_id' in NGSD!", E_USER_ERROR);
+	
+	// import qcML files
+	$qcmls = implode(" ", array_filter([
+		"{$t_basename}_stats_fastq.qcML",
+		"{$t_basename}_stats_map.qcML",
+		$qc_other
+	], "file_exists"));
+	$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps $t_id -files $qcmls -force", ["{$t_basename}_stats_fastq.qcML", "{$t_basename}_stats_map.qcML", $qc_other]);
 
-		// check tumor/normal flag
-		if (!$t_info['is_tumor'])
-		{
-			trigger_error("Tumor sample $t_id is not flagged as tumor in NGSD!", E_USER_WARNING);
-		}
-
-		// import variants into NGSD
-		if (file_exists($variants_gsvar))
-		{
-			check_genome_build($variants_gsvar, $build);
-			$parser->execApptainer("ngs-bits", "NGSDAddVariantsSomatic", "-t_ps $t_id -var $variants_gsvar -force", [$variants_gsvar]);
-		}
-				
-		//add secondary analysis (if missing)
-		$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'somatic' -gsvar {$variants_gsvar}");
+	// check tumor/normal flag
+	if (!$t_info['is_tumor'])
+	{
+		trigger_error("Tumor sample $t_id is not flagged as tumor in NGSD!", E_USER_WARNING);
 	}
+
+	// import variants into NGSD
+	if (file_exists($variants_gsvar))
+	{
+		check_genome_build($variants_gsvar, $build);
+		$parser->execApptainer("ngs-bits", "NGSDAddVariantsSomatic", "-t_ps $t_id -var $variants_gsvar -force", [$variants_gsvar]);
+	}
+			
+	//add secondary analysis (if missing)
+	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'somatic' -gsvar {$variants_gsvar}");
 }
 ?>
