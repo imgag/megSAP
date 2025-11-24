@@ -30,6 +30,8 @@ $parser->addFlag("no_dragen", "Do not use Illumina DRAGEN calls from NovaSeq X o
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
 $parser->addFlag("no_circos", "Skip Circos plot generation.");
+$parser->addFlag("no_qc", "Skip calculation of QC metrics.");
+$parser->addFlag("no_lowcov", "Skip generation of low-coverage report");
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
 extract($parser->parse($argv));
 
@@ -279,7 +281,7 @@ if (in_array("ma", $steps))
 	$parser->execTool("Tools/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name -local_bam $used_bam_or_cram ".implode(" ", $args)." -threads $threads");
 	
 	//low-coverage report
-	if ($has_roi && !$is_wgs_shallow)
+	if ($has_roi && !$is_wgs_shallow && !$no_lowcov)
 	{	
 		$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".realpath($sys['target_file'])." -bam $used_bam_or_cram -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", [$folder, $sys['target_file'], $genome]);
 		if (db_is_enabled("NGSD"))
@@ -363,7 +365,7 @@ else if ($bam_or_cram_exists)
 	check_genome_build($used_bam_or_cram, $build);
 
 	//QC for samples mapped/called on NovaSeq X
-	if(!file_exists($qc_map))
+	if(!file_exists($qc_map) && !$no_qc)
 	{
 		//QC
 		$in_files = array();
@@ -396,7 +398,7 @@ else if ($bam_or_cram_exists)
 	}
 
 	//low-coverage regions for samples mapped/called on NovaSeq X / DRAGEN server
-	if(!file_exists($lowcov_file))
+	if(!file_exists($lowcov_file) && !$no_lowcov)
 	{
 		if ($has_roi && !$is_wgs_shallow)
 		{	
@@ -1282,7 +1284,7 @@ if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps))
 }
 
 // collect other QC terms
-if (in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps))
+if ((in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps)) && !$no_qc)
 {
 	$terms = [];
 	$sources = [];
