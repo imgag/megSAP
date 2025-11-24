@@ -25,7 +25,11 @@ extract($parser->parse($argv));
 
 
 //check GPU server
-
+list($stdout, $stderr, $exit_code) = $parser->exec("nvidia-smi", "-L");
+if (($exit_code != 0) || (count($stdout) < 2) || (count($stderr) > 0))
+{
+	trigger_error("GPU check failed! Make sure nvidia-smi is installed and GPUs work properly!", E_USER_ERROR);
+}
 
 //init
 

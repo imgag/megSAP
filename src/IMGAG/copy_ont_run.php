@@ -18,6 +18,7 @@ $parser->addFlag("queue_basecalling", "Queue basecalling of sample on GPU queue.
 $parser->addEnum("basecall_model",  "Model used for base calling: hac=high accuracy, sup=super accuracy", true, array("hac", "sup"), "hac");
 $parser->addInt("min_qscore", "Minimal read qScore for basecalling", true, 9);
 $parser->addFlag("force_basecalling", "Enforces complete (re-)basecalling of all POD5s in run folder.(requires '-queue_basecalling')");
+$parser->addFlag("ignore_flowcell_id_check", "Ignores Errors due to mismatching flowcell IDs between NGSD and folder name (e.g. if flowcell was replaced during sequencing)");
 
 //TODO: re-implement
 // $parser->addFlag("fastq", "Copy FASTQ files.");
@@ -233,7 +234,7 @@ foreach ($subdirs as $subdir)
 {
 	if (!contains(basename($subdir), $flowcell_id))
 	{
-		trigger_error("Flowcell ID '{$flowcell_id}' not found in directory name '{$subdir}'.", E_USER_ERROR);
+		trigger_error("Flowcell ID '{$flowcell_id}' not found in directory name '{$subdir}'.", ($ignore_flowcell_id_check)? E_USER_WARNING: E_USER_ERROR);
 	}
 }
 
@@ -335,18 +336,59 @@ else //bam output
 	{
 		$bam_paths_glob = "{$run_dir}/*/bam_pass/*.bam";
 		if (isset($info["barcode"]) && ($info["barcode"] != "")) $bam_paths_glob = "{$run_dir}/*/bam_pass/".$info["barcode"]."/*.bam";
-		//get BAM files
-		$bam_files = glob($bam_paths_glob);
+		
 
 		//get BAM info 
-		$on_device_basecall_model = "undefined";
-		$modified_bases = true;
-		if (count($bam_files) !== 0)
+		
+
+		$on_device_basecall_model = [];
+		$modified_bases = [];
+		$aligned = [];
+
+		//check each subdir seperately
+		foreach ($subdirs as $subdir) 
 		{
-			list($on_device_basecall_model, $modified_bases, $aligned) = get_bam_info($bam_files[array_rand($bam_files, 1)]);
+			//get BAM files
+			$bam_files = glob("{$subdir}/bam_pass/*.bam");
+			if (count($bam_files) !== 0)
+			{
+				//check each subfolder
+				list($on_device_basecall_model_subfolder, $modified_bases_subfolder, $aligned_subfolder) = get_bam_info($bam_files[array_rand($bam_files, 1)]);
+				$on_device_basecall_model[$on_device_basecall_model_subfolder] = true;
+				$modified_bases[$modified_bases_subfolder] = true;
+				$aligned[$aligned_subfolder] = true;
+			} 
+		}
+		//special case: no basecalling
+		if (count(array_keys($on_device_basecall_model)) == 0)
+		{
+			trigger_error("No BAMs found in subfolders!", E_USER_NOTICE);
+			$on_device_basecall_model = "undefined";
+			$modified_bases = false;
+			$aligned = false;
+		}
+		else if (count(array_keys($on_device_basecall_model)) > 1)
+		{
+			trigger_error("Multiple basecall models found (".implode(", ", array_keys($on_device_basecall_model)).")! Cannot perform copy.", E_USER_ERROR);
+		}
+		else if (count(array_keys($modified_bases)) > 1)
+		{
+			trigger_error("Mixture of modified and unmodified bases found! Cannot perform copy.", E_USER_ERROR);
+		}
+		else
+		{
+			// default case: setting of all subfolders are identical
+			$on_device_basecall_model = array_keys($on_device_basecall_model)[0];
+			$modified_bases = array_keys($modified_bases)[0];
+			$aligned = array_keys($aligned)[0];
+
 			if ($aligned) trigger_error("Aligned BAM files available, but not supported yet. Will be treated as unaligned!", E_USER_WARNING);
 			if ($modified_bases) trigger_error("Modified bases BAM files available.", E_USER_NOTICE);
-		} 
+		}
+
+
+		
+		
 
 		//check on-device basecall model:
 		if (str_contains($on_device_basecall_model, $basecall_model) && !$force_basecalling)
@@ -443,8 +485,9 @@ else //bam output
 			if ($is_test_db) $out_dir = $run_dir."/TEST_Sample_".$sample."/";
 			//create sample folder 
 			if (!file_exists($out_dir)) mkdir($out_dir, 0777, true);
-			$out_bam = "{$out_dir}{$sample}.unmapped.bam";
-			if ($modified_bases) $out_bam = "{$out_dir}{$sample}.mod.unmapped.bam";
+			$out_bam = "{$out_dir}{$sample}.mod.unmapped.bam";
+			// $out_bam = "{$out_dir}{$sample}.unmapped.bam";
+			// if ($modified_bases) $out_bam = "{$out_dir}{$sample}.mod.unmapped.bam";
 			if (file_exists($out_bam)) trigger_error("Output BAM file '{$out_bam}' already exists, aborting.", E_USER_ERROR);
 			//apply file access permissions
 			$parser->exec("chmod", "-R 775 {$out_dir}");
