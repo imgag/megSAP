@@ -108,7 +108,7 @@ $manta_sv       = "{$full_prefix}_manta_var_structural.vcf.gz";		// structural v
 $manta_sv_bedpe = "{$full_prefix}_manta_var_structural.bedpe"; 		// structural variants (bedpe)
 $variants       = "{$full_prefix}_var.vcf.gz";						// variants
 $ballele        = "{$full_prefix}_bafs.igv";						// B-allele frequencies
-$hla_file_tumor = "{$t_basename}_hla_genotyper.tsv"; //TODO Marc/Alexander: changed location (now in tumor folder like in T/N pipeline)
+$hla_file_tumor = "{$t_basename}_hla_genotyper.tsv";
 
 if (in_array("vc", $steps))
 {

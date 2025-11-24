@@ -628,9 +628,9 @@ if (in_array("vi", $steps))
 	$dedup_used = file_exists($t_bam_dedup);
 	$vc_viral_args = [
 		"-in ".($dedup_used ? $t_bam_dedup : $t_bam),
-		"-viral_bam {$t_basename}_viral.bam", //TODO why write to BAM folder?
-		"-viral_bam_raw {$t_basename}_viral_before_dedup.bam", //TODO why write to BAM folder?
-		"-viral_cov {$t_basename}_viral.tsv", //TODO why write to BAM folder?
+		"-viral_bam {$t_basename}_viral.bam",
+		"-viral_bam_raw {$t_basename}_viral_before_dedup.bam",
+		"-viral_cov {$t_basename}_viral.tsv",
 		"-viral_chrs chrNC_007605",
 		"-build_viral somatic_viral",
 		"-avg_target_cov ".get_qcml_value("{$t_basename}_stats_map.qcML", "QC:2000025"),
