@@ -29,6 +29,7 @@ $parser->addFlag("annotation_only", "Performs only a reannotation of the already
 $parser->addFlag("no_dragen", "Do not use Illumina DRAGEN calls from NovaSeq X or Dragen server.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
+$parser->addFlag("no_circos", "Skip Circos plot generation.");
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
 extract($parser->parse($argv));
 
@@ -1258,7 +1259,7 @@ if (in_array("re", $steps))
 }
 
 // create Circos plot - if small variant, CNV or SV calling was done
-if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps)) && !$annotation_only)
+if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps)) && !$annotation_only && !$no_circos)
 {
 	if ($is_wes || $is_wgs || $is_wgs_shallow)
 	{
