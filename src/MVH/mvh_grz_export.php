@@ -338,7 +338,7 @@ else if ($network=="Deutsches Netzwerk für Personalisierte Medizin")
 else if ($network=="Deutsches Konsortium Familiärer Brust- und Eierstockkrebs")
 {
 	$kdk = "KDKL00003"; //DK-FBREK - Leipzig
-	$study_subtype = "germline";
+	$study_subtype = "germline-only";
 	$disease_type = "hereditary";
 }
 else trigger_error("Unhandled network type '{$network}'!", E_USER_ERROR); 
