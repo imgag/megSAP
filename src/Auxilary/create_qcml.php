@@ -28,6 +28,7 @@ if (file_exists($som_clincnv))
     $cnv_count_loss = 0;
     $cnv_count_gain = 0;
     $h = fopen2($som_clincnv, 'r');
+	$max_clonality = -1;
     while(!feof($h))
     {
         $line = trim(fgets($h));
@@ -50,10 +51,17 @@ if (file_exists($som_clincnv))
                     if ($cn>2) ++$cnv_count_gain;
                 }
             }
+			
+			#tumor content estimate - max clonality
+			$clonality = $parts[9];
+			if (is_numeric($clonality) && floatval($clonality) > $max_clonality) $max_clonality = floatval($clonality);
         }
     }
     fclose($h);
     
+	//tumor estimate:
+	if ($max_clonality > 0) $terms[] = "QC:2000151\t{$max_clonality}";
+	
     //counts (all, loss, gain)
     $terms[] = "QC:2000044\t{$cnv_count_hq}"; // somatic CNVs count
     if ($cnv_count_hq_autosomes>0)
