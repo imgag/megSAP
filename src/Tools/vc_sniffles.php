@@ -19,6 +19,7 @@ $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addFlag("somatic", "Use somatic mode for SV calling (only single sample).");
 $parser->addFlag("use_tandem_repeat_file", "Use tandem repeat BED file for calling (only supported for GRCh38).");
 $parser->addFlag("add_unfiltered_output", "Also output unfiltered VCF (only single sample).");
+$parser->addFlag("include_mosaic", "Also do mosaic calling for germline samples (since sniffles 2.7).");
 $parser->addInfile("target",  "Optional target region to limit SV calls to certain areas", true, true);
 $parser->addInt("threads", "Number of threads used.", true, 4);
 
@@ -69,6 +70,7 @@ else if(count($bam) == 1)
     $args[] = "--sample-id ".$name;
 	$args[] = "--output-rnames";
     if($somatic) $args[] = "--non-germline";
+    if($include_mosaic) $args[] = "--mosaic-include-germline";
 	if(isset($target))
 	{
 		$args[] = "--regions ".$target;
@@ -97,6 +99,7 @@ else if(count($bam) == 1)
 		$args[] = "--sample-id ".$name;
 		$args[] = "--output-rnames";
 		if($somatic) $args[] = "--non-germline";
+		if($include_mosaic) $args[] = "--mosaic-include-germline";
 		if(isset($target))
 		{
 			$args[] = "--regions ".$target;
@@ -130,6 +133,7 @@ else
     	$args[] = "--allow-overwrite";
 		$args[] = "--sample-id ".$name;
 		$args[] = "--output-rnames";
+		if($include_mosaic) $args[] = "--mosaic-include-germline";
 		if(isset($target))
 		{
 			$args[] = "--regions ".$target;

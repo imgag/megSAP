@@ -566,7 +566,7 @@ if (in_array("cn", $steps))
 if (in_array("sv", $steps))
 {
 	//run Sniffles
-	$parser->execTool("Tools/vc_sniffles.php", "-bam {$used_bam_or_cram} -sample_ids {$name} -out {$sv_vcf_file} -threads {$threads} -build {$build} --log ".$parser->getLogFile());
+	$parser->execTool("Tools/vc_sniffles.php", "-bam {$used_bam_or_cram} -include_mosaic -sample_ids {$name} -out {$sv_vcf_file} -threads {$threads} -build {$build} --log ".$parser->getLogFile());
 }
 
 //phasing

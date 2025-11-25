@@ -34,9 +34,6 @@ $out = "{$folder}/{$name}_var.vcf.gz";
 $out_gvcf = "{$folder}/{$name}_var.gvcf.gz";
 
 //create basic variant calls
-$container = "clair3";
-$command = "run_clair3.sh";
-
 $args = array();
 $args[] = "--bam_fn={$bam}";
 $args[] = "--ref_fn=$genome";
@@ -57,8 +54,6 @@ if ($gpu)
 	else
 	{
 		$args[] = "--use_gpu";
-		$container = "clair3-gpu";
-		$command = "/opt/bin/run_clair3.sh";
 	}
 }
 
@@ -102,7 +97,7 @@ if(isset($target))
 }
 
 //run Clair3 container
-$parser->execApptainer($container, $command, implode(" ", $args), $in_files);
+$parser->execApptainer("clair3", "run_clair3.sh", implode(" ", $args), $in_files);
 $clair_vcf = $clair_temp."/merge_output.vcf.gz";
 $clair_gvcf = $clair_temp."/merge_output.gvcf.gz";
 
@@ -113,7 +108,7 @@ file_put_contents($target_mito, "chrMT\t0\t16569");
 $args_mito[] = "--bed_fn={$target_mito}";
 $args_mito[] = "--haploid_sensitive";
 
-$parser->execApptainer($container, $command, implode(" ", $args_mito), $in_files);
+$parser->execApptainer("clair3", "run_clair3.sh", implode(" ", $args_mito), $in_files);
 $clair_mito_vcf = $clair_mito_temp."/merge_output.vcf.gz";
 $clair_mito_gvcf = $clair_mito_temp."/merge_output.gvcf.gz";
 
