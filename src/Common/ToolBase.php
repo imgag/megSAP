@@ -650,8 +650,8 @@ class ToolBase
 		$this->log("Environment/user: {$user}");
 		$lang = trim(exec('echo $LANG'));
 		$this->log("Environment/LANG: {$lang}");
-		$server = trim(implode(" ", exec2("singularity --version")[0]));
-		$this->log("Environment/container platform: {$server}");
+		$platform = trim(implode(" ", exec2("singularity --version")[0]));
+		$this->log("Environment/container platform: ".container_platform(true));
 	}
 	
 	/// Prints a message (string or array of strings) to the stderr stream
