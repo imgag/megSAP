@@ -33,14 +33,6 @@ extract($parser->parse($argv));
 //init
 $genome = genome_fasta($build);
 
-//check if apptainer or singularity is used
-list($cmd_out) = exec2("singularity --version");
-$parts = explode(' ', strtolower($cmd_out[0]));
-$tool = $parts[0];
-
-if ($tool === 'apptainer') $prefix = "APPTAINERENV";
-elseif ($tool === 'singularity') $prefix = "SINGULARITYENV";
-
 //create basic variant calls
 $args = [];
 $args[] = "--reads={$bam}";
@@ -85,7 +77,7 @@ if (!empty($gvcf))
 // run deepvariant
 $pipeline = array();
 $container = ($gpu) ? "deepvariant-gpu" : "deepvariant";
-
+$prefix = container_platform()=='apptainer' ? "APPTAINERENV" : "SINGULARITYENV";
 if ($raw_output)
 {
 	$command = $parser->execApptainer($container, "run_deepvariant" ,implode(" ", $args)." --output_vcf={$out}", [$genome, $bam], [dirname($out)], true);
