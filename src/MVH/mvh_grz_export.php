@@ -220,6 +220,10 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 		}
 	}
 	
+	//determine sample date
+	$sample_date = trim($info["s_received"]);
+	if ($sample_date=="") $sample_date = trim($info["order_date"]);
+	
 	$output = [
 				"labDataName" => "DNA ".($is_tumor ? "tumor" : "normal"),
 				"tissueOntology" => [
@@ -228,7 +232,7 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 					],
 				"tissueTypeId" => $tissue_id,
 				"tissueTypeName" => $tissue,
-				"sampleDate" => not_empty($info["s_received"], "sampleDate"),
+				"sampleDate" => not_empty($sample_date, "sampleDate"),
 				"sampleConservation" => ($info["is_ffpe"] ? "ffpe" : "fresh-tissue"),
 				"sequenceType" => "dna",
 				"sequenceSubtype" => ($is_tumor ? "somatic" : "germline"),
@@ -338,7 +342,7 @@ else if ($network=="Deutsches Netzwerk für Personalisierte Medizin")
 else if ($network=="Deutsches Konsortium Familiärer Brust- und Eierstockkrebs")
 {
 	$kdk = "KDKL00003"; //DK-FBREK - Leipzig
-	$study_subtype = "germline";
+	$study_subtype = "germline-only";
 	$disease_type = "hereditary";
 }
 else trigger_error("Unhandled network type '{$network}'!", E_USER_ERROR); 

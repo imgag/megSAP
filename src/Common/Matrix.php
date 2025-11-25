@@ -486,9 +486,9 @@ class Matrix
 		//comments
 		if (implode("", $this->comments)!="")
 		{
-			for($i=0; $i<count($this->getComments()); ++$i)
+			foreach($this->getComments() as $comment_line)
 			{
-				fwrite($handle , $comment.(trim($this->comments[$i]))."\n");
+				fwrite($handle , $comment.trim($comment_line)."\n");
 			}
 		}
 

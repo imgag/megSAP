@@ -33,6 +33,14 @@ extract($parser->parse($argv));
 //init
 $genome = genome_fasta($build);
 
+//check if apptainer or singularity is used
+list($cmd_out) = exec2("singularity --version");
+$parts = explode(' ', strtolower($cmd_out[0]));
+$tool = $parts[0];
+
+if ($tool === 'apptainer') $prefix = "APPTAINERENV";
+elseif ($tool === 'singularity') $prefix = "SINGULARITYENV";
+
 //create basic variant calls
 $args = [];
 $args[] = "--reads={$bam}";
@@ -80,12 +88,14 @@ $container = ($gpu) ? "deepvariant-gpu" : "deepvariant";
 
 if ($raw_output)
 {
-	$parser->execApptainer($container, "run_deepvariant" ,implode(" ", $args)." --output_vcf={$out}", [$genome, $bam], [dirname($out)]);
+	$command = $parser->execApptainer($container, "run_deepvariant" ,implode(" ", $args)." --output_vcf={$out}", [$genome, $bam], [dirname($out)], true);
+	$parser->exec("{$prefix}_OMP_NUM_THREADS={$threads} {$prefix}_TF_NUM_INTRAOP_THREADS={$threads} {$prefix}_TF_NUM_INTEROP_THREADS={$threads} {$command}", "");
 	return;
 }
 
 $vcf_deepvar_out = $parser->tempFile(".vcf.gz");
-$parser->execApptainer($container, "run_deepvariant", implode(" ", $args)." --output_vcf={$vcf_deepvar_out}", [$genome, $bam], [dirname($out)]);
+$command = $parser->execApptainer($container, "run_deepvariant", implode(" ", $args)." --output_vcf={$vcf_deepvar_out}", [$genome, $bam], [dirname($out)], true);
+$parser->exec("{$prefix}_OMP_NUM_THREADS={$threads} {$prefix}_TF_NUM_INTRAOP_THREADS={$threads} {$prefix}_TF_NUM_INTEROP_THREADS={$threads} {$command}", "");
 
 //filter variants according to variant quality>5
 $pipeline[] = ["zcat", "$vcf_deepvar_out"];
