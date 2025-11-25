@@ -81,6 +81,8 @@ $args[] = "-b ".implode(" ", $bam);
 $in_files[] = $genome;
 $in_files = array_merge($in_files, $bam);
 
+
+//TODO: switch to VarScan or use ToolBase::execParallel with correct error handling!
 // run freebayes
 $pipeline = array();
 if (isset($target) && $threads > 1) 

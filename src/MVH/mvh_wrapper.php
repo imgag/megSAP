@@ -21,6 +21,7 @@ $args = [];
 $args[] = "-cm_id {$cm_id}";
 if ($clear) $args[] = "-clear";
 if ($test) $args[] = "-test";
+$args[] = "--log ".realpath(get_path("mvh_folder"))."/".strtolower($type)."_export/logs/{$cm_id}.log";
 $script = dirname(realpath($_SERVER['SCRIPT_FILENAME']))."/mvh_".strtolower($type)."_export.php";
 $command = "php {$script} ".implode(" ", $args)." 2>&1";
 list($stdout, , $exit_code) = exec2($command, false);

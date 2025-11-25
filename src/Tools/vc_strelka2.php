@@ -319,6 +319,27 @@ if (!empty($target))
 	}
 }
 
+//combine "source" and "source_version" comments:
+$vcf = Matrix::fromTSV($final);
+$comments = $vcf->getComments();
+$version = "";
+for ($i=count($comments)-1; $i >= 0; $i--)
+{
+	if (contains($comments[$i], "#source="))
+	{
+		unset($comments[$i]);
+		continue;
+	}
+	
+	if (contains($comments[$i], "#source_version="))
+	{
+		$version = explode("=", trim($comments[$i]))[1];
+		$comments[$i] = "#source=strelka2 $version\n";
+	}
+}
+$vcf->setComments($comments);
+$vcf->toTSV($final);
+
 
 //zip and index output file
 $parser->execApptainer("htslib", "bgzip", "-c $final > $out", [], [dirname($out)]);

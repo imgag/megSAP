@@ -12,12 +12,13 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data, $se_data_rep)
 	global $db_mvh;
 	global $sub_id;
 	global $parser;
+	global $submission_type;
 	
 	//Teilnahmeerklärung
 	$te_present_date = xml_str($cm_data->mvconsentpresenteddate);
 	$te_date = xml_str($cm_data->datum_teilnahme);
 	$output = [
-			"type" => $db_mvh->getValue("SELECT type FROM submission_kdk_se WHERE id='{$sub_id}'"),
+			"type" => $submission_type,
 			"transferTAN" => $tan_k,
 			"modelProjectConsent" => [
 				"version" => "",
@@ -93,6 +94,9 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data, $se_data_rep)
 					//skip not active
 					if ($entry['status']!='active') continue;
 					
+					//skip if V9
+					if ($entry['identifier'][0]['system']=="source.ish.document.v09") continue;
+					
 					$active_rcs[] = $entry;
 				}
 			}
@@ -104,6 +108,10 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data, $se_data_rep)
 		{
 			$output["researchConsents"] = [ $active_rcs[0] ];
 		}
+	}
+	else
+	{
+		//TODO implement until 1.1.26: reasonResearchConsentMissing (bc_reason_missing)
 	}
 			
 	return $output;
@@ -168,11 +176,6 @@ function json_diagnoses($se_data, $se_data_rep)
 	{
 		$code = get_raw_value($se_data->psn, "diag_icd10");
 		
-		//TODO remove workarounds when KDK has found out why the sub-terms are missing
-		if (starts_with($code, "F70.") || starts_with($code, "F79.")) $code = substr($code,0, 3);
-		if (starts_with($code, "M62.5")) $code = substr($code,0, 5);
-		
-		
 		$codes[] = [
 			"code" => $code,
 			"display" => $icd10,
@@ -193,7 +196,7 @@ function json_diagnoses($se_data, $se_data_rep)
 			"version" => $orpha_ver
 		];
 	}
-	if (xml_bool($se_data->orphacode_undiagnostiziert___1, false))
+	if (xml_bool($se_data->orphacode_undiagnostiziert___1, false, "orphacode_undiagnostiziert"))
 	{
 		$codes[] = [
 			"code" => "ORPHA:616874",
@@ -211,8 +214,6 @@ function json_diagnoses($se_data, $se_data_rep)
 			"system" => "https://www.bfarm.de/DE/Kodiersysteme/Terminologien/Alpha-ID-SE",
 		];
 	}
-	//TODO we should no longer need this, so it is commented out for now
-	//if (count($codes)==0) trigger_error("No disease code found in SE data!", E_USER_ERROR);
 	
 	//determine onset date from HPO terms
 	$onset_date = [];
@@ -238,7 +239,7 @@ function json_diagnoses($se_data, $se_data_rep)
 			"patient" => json_patient_ref(),
 			"recordedOn" => xml_str($se_data->datum_fallkonferenz),
 			"verificationStatus" => [
-				"code" => convert_diag_status(xml_str($se_data->bewertung_gen_diagnostik)),
+				"code" => ($no_seq ? "unconfirmed" : convert_diag_status(xml_str($se_data->bewertung_gen_diagnostik))),
 				],
 			"codes" => $codes,
 			//missing fields: notes
@@ -558,13 +559,13 @@ function json_care_plan_2($se_data, $se_data_rep) //'carePlan' is misleading. Th
 			];
 	
 	//optional stuff
-	$recom_counceling = xml_bool($se_data->empf_hg_beratung, true);
+	$recom_counceling = xml_bool($se_data->empf_hg_beratung, true, "empf_hg_beratung");
 	if (!is_null($recom_counceling))
 	{
 		$output["geneticCounselingRecommended"] = $recom_counceling;
 	}
 	
-	$recom_reeval = xml_bool($se_data->empf_reeval, true);
+	$recom_reeval = xml_bool($se_data->empf_reeval, true, "empf_reeval");
 	if (!is_null($recom_reeval))
 	{
 		$output["reevaluationRecommended"] = $recom_reeval;
@@ -631,7 +632,7 @@ function genes_overlapping($chr, $start, $end)
 	if ($tmp=="")
 	{
 		file_put_contents($tmp_file, "{$chr}\t".($start-5000)."\t".($end+5000));
-		list($stdout) = $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in {$tmp}");
+		list($stdout) = $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in {$tmp_file}");
 		$tmp = explode("\t", nl_trim($stdout[0]))[3];
 	}
 	
@@ -918,7 +919,7 @@ $se_data_rep = get_se_data($db_mvh, $id, true);
 $rc_data_json = get_rc_data_json($db_mvh, $id);
 
 //check if that patient was included into the Modellvorhaben, i.e. sequencing is/was performed
-$no_seq = !xml_bool($se_data->aufnahme_mvh, false);
+$no_seq = !xml_bool($se_data->aufnahme_mvh, false, "aufnahme_mvh");
 
 //get data from NGSD
 if ($no_seq)
@@ -937,6 +938,7 @@ print "\n";
 print "### creating JSON ###\n";
 
 //create results section (contained variants are referenced in therapy and study recommendations, so we need to create them first to have to the IDs later on)
+$submission_type = $db_mvh->getValue("SELECT type FROM submission_kdk_se WHERE id='{$sub_id}'");
 $var2id = [];
 $results = $no_seq ? [] : json_results($se_data, $se_data_rep, $info);
 $json = [
@@ -1050,7 +1052,7 @@ print "uploading JSON took ".time_readable(microtime(true)-$time_start)."\n";
 $time_start = microtime(true);
 
 //if upload successfull, add 'Pruefbericht' to CM RedCap
-if (!$test)
+if ($submission_type=='initial' && !$test)
 {
 	print "Adding Pruefbericht to CM RedCap...\n";
 	add_submission_to_redcap($cm_id, "K", $tan_k);
@@ -1063,7 +1065,5 @@ if (!$test)
 }
 
 print "cleanup took ".time_readable(microtime(true)-$time_start)."\n";
-
-//TODO add tests: WGS, lrGS, no_seq
 
 ?>

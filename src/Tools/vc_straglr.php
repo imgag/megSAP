@@ -211,9 +211,6 @@ $parser->execApptainer("ngs-bits", "VcfSort", "-in {$out_vcf} -out {$out_vcf}", 
 if (file_exists($plot_folder)) $parser->exec("rm", "-r {$plot_folder}"); //delete previous plots
 mkdir($plot_folder);
 
-// TODO: remove
-//$parser->execApptainer("straglrOn", "python3 /mnt/storage2/users/ahschul1/git/StraglrOn/src/straglron.py", "{$out_bed} {$out_tsv} {$loci} -o {$plot_folder} --hist --alleles --bam {$in} --genome ".genome_fasta($build), [$in, $out_folder, $loci, genome_fasta($build), "/mnt/storage2/users/ahschul1/git/StraglrOn/src/straglron.py"]);
-
 $parser->execApptainer("straglrOn", "straglron.py", "{$out_bed} {$out_tsv} {$loci} -o {$plot_folder} --hist --alleles --bam {$in} --genome ".genome_fasta($build), [$in, $out_folder, $loci, genome_fasta($build)]);
 
 

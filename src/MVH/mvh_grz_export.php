@@ -3,6 +3,8 @@
 	@page mvh_grz_export
 */
 
+//TODO update to grz-cli v1.5 until 1.1.26 (see email "GRZ Tübingen Updates" from 2025-10-30)
+
 require_once("mvh_functions.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
@@ -187,14 +189,45 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 	global $test;
 	global $is_lrgs;
 	
+	//determine tissue ontology ID
+	$tissue = "anatomical structure";
+	$tissue_id = "UBERON:0000061";
+	$ontology = "UBERON";
+	$ontology_version = "2025-08-15";
+	if (!$is_tumor)
+	{
+		$tmp = trim($info["tissue"]);
+		if ($tmp!="" && $tmp!="n/a")
+		{
+			$tissue = $tmp;
+			$tissue_id = convert_tissue($tissue);
+			if (starts_with($tissue_id, "CL:")) //Cell Ontology
+			{
+				$ontology = "CL";
+				$ontology_version = "2025-10-16";
+			}
+		}
+	}
+	else //somatic: take oncotree data from NGSD
+	{
+		$oncotree_codes = $db_ngsd->getValues("SELECT disease_info FROM sample_disease_info WHERE sample_id='".$info['s_id']."' and type='Oncotree code'");
+		if (count($oncotree_codes)>0)
+		{
+			$tissue_id = $oncotree_codes[0];
+			$tissue = $db_ngsd->getValue("SELECT name FROM oncotree_term WHERE oncotree_code='{$tissue_id}'");
+			$ontology = "OncoTree";
+			$ontology_version = "2021_11_02";
+		}
+	}
+	
 	$output = [
 				"labDataName" => "DNA ".($is_tumor ? "tumor" : "normal"),
 				"tissueOntology" => [
-						"name" => "BRENDA tissue ontology",
-						"version" => "2021-10-23"
+						"name" => $ontology,
+						"version" => $ontology_version
 					],
-				"tissueTypeId" => convert_tissue($info["tissue"]),
-				"tissueTypeName" => $info["tissue"],
+				"tissueTypeId" => $tissue_id,
+				"tissueTypeName" => $tissue,
 				"sampleDate" => not_empty($info["s_received"], "sampleDate"),
 				"sampleConservation" => ($info["is_ffpe"] ? "ffpe" : "fresh-tissue"),
 				"sequenceType" => "dna",
@@ -269,6 +302,7 @@ extract($parser->parse($argv));
 $db_mvh = DB::getInstance("MVH");
 $db_ngsd = DB::getInstance("NGSD");
 $mvh_folder = get_path("mvh_folder");
+$threads = 10;
 
 //check that case ID is valid
 $id = $db_mvh->getValue("SELECT id FROM case_data WHERE cm_id='{$cm_id}'");
@@ -304,7 +338,7 @@ else if ($network=="Deutsches Netzwerk für Personalisierte Medizin")
 else if ($network=="Deutsches Konsortium Familiärer Brust- und Eierstockkrebs")
 {
 	$kdk = "KDKL00003"; //DK-FBREK - Leipzig
-	$study_subtype = "germline";
+	$study_subtype = "germline-only";
 	$disease_type = "hereditary";
 }
 else trigger_error("Unhandled network type '{$network}'!", E_USER_ERROR); 
@@ -387,7 +421,58 @@ $lrgs_bam = "{$folder}/files/normal.bam";
 if ($is_lrgs && !file_exists($lrgs_bam)) //for lrGS we submit BAM: convert CRAM to BAM
 {
 	print "  generating BAM file for germline sample {$ps}...\n";
-	$parser->execTool("Tools/cram_to_bam.php", "-cram {$n_bam} -bam {$lrgs_bam} -threads 10");
+	$parser->execTool("Tools/cram_to_bam.php", "-cram {$n_bam} -bam {$lrgs_bam} -threads {$threads}");
+}
+if ($is_lrgs) //fix BAM header if DS tag in @RG line is present more than once
+{
+	$ds_twice = false;
+	list($stdout) = exec2("samtools view -H {$lrgs_bam}");  
+	for ($i=0; $i<count($stdout); ++$i)
+	{
+		$line = $stdout[$i];
+		
+		if (substr_count($line, "\tDS:")>1)
+		{
+			$ds_twice = true;
+			
+			$new = [];
+			$first_done = false;
+			foreach(explode("\t", nl_trim($line)) as $entry)
+			{
+				if (starts_with($entry, "DS:"))
+				{
+					if (!$first_done)
+					{
+						$new[] = $entry;
+						$first_done = true;
+					}
+				}
+				else
+				{
+					$new[] = $entry;
+				}
+			}
+			
+			$stdout[$i] = implode("\t", $new)."\n";
+		}
+	}
+	if ($ds_twice)
+	{
+		print "  fixing BAM header {$ps}...\n";
+		
+		//store header
+		$header = $parser->tempFile(".txt");
+		file_put_contents($header, implode("\n", $stdout));
+		
+		//reheader to tmp
+		$tmp_bam = "{$folder}/files/tmp.bam";
+		$parser->execApptainer("samtools", "samtools reheader", "{$header} {$lrgs_bam} > {$tmp_bam}", [], [dirname($lrgs_bam)]);
+		
+		//replace BAM and index it
+		exec2("rm -rf {$lrgs_bam}*");
+		$parser->moveFile($tmp_bam, $lrgs_bam);
+		$parser->execApptainer("samtools", "samtools index", "-@ {$threads} {$lrgs_bam}", [], [dirname($lrgs_bam)]);
+	}
 }
 if (!$is_lrgs && (!file_exists($n_fq1) || !file_exists($n_fq2)))
 {
@@ -423,7 +508,7 @@ if ($is_somatic)
 	{
 		print "  generating VCF file for tumor/normal pair {$ps_t}/{$ps}...\n";
 		
-		$vcf = $info_t['ps_folder']."/../Somatic_{$ps_t}-{$ps}/{$ps_t}-{$ps}_var.vcf.gz";
+		$vcf = dirname($info_t['ps_folder'])."/Somatic_{$ps_t}-{$ps}/{$ps_t}-{$ps}_var.vcf.gz";
 		$parser->execApptainer("ngs-bits", "VcfReplaceSamples", "-in {$vcf} -out {$tn_vcf} -ids {$ps}=SAMPLE_GERMLINE,{$ps_t}=SAMPLE_TUMOR", [$vcf], ["{$folder}/files/"]);
 	}
 	$files_to_submit_t = [$t_fq1, $t_fq2, $tn_vcf];
@@ -472,7 +557,7 @@ if ($is_somatic)
 {
 	$lab_data[] = create_lab_data_json($files_t, $info_t, $grz_qc_t, true);
 }
-
+//TODO add support for kids (SE: RedCap, OE: ???, FBREK: ???)
 //prepare research consent data - for format see https://www.medizininformatik-initiative.de/Kerndatensatz/KDS_Consent_V2025/MII-IG-Modul-Consent-TechnischeImplementierung-FHIRProfile-Consent.html
 $active_consent_count = 0;
 $research_use_allowed = false;
@@ -569,11 +654,12 @@ $research_consent = [
 
 //create meta data JSON
 print "  creating metadata...\n";
+$submission_type = $db_mvh->getValue("SELECT type FROM submission_grz WHERE id='{$sub_id}'");
 $json = [];
 $json['$schema'] = "https://raw.githubusercontent.com/BfArM-MVH/MVGenomseq/refs/tags/v1.2.1/GRZ/grz-schema.json";
 $json['submission'] = [
 	"submissionDate" => date('Y-m-d'),
-	"submissionType" => $db_mvh->getValue("SELECT type FROM submission_grz WHERE id='{$sub_id}'"),
+	"submissionType" => $submission_type,
 	"tanG" => $tan_g,
 	"localCaseId" => $patient_id,
 	"coverageType" => convert_coverage($cm_data->coveragetype),
@@ -611,7 +697,7 @@ $json['donors'] = [
 						],
 				]
 			],
-		"researchConsents" => [], //TODO implement until 1.1.26: presentationDate mandatory, set 'noScoreJustification' if no consent data given
+		"researchConsents" => [], //TODO implement until 1.1.26: presentationDate mandatory, set 'noScoreJustification' if no consent data given (bc_reason_missing)
 		"labData" => $lab_data		 
 		]
 	];
@@ -647,7 +733,7 @@ $stderr = "{$folder}/logs/grz_cli_validate.stderr";
 exec2("{$grz_cli} validate --submission-dir {$folder} > {$stdout} 2> {$stderr}", $output, $exit_code); //when using exec2 the process hangs indefinitely sometimes
 if ($exit_code!=0)
 {
-	trigger_error("grz-cli validate failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
+	trigger_error("grz-cli validate failed!\nSTDOUT:\n".implode("\n", file($stdout, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES))."\nSTDERR:\n".implode("\n", file($stderr, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES)), E_USER_ERROR);
 }
 
 print "validating submission took ".time_readable(microtime(true)-$time_start)."\n";
@@ -664,7 +750,7 @@ exec("{$grz_cli} encrypt --submission-dir {$folder} --config-file {$config} > {$
 if ($exit_code!=0)
 {
 	print_r($output);
-	trigger_error("grz-cli encrypt failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
+	trigger_error("grz-cli encrypt failed!\nSTDOUT:\n".implode("\n", file($stdout, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES))."\nSTDERR:\n".implode("\n", file($stderr, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES)), E_USER_ERROR);
 }
 
 print "encrypting submission took ".time_readable(microtime(true)-$time_start)."\n";
@@ -680,7 +766,7 @@ exec("{$grz_cli} upload --submission-dir {$folder} --config-file {$config} > {$s
 if ($exit_code!=0)
 {
 	print_r($output);
-	trigger_error("grz-cli upload failed - see {$folder}/logs/ for output!\n", E_USER_ERROR);
+	trigger_error("grz-cli upload failed!\nSTDOUT:\n".implode("\n", file($stdout, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES))."\nSTDERR:\n".implode("\n", file($stderr, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES)), E_USER_ERROR);
 }
 
 //print submission ID (used by wrapper script when updating status in MVH db)
@@ -691,7 +777,7 @@ print "uploading submission took ".time_readable(microtime(true)-$time_start)."\
 $time_start = microtime(true);
 
 //if upload successfull, add 'Pruefbericht' to CM RedCap
-if (!$test)
+if ($submission_type=='initial' && !$test)
 {
 	print "Adding Pruefbericht to CM RedCap...\n";
 	add_submission_to_redcap($cm_id, "G", $tan_g);
@@ -704,7 +790,5 @@ if (!$test)
 }
 
 print "cleanup took ".time_readable(microtime(true)-$time_start)."\n";
-
-//TODO add tests: SE WGS, SE lrGS, SE WGS trio, T/N
 
 ?>

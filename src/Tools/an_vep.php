@@ -55,7 +55,7 @@ function annotation_file_path($rel_path, $is_optional=false)
 $vep_output = $parser->tempFile("_vep.vcf");
 
 //annotate only fields we really need to prevent bloating the VCF file 
-$fields = array("Allele", "Consequence", "Feature", "Feature_type", "DOMAINS", "Existing_variation");
+$fields = array("Allele", "Consequence", "Feature", "Feature_type", "DOMAINS");
 
 $local_data = get_path("local_data");
 $vep_data_path = "{$local_data}/".basename(get_path("vep_data"))."/"; //the data is copied to the local data folder by 'data_setup' to speed up annotations (and prevent hanging annotation jobs)
@@ -82,7 +82,6 @@ if (!$all_transcripts)
 {
 	$args[] = "--gencode_basic";
 }
-
 $args[] = "--fields ".implode(",", $fields);
 
 $parser->execApptainer("vep", "vep", implode(" ", $args), $in_files);
@@ -145,6 +144,10 @@ if ($custom!="")
 	}
 }
 
+// add dbSNP annotation
+fwrite($config_file, annotation_file_path("/dbs/dbSNP/dbSNP_b157.vcf.gz")."\t\tRS\t\n");
+$in_files[] = annotation_file_path("/dbs/dbSNP/dbSNP_b157.vcf.gz");
+
 // add gnomAD annotation
 fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz")."\tgnomADg\tAC,AF,Hom,Hemi,Het,Wt,AFR_AF,AMR_AF,EAS_AF,NFE_AF,SAS_AF\t\ttrue\n");
 $in_files[] = annotation_file_path("/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz");
@@ -174,8 +177,18 @@ fwrite($config_file, annotation_file_path("/dbs/REVEL/REVEL_1.3.vcf.gz")."\t\tRE
 $in_files[] = annotation_file_path("/dbs/REVEL/REVEL_1.3.vcf.gz");
 
 //add AlphaMissense score annotation
-fwrite($config_file, annotation_file_path("/dbs/AlphaMissense/AlphaMissense_hg38.vcf.gz")."\t\tALPHAMISSENSE\t\n");
-$in_files[] = annotation_file_path("/dbs/AlphaMissense/AlphaMissense_hg38.vcf.gz");
+$am_main = annotation_file_path("/dbs/AlphaMissense/AlphaMissense_hg38.vcf.gz");
+if (file_exists($am_main))
+{
+	fwrite($config_file, $am_main."\tAM\tALPHAMISSENSE=MAIN\t\n");
+	$in_files[] = $am_main;
+}
+$am_iso = annotation_file_path("/dbs/AlphaMissense/AlphaMissense_isoforms_hg38.vcf.gz");
+if (file_exists($am_iso))
+{
+	fwrite($config_file, $am_iso."\tAM\tALPHAMISSENSE=ISO\t\n");
+	$in_files[] = $am_iso;
+}
 
 //precalculated SpliceAI scores
 $spliceai_file = annotation_file_path("/dbs/SpliceAI/spliceai_scores_2024_08_26_GRCh38.vcf.gz");

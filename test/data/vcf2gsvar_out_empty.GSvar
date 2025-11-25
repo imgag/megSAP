@@ -24,7 +24,6 @@
 ##DESCRIPTION=REVEL=REVEL pathogenicity prediction score. Deleterious threshold > 0.5.
 ##DESCRIPTION=AlphaMissense=AlphaMissense pathogenicity score. Deleterious threshold > 0.564.
 ##DESCRIPTION=MaxEntScan=MaxEntScan reference score and alternate score for (1) native splice site, (2) acceptor gain and (3) donor gain. Comma-separated list if there are different predictions for several transcripts.
-##DESCRIPTION=COSMIC=COSMIC somatic variant database anntotation.
 ##DESCRIPTION=SpliceAI=SpliceAI prediction. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG), acceptor loss (AL), donor gain (DG), and donor loss (DL). Format: GENE|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL.
 ##DESCRIPTION=PubMed=PubMed ids to publications on the given variant.
 ##DESCRIPTION=NGSD_hom=Homozygous variant count in NGSD.
@@ -37,4 +36,4 @@
 ##DESCRIPTION=comment=Variant comments from the NGSD.
 ##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).
 ##FILTER=low_conf_region=Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.
-#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	gnomAD	gnomAD_sub	gnomAD_hom_hemi	gnomAD_het	gnomAD_wt	phyloP	CADD	REVEL	AlphaMissense	MaxEntScan	COSMIC	SpliceAI	PubMed	NGSD_hom	NGSD_het	NGSD_mosaic	NGSD_group	classification	classification_comment	validation	comment	gene_info
+#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	gnomAD	gnomAD_sub	gnomAD_hom_hemi	gnomAD_het	gnomAD_wt	phyloP	CADD	REVEL	AlphaMissense	MaxEntScan	SpliceAI	PubMed	NGSD_hom	NGSD_het	NGSD_mosaic	NGSD_group	classification	classification_comment	validation	comment	gene_info

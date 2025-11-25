@@ -34,6 +34,14 @@ htslib=$CONTAINER_FOLDER/htslib_$HTSLIB_VERSION.sif
 ngsbits=$CONTAINER_FOLDER/ngs-bits_$NGSBITS_VERSION.sif
 msisensor=$CONTAINER_FOLDER/msisensor-pro_$MSISENSOR_VERSION.sif
 
+#Install dbSNP
+cd $dbs
+mkdir -p dbSNP
+cd dbSNP
+wget https://ftp.ncbi.nih.gov/snp/archive/b157/VCF/GCF_000001405.40.gz
+zcat GCF_000001405.40.gz | php $src/Install/db_converter_dbsnp.php | singularity exec $ngsbits VcfBreakMulti | singularity exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | singularity exec $ngsbits VcfStreamSort | singularity exec $htslib bgzip > dbSNP_b157.vcf.gz
+singularity exec $htslib tabix -p vcf -C -m9 -f dbSNP_b157.vcf.gz
+
 #Download ensembl transcripts database
 cd $dbs
 mkdir -p Ensembl
@@ -51,19 +59,6 @@ mkdir -p RefSeq
 cd RefSeq
 wget -O GCF_000001405.40_GRCh38.p14_genomic.gff.gz https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/001/405/GCF_000001405.40_GRCh38.p14/GCF_000001405.40_GRCh38.p14_genomic.gff.gz
 zcat GCF_000001405.40_GRCh38.p14_genomic.gff.gz > Homo_sapiens.GRCh38.p14.gff3
-
-#Install CancerHotspots.org
-cd $dbs
-mkdir -p cancerhotspots
-cd cancerhotspots
-wget -O hotspots_v2.xls https://www.cancerhotspots.org/files/hotspots_v2.xls
-wget -O cancerhotspots.v2.maf.gz https://cbioportal-download.s3.amazonaws.com/cancerhotspots.v2.maf.gz
-ssconvert -O 'separator="	" format=raw' -T Gnumeric_stf:stf_assistant -S hotspots_v2.xls hotspots.tsv
-php $src/Install/db_converter_cancerhotspots.php -in hotspots.tsv.0 -maf cancerhotspots.v2.maf.gz -out cancerhotspots_snv.tsv
-rm hotspots_v2.xls
-rm hotspots.tsv.0 
-rm hotspots.tsv.1
-rm cancerhotspots.v2.maf.gz
 
 #Install ClinGen dosage sensitivity - http://ftp.ncbi.nlm.nih.gov/pub/dbVar/clingen
 cd $dbs
@@ -180,6 +175,12 @@ php $src/Install/db_converter_alphamissense.php AlphaMissense_hg38.tsv.gz > Alph
 singularity exec $ngsbits VcfSort -in AlphaMissense_hg38.vcf -out AlphaMissense_hg38.vcf
 singularity exec $htslib bgzip AlphaMissense_hg38.vcf
 singularity exec $htslib tabix -p vcf AlphaMissense_hg38.vcf.gz
+#also download isoforms file as backup - for some genes the main file does not contain anything, e.g. PRPH2
+wget -O AlphaMissense_isoforms_hg38.tsv.gz https://storage.googleapis.com/dm_alphamissense/AlphaMissense_isoforms_hg38.tsv.gz
+php $src/Install/db_converter_alphamissense.php AlphaMissense_isoforms_hg38.tsv.gz > AlphaMissense_isoforms_hg38.vcf
+singularity exec $ngsbits VcfSort -in AlphaMissense_isoforms_hg38.vcf -out AlphaMissense_isoforms_hg38.vcf
+singularity exec $htslib bgzip AlphaMissense_isoforms_hg38.vcf
+singularity exec $htslib tabix -p vcf AlphaMissense_isoforms_hg38.vcf.gz
 
 #download annotation file for SpliceAI
 cd $dbs
