@@ -3,6 +3,13 @@
 include("framework.php");
 
 
+//##################################################################################
+start_test("bed_is_sorted");
+
+check(bed_is_sorted(data_folder()."/an_vep_NGSD_gene_info.bed"), true);
+check(bed_is_sorted(data_folder()."/bed_unsorted.bed"), false);
+
+end_test();
 
 //##################################################################################
 start_test("get_qcml_value");

@@ -2535,4 +2535,22 @@ function get_fastq_read_count($fastq_files)
 	return $read_count;
 }
 
+//Checks if a BED file is sorted
+function bed_is_sorted($filename)
+{
+	$is_sorted = "";
+	list($stdout) = execApptainer("ngs-bits", "BedInfo", "-in {$filename} -nomerge", [$filename]);
+	foreach($stdout as $line)
+	{
+		$line = trim($line);
+		if (starts_with($line, "Is sorted"))
+		{
+			$is_sorted = trim(explode(":", $line, 2)[1]);
+		}
+	}
+	if ($is_sorted=="yes") return true;
+	if ($is_sorted=="no") return false;
+	trigger_error("Could not determine if file is sorted: $filename", E_USER_ERROR);
+}
+
 ?>

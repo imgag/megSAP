@@ -650,7 +650,6 @@ class ToolBase
 		$this->log("Environment/user: {$user}");
 		$lang = trim(exec('echo $LANG'));
 		$this->log("Environment/LANG: {$lang}");
-		$platform = trim(implode(" ", exec2("singularity --version")[0]));
 		$this->log("Environment/container platform: ".container_platform(true));
 	}
 	
