@@ -107,9 +107,64 @@ foreach ($logs as $line)
 }
 exec2("mv ".output_folder()."/21073LRa277_01234/TEST_Sample_21073LRa277_01 ".output_folder()."/TEST_Sample_21073LRa277_01_test7");
 
-//test 6: test wrong basecall model
+// remove pod5s from pod_skip and rename bam folder back
+exec2("rm ".output_folder()."/21073LRa277_01234/20000101_1200_3D_PAW01234_abcdef12/pod5_skip/trash.pod5");
+exec2("mv ".output_folder()."/21073LRa277_01234/20000101_1200_3D_PAW01234_abcdef12/bam_pass_hac ".output_folder()."/21073LRa277_01234/20000101_1200_3D_PAW01234_abcdef12/bam_pass");
 
-//test 7: test basecall queuing
+//test 8: test wrong basecall model -> fail
+list($stdout, $stderr, $exit_code) = exec2("php ".src_folder()."/IMGAG/{$name}.php -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST -threads 4 -basecall_model sup --log ".output_folder()."{$name}_8.log", false);
+check(($exit_code == 0), FALSE); // check exit code
+check((strpos(implode("", $stderr), "ERROR: 'Basecall Models doesn't match: On-device basecall model: 'dna_r10.4.1_e8.2_400bps_hac@v3.5.2', requested basecall model: 'sup'. Please check setting or re-do basecalling!'") != FALSE), TRUE); //check error message
+
+// add second flowcell with different basecall model
+exec2("mkdir ".output_folder()."/21073LRa277_01234/20000002_1200_3D_PAW05678_abcdef12/");
+exec2("mkdir ".output_folder()."/21073LRa277_01234/20000002_1200_3D_PAW05678_abcdef12/bam_pass");
+exec2("mkdir ".output_folder()."/21073LRa277_01234/20000002_1200_3D_PAW05678_abcdef12/bam_fail");
+exec2("mkdir ".output_folder()."/21073LRa277_01234/20000002_1200_3D_PAW05678_abcdef12/pod5");
+exec2("cp ".data_folder().$name."_in2.bam ".output_folder()."/21073LRa277_01234/20000002_1200_3D_PAW05678_abcdef12/bam_pass/");
+exec2("cp ".output_folder()."/21073LRa277_01234/20000101_1200_3D_PAW01234_abcdef12/report_PAW01234_20000101_0000_abcdef12.json ".output_folder()."/21073LRa277_01234/20000002_1200_3D_PAW05678_abcdef12/report_PAW05678_20000002_0000_abcdef12.json");
+
+//test 9: test mixed flowcell id -> fail
+list($stdout, $stderr, $exit_code) = exec2("php ".src_folder()."/IMGAG/{$name}.php -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST -threads 4 -basecall_model sup --log ".output_folder()."{$name}_9.log", false);
+check(($exit_code == 0), FALSE); // check exit code
+check((strpos(implode("", $stderr), "Flowcell ID 'PAW01234' not found in directory name") != FALSE), TRUE); //check error message
+
+//test 10: test mixed basecall models -> fail
+list($stdout, $stderr, $exit_code) = exec2("php ".src_folder()."/IMGAG/{$name}.php -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST -threads 4 -basecall_model sup -ignore_flowcell_id_check --log ".output_folder()."{$name}_10.log", false);
+check(($exit_code == 0), FALSE); // check exit code
+check((strpos(implode("", $stderr), "Multiple basecall models found (dna_r10.4.1_e8.2_400bps_sup@v4.1.0, dna_r10.4.1_e8.2_400bps_hac@v3.5.2)!") != FALSE), TRUE); //check error message
+
+//test 11: test mixed basecall and uncalled flow cell runs -> fail
+exec2("rm ".output_folder()."/21073LRa277_01234/20000002_1200_3D_PAW05678_abcdef12/bam_pass/{$name}_in2.bam");
+list($stdout, $stderr, $exit_code) = exec2("php ".src_folder()."/IMGAG/{$name}.php -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST -threads 4 -basecall_model hac -ignore_flowcell_id_check --log ".output_folder()."{$name}_11.log", false);
+check(($exit_code == 0), FALSE); // check exit code
+check((strpos(implode("", $stderr), "Multiple basecall models found (undefined, dna_r10.4.1_e8.2_400bps_hac@v3.5.2)!") != FALSE), TRUE); //check error message
+
+//copy bams
+exec2("cp ".output_folder()."/21073LRa277_01234/20000101_1200_3D_PAW01234_abcdef12/bam_pass/*.bam ".output_folder()."/21073LRa277_01234/20000002_1200_3D_PAW05678_abcdef12/bam_pass/");
+
+//test 12: import QC from 2 runs
+check_exec("php ".src_folder()."/IMGAG/{$name}.php -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST -threads 4 -basecall_model hac -ignore_flowcell_id_check --log ".output_folder()."{$name}_12.log");
+# move folder to don't interfere with next tests
+exec2("mv ".output_folder()."/21073LRa277_01234/TEST_Sample_21073LRa277_01 ".output_folder()."/TEST_Sample_21073LRa277_01_test12");
+
+//check runQC import
+check($db_con->getValue("SELECT COUNT(*) FROM runqc_ont"), 1);
+check($db_con->getValue("SELECT read_num FROM runqc_ont WHERE sequencing_run_id=1"), 19148826);
+check($db_con->getValue("SELECT yield FROM runqc_ont WHERE sequencing_run_id=1"), 178789000000);
+check($db_con->getValue("SELECT passing_filter_perc FROM runqc_ont WHERE sequencing_run_id=1"), 96.4236);
+check($db_con->getValue("SELECT fraction_skipped FROM runqc_ont WHERE sequencing_run_id=1"), 0.000000313335);
+check($db_con->getValue("SELECT q30_perc FROM runqc_ont WHERE sequencing_run_id=1"), 0.103372);
+check($db_con->getValue("SELECT q20_perc FROM runqc_ont WHERE sequencing_run_id=1"), 47.327);
+check($db_con->getValue("SELECT n50 FROM runqc_ont WHERE sequencing_run_id=1"), 14183);
+check($db_con->getValue("SELECT protocol_id FROM runqc_ont WHERE sequencing_run_id=1"), "sequencing/sequencing_PRO114_DNA_e8_2_400K:FLO-PRO114M:SQK-LSK114-XL:400");
+check($db_con->getValue("SELECT software_args FROM runqc_ont WHERE sequencing_run_id=1"), "--fast5=off --pod5=on --fastq=off --bam=on --generate_bulk_file=off --active_channel_selection=on --base_calling=on "
+																							."--bam_batch_duration=3600 --mux_scan_period=1.5 --pore_reserve=on --guppy_filename=dna_r10.4.1_e8.2_400bps_5khz_modbases_5hmc_5mc_cg_hac_prom.cfg "
+																							."--read_filtering min_qscore=7 --min_read_length=200 --split_files_by_barcode=off");
+check($db_con->getValue("SELECT device_firmware_versions FROM runqc_ont WHERE sequencing_run_id=1"), "Hublett Board:2.1.10;Satellite Board:2.1.9");
+check($db_con->getValue("SELECT minknow_version FROM runqc_ont WHERE sequencing_run_id=1"), "5.9.7");
+
+
 
 end_test();
 

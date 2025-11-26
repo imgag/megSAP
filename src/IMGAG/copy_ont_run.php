@@ -245,7 +245,7 @@ foreach ($subdirs as $subdir)
 $sample_info = get_sample_info($db, $run_name);
 
 //import run QC
-$parser->execTool("Tools/runqc_parser_ont.php", "-name '{$run_name}' -run_dir {$run_dir} -force".(($is_test_db)?" -db NGSD_TEST":""));
+$parser->execTool("Tools/runqc_parser_ont.php", "-name '{$run_name}' -run_dir {$run_dir} -force".(($is_test_db)?" -db NGSD_TEST":"").(($ignore_flowcell_id_check)?" -ignore_flowcell_id_check":""));
 
 //GenLab import (skip on test run)
 if (!$is_test_db)
@@ -357,7 +357,14 @@ else //bam output
 				$on_device_basecall_model[$on_device_basecall_model_subfolder] = true;
 				$modified_bases[$modified_bases_subfolder] = true;
 				$aligned[$aligned_subfolder] = true;
-			} 
+			}
+			else
+			{
+				// no bam files -> undefined basecall model
+				$on_device_basecall_model["undefined"] = true;
+				$modified_bases[false] = true;
+				$aligned[false] = true;
+			}
 		}
 		//special case: no basecalling
 		if (count(array_keys($on_device_basecall_model)) == 0)
@@ -385,10 +392,6 @@ else //bam output
 			if ($aligned) trigger_error("Aligned BAM files available, but not supported yet. Will be treated as unaligned!", E_USER_WARNING);
 			if ($modified_bases) trigger_error("Modified bases BAM files available.", E_USER_NOTICE);
 		}
-
-
-		
-		
 
 		//check on-device basecall model:
 		if (str_contains($on_device_basecall_model, $basecall_model) && !$force_basecalling)

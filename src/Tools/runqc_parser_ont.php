@@ -12,6 +12,7 @@ $parser->addString("name", "Name of the run.", false);
 $parser->addString("run_dir", "Run directory.", false);
 $parser->addFlag("force", "Overwrites already existing DB entries instead of throwing an error.");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
+$parser->addFlag("ignore_flowcell_id_check", "Ignores Errors due to mismatching flowcell IDs between NGSD and folder name (e.g. if flowcell was replaced during sequencing)");
 $parser->addFlag("no_db", "No NGSD import, only report run QC to STDOUT.");
 extract($parser->parse($argv));
 
@@ -29,36 +30,19 @@ $flowcell_id = $result[0]['fcid'];
 if (!ends_with($run_dir, substr($name, 1))) trigger_error("Run folder name ('".basename2($run_dir)."') doesn't match run name ({$name}!", E_USER_ERROR);
 
 // check fcid and raw data folder
-$fc_dirs = glob("{$run_dir}/2*_{$flowcell_id}_*");
+if ($ignore_flowcell_id_check) $fc_dirs = glob("{$run_dir}/2*_*_*");
+else $fc_dirs = glob("{$run_dir}/2*_{$flowcell_id}_*");
 if (count($fc_dirs) == 0) trigger_error("Run raw data folder missing or wrong FlowCell ID in NGSD!", E_USER_ERROR);
 if (count($fc_dirs) > 1) trigger_error("Multiple raw data folders found!\n".implode(", ", $fc_dirs), E_USER_WARNING);
-/*
-if (count($fc_dirs) > 1) 
-{
-	trigger_error("Multiple raw data found!\n".implode(", ", $fc_dirs)."\n Choosing biggest folder...", E_USER_WARNING);
-	$folders = array();
-	foreach ($fc_dirs as $folder)
-	{ 
-		list($stdout, $stderr, $exit_code) = $parser->exec("du", "-b --summarize {$folder}");
-		$folder_size = intval(explode("\t", $stdout[0])[0]);
-		$folders[$folder] = $folder_size;
-	}
-	$fc_dir = array_keys($folders, max($folders))[0];
-	trigger_error("Using folder '{$fc_dir}' for QC import.", E_USER_NOTICE);
-}
-else
-{
-	//only one folder present 
-	$fc_dir = $fc_dirs[0];
-}
-*/
+
 $run_qc_values = array();
 
 foreach ($fc_dirs as $fc_dir) 
 {
 	
 	// check report file
-	$report_files = glob("{$fc_dir}/report_{$flowcell_id}_*.json");
+	if ($ignore_flowcell_id_check) $report_files = glob("{$fc_dir}/report_*_*.json");
+	else $report_files = glob("{$fc_dir}/report_{$flowcell_id}_*.json");
 	if (count($report_files) == 0) trigger_error("No report JSON file found!", E_USER_ERROR);
 	if (count($report_files) > 1) trigger_error("Multiple report JSON files found!\n".implode(", ", $report_files) , E_USER_ERROR);
 
