@@ -19,6 +19,7 @@ $parser->addEnum("basecall_model",  "Model used for base calling: hac=high accur
 $parser->addInt("min_qscore", "Minimal read qScore for basecalling", true, 9);
 $parser->addFlag("force_basecalling", "Enforces complete (re-)basecalling of all POD5s in run folder.(requires '-queue_basecalling')");
 $parser->addFlag("ignore_flowcell_id_check", "Ignores Errors due to mismatching flowcell IDs between NGSD and folder name (e.g. if flowcell was replaced during sequencing)");
+$parser->addString("email",  "Email address which will be notified about the status of basecalling jobs", true, "");
 
 //TODO: re-implement
 // $parser->addFlag("fastq", "Copy FASTQ files.");
@@ -167,7 +168,7 @@ function create_basecall_command($run_dir, $out_bam, $basecall_model, $min_qscor
 }
 
 //create qsub cmd
-function create_gpu_qsub_cmd($cmd_to_queue, $working_directory, $job_name)
+function create_gpu_qsub_cmd($cmd_to_queue, $working_directory, $job_name, $email)
 {
 	list($server) = exec2("hostname -f");
 	$sge_logfile = date("YmdHis")."_".implode("_", $server)."_".getmypid();
@@ -176,7 +177,12 @@ function create_gpu_qsub_cmd($cmd_to_queue, $working_directory, $job_name)
 	$sge_args[] = "-V";
 	$sge_args[] = "-b y"; // treat as binary
 	$sge_args[] = "-wd {$working_directory}";
-	$sge_args[] = "-m n"; // switch off messages
+	if ($email == "") $sge_args[] = "-m n"; // switch off messages
+	else 
+	{
+		$sge_args[] = "-m bea";
+		$sge_args[] = "-M {$email}";
+	}
 	$sge_args[] = "-e ".get_path("gpu_log")."/$sge_logfile.err"; // stderr
 	$sge_args[] = "-o ".get_path("gpu_log")."/$sge_logfile.out"; // stdout
 	$sge_args[] = "-q ".get_path("queues_gpu"); // define queue
@@ -422,7 +428,7 @@ else //bam output
 				$parser->log("Basecalling command:\t".$basecalling_cmd);
 
 				$job_name = "megSAP_partial_basecalling_".basename($run_dir);
-				$qsub_cmd = create_gpu_qsub_cmd($basecalling_cmd, $run_dir, $job_name);
+				$qsub_cmd = create_gpu_qsub_cmd($basecalling_cmd, $run_dir, $job_name, $email);
 
 				// log sge command
 				trigger_error("SGE command:\tqsub ".$qsub_cmd[1]);
@@ -441,8 +447,6 @@ else //bam output
 					trigger_error("Basecalling queued with SGE id {$sge_id} and job name '{$job_name}'.", E_USER_NOTICE);
 				}
 
-				//do not update run status yet  (done after basecalling)
-				$queue_sample = false;
 
 			}
 			else if (!$contains_skipped_bases)
@@ -502,7 +506,7 @@ else //bam output
 			$parser->log("Basecalling command:\t".$basecalling_cmd);
 
 			$job_name = "megSAP_basecalling_".basename($run_dir);
-			$qsub_cmd = create_gpu_qsub_cmd($basecalling_cmd, $run_dir, $job_name);
+			$qsub_cmd = create_gpu_qsub_cmd($basecalling_cmd, $run_dir, $job_name, $email);
 
 			if ($is_test_db)
 			{
@@ -520,9 +524,6 @@ else //bam output
 
 				trigger_error("Basecalling queued with SGE id {$sge_id} and job name '{$job_name}'.", E_USER_NOTICE);
 			}
-
-			//do not update run status yet (done after basecalling)
-			$queue_sample = false;
 
 		}
 		else
