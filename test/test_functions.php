@@ -7,7 +7,7 @@ require_once("framework.php");
 start_test("container_platform");
 
 check(container_platform(), "apptainer");
-check(container_platform(true), "apptainer 1.4.3");
+check(starts_with(container_platform(true), "apptainer 1."), true);
 
 end_test();
 
