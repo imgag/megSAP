@@ -17,7 +17,7 @@ function running_jobs()
 	foreach($stdout as $line)
 	{
 		$line = trim($line);
-		if (starts_with($line, "-----") || starts_with($line, "job-ID")) continue;
+		if ($line=="" || starts_with($line, "-----") || starts_with($line, "job-ID")) continue;
 		list($id) = explode(" ", $line, 2);
 		
 		list($stdout2) = exec2("qstat -j {$id} | grep job_args");
