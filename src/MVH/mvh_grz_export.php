@@ -375,7 +375,7 @@ if ($is_somatic)
 	//check tumor and germline have same system
 	$info_t = get_processed_sample_info($db_ngsd, $ps_t);
 	$sys_t = $info_t['sys_name_short'];
-	if ($sys!=$sys_t) trigger_error("Mismatching tumor/normal processing systems for case '{$cm_id}' in network '{$network}': '{$sys}' vs '{$sys_t}'", E_USER_ERROR);
+	if ($sys!=$sys_t && !(starts_with($sys, "twistCustomExomeV2") && starts_with($sys_t, "twistCustomExomeV2"))) trigger_error("Mismatching tumor/normal processing systems for case '{$cm_id}' in network '{$network}': '{$sys}' vs '{$sys_t}'", E_USER_ERROR);
 	
 	print "tumor sample: {$ps_t} (system: {$sys})\n";
 }
