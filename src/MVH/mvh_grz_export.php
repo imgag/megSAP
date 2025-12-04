@@ -49,7 +49,8 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 		$args = [];
 		$args[] = "--threads 10";
 		$args[] = "--by ".($roi!="" ? realpath($roi) : "{$qc_wf_folder}/assets/default_files/hg38_440_omim_genes.bed"); 
-		$args[] = "--fasta /tmp/local_ngs_data_GRCh38/GRCh38.fa ";
+		$args[] = "--fasta /tmp/local_ngs_data_GRCh38/GRCh38.fa";
+		$args[] = "--fast-mode"; //TODO remove on 31.03.2026 - we can also un-mark duplicates until 31.03.2026 (samtools markdup --clear in.bam out.bam)
 		exec2("/mnt/storage2/MVH/tools/mosdepth ".implode(" ", $args)." {$mosdepth_folder}/output_prefix {$bam}");
 	}
 	else
@@ -722,6 +723,7 @@ file_put_contents("{$folder}/metadata/metadata.json", json_encode($json, JSON_PR
 print "creating JSON took ".time_readable(microtime(true)-$time_start)."\n";
 $time_start = microtime(true);
 
+//TODO update to v1.5.0 in Jan 2026
 //print grz-cli version info
 $grz_cli = "/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/bin/grz-cli";
 list($stdout) = exec2("{$grz_cli} --version");
