@@ -725,7 +725,8 @@ if ($active_consent_count>0)
 }
 
 //write meta data JSON
-file_put_contents("{$folder}/metadata/metadata.json", json_encode($json, JSON_PRETTY_PRINT));
+$json_file = "{$folder}/metadata/metadata.json";
+file_put_contents($json_file, json_encode($json, JSON_PRETTY_PRINT));
 
 print "creating JSON took ".time_readable(microtime(true)-$time_start)."\n";
 $time_start = microtime(true);
@@ -795,6 +796,9 @@ if ($submission_type=='initial' && !$test)
 	print "Adding Pruefbericht to CM RedCap...\n";
 	add_submission_to_redcap($cm_id, "G", $tan_g);
 }
+
+//archive metadata JSON
+copy($json_file, $mvh_folder."/metadata_archive/GRZ/{$cm_id}.json");
 
 //clean up export folder if successfull
 if (!$test)

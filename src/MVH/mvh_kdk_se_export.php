@@ -1058,6 +1058,9 @@ if ($submission_type=='initial' && !$test)
 	add_submission_to_redcap($cm_id, "K", $tan_k);
 }
 
+//archive metadata JSON
+copy($json_file, $mvh_folder."/metadata_archive/KDK_SE/{$cm_id}.json");
+
 //clean up export folder if successfull
 if (!$test)
 {
