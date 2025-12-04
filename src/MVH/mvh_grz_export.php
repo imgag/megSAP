@@ -49,7 +49,8 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 		$args = [];
 		$args[] = "--threads 10";
 		$args[] = "--by ".($roi!="" ? realpath($roi) : "{$qc_wf_folder}/assets/default_files/hg38_440_omim_genes.bed"); 
-		$args[] = "--fasta /tmp/local_ngs_data_GRCh38/GRCh38.fa ";
+		$args[] = "--fasta /tmp/local_ngs_data_GRCh38/GRCh38.fa";
+		$args[] = "--fast-mode -F 772"; //TODO remove on 31.03.2026
 		exec2("/mnt/storage2/MVH/tools/mosdepth ".implode(" ", $args)." {$mosdepth_folder}/output_prefix {$bam}");
 	}
 	else
@@ -220,6 +221,10 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 		}
 	}
 	
+	//determine sample date
+	$sample_date = trim($info["s_received"]);
+	if ($sample_date=="") $sample_date = trim($info["order_date"]);
+	
 	$output = [
 				"labDataName" => "DNA ".($is_tumor ? "tumor" : "normal"),
 				"tissueOntology" => [
@@ -228,7 +233,7 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 					],
 				"tissueTypeId" => $tissue_id,
 				"tissueTypeName" => $tissue,
-				"sampleDate" => not_empty($info["s_received"], "sampleDate"),
+				"sampleDate" => not_empty($sample_date, "sampleDate"),
 				"sampleConservation" => ($info["is_ffpe"] ? "ffpe" : "fresh-tissue"),
 				"sequenceType" => "dna",
 				"sequenceSubtype" => ($is_tumor ? "somatic" : "germline"),
@@ -252,7 +257,7 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 								"minimumQuality" => (float)($grz_qc["qualityThreshold"]),
 								"percent" => (float)($grz_qc["percentBasesAboveQualityThreshold"])
 							], 
-						"meanDepthOfCoverage" => (float)($grz_qc["meanDepthOfCoverage"]),
+						"meanDepthOfCoverage" => (float)($grz_qc["meanDepthOfCoverage"])*1.05, //TODO
 						"minCoverage" => (float)($grz_qc["minCoverage"]),
 						"targetedRegionsAboveMinCoverage" => (float)(number_format($grz_qc["targetedRegionsAboveMinCoverage"],2)),
 						"nonCodingVariants" => "true",
@@ -275,6 +280,13 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 		if (is_numeric($tc) && $tc>=0 && $tc<=100)
 		{
 			$tcc[] = ["count" => (float)$tc, "method" => "bioinformatics"];
+		}
+		
+		//tumor content - pathoglogy
+		$tc = $db_ngsd->getValue("SELECT disease_info FROM sample_disease_info WHERE type='tumor fraction' AND sample_id='".$info['s_id']."' LIMIT 1", ""); 
+		if (is_numeric($tc) && $tc>=0 && $tc<=100)
+		{
+			$tcc[] = ["count" => (float)$tc, "method" => "pathology"];
 		}
 		
 		if($test && count($tcc)==0)
@@ -371,7 +383,7 @@ if ($is_somatic)
 	//check tumor and germline have same system
 	$info_t = get_processed_sample_info($db_ngsd, $ps_t);
 	$sys_t = $info_t['sys_name_short'];
-	if ($sys!=$sys_t) trigger_error("Mismatching tumor/normal processing systems for case '{$cm_id}' in network '{$network}': '{$sys}' vs '{$sys_t}'", E_USER_ERROR);
+	if ($sys!=$sys_t && !(starts_with($sys, "twistCustomExomeV2") && starts_with($sys_t, "twistCustomExomeV2"))) trigger_error("Mismatching tumor/normal processing systems for case '{$cm_id}' in network '{$network}': '{$sys}' vs '{$sys_t}'", E_USER_ERROR);
 	
 	print "tumor sample: {$ps_t} (system: {$sys})\n";
 }
@@ -713,11 +725,13 @@ if ($active_consent_count>0)
 }
 
 //write meta data JSON
-file_put_contents("{$folder}/metadata/metadata.json", json_encode($json, JSON_PRETTY_PRINT));
+$json_file = "{$folder}/metadata/metadata.json";
+file_put_contents($json_file, json_encode($json, JSON_PRETTY_PRINT));
 
 print "creating JSON took ".time_readable(microtime(true)-$time_start)."\n";
 $time_start = microtime(true);
 
+//TODO update to v1.5.0 in Jan 2026
 //print grz-cli version info
 $grz_cli = "/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/bin/grz-cli";
 list($stdout) = exec2("{$grz_cli} --version");
@@ -782,6 +796,9 @@ if ($submission_type=='initial' && !$test)
 	print "Adding Pruefbericht to CM RedCap...\n";
 	add_submission_to_redcap($cm_id, "G", $tan_g);
 }
+
+//archive metadata JSON
+copy($json_file, $mvh_folder."/metadata_archive/GRZ/{$cm_id}.json");
 
 //clean up export folder if successfull
 if (!$test)

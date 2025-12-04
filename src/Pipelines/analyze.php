@@ -29,6 +29,9 @@ $parser->addFlag("annotation_only", "Performs only a reannotation of the already
 $parser->addFlag("no_dragen", "Do not use Illumina DRAGEN calls from NovaSeq X or Dragen server.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
+$parser->addFlag("no_circos", "Skip Circos plot generation.");
+$parser->addFlag("no_qc", "Skip calculation of QC metrics.");
+$parser->addFlag("no_lowcov", "Skip generation of low-coverage report");
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
 extract($parser->parse($argv));
 
@@ -50,8 +53,15 @@ $is_wes = $sys['type']=="WES";
 $is_wgs = $sys['type']=="WGS";
 $is_panel = $sys['type']=="Panel" || $sys['type']=="Panel Haloplex";
 $is_wgs_shallow = $sys['type']=="WGS (shallow)";
-$has_roi = $sys['target_file']!="";
+$roi = trim($sys['target_file']);
 $build = $sys['build'];
+
+//check that ROI is sorted
+if ($roi!="")
+{
+	$roi = realpath($roi);
+	if (!bed_is_sorted($roi)) trigger_error("Target region file not sorted: ".$roi, E_USER_ERROR);
+}
 
 //disable abra and soft-clipping if DeepVariant is used for calling
 $use_freebayes = get_path("use_freebayes");
@@ -77,7 +87,7 @@ foreach($steps as $step)
 }
 
 //remove invalid steps
-if (in_array("cn", $steps) && !$has_roi)
+if (in_array("cn", $steps) && $roi=="")
 {
 	trigger_error("Skipping step 'cn' - Copy number analysis is only supported for processing systems with target region BED file!", E_USER_NOTICE);
 	if (($key = array_search("cn", $steps)) !== false) unset($steps[$key]);
@@ -278,9 +288,9 @@ if (in_array("ma", $steps))
 	$parser->execTool("Tools/mapping.php", "-in_for ".implode(" ", $files1)." -in_rev ".implode(" ", $files2)." -system $system -out_folder $folder -out_name $name -local_bam $used_bam_or_cram ".implode(" ", $args)." -threads $threads");
 	
 	//low-coverage report
-	if ($has_roi && !$is_wgs_shallow)
+	if ($roi!="" && !$is_wgs_shallow && !$no_lowcov)
 	{	
-		$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".realpath($sys['target_file'])." -bam $used_bam_or_cram -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", [$folder, $sys['target_file'], $genome]);
+		$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in {$roi} -bam $used_bam_or_cram -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", [$folder, $roi, $genome]);
 		if (db_is_enabled("NGSD"))
 		{
 			$parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", [$folder]);
@@ -362,21 +372,21 @@ else if ($bam_or_cram_exists)
 	check_genome_build($used_bam_or_cram, $build);
 
 	//QC for samples mapped/called on NovaSeq X
-	if(!file_exists($qc_map))
+	if(!file_exists($qc_map) && !$no_qc)
 	{
 		//QC
 		$in_files = array();
 		$params = array("-in $used_bam_or_cram", "-out {$qc_map}", "-ref {$genome}", "-build ".ngsbits_build($sys['build']));
 		$in_files[] = $folder;
 		$in_files[] = $genome;
-		if ($sys['target_file']=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
+		if ($roi=="" || $sys['type']=="WGS" || $sys['type']=="WGS (shallow)")
 		{
 			$params[] = "-wgs";
 		}
 		else
 		{
-			$params[] = "-roi ".realpath($sys['target_file']);
-			$in_files[] = realpath($sys['target_file']);
+			$params[] = "-roi {$roi}";
+			$in_files[] = $roi;
 		}
 		if ($sys['build']!="GRCh38")
 		{
@@ -395,11 +405,11 @@ else if ($bam_or_cram_exists)
 	}
 
 	//low-coverage regions for samples mapped/called on NovaSeq X / DRAGEN server
-	if(!file_exists($lowcov_file))
+	if(!file_exists($lowcov_file) && !$no_lowcov)
 	{
-		if ($has_roi && !$is_wgs_shallow)
+		if ($roi!="" && !$is_wgs_shallow)
 		{	
-			$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".realpath($sys['target_file'])." -bam $used_bam_or_cram -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", [$folder, $sys['target_file'], $genome]);
+			$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in {$roi} -bam $used_bam_or_cram -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", [$folder, $roi, $genome]);
 			if (db_is_enabled("NGSD"))
 			{
 
@@ -493,9 +503,9 @@ if (in_array("vc", $steps))
 	{		
 		//Do not call standard pipeline if there is only mitochondiral chrMT in target region
 		$only_mito_in_target_region = false;
-		if ($has_roi) 
+		if ($roi!="") 
 		{
-			$only_mito_in_target_region = exec2("cat ".$sys['target_file']." | cut -f1 | uniq")[0][0] == "chrMT";
+			$only_mito_in_target_region = exec2("cat {$roi} | cut -f1 | uniq")[0][0] == "chrMT";
 		}
 		//activate mito-calling for sWGS
 		if ($is_wgs_shallow) $only_mito_in_target_region = true;
@@ -512,7 +522,7 @@ if (in_array("vc", $steps))
 				
 				//filter by target region (extended by 200) and quality 5
 				$target = $parser->tempFile("_roi_extended.bed");
-				$parser->execApptainer("ngs-bits", "BedExtend", "-in ".realpath($sys['target_file'])." -n 200 -out $target -fai ".$genome.".fai", [$sys['target_file'], $genome]);
+				$parser->execApptainer("ngs-bits", "BedExtend", "-in {$roi} -n 200 -out $target -fai ".$genome.".fai", [$roi, $genome]);
 				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfFilter", "-reg {$target} -qual 5 -filter_clear -remove_invalid -ref $genome", [$genome], [], true));
 
 				//split multi-allelic variants
@@ -532,7 +542,7 @@ if (in_array("vc", $steps))
 
 				//mark off-target variants
 				$tmp = $parser->tempFile("_offtarget.vcf");
-				$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $vcffile -mark off-target -reg ".realpath($sys['target_file'])." -out $tmp", [$folder, $sys['target_file']]);
+				$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $vcffile -mark off-target -reg {$roi} -out $tmp", [$folder, $roi]);
 				
 				//remove variants with less than 3 alternative observations
 				$tmp2 = $parser->tempFile("_ad.vcf");
@@ -576,9 +586,9 @@ if (in_array("vc", $steps))
 				$args[] = "-out ".$vcffile;
 				$args[] = "-build ".$build;
 				$args[] = "-threads ".$threads;
-				if ($has_roi)
+				if ($roi!="")
 				{
-					$args[] = "-target ".$sys['target_file'];
+					$args[] = "-target {$roi}";
 					$args[] = "-target_extend 200";
 				}
 				$args[] = "-min_af ".$min_af;
@@ -596,9 +606,9 @@ if (in_array("vc", $steps))
 				$args[] = "-out ".$vcffile;
 				$args[] = "-build ".$build;
 				$args[] = "-threads ".$threads;
-				if ($has_roi)
+				if ($roi!="")
 				{
-					$args[] = "-target ".$sys['target_file'];
+					$args[] = "-target {$roi}";
 					$args[] = "-target_extend 200";
 				}
 				$args[] = "-min_af ".$min_af;
@@ -700,7 +710,7 @@ if (in_array("vc", $steps))
 		fclose($hw);
 		
 		//call low mappability variants
-		if ($is_wgs || ($is_wes && $has_roi) || ($is_panel && $has_roi))
+		if ($is_wgs || ($is_wes && $roi!="") || ($is_panel && $roi!=""))
 		{
 			//determine region
 			if ($is_wgs)
@@ -710,7 +720,7 @@ if (in_array("vc", $steps))
 			else
 			{
 				$roi_low_mappabilty = $parser->tempFile("_mapq0.bed");
-				$parser->execApptainer("ngs-bits", "BedIntersect", "-in ".realpath($sys['target_file'])." -in2 ".repository_basedir()."data/misc/low_mappability_region/wes_mapq_eq0.bed -out $roi_low_mappabilty", [$sys['target_file'], repository_basedir()."data/misc/low_mappability_region/wes_mapq_eq0.bed"]);
+				$parser->execApptainer("ngs-bits", "BedIntersect", "-in {$roi} -in2 ".repository_basedir()."data/misc/low_mappability_region/wes_mapq_eq0.bed -out $roi_low_mappabilty", [$roi, repository_basedir()."data/misc/low_mappability_region/wes_mapq_eq0.bed"]);
 			}
 			
 			if (bed_size($roi_low_mappabilty)>0)
@@ -766,14 +776,14 @@ if (in_array("vc", $steps))
 		}
 			
 		//call mosaic variants on target region (WES or Panel) or exonic/splicing region (WGS)
-		if (ngsbits_build($build)!="non_human" && ($is_wgs || ($is_wes && $has_roi) || ($is_panel && $has_roi)))
+		if (ngsbits_build($build)!="non_human" && ($is_wgs || ($is_wes && $roi!="") || ($is_panel && $roi!="")))
 		{
 			$tmp_mosaic = $parser->tempFile("_mosaic.vcf");
 			$args = [];
 			$args[] = "-in {$used_bam_or_cram}";
 			$args[] = "-out {$tmp_mosaic}";
 			$args[] = "-no_zip";
-			$args[] = "-target ".(($is_panel || $is_wes) ? $sys['target_file'] : repository_basedir()."data/gene_lists/gene_exons_pad20.bed");
+			$args[] = "-target ".(($is_panel || $is_wes) ? $roi : repository_basedir()."data/gene_lists/gene_exons_pad20.bed");
 			$args[] = "-threads ".$threads;
 			$args[] = "-build ".$build;
 			$args[] = "-min_af 0.03";
@@ -907,7 +917,7 @@ if (in_array("cn", $steps))
 			if (!file_exists($bed))
 			{
 				$pipeline = [
-						["", $parser->execApptainer("ngs-bits", "BedChunk", "-in ".realpath($sys['target_file'])." -n {$bin_size}", [$sys['target_file']], [], true)],
+						["", $parser->execApptainer("ngs-bits", "BedChunk", "{$roi} -n {$bin_size}", [$roi], [], true)],
 						["", $parser->execApptainer("ngs-bits", "BedAnnotateGC", "-clear -ref ".$genome, [$genome], [], true)],
 						["", $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-out {$bed}", [], [dirname($bed)], true)]
 					];
@@ -920,7 +930,7 @@ if (in_array("cn", $steps))
 			if (!file_exists($bed))
 			{
 				$pipeline = [
-						["", $parser->execApptainer("ngs-bits", "BedAnnotateGC", "-in ".realpath($sys['target_file'])." -clear -ref ".$genome, [$sys['target_file'], $genome], [], true)],
+						["", $parser->execApptainer("ngs-bits", "BedAnnotateGC", "-in {$roi} -clear -ref ".$genome, [$roi, $genome], [], true)],
 						["", $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-out {$bed}", [], [dirname($bed)], true)]
 					];
 				$parser->execPipeline($pipeline, "creating annotated BED file for ClinCNV");
@@ -1077,10 +1087,10 @@ if (in_array("sv", $steps))
 			$parser->execApptainer("ngs-bits", "VcfSort", "-in {$vcf_fixed} -out {$vcf_sorted}");
 						
 			//mark off-target variants
-			if($has_roi)
+			if($roi!="")
 			{
 				$vcf_marked = $parser->tempFile("_sv_marked.vcf");
-				$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in {$vcf_sorted} -reg ".realpath($sys['target_file'])." -mark off-target -out {$vcf_marked}", [$sys['target_file']]);
+				$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in {$vcf_sorted} -reg {$roi} -mark off-target -out {$vcf_marked}", [$roi]);
 				$vcf_sorted = $vcf_marked;
 			}
 	
@@ -1102,7 +1112,7 @@ if (in_array("sv", $steps))
 				"-build ".$build,
 				"--log ".$parser->getLogFile()
 			];
-			if($has_roi) $manta_args[] = "-target ".$sys['target_file'];
+			if($roi!="") $manta_args[] = "-target {$roi}";
 			if(!$is_wgs) $manta_args[] = "-exome";
 			
 			$parser->execTool("Tools/vc_manta.php", implode(" ", $manta_args));
@@ -1258,7 +1268,7 @@ if (in_array("re", $steps))
 }
 
 // create Circos plot - if small variant, CNV or SV calling was done
-if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps)) && !$annotation_only)
+if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps)) && !$annotation_only && !$no_circos)
 {
 	if ($is_wes || $is_wgs || $is_wgs_shallow)
 	{
@@ -1281,7 +1291,7 @@ if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps))
 }
 
 // collect other QC terms
-if (in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps))
+if ((in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps)) && !$no_qc)
 {
 	$terms = [];
 	$sources = [];

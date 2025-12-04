@@ -137,7 +137,8 @@ mvh_folder = ""
 mvh_redcap_token_se = ""
 mvh_redcap_token_cm = ""
 
-[grid_engine]
+[queues]
+queuing_engine = ""
 queues_default = ""
 queues_research = ""
 queues_high_priority = ""

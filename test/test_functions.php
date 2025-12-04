@@ -2,6 +2,16 @@
 
 require_once("framework.php");
 
+
+//##################################################################################
+start_test("container_platform");
+
+check(container_platform(), "apptainer");
+check(starts_with(container_platform(true), "apptainer 1."), true);
+
+end_test();
+
+
 //##################################################################################
 start_test("is_in_temp_folder");
 
