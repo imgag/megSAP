@@ -25,3 +25,9 @@ cd $folder
 wget https://github.com/Illumina/interop/releases/download/v1.2.4/interop-1.2.4-Linux-GNU.tar.gz
 tar xzf interop-1.2.4-Linux-GNU.tar.gz
 rm interop-1.2.4-Linux-GNU.tar.gz
+
+#download dorado
+cd $folder
+wget https://cdn.oxfordnanoportal.com/software/analysis/dorado-1.1.1-linux-x64.tar.gz
+tar xzf dorado-1.1.1-linux-x64.tar.gz
+rm dorado-1.1.1-linux-x64.tar.gz
