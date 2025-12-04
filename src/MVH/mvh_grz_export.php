@@ -282,6 +282,13 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 			$tcc[] = ["count" => (float)$tc, "method" => "bioinformatics"];
 		}
 		
+		//tumor content - pathoglogy
+		$tc = $db_ngsd->getValue("SELECT disease_info FROM sample_disease_info WHERE type='tumor fraction' AND sample_id='".$info['s_id']."' LIMIT 1", ""); 
+		if (is_numeric($tc) && $tc>=0 && $tc<=100)
+		{
+			$tcc[] = ["count" => (float)$tc, "method" => "pathology"];
+		}
+		
 		if($test && count($tcc)==0)
 		{
 			$tcc[] = ["count" => 47.11, "method" => "bioinformatics"];
