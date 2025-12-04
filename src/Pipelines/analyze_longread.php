@@ -13,8 +13,8 @@ $parser->addInfile("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'name' is a valid processed sample name).", true);
-$steps_all = array("ma", "vc", "cn", "sv", "ph", "re", "me", "pg", "an", "db");
-$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, ph=phasing, re=repeat expansions calling, me=methylation calling, pg=paralogous genes calling, an=annotation, db=import into NGSD.", true, implode(",", $steps_all));
+$steps_all = array("ma", "vc", "cn", "sv", "ph", "re", "pg", "an", "me", "db");
+$parser->addString("steps", "Comma-separated list of steps to perform:\nma=mapping, vc=variant calling, cn=copy-number analysis, sv=structural-variant analysis, ph=phasing, re=repeat expansions calling, pg=paralogous genes calling, an=annotation, me=methylation calling, db=import into NGSD.", true, implode(",", $steps_all));
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("no_gender_check", "Skip gender check (done between mapping and variant calling).");
@@ -709,33 +709,6 @@ if (in_array("re", $steps))
 	$parser->execTool("Tools/vc_straglr.php", "-include_partials -in {$used_bam_or_cram} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build} --log ".$parser->getLogFile());
 }
 
-// methylation calling
-if (in_array("me", $steps))
-{
-	if (!contains_methylation($used_bam_or_cram)) trigger_error("BAM file doesn't contain methylation info! Skipping step 'me'", E_USER_WARNING);
-	else 
-	{
-		$args = [];
-		$args[] = "-folder {$folder}";
-		$args[] = "-name {$name}";
-		if (ends_with($used_bam_or_cram, ".bam")) $args[] = "-local_bam {$used_bam_or_cram}";
-		$args[] = "-out {$methylation_table}";
-		$args[] = "-build {$build}";
-		$args[] = "-threads {$threads}";
-		$args[] = "--log ".$parser->getLogFile();
-		if ($test)
-		{
-			$args[] = "-regions ".repository_basedir()."/test/data/create_methyl_plot_regions_pipeline_test.tsv";
-			$args[] = "-custom_cohort_table ".repository_basedir()."/test/data/create_methyl_plot_custom_cohort.tsv";
-			$args[] = "-test";
-		}
-		else
-		{
-			$args[] = "-regions {$methyl_regions}";
-		}
-		$parser->execTool("Tools/create_methyl_plot.php", implode(" ", $args));
-	}
-}
 
 // paralogous gene calling
 if (in_array("pg", $steps))
@@ -959,6 +932,35 @@ if (in_array("an", $steps))
 		
 		//check for truncated output
 		if ($check_chrs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$bedpe_file}");
+	}
+}
+
+// INFO: done after annotation to have phasing track available
+// methylation calling
+if (in_array("me", $steps))
+{
+	if (!contains_methylation($used_bam_or_cram)) trigger_error("BAM file doesn't contain methylation info! Skipping step 'me'", E_USER_WARNING);
+	else 
+	{
+		$args = [];
+		$args[] = "-folder {$folder}";
+		$args[] = "-name {$name}";
+		if (ends_with($used_bam_or_cram, ".bam")) $args[] = "-local_bam {$used_bam_or_cram}";
+		$args[] = "-out {$methylation_table}";
+		$args[] = "-build {$build}";
+		$args[] = "-threads {$threads}";
+		$args[] = "--log ".$parser->getLogFile();
+		if ($test)
+		{
+			$args[] = "-regions ".repository_basedir()."/test/data/create_methyl_plot_regions_pipeline_test.tsv";
+			$args[] = "-custom_cohort_table ".repository_basedir()."/test/data/create_methyl_plot_custom_cohort.tsv";
+			$args[] = "-test";
+		}
+		else
+		{
+			$args[] = "-regions {$methyl_regions}";
+		}
+		$parser->execTool("Tools/create_methyl_plot.php", implode(" ", $args));
 	}
 }
 
