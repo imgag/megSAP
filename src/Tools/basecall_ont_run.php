@@ -26,13 +26,17 @@ extract($parser->parse($argv));
 
 //check GPU server
 list($stdout, $stderr, $exit_code) = $parser->exec("nvidia-smi", "-L");
-if (($exit_code != 0) || (count($stdout) < 2) || (count($stderr) > 0))
+if (($exit_code != 0) || (count($stdout) < 2) || (count($stderr) > 1))
 {
 	$parser->log("Exit Code:".$exit_code);
 	$parser->log("Stdout line:".count($stdout));
 	$parser->log("Stderr line:".count($stderr));
-	//TODO: change to error
-	trigger_error("GPU check failed! Make sure nvidia-smi is installed and GPUs work properly!", E_USER_WARNING);
+	$parser->log(implode("-", $stderr));
+	trigger_error("GPU check failed! Make sure nvidia-smi is installed and GPUs work properly!", E_USER_ERROR);
+}
+else
+{
+	trigger_error("GPU check passed!", E_USER_NOTICE);
 }
 
 //init
