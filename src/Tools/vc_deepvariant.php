@@ -35,6 +35,7 @@ $genome = genome_fasta($build);
 
 //create basic variant calls
 $args = [];
+$args[] = "--reads={$bam}";
 if(isset($target))
 {	
 	//extend by 'n' bases
@@ -72,36 +73,21 @@ if (!empty($gvcf))
 	$args[] = "--output_gvcf={$gvcf}";
 }
 
-//copy input BAM/CRAM files to /tmp/ - otherwise DeepVariant might hang, see: https://github.com/google/deepvariant/issues/1041
-if (is_in_temp_folder($bam))
-{
-	$bam_local = $bam;
-}
-else
-{
-	$tmp_folder = $parser->tempFolder();
-	
-	$basename = basename($bam);
-	$parser->copyFile($bam, $tmp_folder."/".$basename);
-	if (file_exists($bam.".bai")) $parser->copyFile($bam.".bai", $tmp_folder."/".$basename.".bai");
-	else if (file_exists($bam.".crai")) $parser->copyFile($bam.".crai", $tmp_folder."/".$basename.".crai");
-	else trigger_error("No BAI/CRAI index found for file: {$bam}", E_USER_ERROR);
-	$bam_local = $tmp_folder."/".$basename;
-}
-$args[] = "--reads={$bam_local}";
 
 // run deepvariant
 $pipeline = array();
 $container = ($gpu) ? "deepvariant-gpu" : "deepvariant";
-
+$prefix = container_platform()=='apptainer' ? "APPTAINERENV" : "SINGULARITYENV";
 if ($raw_output)
 {
-	$parser->execApptainer($container, "run_deepvariant" ,implode(" ", $args)." --output_vcf=$out", [$genome], [dirname($out)]);
+	$command = $parser->execApptainer($container, "run_deepvariant" ,implode(" ", $args)." --output_vcf={$out}", [$genome, $bam], [dirname($out)], true);
+	$parser->exec("{$prefix}_OMP_NUM_THREADS={$threads} {$prefix}_TF_NUM_INTRAOP_THREADS={$threads} {$prefix}_TF_NUM_INTEROP_THREADS={$threads} {$command}", "");
 	return;
 }
 
 $vcf_deepvar_out = $parser->tempFile(".vcf.gz");
-$parser->execApptainer($container, "run_deepvariant", implode(" ", $args)." --output_vcf={$vcf_deepvar_out}", [$genome], [dirname($out)]);
+$command = $parser->execApptainer($container, "run_deepvariant", implode(" ", $args)." --output_vcf={$vcf_deepvar_out}", [$genome, $bam], [dirname($out)], true);
+$parser->exec("{$prefix}_OMP_NUM_THREADS={$threads} {$prefix}_TF_NUM_INTRAOP_THREADS={$threads} {$prefix}_TF_NUM_INTEROP_THREADS={$threads} {$command}", "");
 
 //filter variants according to variant quality>5
 $pipeline[] = ["zcat", "$vcf_deepvar_out"];

@@ -28,7 +28,8 @@ CREATE TABLE `submission_grz` (
   `pseudog` varchar(64) NOT NULL DEFAULT '',
   `status` enum('pending','done','failed') NOT NULL,
   `submission_id` text DEFAULT NULL,
-  `submission_output` text DEFAULT NULL
+  `submission_output` text DEFAULT NULL,
+  `metadata` mediumtext DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -44,5 +45,6 @@ CREATE TABLE `submission_kdk_se` (
   `pseudok` varchar(64) NOT NULL DEFAULT '',
   `status` enum('pending','done','failed') NOT NULL,
   `submission_id` text DEFAULT NULL,
-  `submission_output` text DEFAULT NULL
+  `submission_output` text DEFAULT NULL,
+  `metadata` mediumtext DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

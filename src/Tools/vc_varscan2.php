@@ -114,6 +114,24 @@ while(!feof($h))
 fclose($h);
 fclose($ho);
 
+//add version number to source comment:
+$vcf = Matrix::fromTSV($tmp_flagged);
+$comments = $vcf->getComments();
+
+for ($i=0; $i < count($comments); $i++)
+{
+	if (contains($comments[$i], "#source="))
+	{
+		$comments[$i] = $comments[$i]." ".get_path("container_varscan2")."\n";
+		break;
+	}
+}
+$comments[] = "#fileDate=".date("Ymd")."\n";
+
+$vcf->setComments($comments);
+$vcf->toTSV($tmp_flagged);
+
+
 //sort output
 $parser->execApptainer("ngs-bits", "VcfSort", "-in {$tmp_flagged} -compression_level 9 -out {$out}", [] , [dirname($out)]);
 
@@ -122,6 +140,7 @@ if($target!="")
 {
 	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in {$out} -reg {$target} -mark off-target -compression_level 9 -out {$out}", [$out, $target], [dirname($out)]);
 }
+
 
 //index
 $parser->execApptainer("htslib", "tabix", "-p vcf $out", [], [dirname($out)]);
