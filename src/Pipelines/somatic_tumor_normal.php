@@ -581,6 +581,7 @@ if (in_array("vc", $steps))
 		$args[] = "-threads ".$threads;
 		$args[] = "-tumor_id {$t_id}";
 		$args[] = "-normal_id {$n_id}";
+		$args[] = "-default";
 
 		if (!empty($roi))
 		{

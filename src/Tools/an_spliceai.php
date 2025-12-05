@@ -197,10 +197,7 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	//set bind paths for container execution
 	$in_files = [genome_fasta($build), $vcf_filtered];
 
-	//check if apptainer or singularity is used
-	list($cmd_out) = exec2("singularity --version");
-	$parts = explode(' ', strtolower($cmd_out[0]));
-	$tool = $parts[0];
+	$tool = get_container_software();
 
 	if ($tool === 'apptainer') $prefix = "APPTAINERENV";
 	elseif ($tool === 'singularity') $prefix = "SINGULARITYENV";

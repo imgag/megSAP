@@ -36,6 +36,9 @@ extract($parser->parse($argv));
 $genome = genome_fasta($build);
 if (empty($tumor_id)) $tumor_id = basename2($bam_tumor);
 if (!$tumor_only && empty($normal_id)) $normal_id = basename2($bam_normal);
+$tool = get_container_software();
+if ($tool === 'apptainer') $prefix = "APPTAINERENV";
+elseif ($tool === 'singularity') $prefix = "SINGULARITYENV";
 
 //create basic variant calls
 $args = array();
@@ -77,12 +80,14 @@ $pipeline = array();
 
 if ($raw_output)
 {
-	$parser->execApptainer("deepsomatic", "run_deepsomatic" ,implode(" ", $args)." --output_vcf=$out", $in_files, [dirname($out)]);
+	$command = $parser->execApptainer("deepsomatic", "run_deepsomatic" ,implode(" ", $args)." --output_vcf=$out", $in_files, [dirname($out)], true);
+	$parser->exec("{$prefix}_OMP_NUM_THREADS={$threads} {$prefix}_TF_NUM_INTRAOP_THREADS={$threads} {$prefix}_TF_NUM_INTEROP_THREADS={$threads} {$command}", "");
 	return;
 }
 
 $vcf_deepvar_out = $parser->tempFile(".vcf.gz");
-$parser->execApptainer("deepsomatic", "run_deepsomatic", implode(" ", $args)." --output_vcf=$vcf_deepvar_out", $in_files, [dirname($out)]);
+$command = $parser->execApptainer("deepsomatic", "run_deepsomatic", implode(" ", $args)." --output_vcf=$vcf_deepvar_out", $in_files, [dirname($out)], true);
+$parser->exec("{$prefix}_OMP_NUM_THREADS={$threads} {$prefix}_TF_NUM_INTRAOP_THREADS={$threads} {$prefix}_TF_NUM_INTEROP_THREADS={$threads} {$command}", "");
 
 //filter variants
 $pipeline[] = ["zcat", "$vcf_deepvar_out"];
@@ -225,6 +230,9 @@ if (!empty($target) && !$tumor_only)
 		$final = $vcf_no_artefacts;
 	}
 }
+
+//annotate normal af/dp in deepsomatic tumor-normal output
+if (!$tumor_only) $parser->execApptainer("ngs-bits", "VcfAnnotateFrequency", "-in {$final} -bam {$bam_normal} -depth -out {$final} -name {$normal_id}", [$final, $bam_normal]);
 
 //zip
 $parser->execApptainer("htslib", "bgzip", "-c $final > $out", [], [dirname($out)]);

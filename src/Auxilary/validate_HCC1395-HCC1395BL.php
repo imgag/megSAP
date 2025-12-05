@@ -23,7 +23,7 @@ $parser->addFlag("soft", "Set to enable softer benchmarking including variants f
 $parser->addInt("min_dp", "If set, only regions in the 'roi' with at least the given depth are evaluated.", true, 0);
 $parser->addInt("max_indel", "Maximum indel size (larger indels are ignored). Disabled if set to 0.", true, 50);
 $parser->addString("ref_sample", "Reference sample to use for validation.", true, "HCC1395");
-$parser->addString("build", "The genome build to use.", true, "GRCh38.d1.vd1");
+$parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addString("name", "Name used in the 'stats' output. If unset, the 'vcf' file base name is used.", true);
 
 extract($parser->parse($argv));

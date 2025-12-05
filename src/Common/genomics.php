@@ -1052,6 +1052,26 @@ function vcf_deepvariant($format_col, $sample_col)
 	return array($dp,$fq);
 }
 
+function vcf_deepsomatic($info_col, $n_name)
+{
+	$g = explode(";", $info_col);
+	$af = NULL;
+	$dp = NULL;
+	for($i=0;$i<count($g);++$i)
+	{
+		$parts = explode("=", $g[$i]);
+		if ($parts[0] == "{$n_name}_AF") $af = $parts[1];
+		if ($parts[0] == "{$n_name}_DP") $dp = $parts[1];
+	}
+
+	if(is_null($af) || is_null($dp)) trigger_error("Normal AF or DP not annotated in the info filed of Deepsomatic tumor-normal output. (info field: {$info_col})", E_USER_ERROR);
+
+	if(!is_numeric($af)) trigger_error("Invalid allele frequenzy (AF: '".$af."' in info field: '".$info_col."').", E_USER_ERROR);	// currently no multiallelic variants supported
+	if(!is_numeric($dp)) trigger_error("Could not identify numeric depth (DP: '".$dp."' in info field: '".$info_col."').", E_USER_ERROR);
+
+	return array($dp,$af);
+}
+
 function vcf_dragen_var($format_col, $sample_col)
 {
 	$g = explode(":",$format_col);

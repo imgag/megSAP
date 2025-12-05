@@ -1014,4 +1014,12 @@ function chr2NC($key, $revert=false, $throw_if_not_found=false)
 	if ($throw_if_not_found) trigger_error(__FUNCTION__.": cannot convert '{$key}'!", E_USER_ERROR);
 	return "";
 }
+
+//return if singularity or apptainer is installed on the system
+function get_container_software()
+{
+	list($cmd_out) = exec2("singularity --version");
+	$parts = explode(' ', strtolower($cmd_out[0]));
+	return $parts[0];
+}
 ?>
