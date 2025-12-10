@@ -1,0 +1,76 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%post
+
+# Write environment.yaml
+echo "
+name: straglr
+channels:
+  - defaults
+  - bioconda
+  - conda-forge
+dependencies:
+  - python=3.10.9
+  - pysam=0.22.0
+  - pybedtools=0.9.1
+  - numpy=1.24.4
+  - pathos=0.3.1
+  - scikit-learn=1.3.2
+  - scipy=1.10.1
+  - trf=4.09.1
+  - blast=2.5.0
+" > /environment_straglr.yaml
+
+export PATH=/opt/bin:/opt/conda/bin:$PATH
+
+# update ubuntu packages
+apt-get update --fix-missing && \
+yes | apt-get upgrade && \
+apt-get install -y \
+wget \
+git \
+g++ \
+zlib1g-dev \
+make && \
+rm -rf /var/lib/apt/lists/*
+
+# Install miniconda3
+mkdir -p ~/miniconda3
+wget https://repo.anaconda.com/miniconda/Miniconda3-py39_25.1.1-2-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+rm ~/miniconda3/miniconda.sh
+
+. ~/miniconda3/bin/activate
+conda init --all
+
+# install conda packages
+conda config --add channels defaults && \
+conda config --add channels bioconda && \
+conda config --add channels conda-forge && \
+conda env create --name straglr --file=/environment_straglr.yaml
+
+PATH=/root/miniconda3/envs/straglr/bin:$PATH
+CONDA_DEFAULT_ENV=straglr
+
+/bin/bash -c ". ~/miniconda3/bin/activate && conda activate straglr"
+pip install --no-cache-dir git+https://github.com/bcgsc/straglr.git@v1.5.5#egg=straglr && \
+rm -rf /root/miniconda3/pkgs/* && \
+rm -rf /root/.cache/pip && \
+echo ". ~/miniconda3/bin/activate" > ~/.bashrc
+
+# Add shebang to straglr.py
+sed -i '1i#!/root/miniconda3/envs/straglr/bin/python3' /root/miniconda3/envs/straglr/bin/straglr.py
+chmod +x /root/miniconda3/envs/straglr/bin/straglr.py
+
+# cleanup build dependencies
+apt-get remove -y wget git zlib1g-dev g++ make && \
+apt-get autoremove -y && \
+apt-get clean && \
+rm -rf /var/lib/apt/lists/*
+
+%environment
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+export PATH=/root/miniconda3/envs/straglr/bin:$PATH
+export CONDA_DEFAULT_ENV=straglr

@@ -1,0 +1,51 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%post
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+	
+# update ubuntu packages and install build dependencies
+apt-get update && \
+apt-get install -qq -y \
+	wget \
+	g++ \
+	gcc \
+	autoconf \
+	make \
+	zlib1g-dev \
+	libbz2-dev \
+	liblzma-dev \
+	libgomp1
+
+# install longphase
+cd /opt
+wget -c https://github.com/twolinin/longphase/archive/refs/tags/v2.0.tar.gz
+tar xzf v2.0.tar.gz --no-same-owner
+rm -rf v2.0.tar.gz
+cd longphase-2.0 && autoreconf -i && \
+./configure && \
+make -j 4 && \
+mv longphase /opt/longphase
+cd ..
+rm -rf longphase-2.0/
+
+# cleanup build dependencies
+cd /
+apt-get remove -y \
+ 	wget \
+	g++ \
+	gcc \
+	autoconf \
+	make \
+	zlib1g-dev \
+	libbz2-dev \
+	liblzma-dev && \
+apt-get autoremove -y && \
+apt-get clean && \
+rm -rf /var/lib/apt/lists/*
+
+%environment
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+export PATH=/opt:$PATH

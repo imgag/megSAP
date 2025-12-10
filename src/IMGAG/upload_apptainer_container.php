@@ -13,6 +13,7 @@ $parser->addString("tool", "Tool name", false);
 $parser->addString("tag", "Tool tag (usually version).", true, "master");
 $parser->addString("pw", "Password for megsap.de", true, "");
 $parser->addFlag("no_upload", "Only deploys the container to the container repo without uploading it to megsap.de");
+$parser->addFlag("copy", "Copy container instead of moving (for testing pipelines).");
 extract($parser->parse($argv));
 
 //Functions
@@ -35,15 +36,25 @@ function remote_file_exists($remote_path, $pw)
     return $code === 0;
 }
 
-function deploy_container($log, $sif, $md5, $container_repo)
+function deploy_container($log, $sif, $md5, $container_repo, $copy)
 {
-
-	print "Moving $log to ".repository_basedir()."/data/tools/container_recipes/\n";
-	exec2("mv {$log} ".repository_basedir()."/data/tools/container_recipes/");
-	print "Moving $sif to {$container_repo}/{$sif}\n";
-	exec2("mv {$sif} {$container_repo}/{$sif}");
-	print "Moving MD5 sum for $sif to {$container_repo}/checksums/{$sif}.md5\n";
-	exec2("mv {$md5} {$container_repo}/checksums/$md5");
+	if ($copy)
+	{
+		$desc = "Copying";
+		$cmd = "cp";
+	}
+	else
+	{
+		$desc = "Moving";
+		$cmd = "mv";
+	}
+	
+	print "{$desc} $log to ".repository_basedir()."/data/tools/container_recipes/\n";
+	exec2("{$cmd} {$log} ".repository_basedir()."/data/tools/container_recipes/");
+	print "{$desc} $sif to {$container_repo}/{$sif}\n";
+	exec2("{$cmd} {$sif} {$container_repo}/{$sif}");
+	print "{$desc} MD5 sum for $sif to {$container_repo}/checksums/{$sif}.md5\n";
+	exec2("{$cmd} {$md5} {$container_repo}/checksums/$md5");
 }
 
 function replace_remote_container($message, $sif, $pw, $md5, $web_container_dir)
@@ -187,7 +198,7 @@ if (is_file("{$container_repo}/{$sif}"))
 
 		if (strtolower($input) === "y") 
 		{
-			deploy_container($log, $sif, $md5, $container_repo);
+			deploy_container($log, $sif, $md5, $container_repo, $copy);
 		}
 		elseif (strtolower($input) === "n")
 		{
@@ -201,7 +212,7 @@ if (is_file("{$container_repo}/{$sif}"))
 }
 else 
 {
-	deploy_container($log, $sif, $md5, $container_repo);
+	deploy_container($log, $sif, $md5, $container_repo, $copy);
 }
 print "Deploying finished\n";
 

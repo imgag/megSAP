@@ -1,0 +1,35 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%post
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+	
+# update ubuntu packages and install build dependencies
+apt-get update && \
+apt-get install -qq -y \
+	build-essential \
+	python3 \
+	python3-pip \
+	python3-venv \
+	python3-dev
+
+# install whatshap and dependencies
+mkdir -p whatshap
+cd whatshap && python3 -m venv whatshap_env
+. whatshap_env/bin/activate
+pip install --upgrade pip
+pip install --no-cache-dir whatshap==2.8
+deactivate
+
+# cleanup build dependencies
+cd /
+apt-get remove -y build-essential python3-pip python3-venv python3-dev && \
+apt-get autoremove -y && \
+apt-get clean && \
+rm -rf /var/lib/apt/lists/*
+
+%environment
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+export PATH=/whatshap/whatshap_env/bin:/bin:$PATH
