@@ -9,7 +9,7 @@ start_test($name);
 
 ########################## germline ##################
 $out_file1 = output_folder().$name."_out1.vcf.gz";
-check_exec("php ".src_folder()."/Tools/{$name}.php -bam ".data_folder().$name."_in1.bam -target ".data_folder().$name."_in1.bed -out $out_file1 -threads 2 --log ".output_folder().$name."_out1.log");
+check_exec("php ".src_folder()."/Tools/{$name}.php -include_mosaic -bam ".data_folder().$name."_in1.bam -target ".data_folder().$name."_in1.bed -out $out_file1 -threads 2 --log ".output_folder().$name."_out1.log");
 check_file($out_file1, data_folder().$name."_out1.vcf.gz");
 
 ########################## Trio ##################
@@ -19,7 +19,7 @@ $input_files = array();
 $input_files[] = data_folder().$name."_in2_index.bam";
 $input_files[] = data_folder().$name."_in2_father.bam";
 $input_files[] = data_folder().$name."_in2_mother.bam";
-check_exec("php ".src_folder()."/Tools/{$name}.php -bam ".implode(" ", $input_files)." -sample_ids 21073LRa015 21073LRa013 21073LRa014 -target ".data_folder().$name."_in1.bed -out $out_file2 -threads 2 --log ".output_folder().$name."_out2.log");
+check_exec("php ".src_folder()."/Tools/{$name}.php -include_mosaic -bam ".implode(" ", $input_files)." -sample_ids 21073LRa015 21073LRa013 21073LRa014 -target ".data_folder().$name."_in1.bed -out $out_file2 -threads 2 --log ".output_folder().$name."_out2.log");
 check_file($out_file2, data_folder().$name."_out2.vcf.gz");
 
 //TODO

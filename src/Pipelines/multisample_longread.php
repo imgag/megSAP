@@ -195,7 +195,7 @@ if (in_array("cn", $steps))
 if (in_array("sv", $steps))
 {
 	//run Sniffles
-	$parser->execTool("Tools/vc_sniffles.php", "-bam  ".implode(" ", $bams)." -out {$sv_vcf_file} -threads {$threads} -build ".$sys['build']);
+	$parser->execTool("Tools/vc_sniffles.php", "-bam  ".implode(" ", $bams)." -include_mosaic -out {$sv_vcf_file} -threads {$threads} -build ".$sys['build']);
 }
 
 //annotation
