@@ -1015,11 +1015,23 @@ function chr2NC($key, $revert=false, $throw_if_not_found=false)
 	return "";
 }
 
-//return if singularity or apptainer is installed on the system
-function get_container_software()
+//returns which container platform is used: 'apptainer' or 'singularity'
+function container_platform($add_version=false)
 {
-	list($cmd_out) = exec2("singularity --version");
-	$parts = explode(' ', strtolower($cmd_out[0]));
-	return $parts[0];
+	list($stdout) = exec2("singularity --version");
+	$stdout = strtolower(trim(implode(' ', $stdout)));
+	$stdout = strtr($stdout, ["version "=>""]);
+	
+	$parts = explode(' ', $stdout);
+	$platform = $parts[0];
+	if ($platform!="apptainer" && $platform!="singularity") trigger_error("Invalid container platform: {$platform}", E_USER_ERROR);
+	
+	if ($add_version)
+	{
+		$platform .= ' '.$parts[1];
+	}
+	
+	return $platform;
 }
+
 ?>

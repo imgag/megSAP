@@ -9,6 +9,27 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
+function running_jobs()
+{
+	$output = [];
+	
+	list($stdout) = exec2("qstat -q mvh_srv005", false);
+	foreach($stdout as $line)
+	{
+		$line = trim($line);
+		if ($line=="" || starts_with($line, "-----") || starts_with($line, "job-ID")) continue;
+		list($id) = explode(" ", $line, 2);
+		
+		list($stdout2) = exec2("qstat -j {$id} | grep job_args");
+		$parts = explode(",", $stdout2[0]);
+		foreach($parts as $part)
+		{
+			if (is_numeric($part)) $output[] = $part;
+		}
+	}
+	
+	return $output;	
+}
 
 function queue_job($queue, $cm_id, $type)
 {
@@ -47,17 +68,13 @@ function queue_job($queue, $cm_id, $type)
 		
 		print "  STDERR: {$line}\n";
 	}
-	
-	//terminate execution (we only submit one job)
-	exit(0);
 }
 
 //parse command line arguments
 $parser = new ToolBase("mvh_automation", "Automates MVH upload to GRZ/KDK.");
 extract($parser->parse($argv));
 
-
-//check if queue is empty, abort otherwise
+//check if queue slots are free
 list($stdout) = exec2("qstat -g c | grep mvh_");
 if (count($stdout)!=1) trigger_error("Could not determine MVH queue status!", E_USER_ERROR);
 list($queue, $load, $used, $res, $available, $total) = explode(" ", trim(preg_replace('/\s+/', ' ', $stdout[0])));
@@ -69,18 +86,36 @@ if ($available==0)
 	exit(0);
 }
 
-//check if there is a KDK export  to do (we do KDK exports first, because they are fast)
-$db_mvh = DB::getInstance("MVH");
-$cm_ids = $db_mvh->getValues("SELECT cd.cm_id FROM case_data cd, submission_kdk_se sub WHERE sub.case_id=cd.id AND sub.status='pending'");
-foreach($cm_ids as $cm_id)
+//queue
+$exclude = running_jobs();
+while($available>0)
 {
-	queue_job($queue, $cm_id, "KDK_SE");
-}
-//check if there is a GRZ export to do 
-$cm_ids = $db_mvh->getValues("SELECT cd.cm_id FROM case_data cd, submission_grz sub WHERE sub.case_id=cd.id AND sub.status='pending'");
-foreach($cm_ids as $cm_id)
-{
-	queue_job($queue, $cm_id, "GRZ");
+	//check if there is a KDK export  to do (we do KDK exports first, because they are fast)
+	$db_mvh = DB::getInstance("MVH");
+	$cm_ids = $db_mvh->getValues("SELECT cd.cm_id FROM case_data cd, submission_kdk_se sub WHERE sub.case_id=cd.id AND sub.status='pending'");
+	foreach($cm_ids as $cm_id)
+	{
+		if (in_array($cm_id, $exclude)) continue;
+		
+		queue_job($queue, $cm_id, "KDK_SE");
+		$exclude[] = $cm_id;
+		$available -= 1;
+		continue(2);
+	}
+	
+	//check if there is a GRZ export to do 
+	$cm_ids = $db_mvh->getValues("SELECT cd.cm_id FROM case_data cd, submission_grz sub WHERE sub.case_id=cd.id AND sub.status='pending'");
+	foreach($cm_ids as $cm_id)
+	{
+		if (in_array($cm_id, $exclude)) continue;
+		
+		queue_job($queue, $cm_id, "GRZ");
+		$exclude[] = $cm_id;
+		$available -= 1;
+		continue(2);
+	}
+	
+	break; //terminate if there are slots available, but no more jobs
 }
 
 ?>

@@ -1244,6 +1244,30 @@ function get_processed_sample_qc(&$db, $ps, $qc_name_or_accession)
 	return $db->getValue("SELECT value FROM processed_sample_qc WHERE processed_sample_id='{$ps_id}' AND qc_terms_id={$term_id}", "");
 }
 
+//Returns the value of the given QC term from the file. If default is not set, throws an error if the file does not exist, or does not contain the term.
+function get_qcml_value($qcml_file, $accession, $default=null)
+{
+	if (!file_exists($qcml_file)) 
+	{
+		if (is_null($default)) trigger_error("qcML file does not exists: {$qcml_file}", E_USER_ERROR);
+		return $default;
+	}
+	
+	
+	$value = "";
+	$xml = simplexml_load_file($qcml_file);
+	foreach ($xml->runQuality->qualityParameter as $qp)
+	{
+		if ($qp["accession"]==$accession)
+		{
+			return $qp["value"];
+		}
+	}
+	
+	if (is_null($default)) trigger_error("QC term with ID '{$accession}' not found in qcML file: {$qcml_file}", E_USER_ERROR);
+	return $default;
+}
+
 //Creates a samples header using meta data from NGSD (using $override_map to allow replace NGSD info)
 function gsvar_sample_header($ps, $override_map, $prefix = "##", $suffix = "\n")
 {
@@ -2554,6 +2578,24 @@ function get_fastq_read_count($fastq_files)
 		$read_count += $rc_current_file;
 	}
 	return $read_count;
+}
+
+//Checks if a BED file is sorted
+function bed_is_sorted($filename)
+{
+	$is_sorted = "";
+	list($stdout) = execApptainer("ngs-bits", "BedInfo", "-in {$filename} -nomerge", [$filename]);
+	foreach($stdout as $line)
+	{
+		$line = trim($line);
+		if (starts_with($line, "Is sorted"))
+		{
+			$is_sorted = trim(explode(":", $line, 2)[1]);
+		}
+	}
+	if ($is_sorted=="yes") return true;
+	if ($is_sorted=="no") return false;
+	trigger_error("Could not determine if file is sorted: $filename", E_USER_ERROR);
 }
 
 ?>

@@ -1,0 +1,1 @@
+apptainer pull clair3_v1.2.0.sif docker://hkubal/clair3-gpu:v1.2.0

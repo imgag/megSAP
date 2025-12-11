@@ -197,13 +197,9 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	//set bind paths for container execution
 	$in_files = [genome_fasta($build), $vcf_filtered];
 
-	$tool = get_container_software();
-
-	if ($tool === 'apptainer') $prefix = "APPTAINERENV";
-	elseif ($tool === 'singularity') $prefix = "SINGULARITYENV";
-
 	//run spliceai container
 	$spliceai_command = $parser->execApptainer("spliceai", "spliceai", implode(" ", $args), $in_files, [], true);
+	$prefix = container_platform()=='apptainer' ? "APPTAINERENV" : "SINGULARITYENV";
 	$parser->exec("{$prefix}_OMP_NUM_THREADS={$threads} {$spliceai_command}", "");
 
 	//no variants scored => copy input to output

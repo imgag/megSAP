@@ -410,26 +410,8 @@ if (file_exists($stats))
 
 //get QC metrics
 $qcml = dirname($bam)."/".basename2($bam)."_stats_map.qcML";
-$avg_depth = "n/a";
-if (file_exists($qcml))
-{
-	list($stdout) = exec2("grep 'QC:2000025' $qcml"); //Average sequencing depth in target region
-	foreach(explode(" ", $stdout[0]) as $part)
-	{
-		if (!contains($part, "value")) continue;
-		$avg_depth = explode("\"", $part)[1];
-	}
-}
-$cov20x = "n/a";
-if (file_exists($qcml))
-{
-	list($stdout) = exec2("grep 'QC:2000027' $qcml"); //Average sequencing depth in target region
-	foreach(explode(" ", $stdout[0]) as $part)
-	{
-		if (!contains($part, "value")) continue;
-		$cov20x = explode("\"", $part)[1];
-	}
-}
+$avg_depth = get_qcml_value($qcml, "QC:2000025", "n/a");
+$cov20x = get_qcml_value($qcml, "QC:2000027", "n/a");
 
 list($snv_exp, $snv_sens, $snv_ppv, $snv_geno, $snv_f1) = stats("SNVS", $expected, $var_diff);
 list($indel_exp, $indel_sens, $indel_ppv, $indel_geno, $indel_f1) = stats("INDELS", $expected, $var_diff);
