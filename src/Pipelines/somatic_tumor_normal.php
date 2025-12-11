@@ -1004,6 +1004,7 @@ if (in_array("an", $steps))
 	$params[] = "-r $ref_genome";
 	$params[] = "-n 65"; //number of variants to select
 	$params[] = "-i"; // ignore INDELS
+	$params[] = "-s $n_id";
 	$parser->execApptainer("umiVar", "select_monitoring_variants.py", implode(" ", $params), [$variants_gsvar, $ref_genome], [$out_folder]);
 }
 
