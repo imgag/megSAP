@@ -90,4 +90,5 @@ diff2:
 	diff 23014LRa023_01_bafs.igv.out 23014LRa023_01_bafs.igv
 	diff 23014LRa023_01_var_methylation.tsv.out 23014LRa023_01_var_methylation.tsv
 	diff 23014LRa023_01.paraphase.json.out paraphase/23014LRa023_01.paraphase.json
+	diff 23014LRa023_01_epigen.tsv.out 23014LRa023_01_epigen.tsv
 
