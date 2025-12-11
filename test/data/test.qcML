@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xml" href="#stylesheet"?>
+<!DOCTYPE catelog [
+  <!ATTLIST xsl:stylesheet
+  id  ID  #REQUIRED>
+  ]>
+<qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
+  <runQuality ID="rq0001">
+    <qualityParameter ID="qp0010" name="target region read depth" description="Average sequencing depth in target region." value="180.11" cvRef="QC" accession="QC:2000025"/>
+    <qualityParameter ID="qp0013" name="target region 20x percentage" description="Percentage of the target region that is covered at least 20-fold." value="93.46" cvRef="QC" accession="QC:2000027"/>
+  </runQuality>
+</qcML>

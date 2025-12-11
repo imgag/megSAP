@@ -1,0 +1,31 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%post
+LANG=C.UTF-8
+LC_ALL=C.UTF-8
+PATH=/bin:$PATH
+
+# update ubuntu packages and install build dependencies
+apt-get update
+apt-get dist-upgrade -y 
+apt-get install wget build-essential unzip git -y 
+rm -rf /var/lib/apt/lists/*
+
+# download and unzip minimap2
+mkdir -p /usr/local/src
+cd /usr/local/src && \
+wget -c https://github.com/lh3/minimap2/releases/download/v2.30/minimap2-2.30_x64-linux.tar.bz2 && \
+tar xjf minimap2-2.30_x64-linux.tar.bz2 --no-same-owner && \
+rm minimap2-2.30_x64-linux.tar.bz2
+
+# cleanup build dependencies
+apt-get remove -y wget build-essential unzip git && \
+apt-get autoremove -y && \
+apt-get clean && \
+rm -rf /var/lib/apt/lists/* /usr/local/src/minimap2-2.30_x64-linux/*.md
+
+%environment
+PATH=/usr/local/src/minimap2-2.30_x64-linux:$PATH
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8

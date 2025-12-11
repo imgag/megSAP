@@ -10,8 +10,8 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 //parse command line arguments
 $parser = new ToolBase("create_qcml", "Collects QC terms and creates qcml files for somatic pipeline.");
 $parser->addString("full_prefix", "Full filepath prefix for out files", false);
-$parser->addString("t_basename", "Basename of tumor sample file including filepath", false);
-$parser->addFlag("tumor_only", "Annotation for tumor-only analysis.");
+$parser->addString("viral_tsv", "Virus detection TSV file.", false);
+$parser->addFlag("tumor_only", "Special handling for tumor-only: no MSI, etc.");
 
 extract($parser->parse($argv));
 
@@ -19,7 +19,7 @@ extract($parser->parse($argv));
 $terms = array();
 $sources = array();
 
-//CNVs:
+//CNVs
 $som_clincnv = $full_prefix . "_clincnv.tsv"; //ClinCNV output file
 if (file_exists($som_clincnv))
 {
@@ -28,6 +28,7 @@ if (file_exists($som_clincnv))
     $cnv_count_loss = 0;
     $cnv_count_gain = 0;
     $h = fopen2($som_clincnv, 'r');
+	$max_clonality = -1;
     while(!feof($h))
     {
         $line = trim(fgets($h));
@@ -50,10 +51,17 @@ if (file_exists($som_clincnv))
                     if ($cn>2) ++$cnv_count_gain;
                 }
             }
+			
+			#tumor content estimate - max clonality
+			$clonality = $parts[9];
+			if (is_numeric($clonality) && floatval($clonality) > $max_clonality) $max_clonality = floatval($clonality);
         }
     }
     fclose($h);
     
+	//tumor estimate:
+	if ($max_clonality > 0) $terms[] = "QC:2000151\t{$max_clonality}";
+	
     //counts (all, loss, gain)
     $terms[] = "QC:2000044\t{$cnv_count_hq}"; // somatic CNVs count
     if ($cnv_count_hq_autosomes>0)
@@ -64,7 +72,7 @@ if (file_exists($som_clincnv))
     $sources[] = $som_clincnv;
 }
 
-// HRD score:
+//HRD score
 $hrd_file = $full_prefix."_HRDresults.txt";
 if (file_exists($hrd_file))
 {
@@ -80,12 +88,11 @@ if (file_exists($hrd_file))
     $sources[] = $hrd_file;
 }
 
-//virus:
-$viral = "{$t_basename}_viral.tsv"; // viral sequences results
-if (file_exists($viral))
+//virus detection
+if (file_exists($viral_tsv))
 {
     $detected_viruses = [];
-    foreach(file($viral) as $line)
+    foreach(file($viral_tsv) as $line)
     {
         if (starts_with($line, "#")) continue;
         
@@ -104,11 +111,11 @@ if (file_exists($viral))
     }
     
     $terms[] = "QC:2000130\t{$value}";
-    $sources[] = $viral;
+    $sources[] = $viral_tsv;
 }
 
-//MSI-status
-$msi_o_file = $full_prefix . "_msi.tsv"; //MSI
+//MSI status
+$msi_o_file = $full_prefix . "_msi.tsv";
 if (!$tumor_only && file_exists($msi_o_file))
 {
     foreach(file($msi_o_file) as $line)
@@ -123,20 +130,7 @@ if (!$tumor_only && file_exists($msi_o_file))
     
 }
 
-//TODO HLA:
-// if (file_exists($hla_file_tumor))
-// {
-    
-    // $sources[] = $hla_file_tumor;
-// }
-
-// if (!$single_sample && file_exists($hla_file_normal))
-// {
-    
-    // $sources[] = $hla_file_normal;
-// }
-
-//TODO mutational signatures
+//TODO HLA + other mutational signatures
 
 //create qcML file
 $qc_other = $full_prefix."_stats_other.qcML";

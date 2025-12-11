@@ -477,6 +477,14 @@ while(!gzeof($handle))
 		{
 			fwrite($handle_out, "##SOURCE=".trim(substr($line,9))."\n");
 		}
+		if (starts_with($line, "##source=strelka2"))
+		{
+			fwrite($handle_out, "##SOURCE=".trim(substr($line,9))."\n");
+		}
+		if (starts_with($line, "##source=VarScan2"))
+		{
+			fwrite($handle_out, "##SOURCE=".trim(substr($line,9))."\n");
+		}
 		
 		//filters
 		if (starts_with($line, "##FILTER=<ID="))

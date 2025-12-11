@@ -1,9 +1,5 @@
 <?php
 
-/**
- * vc_viral_load
- */
-
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
@@ -13,22 +9,23 @@ $parser->addInfile("in",  "Input file in BAM format.", false);
 $parser->addOutfile("viral_bam", "Output file in BAM format.", false);
 $parser->addOutFile("viral_bam_raw", "Undeduplicated output in BAM format in case of barcode correction.", true);
 $parser->addOutfile("viral_cov", "Output file in TSV format.", false);
-
-$parser->addInfile("in_qcml", "Mapping statistics of input data in qcML format for relative coverage values.", true);
+$parser->addFloat("avg_target_cov", "Average read depth of tumor BAM file.", false);
+//optional
 $parser->addFlag("barcode_correction", "Run UMI-specific deduplication steps.");
 $parser->addStringArray("viral_chrs", "Viral chromosome names or region specifiers in original alignment, i.e. for HHV-4.", true, ["chrNC_007605"]);
-
 $parser->addString("build_viral", "Build name of viral references.", true, "somatic_viral");
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
 extract($parser->parse($argv));
+
 
 if ($barcode_correction && !isset($viral_bam_raw))
 {
     $viral_bam_raw = $parser->tempFile("_viral_before_dedup.bam");
 }
 
-//check viral genome is indexes
+//create viral genome index if missing
 $viral_genome  = get_path("data_folder")."/genomes/{$build_viral}.fa";
+if(!file_exists($viral_genome)) trigger_error("Viral reference genome mnissing: {$viral_genome}.", E_USER_ERROR);
 if (file_exists($viral_genome) && !file_exists($viral_genome.".bwt.2bit.64"))
 {
 	$parser->execTool("Install/index_genome.php", "-in {$viral_genome}");
@@ -36,6 +33,7 @@ if (file_exists($viral_genome) && !file_exists($viral_genome.".bwt.2bit.64"))
 
 //target file for viral sequences
 $viral_enrichment = get_path("data_folder") . "/enrichment/{$build_viral}.bed";
+if(!file_exists($viral_enrichment)) trigger_error("Viral target region missing: {$viral_enrichment}.", E_USER_ERROR);
 
 //extract unaligned reads
 $genome = genome_fasta("GRCh38");
@@ -52,7 +50,8 @@ if (count($viral_chrs) > 0)
     $filtered_bam = $parser->tempFile("_filtered.bam");
     $parser->execApptainer("samtools", "samtools merge", "-u {$filtered_bam} {$filtered_bam1} {$filtered_bam2}");
 }
-else {
+else
+{
     $filtered_bam = $filtered_bam1;
 }
 
@@ -106,19 +105,6 @@ $pipeline[] = ["", $parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in2 {$viral_cov_tmp} -no_duplicates -col 5 -out {$viral_result_tmp}", [], [], true)];
 $parser->execPipeline($pipeline, "result file");
 
-//extract average target coverage from provided qcML file
-$avg_target_cov = 0.0;
-if (isset($in_qcml)) {
-    $sxml = simplexml_load_file($in_qcml);
-    foreach ($sxml->runQuality->qualityParameter as $qp)
-    {
-        if ($qp["accession"] == "QC:2000025")
-        {
-            $avg_target_cov = floatval($qp["value"]);
-        }
-    }
-}
-
 //add additional columns with relative coverage and name
 $handle_out = fopen2($viral_cov, "w");
 preg_match('/.+ : ([0-9]+)/', $stdout[0], $matches);
@@ -133,7 +119,7 @@ while ($line = fgets($handle))
     $fields = explode("\t", nl_trim($line));
 
     // relative coverage
-    $fields[] = sprintf("%.4f", $fields[5] / $avg_target_cov);
+    $fields[] = number_format($fields[5]/$avg_target_cov, 4);
 
     // mismatches
     $region = $fields[0] . ":" . ($fields[1]+1) . "-" .  $fields[2];

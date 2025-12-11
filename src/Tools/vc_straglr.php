@@ -149,7 +149,7 @@ foreach ($vcf_content_in as $line)
         $start = $columns[1];
         
         $info =  explode(";", $columns[7]);
-        $info[] = "END=".$catalog["{$chr}:{$start}"][4]; //add end pos
+        // $info[] = "END=".$catalog["{$chr}:{$start}"][4]; //add end pos
         $ref_motif = $catalog["{$chr}:{$start}"][3];
         $repeat_id = $catalog["{$chr}:{$start}"][0];
         $info[] = "REF_MOTIF=".$ref_motif;

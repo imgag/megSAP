@@ -5,7 +5,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -19,7 +19,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "AMY1A": {
@@ -28,7 +28,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -42,7 +42,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "AMY2A": {
@@ -51,7 +51,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -65,7 +65,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "ANKRD20A1": {
@@ -74,7 +74,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -88,7 +88,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "ANXA8": {
@@ -97,7 +97,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -111,7 +111,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "ARHGEF5": {
@@ -120,7 +120,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -134,7 +134,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "ARL17A": {
@@ -143,7 +143,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -157,7 +157,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "BOLA2": {
@@ -166,7 +166,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -180,7 +180,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "BPY2": {
@@ -189,7 +189,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -203,7 +203,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "C21orf140": {
@@ -212,7 +212,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -226,7 +226,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CASTOR2": {
@@ -235,7 +235,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -249,7 +249,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CBS": {
@@ -258,7 +258,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -272,7 +272,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CCZ1": {
@@ -281,7 +281,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -295,7 +295,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CDY1": {
@@ -304,7 +304,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -318,7 +318,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CDY2A": {
@@ -327,7 +327,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -341,7 +341,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CENPVL2": {
@@ -350,7 +350,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -364,7 +364,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CFH": {
@@ -373,7 +373,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -387,7 +387,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CFHR3": {
@@ -396,7 +396,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -410,7 +410,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CFHclust": {
@@ -419,7 +419,7 @@
         "final_haplotypes": {},
         "two_copy_haplotypes": [],
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -433,7 +433,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": {}
     },
     "CHRNA7": {
@@ -442,7 +442,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -456,7 +456,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CLEC18C": {
@@ -465,7 +465,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -479,7 +479,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CNTNAP3": {
@@ -488,7 +488,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -502,7 +502,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CRYAA": {
@@ -511,7 +511,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -525,7 +525,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CSAG2": {
@@ -534,7 +534,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -548,7 +548,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CTAG1A": {
@@ -557,7 +557,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -571,7 +571,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CTAGE6": {
@@ -580,7 +580,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -594,7 +594,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CTAGE8": {
@@ -603,7 +603,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -617,7 +617,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CXorf49": {
@@ -626,7 +626,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -640,7 +640,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CXorf51A": {
@@ -649,7 +649,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -663,7 +663,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CYP11B1": {
@@ -672,7 +672,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -686,7 +686,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "CYP2D6": {
@@ -695,7 +695,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -709,7 +709,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "DDT": {
@@ -718,7 +718,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -732,7 +732,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "DEFA1": {
@@ -741,7 +741,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -755,7 +755,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "DEFB103A": {
@@ -764,7 +764,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -778,7 +778,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "DEFB104A": {
@@ -787,7 +787,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -801,7 +801,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "DEFB105A": {
@@ -810,7 +810,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -824,7 +824,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "DEFB106A": {
@@ -833,7 +833,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -847,7 +847,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "DEFB107A": {
@@ -856,7 +856,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -870,7 +870,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "DEFB109B": {
@@ -879,7 +879,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -893,7 +893,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "DEFB130A": {
@@ -902,7 +902,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -916,7 +916,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "DEFB4A": {
@@ -925,7 +925,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -939,7 +939,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "DGCR6": {
@@ -948,7 +948,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -962,7 +962,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "DHX40": {
@@ -971,7 +971,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -985,7 +985,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "DMRTC1": {
@@ -994,7 +994,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1008,7 +1008,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "EIF3C": {
@@ -1017,7 +1017,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1031,7 +1031,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "ETDA": {
@@ -1040,7 +1040,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1054,7 +1054,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "FAM156A": {
@@ -1063,7 +1063,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1077,7 +1077,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "FAM246A": {
@@ -1086,7 +1086,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1100,7 +1100,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "FAM72A": {
@@ -1109,7 +1109,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1123,7 +1123,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "FAM86B1": {
@@ -1132,7 +1132,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1146,7 +1146,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "FCGR2C": {
@@ -1155,7 +1155,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1169,7 +1169,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "FOXD4L3": {
@@ -1178,7 +1178,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1192,7 +1192,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "FOXD4L4": {
@@ -1201,7 +1201,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1215,7 +1215,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "FRG2": {
@@ -1224,7 +1224,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1238,7 +1238,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "FRMPD2": {
@@ -1247,7 +1247,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1261,7 +1261,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "GATD3": {
@@ -1270,7 +1270,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1284,7 +1284,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "GBA": {
@@ -1293,7 +1293,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1307,7 +1307,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "GOLGA6L24": {
@@ -1316,7 +1316,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1330,7 +1330,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "GOLGA8A": {
@@ -1339,7 +1339,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1353,7 +1353,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "GOLGA8F": {
@@ -1362,7 +1362,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1376,7 +1376,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "GOLGA8K": {
@@ -1385,7 +1385,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1399,7 +1399,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "GOLGA8N": {
@@ -1408,7 +1408,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1422,7 +1422,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "GPAT2": {
@@ -1431,7 +1431,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1445,7 +1445,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "GRAPL": {
@@ -1454,7 +1454,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1468,7 +1468,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "GTF2H2": {
@@ -1477,7 +1477,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1491,7 +1491,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "GTF2I": {
@@ -1500,7 +1500,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1514,7 +1514,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "GTF2IRD2B": {
@@ -1523,7 +1523,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1537,7 +1537,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "H3C14": {
@@ -1546,7 +1546,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1560,7 +1560,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "HIC2": {
@@ -1569,7 +1569,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1583,7 +1583,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "HSF2BP": {
@@ -1592,7 +1592,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1606,7 +1606,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "HSFX1": {
@@ -1615,7 +1615,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1629,7 +1629,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "HSFY1": {
@@ -1638,7 +1638,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1652,7 +1652,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "ICOSLG": {
@@ -1661,7 +1661,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1675,7 +1675,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "IQCK": {
@@ -1684,7 +1684,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1698,7 +1698,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "KCNE1": {
@@ -1707,7 +1707,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1721,7 +1721,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "LGALS9B": {
@@ -1730,7 +1730,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1744,7 +1744,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "LIMS3": {
@@ -1753,7 +1753,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1767,7 +1767,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "MAGEA9": {
@@ -1776,7 +1776,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1790,7 +1790,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "MAGED4": {
@@ -1799,7 +1799,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1813,7 +1813,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "MAGEH1": {
@@ -1822,7 +1822,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1836,7 +1836,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "MALL": {
@@ -1845,7 +1845,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1859,7 +1859,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "MBD3L2": {
@@ -1868,7 +1868,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1882,7 +1882,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "MRPL23": {
@@ -1891,7 +1891,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1905,7 +1905,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "NBPF4": {
@@ -1914,7 +1914,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1928,7 +1928,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "NOTCH2": {
@@ -1937,7 +1937,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1951,7 +1951,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "NOTCH2NLA": {
@@ -1960,7 +1960,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1974,7 +1974,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "NPIPA2": {
@@ -1983,7 +1983,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -1997,7 +1997,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "NPY4R": {
@@ -2006,7 +2006,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2020,7 +2020,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "NSF": {
@@ -2029,7 +2029,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2043,7 +2043,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "NUDT4B": {
@@ -2052,7 +2052,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2066,7 +2066,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "NUTM2A": {
@@ -2075,7 +2075,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2089,7 +2089,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "NXF2": {
@@ -2098,7 +2098,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2112,7 +2112,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "OCLN": {
@@ -2121,7 +2121,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2135,7 +2135,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "OR1D5": {
@@ -2144,7 +2144,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2158,7 +2158,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "OR2A1": {
@@ -2167,7 +2167,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2181,7 +2181,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "OR2T5": {
@@ -2190,7 +2190,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2204,7 +2204,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "OR4M2": {
@@ -2213,7 +2213,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2227,7 +2227,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "OTOA": {
@@ -2236,7 +2236,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2250,7 +2250,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "PABPC1L2A": {
@@ -2259,7 +2259,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2273,7 +2273,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "PDPK1": {
@@ -2282,7 +2282,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2296,7 +2296,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "PLGLB1": {
@@ -2305,7 +2305,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2319,7 +2319,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "POLR2J2": {
@@ -2328,7 +2328,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2342,7 +2342,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "POTEB": {
@@ -2351,7 +2351,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2365,7 +2365,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "POTED": {
@@ -2374,7 +2374,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2388,7 +2388,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "POTEE": {
@@ -2397,7 +2397,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2411,7 +2411,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "POTEI": {
@@ -2420,7 +2420,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2434,7 +2434,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "PPIAL4C": {
@@ -2443,7 +2443,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2457,7 +2457,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "PPIAL4D": {
@@ -2466,7 +2466,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2480,7 +2480,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "PPIP5K1": {
@@ -2489,7 +2489,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2503,7 +2503,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "PRAMEF10": {
@@ -2512,7 +2512,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2526,7 +2526,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "PRAMEF13": {
@@ -2535,7 +2535,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2549,7 +2549,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "PRAMEF18": {
@@ -2558,7 +2558,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2572,7 +2572,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "PRAMEF25": {
@@ -2581,7 +2581,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2595,7 +2595,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "PRAMEF7": {
@@ -2604,7 +2604,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2618,7 +2618,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "PRODH": {
@@ -2627,7 +2627,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2641,7 +2641,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "PRR23D1": {
@@ -2650,7 +2650,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2664,7 +2664,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "PRY": {
@@ -2673,7 +2673,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2687,7 +2687,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "PTPN20": {
@@ -2696,7 +2696,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2710,7 +2710,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "PWP2": {
@@ -2719,7 +2719,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2733,7 +2733,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "PWWP4": {
@@ -2742,7 +2742,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2756,7 +2756,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "RBPMS": {
@@ -2765,7 +2765,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2779,7 +2779,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "RGPD1": {
@@ -2788,7 +2788,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2802,7 +2802,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "RGPD3": {
@@ -2811,7 +2811,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2825,7 +2825,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "RGPD5": {
@@ -2834,7 +2834,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2848,7 +2848,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "RHOXF2": {
@@ -2857,7 +2857,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2871,7 +2871,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "RIMBP3B": {
@@ -2880,7 +2880,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2894,7 +2894,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "RMND5A": {
@@ -2903,7 +2903,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2917,7 +2917,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "RSPH10B": {
@@ -2926,7 +2926,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2940,7 +2940,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "SERF1A": {
@@ -2949,7 +2949,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2963,7 +2963,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "SIK1": {
@@ -2972,7 +2972,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -2986,7 +2986,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "SMIM11": {
@@ -2995,7 +2995,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3009,7 +3009,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "SMIM34": {
@@ -3018,7 +3018,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3032,7 +3032,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "SPAG11A": {
@@ -3041,7 +3041,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3055,7 +3055,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "SSX2": {
@@ -3064,7 +3064,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3078,7 +3078,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "SSX4": {
@@ -3087,7 +3087,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3101,7 +3101,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "SYT15": {
@@ -3110,7 +3110,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3124,7 +3124,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "TCAF1": {
@@ -3133,7 +3133,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3147,7 +3147,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "TCP11X1": {
@@ -3156,7 +3156,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3170,7 +3170,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "THOC3": {
@@ -3179,7 +3179,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3193,7 +3193,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "TMEM191B": {
@@ -3202,7 +3202,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3216,7 +3216,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "TMLHE": {
@@ -3225,7 +3225,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3239,7 +3239,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "TNXB": {
@@ -3248,7 +3248,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3262,7 +3262,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "TRAPPC10": {
@@ -3271,7 +3271,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3285,7 +3285,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "TRIM49": {
@@ -3294,7 +3294,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3308,7 +3308,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "TRIM49D1": {
@@ -3317,7 +3317,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3331,7 +3331,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "TRIM64": {
@@ -3340,7 +3340,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3354,7 +3354,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "TRIM73": {
@@ -3363,7 +3363,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3377,7 +3377,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "U2AF1": {
@@ -3386,7 +3386,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3400,7 +3400,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "UPK3BL1": {
@@ -3409,7 +3409,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3423,7 +3423,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "XAGE1A": {
@@ -3432,7 +3432,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3446,7 +3446,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "ZNF595": {
@@ -3455,7 +3455,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3469,7 +3469,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "ZNF705D": {
@@ -3478,7 +3478,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3492,7 +3492,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "cfc1": {
@@ -3501,7 +3501,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3515,7 +3515,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "f8": {
@@ -3526,7 +3526,7 @@
         "flanking_summary": null,
         "sv_called": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3540,7 +3540,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "hba": {
@@ -3551,7 +3551,7 @@
         "sv_called": null,
         "surrounding_region_depth": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3565,7 +3565,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "ikbkg": {
@@ -3576,7 +3576,7 @@
         "del_read_number": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3590,7 +3590,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "ncf1": {
@@ -3613,7 +3613,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "neb": {
@@ -3621,7 +3621,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "repeat_name": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
@@ -3636,7 +3636,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "opn1lw": {
@@ -3652,11 +3652,10 @@
         "phasing_success": null,
         "annotated_alleles": null,
         "alleles_final": null,
-        "alleles_full": null,
-        "hap_links": null,
+        "alleles_all_haplotypes": null,
+        "haplotype_links": null,
         "directional_links": null,
         "links_loose": null,
-        "alleles_raw": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3670,7 +3669,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "pms2": {
@@ -3679,7 +3678,7 @@
         "final_haplotypes": null,
         "two_copy_haplotypes": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3693,7 +3692,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "rccx": {
@@ -3707,7 +3706,7 @@
         "alleles_final": null,
         "annotated_alleles": null,
         "hap_variants": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3721,20 +3720,20 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "smn1": {
         "smn1_cn": null,
         "smn2_cn": null,
-        "smn2_del78_cn": null,
+        "smn_del78_cn": null,
         "smn1_read_number": null,
         "smn2_read_number": null,
-        "smn2_del78_read_number": null,
+        "smn_del78_read_number": null,
         "highest_total_cn": null,
         "smn1_haplotypes": null,
         "smn2_haplotypes": null,
-        "smn2_del78_haplotypes": null,
+        "smn_del78_haplotypes": null,
         "assembled_haplotypes": null,
         "two_copy_haplotypes": null,
         "sites_for_phasing": null,
@@ -3749,7 +3748,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     },
     "strc": {
@@ -3759,7 +3758,7 @@
         "two_copy_haplotypes": null,
         "intergenic_depth": null,
         "alleles_final": null,
-        "hap_links": null,
+        "haplotype_links": null,
         "highest_total_cn": null,
         "assembled_haplotypes": null,
         "sites_for_phasing": null,
@@ -3773,7 +3772,7 @@
         "region_depth": null,
         "sample_sex": null,
         "heterozygous_sites": null,
-        "linked_haplotypes": null,
+        "raw_alleles": null,
         "fusions_called": null
     }
 }
