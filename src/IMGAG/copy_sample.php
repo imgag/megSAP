@@ -108,6 +108,7 @@ function check_number_of_lanes($run_info_xml_file, $sample_sheet)
 		return false;
 	}
 	$xml = simplexml_load_file($run_info_xml_file);
+	if ($xml===false) trigger_error("Could not load XML file: $run_info_xml_file", E_USER_ERROR);
 	if(empty($xml->Run->FlowcellLayout->attributes()->LaneCount))
 	{
 		return false;
@@ -276,6 +277,7 @@ $run_name = "#".$run_name;
 //get flowcell id
 if(!file_exists($runinfo)) trigger_error("ERROR: Run info file '{$runinfo}' not found!", E_USER_ERROR);
 $xml = simplexml_load_file($runinfo);
+if ($xml===false) trigger_error("Could not load XML file: $runinfo", E_USER_ERROR);
 if(empty($xml->Run->Flowcell)) trigger_error("ERROR: Run info file doesn't contain flowcell id!", E_USER_ERROR);
 $flowcell_id = $xml->Run->Flowcell;
 

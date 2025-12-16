@@ -9,15 +9,70 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
 $parser = new ToolBase("create_qcml", "Collects QC terms and creates qcml files for somatic pipeline.");
-$parser->addString("full_prefix", "Full filepath prefix for out files", false);
+$parser->addString("full_prefix", "Path prefix for out files (absolute path plus base file name).", false);
 $parser->addString("viral_tsv", "Virus detection TSV file.", false);
+$parser->addInfile("roi", "Processing system target region (needed for TMB calculation for tumor-only.", true);
 $parser->addFlag("tumor_only", "Special handling for tumor-only: no MSI, etc.");
-
 extract($parser->parse($argv));
 
+function count_variants($vcf, $roi)
+{
+	global $parser;
+	
+	list($stdout) = $parser->execApptainer("ngs-bits", "VcfFilter", "-in {$vcf} -reg {$roi}", [$roi]);
+	foreach($stdout as $line)
+	{
+		$line = nl_trim($line);
+		if ($line=="" || $line[0]=='#') continue;
+		
+		$parts = explode("\t", $line);
+		
+		//filter
+		if (contains($parts[6], "freq-tum")) continue;
+		//TODO add important filters for DeepSomatic
+		
+		++$output;
+	}
+	
+	return $output;
+}
+
+function calculate_tmb($vcf_filtered, $roi)
+{
+	//no ROI > abort
+	if ($roi=="") return "";
+	
+	//init
+	global $parser;
+	$exons = repository_basedir()."/data/gene_lists/gene_exons.bed";
+	$blacklist = repository_basedir()."/data/gene_lists/somatic_tmb_blacklist.bed";
+	$tmb_tsg = repository_basedir()."/data/gene_lists/somatic_tmb_tsg.bed";
+	
+	//determine usable target region
+	$tmp = $parser->tempFile(".bed");
+	$parser->execApptainer("ngs-bits", "BedIntersect", "-in {$roi} -in2 {$exons} -out {$tmp}", [$roi, $exons]);
+	$roi_usable = $parser->tempFile(".bed");
+	$parser->execApptainer("ngs-bits", "BedSubtract", "-in {$tmp} -in2 {$blacklist} -out {$roi_usable}", [$blacklist]);
+	$roi_usable_size_mb = bed_size($roi_usable) / 1000000.0;
+	if ($roi_usable_size_mb==0) return "";
+
+	//determine usable TSG region
+	$tmb_tsg_usable = $parser->tempFile(".bed");	
+	$parser->execApptainer("ngs-bits", "BedIntersect", "-in {$tmb_tsg} -in2 {$roi_usable} -out {$tmb_tsg_usable}", [$tmb_tsg]);
+
+	//determine exome sizes
+	$exome_size_mb = bed_size($exons) / 1000000.0;
+	
+	//calculate mutation burden
+	$somatic_var_count = count_variants($vcf_filtered, $roi_usable);
+	$somatic_var_count_tsg = count_variants($vcf_filtered, $tmb_tsg_usable);
+	$tmb =  ( ($somatic_var_count - $somatic_var_count_tsg) * $exome_size_mb / $roi_usable_size_mb + $somatic_var_count_tsg ) / $exome_size_mb;
+	return number_format($tmb, 2);
+}
+
 //Collect QC terms if necessary
-$terms = array();
-$sources = array();
+$terms = [];
+$sources = [];
 
 //CNVs
 $som_clincnv = $full_prefix . "_clincnv.tsv"; //ClinCNV output file
@@ -131,6 +186,75 @@ if (!$tumor_only && file_exists($msi_o_file))
 }
 
 //TODO HLA + other mutational signatures
+
+//tumor-only: small variants QC
+if ($tumor_only)
+{
+	//filter GSvar for somatic variants
+	$gsvar = "{$full_prefix}.GSvar";
+	$filter = repository_basedir()."/data/misc/gsvar_filters/tumor_only.txt";
+    $vcf_filtered = $parser->tempFile(".GSvar");
+	$parser->execApptainer("ngs-bits", "VariantFilterAnnotations", "-in {$gsvar} -filters {$filter} -out {$vcf_filtered}", [$gsvar, $filter]);
+	
+	//parses filtered GSvar
+	$c_gnomad = -1;
+	$count_som_vars = 0;
+	$somatic_indel_perc = 0;
+	$known_som_vars_perc = 0;
+	$ti_count = 0;
+	$tv_count = 0;
+	$h = fopen2($vcf_filtered, 'r');
+	while(!feof($h))
+	{
+		$line = nl_trim(fgets($h));
+		if ($line=="") continue;
+
+		$parts = explode("\t", $line);
+
+		if ($line[0]=='#')
+		{
+			if (!starts_with($line, "##")) $c_gnomad = array_search("gnomAD", $parts);
+			continue;
+		}
+		
+		++$count_som_vars;
+		
+		//indel and TV ratio
+		$ref = $parts[3];
+		$alt = $parts[4];
+		if (strlen($ref)>1 || strlen($alt)>1 || $ref=="-" || $alt=="-")
+		{
+			++$somatic_indel_perc;
+		}
+		else if (($alt=="A" && $ref=="G") || ($alt=="G" && $ref=="A") || ($alt=="T" && $ref=="C") || ($alt=="C" && $ref=="T"))
+		{
+			++$ti_count;
+		}
+		else
+		{
+			++$tv_count;
+		}
+		
+		//known
+		$af = $parts[$c_gnomad];
+		if (is_numeric($af) && $af>0)
+		{
+			++$known_som_vars_perc;
+		}
+	}
+	fclose($h);
+	if ($c_gnomad==-1) trigger_error("Tumor-only GSvar file does not contain 'gnomAD' column!", E_USER_ERROR);
+	
+	$terms[] = "QC:2000041\t{$count_som_vars}";
+	$known_som_vars_perc = number_format(100*$known_som_vars_perc/$count_som_vars, 2);
+	$terms[] = "QC:2000045\t{$known_som_vars_perc}";
+	$somatic_indel_perc = number_format(100*$somatic_indel_perc/$count_som_vars, 2);
+	$terms[] = "QC:2000042\t{$somatic_indel_perc}";
+	$terms[] = "QC:2000043\t".number_format($ti_count/$tv_count, 2);
+	$tmb = calculate_tmb($vcf_filtered, $roi);
+	print "TMB: $tmb\n";
+	if ($tmb!="") $terms[] = "QC:2000053\t{$tmb}";
+}
 
 //create qcML file
 $qc_other = $full_prefix."_stats_other.qcML";
