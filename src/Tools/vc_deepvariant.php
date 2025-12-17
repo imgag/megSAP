@@ -72,7 +72,7 @@ if (!empty($gvcf))
 {
 	$args[] = "--output_gvcf={$gvcf}";
 }
-$args[] = "--tmp_dir=".$parser->tempFolder();
+$args[] = "--intermediate_results_dir=".$parser->tempFolder(); //if not set, examples are written to /tmp/, even of tmp folder is overwritten in environment variables, e.g. in SGE
 
 // run deepvariant
 $pipeline = array();
