@@ -71,9 +71,16 @@ $full_prefix = "{$out_folder}/{$prefix}";
 $t_id = basename2($t_bam);
 $t_basename = dirname($t_bam)."/".$t_id;
 $sys = load_system($system, $t_id);
-$roi = $sys["target_file"];
+$roi = trim($sys["target_file"]);
 $build = $sys['build'];
 $ref_genome = genome_fasta($build);
+
+//check that ROI is sorted
+if ($roi!="")
+{
+	$roi = realpath($roi);
+	if (!bed_is_sorted($roi)) trigger_error("Target region file not sorted: ".$roi, E_USER_ERROR);
+}
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
 if (!$no_sync)
@@ -360,7 +367,7 @@ if (in_array("an", $steps))
 
 if (in_array("an_rna", $steps))
 {
-	$args = array();
+	$args = [];
 	$args[] = "-t_bam {$t_bam}";
 	$args[] = "-full_prefix $full_prefix";
 	$args[] = "-steps ".count($steps);
@@ -372,11 +379,17 @@ if (in_array("an_rna", $steps))
 	$parser->execTool("Tools/an_somatic_rna.php", implode(" ", $args));
 }
 
-//Collect QC terms if necessary
+//create QC data when necessary
 $qc_other = $full_prefix."_stats_other.qcML";
 if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("cn", $steps) || in_array("db", $steps))
 {
-	$parser->execTool("Auxilary/create_qcml.php", "-full_prefix {$full_prefix} -viral_tsv {$t_basename}_viral.tsv -tumor_only");
+	$args = [
+		"-full_prefix {$full_prefix}",
+		"-viral_tsv {$t_basename}_viral.tsv",
+		"-tumor_only",
+	];
+	if (!empty($roi)) $args[] = "-roi {$roi}";
+	$parser->execTool("Tools/create_qcml.php", implode(" ", $args));
 }
 
 //DB import
@@ -393,7 +406,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 		"{$t_basename}_stats_map.qcML",
 		$qc_other
 	], "file_exists"));
-	$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps $t_id -files $qcmls -force", ["{$t_basename}_stats_fastq.qcML", "{$t_basename}_stats_map.qcML", $qc_other]);
+	$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps $t_id -files {$qcmls} -force", $qcmls);
 
 	// check tumor/normal flag
 	if (!$t_info['is_tumor'])
