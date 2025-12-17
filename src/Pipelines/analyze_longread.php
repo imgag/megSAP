@@ -262,7 +262,7 @@ if (in_array("ma", $steps))
 	if (get_path("delete_fastq_files"))
 	{
 		//check if project overwrites the settings
-		$preserve_fastqs = false;
+		$preserve_fastqs = true;
 		if (db_is_enabled("NGSD"))
 		{
 			$db = DB::getInstance("NGSD", false);
