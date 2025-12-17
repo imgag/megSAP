@@ -33,7 +33,7 @@ extract($parser->parse($argv));
 //init
 $genome = genome_fasta($build);
 
-//create basic variant calls
+//prepare DeepVariant arguments
 $args = [];
 $args[] = "--reads={$bam}";
 if(isset($target))
@@ -72,7 +72,7 @@ if (!empty($gvcf))
 {
 	$args[] = "--output_gvcf={$gvcf}";
 }
-
+$args[] = "--tmp_dir=".$parser->tempFolder();
 
 // run deepvariant
 $pipeline = array();

@@ -93,7 +93,7 @@ if (file_exists($som_clincnv))
         {
             $parts = explode("\t", $line);
             $ll = $parts[11];
-            if ($ll>=20) //TODO find somatic specific cut-off
+            if ($ll>=20) //TODO Alexander/Marc: find somatic specific cut-off for tumor-normal and tumor-only
             {
                 ++$cnv_count_hq;
                 
