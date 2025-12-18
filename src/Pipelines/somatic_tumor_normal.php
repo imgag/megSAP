@@ -250,10 +250,12 @@ if ($skip_correlation || $validation)
 else
 {
 	$in_files = $bams;
+	$in_files[] = $genome;
 	$args_similarity = [
 		"-in ".implode(" ", $bams),
 		"-mode bam",
-		"-build ".ngsbits_build($sys['build'])
+		"-build ".ngsbits_build($sys['build']),
+		"-ref {$genome}"
 	];
 	if (!empty($roi))
 	{
