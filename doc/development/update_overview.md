@@ -75,6 +75,7 @@
 |umiVar2                |variant calling cfDNA                                |11.2025 (2025_08) |                                                                                                                 |https://github.com/imgag/umiVar2                                        |
 |hla-genotyper          |HLA genotyping                                       |11.2025 (2025_04) |                                                                                                                 |https://github.com/axelgschwind/hla-genotyper                           |
 |SigProfilerExtractor   |mutational signatures                                |08.2024 (1.1.24)  |                                                                                                                 |https://github.com/AlexandrovLab/SigProfilerExtractor                   |
+|DeepSomatic            |variant calling (tumor/normal + tumor/only)          |12.2025 (1.9.0)   |                                                                                                                 |https://github.com/google/deepsomatic                                  |
 
 
 ## Tools for RNA pipeline
