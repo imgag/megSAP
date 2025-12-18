@@ -21,7 +21,7 @@ $parser->addString("prefix", "Output file prefix.", true, "somatic");
 
 $steps_all = array("vc", "vi", "cn", "an", "an_rna", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\n" .
-	"vc=variant calling, an=annotation,\n" .
+	"vc=variant calling (small variants and SVs), an=annotation (small variants and SVs),\n" .
 	"cn=copy-number analysis\n".
 	"an_rna=annotate data from somatic RNA files,\n".
 	"vi=virus detection, db=database import",
