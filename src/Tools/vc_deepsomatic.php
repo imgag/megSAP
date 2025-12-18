@@ -37,7 +37,7 @@ $genome = genome_fasta($build);
 if (empty($tumor_id)) $tumor_id = basename2($bam_tumor);
 if (!$tumor_only && empty($normal_id)) $normal_id = basename2($bam_normal);
 
-//create basic variant calls
+//prepare DeepSomatic arguments
 $args = array();
 $in_files = array();
 
@@ -52,6 +52,7 @@ $args[] = "--ref=$genome";
 $args[] = "--reads_tumor=$bam_tumor";
 $args[] = "--sample_name_tumor=$tumor_id";
 $args[] = "--num_shards=".$threads;
+$args[] = "--intermediate_results_dir=".$parser->tempFolder(); //if not set, examples are written to /tmp/, even if tmp folder is overwritten in environment variables, e.g. in SGE
 
 if (isset($debug_region)) 
 {
