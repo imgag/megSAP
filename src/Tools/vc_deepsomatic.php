@@ -36,9 +36,6 @@ extract($parser->parse($argv));
 $genome = genome_fasta($build);
 if (empty($tumor_id)) $tumor_id = basename2($bam_tumor);
 if (!$tumor_only && empty($normal_id)) $normal_id = basename2($bam_normal);
-$tool = get_container_software();
-if ($tool === 'apptainer') $prefix = "APPTAINERENV";
-elseif ($tool === 'singularity') $prefix = "SINGULARITYENV";
 
 //create basic variant calls
 $args = array();
@@ -77,6 +74,7 @@ $in_files[] = $bam_tumor;
 
 // run deepsomatic
 $pipeline = array();
+$prefix = container_platform()=='apptainer' ? "APPTAINERENV" : "SINGULARITYENV";
 
 if ($raw_output)
 {
