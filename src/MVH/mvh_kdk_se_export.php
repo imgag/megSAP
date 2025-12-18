@@ -171,11 +171,11 @@ function json_diagnoses($se_data, $se_data_rep)
 	//prepare codes
 	$codes = [];
 	$icd10 = xml_str($se_data->diag_icd10);
-	if (ends_with($icd10, '+')) $icd10 = substr($icd10, 0, -1);
 	$icd10_ver = xml_str($se_data->diag_icd10_ver);
 	if ($icd10!="")
 	{
 		$code = get_raw_value($se_data->psn, "diag_icd10");
+		if (ends_with($code, '+')) $code = substr($code, 0, -1);
 		
 		$codes[] = [
 			"code" => $code,
