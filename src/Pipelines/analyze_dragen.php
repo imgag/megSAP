@@ -175,7 +175,7 @@ if(db_is_enabled("NGSD"))
 {
 	$db_conn = DB::getInstance("NGSD");
 	$psample_info = get_processed_sample_info($db_conn, $name, false, true);
-	$rglb = $psample_info['sys_name'];
+	$rglb = strtr($psample_info['sys_name'], ',', ' ');
 	$device_type = $psample_info['device_type'];
 }
 

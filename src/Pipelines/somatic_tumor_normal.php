@@ -160,8 +160,15 @@ $full_prefix = "{$out_folder}/{$prefix}";
 $t_id = basename2($t_bam);
 $t_basename = dirname($t_bam)."/".$t_id;
 $sys = load_system($system, $t_id);
-$roi = $sys["target_file"];
+$roi = trim($sys["target_file"]);
 $ref_genome = genome_fasta($sys['build']);
+
+//check that ROI is sorted
+if ($roi!="")
+{
+	$roi = realpath($roi);
+	if (!bed_is_sorted($roi)) trigger_error("Target region file not sorted: ".$roi, E_USER_ERROR);
+}
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
 if (!$no_sync)
@@ -1048,7 +1055,7 @@ if (in_array("an_rna", $steps))
 $qc_other = $full_prefix."_stats_other.qcML";
 if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("msi", $steps) || in_array("cn", $steps) || in_array("db", $steps))
 {
-	$parser->execTool("Auxilary/create_qcml.php", "-full_prefix {$full_prefix} -viral_tsv {$t_basename}_viral.tsv");
+	$parser->execTool("Tools/create_qcml.php", "-full_prefix {$full_prefix} -viral_tsv {$t_basename}_viral.tsv");
 }
 
 //DB import

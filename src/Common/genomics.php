@@ -1256,6 +1256,7 @@ function get_qcml_value($qcml_file, $accession, $default=null)
 	
 	$value = "";
 	$xml = simplexml_load_file($qcml_file);
+	if ($xml===false) trigger_error("Could not load XML file: $qcml_file", E_USER_ERROR);
 	foreach ($xml->runQuality->qualityParameter as $qp)
 	{
 		if ($qp["accession"]==$accession)
@@ -2271,6 +2272,7 @@ function convert_to_bam_if_cram($filename, $parser, $build, $threads, $tmp_folde
 function is_novaseq_x_run($run_parameters_xml)
 {
 	$xml = simplexml_load_file($run_parameters_xml);
+	if ($xml===false) trigger_error("Could not load XML file: $run_parameters_xml", E_USER_ERROR);
 	if(empty($xml->InstrumentType)) return false; //No entry => e.g. NovaSeq 6000
 	$instrument_type = $xml->InstrumentType;
 	if(($instrument_type == "NovaSeqXPlus") || ($instrument_type == "NovaSeqX")) return true;
