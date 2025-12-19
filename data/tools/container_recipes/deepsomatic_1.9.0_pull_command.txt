@@ -1,0 +1,1 @@
+apptainer pull deepsomatic_1.9.0.sif docker://google/deepsomatic:1.9.0

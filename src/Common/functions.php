@@ -1034,5 +1034,4 @@ function container_platform($add_version=false)
 	return $platform;
 }
 
-
 ?>
