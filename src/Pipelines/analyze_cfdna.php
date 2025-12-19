@@ -64,6 +64,7 @@ foreach($steps as $step)
 
 //determine processing system
 $sys = load_system($system, $name);
+$genome = genome_fasta($sys['build']);
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
 if (!$no_sync)
@@ -386,13 +387,13 @@ if (in_array("ma", $steps))
 	$parser->execTool("Tools/mapping.php", implode(" ", $args));
 
 	//low-coverage report, based on patient specific positions
-	$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in $target -bam $bamfile -out $lowcov_file -cutoff $lowcov_cutoff -threads {$threads} -ref ".genome_fasta($sys['build']), [$target, $folder, genome_fasta($sys['build'])]);
+	$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in $target -bam $bamfile -out $lowcov_file -cutoff $lowcov_cutoff -threads {$threads} -ref {$genome}", [$target, $folder, $genome]);
 	if (db_is_enabled("NGSD"))
 	{
 		$parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-in $lowcov_file -clear -extend 25 -out $lowcov_file", [$folder]);
 	}
 
-	$parser->execApptainer("ngs-bits", "MappingQC", "-cfdna -roi {$target_extended} -in {$bamfile} -out {$qc_map} -ref ".genome_fasta($sys['build'])." -build ".ngsbits_build($sys['build']), [$folder, genome_fasta($sys['build'])]);
+	$parser->execApptainer("ngs-bits", "MappingQC", "-cfdna -roi {$target_extended} -in {$bamfile} -out {$qc_map} -ref {$genome} -build ".ngsbits_build($sys['build']), [$folder, $genome]);
 
 }
 
@@ -451,7 +452,7 @@ if (in_array("vc", $steps))
 		$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $vcffile -mark off-target -reg $target -out $vcffile", [$folder, $target]);
 
 		// validate VCF
-		$parser->execApptainer("ngs-bits", "VcfCheck", "-in $vcffile -lines 0 -ref ".genome_fasta($sys['build']), [$folder, genome_fasta($sys['build'])]);
+		$parser->execApptainer("ngs-bits", "VcfCheck", "-in $vcffile -lines 0 -ref {$genome}", [$folder, $genome]);
 
 
 		// cfDNA QC
@@ -461,11 +462,11 @@ if (in_array("vc", $steps))
 			"-cfdna_panel", $target,
 			"-out", $qc_cfdna,
 			"-build", ngsbits_build($sys['build']),
-			"-ref", genome_fasta($sys['build'])
+			"-ref", $genome
 		];
 		$in_files[] = $folder;
 		$in_files[] = $target;
-		$in_files[] = genome_fasta($sys['build']);
+		$in_files[] = $genome;
 		// add tumor BAM
 		if ($tumor_bam != "")
 		{
@@ -637,7 +638,7 @@ if (!($annotation_only || $skip_tumor))
 {
 	if (($tumor_bam != "") && (in_array("ma", $steps) || in_array("vc", $steps)))
 	{
-		$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$bamfile} {$tumor_bam} -mode bam -build ".ngsbits_build($sys['build']), [$folder, $tumor_bam]);
+		$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$bamfile} {$tumor_bam} -mode bam -ref {$genome} -build ".ngsbits_build($sys['build']), [$folder, $tumor_bam, $genome]);
 		$correlation = explode("\t", $output[0][1])[3];
 		if ($correlation < $min_corr)
 		{
@@ -651,7 +652,7 @@ if (!($annotation_only || $skip_tumor))
 		// calculate similarity between related cfDNA samples
 		foreach ($related_cfdna_bams as $cfdna_sample => $cfdna_bam) 
 		{
-			$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$bamfile} {$cfdna_bam} -mode bam -build ".ngsbits_build($sys['build']), [$folder, $cfdna_bam]);
+			$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$bamfile} {$cfdna_bam} -mode bam -ref {$genome} -build ".ngsbits_build($sys['build']), [$folder, $cfdna_bam, $genome]);
 			$correlation = explode("\t", $output[0][1])[3];
 			trigger_error("The genotype correlation of cfDNA and related sample ({$cfdna_sample}) is {$correlation}.", E_USER_NOTICE);
 		}

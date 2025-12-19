@@ -22,7 +22,7 @@ $parser->addString("prefix", "Output file prefix.", true, "somatic");
 
 $steps_all = array("vc", "vi", "cn", "an", "msi", "an_rna", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\n" .
-	"vc=variant calling, an=annotation,\n" .
+	"vc=variant calling (small variants and SVs), an=annotation (small variants and SVs),\n" .
 	"cn=copy-number analysis, msi=microsatellite analysis,\n".
 	"an_rna=annotate data from somatic RNA files,\n".
 	"vi=virus detection, db=database import",
@@ -254,10 +254,12 @@ if ($skip_correlation || $validation)
 else
 {
 	$in_files = $bams;
+	$in_files[] = $genome;
 	$args_similarity = [
 		"-in ".implode(" ", $bams),
 		"-mode bam",
-		"-build ".ngsbits_build($sys['build'])
+		"-build ".ngsbits_build($sys['build']),
+		"-ref {$genome}"
 	];
 	if (!empty($roi))
 	{

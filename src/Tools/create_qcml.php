@@ -15,11 +15,11 @@ $parser->addInfile("roi", "Processing system target region (needed for TMB calcu
 $parser->addFlag("tumor_only", "Special handling for tumor-only: no MSI, etc.");
 extract($parser->parse($argv));
 
-function count_variants($vcf, $roi)
+function count_variants($gsvar_filtered, $roi)
 {
 	global $parser;
 	
-	list($stdout) = $parser->execApptainer("ngs-bits", "VcfFilter", "-in {$vcf} -reg {$roi}", [$roi]);
+	list($stdout) = $parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in {$gsvar_filtered} -reg {$roi}", [$roi]);
 	foreach($stdout as $line)
 	{
 		$line = nl_trim($line);
@@ -28,7 +28,7 @@ function count_variants($vcf, $roi)
 		$parts = explode("\t", $line);
 		
 		//filter
-		if (contains($parts[6], "freq-tum")) continue;
+		if (contains($parts[7], "freq-tum")) continue;
 		//TODO add important filters for DeepSomatic
 		
 		++$output;
@@ -37,7 +37,7 @@ function count_variants($vcf, $roi)
 	return $output;
 }
 
-function calculate_tmb($vcf_filtered, $roi)
+function calculate_tmb($gsvar_filtered, $roi)
 {
 	//no ROI > abort
 	if ($roi=="") return "";
@@ -64,8 +64,8 @@ function calculate_tmb($vcf_filtered, $roi)
 	$exome_size_mb = bed_size($exons) / 1000000.0;
 	
 	//calculate mutation burden
-	$somatic_var_count = count_variants($vcf_filtered, $roi_usable);
-	$somatic_var_count_tsg = count_variants($vcf_filtered, $tmb_tsg_usable);
+	$somatic_var_count = count_variants($gsvar_filtered, $roi_usable);
+	$somatic_var_count_tsg = count_variants($gsvar_filtered, $tmb_tsg_usable);
 	$tmb =  ( ($somatic_var_count - $somatic_var_count_tsg) * $exome_size_mb / $roi_usable_size_mb + $somatic_var_count_tsg ) / $exome_size_mb;
 	return number_format($tmb, 2);
 }
@@ -193,8 +193,8 @@ if ($tumor_only)
 	//filter GSvar for somatic variants
 	$gsvar = "{$full_prefix}.GSvar";
 	$filter = repository_basedir()."/data/misc/gsvar_filters/tumor_only.txt";
-    $vcf_filtered = $parser->tempFile(".GSvar");
-	$parser->execApptainer("ngs-bits", "VariantFilterAnnotations", "-in {$gsvar} -filters {$filter} -out {$vcf_filtered}", [$gsvar, $filter]);
+    $gsvar_filtered = $parser->tempFile(".GSvar");
+	$parser->execApptainer("ngs-bits", "VariantFilterAnnotations", "-in {$gsvar} -filters {$filter} -out {$gsvar_filtered}", [$gsvar, $filter]);
 	
 	//parses filtered GSvar
 	$c_gnomad = -1;
@@ -203,7 +203,7 @@ if ($tumor_only)
 	$known_som_vars_perc = 0;
 	$ti_count = 0;
 	$tv_count = 0;
-	$h = fopen2($vcf_filtered, 'r');
+	$h = fopen2($gsvar_filtered, 'r');
 	while(!feof($h))
 	{
 		$line = nl_trim(fgets($h));
@@ -251,7 +251,7 @@ if ($tumor_only)
 	$somatic_indel_perc = number_format(100*$somatic_indel_perc/$count_som_vars, 2);
 	$terms[] = "QC:2000042\t{$somatic_indel_perc}";
 	$terms[] = "QC:2000043\t".number_format($ti_count/$tv_count, 2);
-	$tmb = calculate_tmb($vcf_filtered, $roi);
+	$tmb = calculate_tmb($gsvar_filtered, $roi);
 	print "TMB: $tmb\n";
 	if ($tmb!="") $terms[] = "QC:2000053\t{$tmb}";
 }
