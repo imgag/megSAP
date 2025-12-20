@@ -175,6 +175,7 @@ function json_diagnoses($se_data, $se_data_rep)
 	if ($icd10!="")
 	{
 		$code = get_raw_value($se_data->psn, "diag_icd10");
+		if (ends_with($code, '+')) $code = substr($code, 0, -1);
 		
 		$codes[] = [
 			"code" => $code,

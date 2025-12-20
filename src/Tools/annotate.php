@@ -56,6 +56,7 @@ if ($sys['build']!="GRCh38")
 {
 	trigger_error("Unknown genome build ".$sys['build']." cannot be annotated!", E_USER_ERROR);
 }
+$genome = genome_fasta($sys['build']);
 
 //annotate VCF
 $args = [];
@@ -194,7 +195,7 @@ if (!$somatic) //germline only
 
 				if (file_exists($dna_bam))
 				{
-					$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$bam_rna} {$dna_bam} -mode bam -build ".ngsbits_build($sys['build']), [$bam_rna, $dna_bam]);
+					$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$bam_rna} {$dna_bam} -mode bam -ref {$genome} -build ".ngsbits_build($sys['build']), [$bam_rna, $dna_bam, $genome]);
 					$correlation = explode("\t", $output[0][1])[3];
 					if ($correlation=="nan")
 					{

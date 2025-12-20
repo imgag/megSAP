@@ -24,6 +24,7 @@ extract($parser->parse($argv));
 $t_id = basename2($t_bam);
 $t_basename = dirname($t_bam)."/".$t_id;
 $sys = load_system($system, $t_id);
+$genome = genome_fasta($sys['build']);
 
 $variants_gsvar = $full_prefix . ".GSvar"; // GSvar variants
 $som_clincnv = $full_prefix . "_clincnv.tsv"; //ClinCNV output file
@@ -133,7 +134,7 @@ foreach($ps_rna_bams as $rna_id => $rna_bam)
 	
 	if (file_exists($t_bam))
 	{
-		$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$rna_bam} {$t_bam} -mode bam -build ".ngsbits_build($sys['build']), [$rna_bam, $t_bam]);
+		$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$rna_bam} {$t_bam} -mode bam -ref {$genome} -build ".ngsbits_build($sys['build']), [$rna_bam, $t_bam]);
 		$correlation = explode("\t", $output[0][1])[3];
 		if ($correlation < $min_corr && ! $skip_correlation)
 		{
