@@ -190,8 +190,10 @@ function json_diagnoses($se_data, $se_data_rep)
 	$orpha_ver = xml_str($se_data->diag_orphacode_ver);
 	if ($orpha!="")
 	{
+		$code = get_raw_value($se_data->psn, "diag_orphacode");
+		$code = strtr($code, ["ORDO:Orphanet_"=>"ORDO:"]);
 		$codes[] = [
-			"code" => get_raw_value($se_data->psn, "diag_orphacode"),
+			"code" => $code,
 			"display" => "ORPHA:".$orpha,
 			"system" => "https://www.orpha.net",
 			"version" => $orpha_ver
