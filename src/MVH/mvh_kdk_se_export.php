@@ -190,10 +190,8 @@ function json_diagnoses($se_data, $se_data_rep)
 	$orpha_ver = xml_str($se_data->diag_orphacode_ver);
 	if ($orpha!="")
 	{
-		$code = get_raw_value($se_data->psn, "diag_orphacode");
-		$code = strtr($code, ["ORDO:Orphanet_"=>"ORDO:"]);
 		$codes[] = [
-			"code" => $code,
+			"code" => get_raw_value($se_data->psn, "diag_orphacode"),
 			"display" => "ORPHA:".$orpha,
 			"system" => "https://www.orpha.net",
 			"version" => $orpha_ver
@@ -756,16 +754,21 @@ function json_results($se_data, $se_data_rep, $info)
 			}
 			if (count($consequences)>0)
 			{
-				list($t_gene, $t_trans, $t_type, $t_impact, $t_exon, $t_cdna, $t_prot) = $consequences[0];
+				$parts = $consequences[0];
+				if (count($parts)==7)
+				{
+					list($t_gene, $t_trans, $t_type, $t_impact, $t_exon, $t_cdna, $t_prot) = $consequences[0];
+					if ($t_cdna!="")
+					{
+						$var_data['cDNAChange'] = $t_trans.":".$t_cdna;
+					}
+					if($t_prot!="")
+					{
+						$var_data['proteinChange'] = $t_trans.":".$t_prot;
+					}
+				}
+				else trigger_error("Could not determine cDNA and protein change of variant (not in NGSD)", E_USER_NOTICE);
 				
-				if ($t_cdna!="")
-				{
-					$var_data['cDNAChange'] = $t_trans.":".$t_cdna;
-				}
-				if($t_prot!="")
-				{
-					$var_data['proteinChange'] = $t_trans.":".$t_prot;
-				}
 				if (count($consequences)>1) trigger_error("More than one variant consequence found. Only one is allowed in KDK-SE. Using first variant consequence!", E_USER_WARNING);
 			}
 			
