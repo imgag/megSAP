@@ -435,12 +435,8 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	if (is_null($t_info)) trigger_error("NGSD import failed: Could not find processed sample '$t_id' in NGSD!", E_USER_ERROR);
 	
 	// import qcML files
-	$qcmls = implode(" ", array_filter([
-		"{$t_basename}_stats_fastq.qcML",
-		"{$t_basename}_stats_map.qcML",
-		$qc_other
-	], "file_exists"));
-	$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps $t_id -files {$qcmls} -force", $qcmls);
+	$qcmls = array_filter(["{$t_basename}_stats_fastq.qcML", "{$t_basename}_stats_map.qcML", $qc_other], "file_exists");
+	$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps $t_id -files ".implode(" ", $qcmls)." -force", $qcmls);
 
 	// check tumor/normal flag
 	if (!$t_info['is_tumor'])

@@ -1,5 +1,5 @@
 ##ANALYSISTYPE=SOMATIC_SINGLESAMPLE
-##PIPELINE=megSAP 2025_10-9-g877d799f
+##PIPELINE=megSAP 2025_10-79-gaaed1599
 ##GENOME_BUILD=GRCh38
 ##CREATION_DATE=2024-09-04
 ##CALLING_DATE=2018-10-04
@@ -31,11 +31,9 @@
 ##FILTER=low_conf_region=Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.
 ##DESCRIPTION=tumor_af=Mutant allele frequency in tumor (Sample GS150344_01).
 ##DESCRIPTION=tumor_dp=Tumor Depth (Sample GS150344_01).
-##DESCRIPTION=somatic_classification_comment=Somatic classification comment from the NGSD.
-##DESCRIPTION=somatic_classification=Somatic classification from the NGSD.
-#chr	start	end	ref	obs	tumor_af	tumor_dp	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	gnomAD	gnomAD_sub	gnomAD_hom_hemi	gnomAD_het	gnomAD_wt	phyloP	CADD	REVEL	AlphaMissense	MaxEntScan	SpliceAI	PubMed	somatic_classification_comment	somatic_classification
-chr13	32337751	32337751	A	G	0.9933	149		QUAL=4875															0.2330	0.34						I am an deleterious variant class	activating
-chr13	32338918	32338918	A	G	1.0000	169		QUAL=5583															0.0760	0.03							
-chr13	32340868	32340868	G	C	1.0000	102		QUAL=3321															-0.8640	0.45							
-chr13	32355250	32355250	T	C	1.0000	123		QUAL=4062															2.4910	0.86							
-chr17	43074519	43074519	G	T	0.4902	102		QUAL=1291															1.2230	5.76						I am an unknown somatic variant classification	n/a
+#chr	start	end	ref	obs	tumor_af	tumor_dp	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	gnomAD	gnomAD_sub	gnomAD_hom_hemi	gnomAD_het	gnomAD_wt	phyloP	CADD	REVEL	AlphaMissense	MaxEntScan	SpliceAI	PubMed
+chr13	32337751	32337751	A	G	0.9933	149		QUAL=4875															0.2330	0.34					
+chr13	32338918	32338918	A	G	1.0000	169		QUAL=5583															0.0760	0.03					
+chr13	32340868	32340868	G	C	1.0000	102		QUAL=3321															-0.8640	0.45					
+chr13	32355250	32355250	T	C	1.0000	123		QUAL=4062															2.4910	0.86					
+chr17	43074519	43074519	G	T	0.4902	102		QUAL=1291															1.2230	5.76					
