@@ -357,7 +357,7 @@ else trigger_error("Unhandled network type '{$network}'!", E_USER_ERROR);
 
 //check seqencing mode
 $seq_mode = xml_str($cm_data->seq_mode);
-if ($seq_mode!="WGS" && $seq_mode!="WES") trigger_error("Unhandled seq_mode '{$seq_mode}'!", E_USER_ERROR);
+if ($seq_mode!="WGS" && $seq_mode!="WES") trigger_error("Unhandled seq_mode '{$seq_mode}'!", E_USER_ERROR); //TODO implement "lrGS" when it was added to RedCap
 
 //start export
 print "CM ID: {$cm_id} (MVH DB id: {$id} / CM Fallnummer: ".xml_str($cm_data->case_id)." / seq_mode: {$seq_mode} / network: {$network})\n";
