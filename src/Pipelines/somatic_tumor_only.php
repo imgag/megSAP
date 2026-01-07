@@ -32,6 +32,7 @@ $parser->addFlag("skip_contamination_check", "Skips check of female tumor sample
 $parser->addFlag("skip_correlation", "Skip sample correlation check.");
 $parser->addFlag("skip_low_cov", "Skip low coverage statistics.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
+$parser->addFlag("use_deepsomatic_test", "Use DeepSomatic for somatic variant calling. (normally set in settings.ini)");
 
 //default cut-offs
 $parser->addFloat("min_af", "Allele frequency detection limit (for small variant calling).", true, 0.01);
@@ -52,7 +53,7 @@ foreach($steps as $step)
 
 ###################################### SCRIPT START ######################################
 //check which caller to use
-$use_deepsomatic = get_path("use_deepsomatic");
+$use_deepsomatic = $use_deepsomatic_test ?: get_path("use_deepsomatic");
 
 if (!file_exists($out_folder))
 {

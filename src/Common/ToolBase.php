@@ -860,7 +860,7 @@ class ToolBase
 	/**
 	 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
 	 */
-	function execApptainer($container, $command, $parameters, $in_files=[], $out_files=[], $command_only=false, $log_output=true, $abort_on_error=true, $warn_on_error=true)
+	function execApptainer($container, $command, $parameters, $in_files=[], $out_files=[], $command_only=false, $log_output=true, $abort_on_error=true, $warn_on_error=true, $gpu_container=false)
 	{
 		//execute local ngs-bits installation if ngs-bits_local path is set in settings.ini
 		$ngsbits_local = get_path("ngs-bits_local", false);
@@ -868,18 +868,18 @@ class ToolBase
 		{
 			if ($command_only)
 			{
-				$ngsbits_command = execApptainer($container, $command, $parameters, $in_files, $out_files, true, false, $abort_on_error);
+				$ngsbits_command = execApptainer($container, $command, $parameters, $in_files, $out_files, true, false, $abort_on_error, $gpu_container);
 				return $ngsbits_command;
 			}
 			else
 			{
-				list($stdout, $stderr, $return) = execApptainer($container, $command, $parameters, $in_files, $out_files, false, false, $abort_on_error);
+				list($stdout, $stderr, $return) = execApptainer($container, $command, $parameters, $in_files, $out_files, false, false, $abort_on_error, $gpu_container);
 				return array($stdout, $stderr, $return);
 			}
 		}
 
 		//get apptainer command, bind paths and container path from execApptainer function in functions.php
-		list($apptainer_command, $bind_paths, $container_path, $container_version) = execApptainer($container, $command, $parameters, $in_files, $out_files, false, true);
+		list($apptainer_command, $bind_paths, $container_path, $container_version) = execApptainer($container, $command, $parameters, $in_files, $out_files, false, true, true, $gpu_container);
 		
 		//if command only option is true, only the apptainer command is being return, without execution
 		if($command_only) 

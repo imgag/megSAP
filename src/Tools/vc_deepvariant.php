@@ -76,17 +76,16 @@ $args[] = "--intermediate_results_dir=".$parser->tempFolder(); //if not set, exa
 
 // run deepvariant
 $pipeline = array();
-$container = ($gpu) ? "deepvariant-gpu" : "deepvariant";
 $prefix = container_platform()=='apptainer' ? "APPTAINERENV" : "SINGULARITYENV";
 if ($raw_output)
 {
-	$command = $parser->execApptainer($container, "run_deepvariant" ,implode(" ", $args)." --output_vcf={$out}", [$genome, $bam], [dirname($out)], true);
+	$command = $parser->execApptainer("deepvariant", "run_deepvariant" ,implode(" ", $args)." --output_vcf={$out}", [$genome, $bam], [dirname($out)], true, true, true, true, $gpu);
 	$parser->exec("{$prefix}_OMP_NUM_THREADS={$threads} {$prefix}_TF_NUM_INTRAOP_THREADS={$threads} {$prefix}_TF_NUM_INTEROP_THREADS={$threads} {$command}", "");
 	return;
 }
 
 $vcf_deepvar_out = $parser->tempFile(".vcf.gz");
-$command = $parser->execApptainer($container, "run_deepvariant", implode(" ", $args)." --output_vcf={$vcf_deepvar_out}", [$genome, $bam], [dirname($out)], true);
+$command = $parser->execApptainer("deepvariant", "run_deepvariant", implode(" ", $args)." --output_vcf={$vcf_deepvar_out}", [$genome, $bam], [dirname($out)], true, true, true, true, $gpu);
 $parser->exec("{$prefix}_OMP_NUM_THREADS={$threads} {$prefix}_TF_NUM_INTRAOP_THREADS={$threads} {$prefix}_TF_NUM_INTEROP_THREADS={$threads} {$command}", "");
 
 //filter variants according to variant quality>5
