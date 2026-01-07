@@ -265,60 +265,6 @@ while(!feof($handle))
 }
 gzclose($handle);
 
-//add somatic variant classification from NGSD (just after classification_comment column
-if(db_is_enabled($db))
-{
-	$db = DB::getInstance($db);
-	$som_classifications = array();
-	$som_class_comments = array();
-	for($i=0; $i<$gsvar->rows(); ++$i)
-	{
-		list($chr,$start,$end,$ref,$obs) = $gsvar->getRow($i);
-		
-		$variant_id = get_variant_id($db, $chr, $start, $end, $ref, $obs);
-		if($variant_id != -1)
-		{
-			$res = $db->executeQuery("SELECT id, class, comment FROM somatic_variant_classification WHERE variant_id = $variant_id");
-			
-			if(!empty($res))
-			{				
-				$som_classifications[] = $res[0]["class"];
-				$tmp = $res[0]["comment"];
-				//replace \t and \n
-				$tmp = str_replace("\t"," ",$tmp);
-				$tmp = str_replace("\n", " ", $tmp);
-				
-				$som_class_comments[] = $tmp;
-				
-			}
-			else
-			{
-				$som_classifications[] = "";
-				$som_class_comments[] = "";
-			}
-		}
-		else
-		{
-			$som_classifications[] = "";
-			$som_class_comments[] = "";
-		}
-	}
-
-	$idx = $gsvar->getColumnIndex("classification_comment", false, false);
-	if($idx !== false)
-	{
-		$gsvar->insertCol(1+$idx, $som_class_comments, "somatic_classification_comment", "Somatic classification comment from the NGSD.");
-		$gsvar->insertCol(1+$idx, $som_classifications, "somatic_classification", "Somatic classification from the NGSD.");
-	}
-	else
-	{
-		$gsvar->addCol($som_class_comments, "somatic_classification_comment", "Somatic classification comment from the NGSD.");
-		$gsvar->addCol($som_classifications, "somatic_classification", "Somatic classification from the NGSD.");
-	}
-	
-	$gsvar->toTSV($out);
-}
-
 //store output
 $gsvar->toTSV($out);
 
