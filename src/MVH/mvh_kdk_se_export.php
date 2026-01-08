@@ -111,7 +111,7 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data, $se_data_rep)
 	}
 	else
 	{
-		//TODO implement until 1.1.26: reasonResearchConsentMissing (bc_reason_missing)
+		$output["reasonResearchConsentMissing"] = xml_str($cm_data->bc_reason_missing);
 	}
 			
 	return $output;
