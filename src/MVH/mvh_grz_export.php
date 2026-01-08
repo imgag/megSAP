@@ -3,8 +3,6 @@
 	@page mvh_grz_export
 */
 
-//TODO update to grz-cli v1.5 until 1.1.26 (see email "GRZ Tübingen Updates" from 2025-10-30)
-
 require_once("mvh_functions.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
@@ -183,7 +181,7 @@ function create_files_json($files_to_submit, $info, $read_length)
 	return $output;
 }
 
-function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
+function create_lab_data_json($files, $info, $grz_qc, $is_tumor, $info_germline=null)
 {
 	global $megsap_ver;
 	global $db_ngsd;
@@ -257,14 +255,14 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 								"minimumQuality" => (float)($grz_qc["qualityThreshold"]),
 								"percent" => (float)($grz_qc["percentBasesAboveQualityThreshold"])
 							], 
-						"meanDepthOfCoverage" => (float)($grz_qc["meanDepthOfCoverage"])*1.05, //TODO
+						"meanDepthOfCoverage" => (float)($grz_qc["meanDepthOfCoverage"])*1.05, //TODO remove?
 						"minCoverage" => (float)($grz_qc["minCoverage"]),
 						"targetedRegionsAboveMinCoverage" => (float)(number_format($grz_qc["targetedRegionsAboveMinCoverage"],2)),
 						"nonCodingVariants" => "true",
 						"callerUsed" => [
-								0 => [ //TODO remove hard-coded somatic caller when somatic small variants callset is implemented in NGSD
-									"name" => $is_tumor ? "DRAGEN" : $db_ngsd->getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='".$info["ps_id"]."'"),
-									"version" => $is_tumor ? "4.3.13" : $db_ngsd->getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='".$info["ps_id"]."'"),
+								0 => [
+									"name" => $is_tumor ? $db_ngsd->getValue("SELECT caller FROM somatic_snv_callset WHERE processed_sample_id_tumor='".$info["ps_id"]."' AND processed_sample_id_normal='".$info_germline["ps_id"]."'") : $db_ngsd->getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='".$info["ps_id"]."'"),
+									"version" => $is_tumor ? $db_ngsd->getValue("SELECT caller_version  FROM somatic_snv_callset WHERE processed_sample_id_tumor='".$info["ps_id"]."' AND processed_sample_id_normal='".$info_germline["ps_id"]."'") : $db_ngsd->getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='".$info["ps_id"]."'"),
 									]
 							],
 						"files" => $files
@@ -357,7 +355,7 @@ else trigger_error("Unhandled network type '{$network}'!", E_USER_ERROR);
 
 //check seqencing mode
 $seq_mode = xml_str($cm_data->seq_mode);
-if ($seq_mode!="WGS" && $seq_mode!="WES") trigger_error("Unhandled seq_mode '{$seq_mode}'!", E_USER_ERROR); //TODO implement "lrGS" when it was added to RedCap
+if ($seq_mode!="WGS" && $seq_mode!="lrGS" && $seq_mode!="WES") trigger_error("Unhandled seq_mode '{$seq_mode}'!", E_USER_ERROR);
 
 //start export
 print "CM ID: {$cm_id} (MVH DB id: {$id} / CM Fallnummer: ".xml_str($cm_data->case_id)." / seq_mode: {$seq_mode} / network: {$network})\n";
@@ -371,6 +369,7 @@ $sys = $info['sys_name_short'];
 $sys_type = $info['sys_type'];
 $is_lrgs = $sys_type=="lrGS";
 print "germline sample: {$ps} (system: {$sys}, type: {$sys_type})\n";
+if ($seq_mode!=$sys_type) trigger_error("Sequencing mode in CM RedCap is '{$seq_mode}', but processing system type is '{$sys_type}'!", E_USER_ERROR);
 
 //check germline processed sample is ok
 $ps_t = "";
@@ -391,7 +390,7 @@ if ($is_somatic)
 //determine ROI
 $roi = "";
 if ($sys=="twistCustomExomeV2" || $sys=="twistCustomExomeV2Covaris") $roi = "{$mvh_folder}/rois/twist_exome_core_plus_refseq.bed";
-if ($seq_mode!="WGS" && $roi=="") trigger_error("Could not determine target region for sample '{$ps}' with processing system '{$sys}'!", E_USER_ERROR);
+if ($seq_mode!="WGS" && $seq_mode!="lrGS" && $roi=="") trigger_error("Could not determine target region for sample '{$ps}' with processing system '{$sys}'!", E_USER_ERROR);
 
 //determine tanG==VNg
 $sub_ids = $db_mvh->getValues("SELECT id FROM `submission_grz` WHERE status='pending' AND case_id='{$id}'");
@@ -567,7 +566,7 @@ $lab_data = [];
 $lab_data[] = create_lab_data_json($files, $info, $grz_qc, false);
 if ($is_somatic)
 {
-	$lab_data[] = create_lab_data_json($files_t, $info_t, $grz_qc_t, true);
+	$lab_data[] = create_lab_data_json($files_t, $info_t, $grz_qc_t, true, $info);
 }
 //TODO add support for kids (SE: RedCap, OE: ???, FBREK: ???)
 //prepare research consent data - for format see https://www.medizininformatik-initiative.de/Kerndatensatz/KDS_Consent_V2025/MII-IG-Modul-Consent-TechnischeImplementierung-FHIRProfile-Consent.html
@@ -596,8 +595,9 @@ if ($rc_data!=false)
 			}
 		}
 	}
-	if ($active_consent_count>1) trigger_error("More than one active consent found in MVH data:\n{$rc_data}", E_USER_ERROR);
 }
+if ($active_consent_count>1) trigger_error("More than one active consent found in MVH data:\n{$rc_data}", E_USER_ERROR);
+if (xml_str($cm_data->bc_signed)=="Ja" && $active_consent_count==0) trigger_error("Pacient has signed BC, but no active consent found in MVH data\n{$rc_data}", E_USER_ERROR);
 $research_consent = [
 	"status" => "active",
 	"scope" => [
@@ -709,18 +709,33 @@ $json['donors'] = [
 						],
 				]
 			],
-		"researchConsents" => [], //TODO implement until 1.1.26: presentationDate mandatory, set 'noScoreJustification' if no consent data given (bc_reason_missing)
+		"researchConsents" => [],
 		"labData" => $lab_data		 
 		]
 	];
 
-//add optional data
-if ($active_consent_count>0)
+//add consent data
+if (xml_str($cm_data->bc_signed)=="Ja") //consent signed
 {
 	$json['donors'][0]['researchConsents'][] = [
 					"schemaVersion" => "2025.0.1",
 					"presentationDate" => xml_str($cm_data->bc_date),
 					"scope" => $research_consent
+					];
+}
+else //consent not signed
+{
+	$reason_missing = convert_bc_missing(xml_str($cm_data->bc_reason_missing));
+	if ($reason_missing=="patient-inability") $reason_missing = "patient unable to consent";
+	else if ($reason_missing=="patient-refusal") $reason_missing = "patient refuses to sign consent";
+	else if ($reason_missing=="consent-not-returned") $reason_missing = "patient did not return consent documents";
+	else if ($reason_missing=="other-patient-reason") $reason_missing = "other patient-related reason";
+	else if ($reason_missing=="technical-issues") $reason_missing = "consent information cannot be submitted by LE due to technical reason";
+	else if ($reason_missing=="organizational-issues") $reason_missing = "consent is not implemented at LE due to organizational issues";
+	else trigger_error("Count not convert reason why BC is missing: '{$reason_missing}'!", E_USER_ERROR);
+	$json['donors'][0]['researchConsents'][] = [
+					"presentationDate" => xml_str($cm_data->bc_date),
+					"noScopeJustification" => $reason_missing
 					];
 }
 
@@ -731,7 +746,6 @@ file_put_contents($json_file, json_encode($json, JSON_PRETTY_PRINT));
 print "creating JSON took ".time_readable(microtime(true)-$time_start)."\n";
 $time_start = microtime(true);
 
-//TODO update to v1.5.0 in Jan 2026
 //print grz-cli version info
 $grz_cli = "/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/bin/grz-cli";
 list($stdout) = exec2("{$grz_cli} --version");
