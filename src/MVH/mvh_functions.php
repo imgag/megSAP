@@ -462,4 +462,16 @@ function convert_hpo_change($change)
 	trigger_error(__FUNCTION__.": Unhandled HPO change '{$change}'!", E_USER_ERROR);
 }
 
+function convert_bc_missing($reason)
+{
+	if ($reason=="Einwilligung durch den Patienten nicht möglich") return "patient-inability";
+	if ($reason=="Einwilligung vom Patienten abgelehnt") return "patient-refusal";
+	if ($reason=="Einwilligung vom Patienten nicht abgegeben") return "consent-not-returned";
+	if ($reason=="Anderer Patienten-bedingter Grund") return "other-patient-reason";
+	if ($reason=="Consent aus technischen Gründen nicht verfügbar") return "technical-issues";
+	if ($reason=="Consent aus organisatorischen Gründen nicht verfügbar") return "organizational-issues";
+	
+	trigger_error(__FUNCTION__.": Unhandled BC missing reason '{$reason}'!", E_USER_ERROR);
+}
+
 ?>
