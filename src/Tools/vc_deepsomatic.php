@@ -48,6 +48,7 @@ if ($allow_empty_examples)
 
 $args[] = "--model_type=$model_type";
 if (!$default) $args[] = "--make_examples_extra_args=min_mapping_quality=$min_mq,min_base_quality=$min_bq,vsc_min_fraction_indels=$min_af_indels,vsc_min_fraction_snps=$min_af_snps";
+$args[] = "--postprocess_variants_extra_args=cpus={$threads}";
 $args[] = "--ref=$genome";
 $args[] = "--reads_tumor=$bam_tumor";
 $args[] = "--sample_name_tumor=$tumor_id";

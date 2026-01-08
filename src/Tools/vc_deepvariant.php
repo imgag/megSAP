@@ -66,6 +66,7 @@ if ($allow_empty_examples)
 }
 $args[] = "--model_type={$model_type}";
 $args[] = "--make_examples_extra_args=min_mapping_quality={$min_mq},min_base_quality={$min_bq},vsc_min_fraction_indels={$min_af},vsc_min_fraction_snps={$min_af}";
+$args[] = "--postprocess_variants_extra_args=cpus={$threads}";
 $args[] = "--ref={$genome}";
 $args[] = "--num_shards={$threads}";
 if (!empty($gvcf))
