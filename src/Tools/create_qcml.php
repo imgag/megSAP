@@ -30,7 +30,8 @@ function count_variants($gsvar_filtered, $roi)
 		
 		//filter
 		if (contains($parts[7], "freq-tum")) continue;
-		//TODO add important filters for DeepSomatic
+		if (contains($parts[7], "GERMLINE")) continue;
+		if (contains($parts[7], "RefCall")) continue;
 		
 		++$output;
 	}

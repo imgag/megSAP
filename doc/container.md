@@ -8,52 +8,52 @@ By default they are downloaded to `data/tools/apptainer_container/`. They can al
 | container name                        | tool                      | version           | command                                                                                           |
 |---------------------------------------|---------------------------|-------------------|---------------------------------------------------------------------------------------------------|
 | abra2_v2.23.sif	                    | abra2                     | 2.23	            | java -Xmx16G -jar /opt/abra2.jar                                                                  |
-| arriba_v2.4.0-20250904.sif            | arriba	                | 2.5.1	            | arriba                                                                                            |
+| arriba_v2.5.1-20250904.sif            | arriba	                | 2.5.1	            | arriba                                                                                            |
 | blastn_v2.9.0+.sif                    | blastn                    | 2.9.0+	        | blastn                                                                                            |
 | bwa_v0.7.18.sif	                    | bwa                       | 0.7.18	        | bwa                                                                                               |
 | bwa-mem2_v2.2.1.sif                   | bwa-mem2	                | 2.2.1             | bwa-mem2                                                                                          |
 | circos_0.69.9.sif	                    | circos	                | 0.69.9	        | circos                                                                                            |
-| clair3_v1.0.10.sif                    | clair3	                | 1.0.10	        | run_clair3.sh                                                                                     |
-| clair3-gpu_v1.2.0-20250818.sif        | clair3 GPU support        | 1.2.0 	        | /opt/bin/run_clair3.sh                                                                            |
+| clair3_v1.2.0-20251119.sif            | clair3	                | 1.2.0 	        | run_clair3.sh                                                                                     |
 | clair3-trio_v0.7.sif                  | clair3-trio               | 0.7	            | /opt/bin/run_clair3_trio.sh                                                                       |
 | ClinCNV_v1.18.3.sif	                | ClinCNV                   | 1.18.3	        | clinCNV.R                                                                                         |
-| deepvariant_1.8.0.sif	                | DeepVariant               | 1.8.0 	        | run_deepvariant                                                                                   |
+| deepsomatic_1.9.0.sif	                | DeepSomatic               | 1.9.0 	        | run_deepsomatic                                                                                   |
+| deepvariant_1.9.0.sif	                | DeepVariant               | 1.9.0 	        | run_deepvariant                                                                                   |
 | expansionhunter_v5.0.0.sif            | expansionhunter	        | 5.0.0	            | ExpansionHunter                                                                                   |
 | freebayes_v1.3.6.sif	                | freebayes                 | 1.3.6	            | freebayes                                                                                         |
 | gatk_4.6.0.0.sif	                    | gatk                      | 4.6.0.0	        | gatk                                                                                              |
 | glnexus_v1.4.1.sif                    | GLnexus                   | 1.4.1 	        | glnexus-cli                                                                                       |
 | happy_v0.3.14.sif	                    | happy                     | 0.3.14	        | hap.py                                                                                            |
-| hla-genotyper_2022-05.sif	            | hla-genotyper             | 2025-04	        | genotyper.py                                                                                      |
+| hla-genotyper_2025-04.sif	            | hla-genotyper             | 2025-04	        | genotyper.py                                                                                      |
 | htslib_1.16.sif                       | bgzip/tabix               | 1.16              | `bgzip` or `tabix`                                                                                |
 | kraken2_v2.1.3.sif	                | kraken2	                | 2.1.3         	| kraken2                                                                                           |
 | longphase_v1.7.3.sif	                | longphase                 | 1.7.3	            | longphase                                                                                         |
 | manta_v1.6.0.sif	                    | manta                     | 1.6.0	            | python2 /opt/manta/bin/configManta.py                                                             |
-| methylartist_v1.3.1.sif               | Methylartist              | 1.3.1             | methylartist                                                                                      |
-| minimap2_v2.28.sif                    | minimap2	                | 2.28	            | minimap2                                                                                          |
-| modkit_v0.3.2.sif	                    | modkit	                | 0.3.2	            | modkit                                                                                            |
+| methylartist_v1.5.2-20251105.sif      | Methylartist              | 1.5.2             | methylartist                                                                                      |
+| minimap2_v2.30-20251119.sif           | minimap2	                | 2.30	            | minimap2                                                                                          |
+| modkit_v0.5.0-20251105.sif            | modkit	                | 0.5.0	            | modkit                                                                                            |
 | msisensor-pro_v1.2.0.sif              | msisensor-pro             | 1.2.0	            | msisensor-pro                                                                                     |
-| ngs-bits_2025-09-20250925.sif	        | ngs-bits	                | 2025-09	        | "tool_name" (e.g. BedAdd)                                                                         |
+| ngs-bits_2025-12-20251210.sif	        | ngs-bits	                | 2025-12	        | "tool_name" (e.g. BedAdd)                                                                         |
 | orad_v2.6.1.sif	                    | orad	                    | 2.6.1	            | orad                                                                                              |
-| paraphase_v3.2.1.sif                  | paraphase                 | 3.2.1	            | paraphase                                                                                         |
+| paraphase_v3.3.1-20251125.sif         | paraphase                 | 3.3.1	            | paraphase                                                                                         |
 | python_v3.10.9-20250729.sif           | python	                | 3.10.9	        | python3                                                                                           |
 | REViewer_v0.2.7.sif                   | REViewer	                | 0.2.7	            | REViewer                                                                                          |
 | samblaster_v0.1.26.sif	            | samblaster	            | 0.1.26	        | samblaster                                                                                        |
 | samtools_1.20-20250812.sif            | samtools	                | 1.20	            | samtools                                                                                          |
 | scarHRD_v1.sif	                    | scarHRD	                | 1	                | cli_scarHRD.R                                                                                     |
 | SigProfilerExtractor_v1.1.24.sif      | SigProfilerExtractor      | 1.1.24	        | python3 -c 'from SigProfilerExtractor import sigpro as sig; sig.sigProfilerExtractor("parameter")'|
-| sniffles_v2.4.sif	                    | sniffles	                | 2.4	            | sniffles                                                                                          |
+| sniffles_v2.7.1-20251112.sif          | sniffles	                | 2.7.1	            | sniffles                                                                                          |
 | spliceai_v1.3.1.sif	                | spliceai	                | 1.3.1	            | spliceai                                                                                          |
 | STAR_v2.7.11b.sif                     | STAR	                    | 2.7.11b	        | STAR                                                                                              |
-| straglr_v1.5.4-20250729.sif	        | straglr	                | 1.5.4	            | straglr.py                                                                                        |
+| straglr_v1.5.5-20251119.sif	        | straglr	                | 1.5.5	            | straglr.py                                                                                        |
 | straglrOn_v0.2.4-20250730.sif	        | straglrOn                 | 0.2.4	            | straglron.py                                                                                      |
 | strelka2_v2.9.10.sif	                | strelka2                  | 2.9.10	        | python2 /opt/strelka2/bin/"script.py" (e.g.:runWorkflow.py)                                       |
 | subread_v2.0.6.sif                    | subread                   | 2.0.6	            | featureCounts                                                                                     |
 | umi-tools_v1.1.5.sif                  | umi-tools                 | 1.1.5	            | umi_tools                                                                                         |
-| umiVar_2025-08.sif                    | umiVar                    | 2025-08           | "script.py" (e.g. umiVar.py)                                                                      |
+| umiVar_2025-12-20251212.sif           | umiVar                    | 2025-12           | "script.py" (e.g. umiVar.py)                                                                      |
 | varscan2_v2.4.6.sif	                | varscan2                  | 2.4.6	            | java -jar /opt/VarScan.jar                                                                        |
 | vcflib_v1.0.3.sif	                    | vcflib	                | 1.0.3	            | "tool_name" (e.g. vcfallelicprimitives)                                                           |
 | vep_release-112.0.sif                 | vep	                    | release-112.0	    | vep                                                                                               |
-| whatshap_v2.3.sif	                    | whatshap                  | 2.3               | whatshap                                                                                          |
+| whatshap_v2.8-20251119.sif            | whatshap                  | 2.8               | whatshap                                                                                          |
 
 With Apptainer installed each container can be invoked with the following command:
 

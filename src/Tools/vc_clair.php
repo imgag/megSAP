@@ -50,6 +50,7 @@ if ($gpu)
 	if ($status != 0 || empty($output)) 
 	{
 		trigger_error("No GPU available to run GPU accelerated Clair3. Falling back to CPU-only version", E_USER_NOTICE);
+		$gpu = false;
 	}
 	else
 	{
@@ -97,7 +98,7 @@ if(isset($target))
 }
 
 //run Clair3 container
-$parser->execApptainer("clair3", "run_clair3.sh", implode(" ", $args), $in_files);
+$parser->execApptainer("clair3", "run_clair3.sh", implode(" ", $args), $in_files, [], false, true, true, true, $gpu);
 $clair_vcf = $clair_temp."/merge_output.vcf.gz";
 $clair_gvcf = $clair_temp."/merge_output.gvcf.gz";
 
@@ -108,7 +109,7 @@ file_put_contents($target_mito, "chrMT\t0\t16569");
 $args_mito[] = "--bed_fn={$target_mito}";
 $args_mito[] = "--haploid_sensitive";
 
-$parser->execApptainer("clair3", "run_clair3.sh", implode(" ", $args_mito), $in_files);
+$parser->execApptainer("clair3", "run_clair3.sh", implode(" ", $args_mito), $in_files, [], false, true, true, true, $gpu);
 $clair_mito_vcf = $clair_mito_temp."/merge_output.vcf.gz";
 $clair_mito_gvcf = $clair_mito_temp."/merge_output.gvcf.gz";
 

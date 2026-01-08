@@ -129,3 +129,38 @@ create_test_case1:
 	BamToFastq -in test_case1_tmp.bam -out1 som_pipeline_test_case1_L001_R1_001.fastq.gz -out2 som_pipeline_test_case1_L001_R2_001.fastq.gz
 	rm test_case1_tmp.bam
 	BedIntersect -in2 /mnt/storage2/megSAP/data/enrichment/ssSC_v5.bed  <<< "chr7	140723402	140929330" | BedSort | BedMerge > som_pipeline_test_case1_target.bed
+
+#Test DeepSomatic as somatic variant caller	
+tn_deepsom:
+	mkdir -p out_case_deepsom
+	rm -rf out_case_deepsom/GS110168_03-GS110169_03.log
+	php ../../src/Pipelines/somatic_tumor_normal.php \
+		-t_bam Sample_GS110168_03/GS110168_03.cram -n_bam Sample_GS110169_03/GS110169_03.cram \
+		-out_folder out_case_deepsom \
+		-prefix GS110168_03-GS110169_03 \
+		-steps vc,an,msi,an_rna\
+		-t_rna_bam Sample_RX000001_01/RX000001_01.bam \
+		-rna_ref_tissue gallbladder \
+		-skip_correlation \
+		-system system_pair.ini -n_system system_pair.ini \
+		-min_depth_t 100 \
+		-min_depth_n 100 \
+		-use_deepsomatic_test \
+		--log out_case_deepsom/GS110168_03-GS110169_03.log
+		
+		
+tn_deepsom_diff:
+	# small variants
+	php ../compare_variants.php -in1 expected_case_deepsom/GS110168_03-GS110169_03.GSvar -in2 out_case_deepsom/GS110168_03-GS110169_03.GSvar -add tumor_af,tumor_dp,normal_af,normal_dp,rna_ref_tpm
+	# low coverge file
+	php ../compare_bed.php expected_case_deepsom/GS110168_03-GS110169_03_stat_lowcov.bed out_case_deepsom/GS110168_03-GS110169_03_stat_lowcov.bed
+	# qcML files
+	php ../compare_qcml_xml.php expected_case_deepsom/GS110168_03-GS110169_03_stats_som.qcML out_case_deepsom/GS110168_03-GS110169_03_stats_som.qcML
+	php ../compare_qcml_xml.php expected_case_deepsom/GS110168_03-GS110169_03_stats_other.qcML out_case_deepsom/GS110168_03-GS110169_03_stats_other.qcML
+	# MSI file
+	diff expected_case_deepsom/GS110168_03-GS110169_03_msi.tsv out_case_deepsom/GS110168_03-GS110169_03_msi.tsv
+	# bafs
+	diff expected_case_deepsom/GS110168_03-GS110169_03_bafs.igv out_case_deepsom/GS110168_03-GS110169_03_bafs.igv
+	# cfDNA candidates
+	diff --ignore-matching-lines '^##' expected_case_deepsom/GS110168_03-GS110169_03_cfDNA_candidates_monitoring.vcf out_case_deepsom/GS110168_03-GS110169_03_cfDNA_candidates/monitoring.vcf
+	diff expected_case_deepsom/GS110168_03-GS110169_03_cfDNA_candidates_monitoring.tsv out_case_deepsom/GS110168_03-GS110169_03_cfDNA_candidates/monitoring.tsv

@@ -1,6 +1,0 @@
-Built on: SRV026
-Built by: ahiliuk1
-Build date: 2025-08-18 15:07:59
-Pull command: apptainer pull clair3-gpu_v1.2.0.sif docker://hkubal/clair3-gpu:v1.2.0
-
-INFO:    Using cached SIF image
