@@ -84,8 +84,8 @@
 |STAR                   |mapping                                              |11.2025 (2.7.11b) |                                                                                                                 |https://github.com/alexdobin/STAR                                       |
 |subread                |read counting                                        |01.2026 (2.1.1)   |                                                                                                                 |https://subread.sourceforge.net/                                        |
 |Arriba                 |fusion detection                                     |11.2025 (2.5.1)   |                                                                                                                 |https://github.com/suhrig/arriba                                        |
-|Kraken2                |fastq filtering                                      |08.2024 (2.17.1)  |                                                                                                                 |https://github.com/DerrickWood/kraken2                                  |
-|umi_tools              |UMI extraction                                       |08.2024 (1.1.5)   |                                                                                                                 |https://github.com/CGATOxford/UMI-tools                                 |
+|Kraken2                |fastq filtering                                      |01.2026 (2.17.1)  |                                                                                                                 |https://github.com/DerrickWood/kraken2                                  |
+|umi_tools              |UMI extraction                                       |01.2026 (1.1.6)   |                                                                                                                 |https://github.com/CGATOxford/UMI-tools                                 |
 
 ## Tools for longread pipeline
 
