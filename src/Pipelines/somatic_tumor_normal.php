@@ -136,7 +136,6 @@ if($validation)
 	$skip_signatures = true;
 }
 
-
 if (!file_exists($out_folder))
 {
 	exec2("mkdir -p $out_folder");
@@ -160,27 +159,17 @@ $sys = load_system($system, $t_id);
 $roi = trim($sys["target_file"]);
 $ref_genome = genome_fasta($sys['build']);
 
-//check that ROI is sorted
-if ($roi!="")
-{
-	$roi = realpath($roi);
-	if (!bed_is_sorted($roi)) trigger_error("Target region file not sorted: ".$roi, E_USER_ERROR);
-}
-
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
 if (!$no_sync)
 {
 	$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
 }
 
-//make sure it is a BAM (MSIsensor does not work on CRAM)
-check_genome_build($t_bam, $sys['build']);
-
-
-//msisensor needs BAM input, all other tools can use CRAM.
-if(in_array("msi", $steps))
+//check that ROI is sorted
+if ($roi!="")
 {
-	$t_bam = convert_to_bam_if_cram($t_bam, $parser, $sys['build'], $threads);
+	$roi = realpath($roi);
+	if (!bed_is_sorted($roi)) trigger_error("Target region file not sorted: ".$roi, E_USER_ERROR);
 }
 
 //normal sample data
@@ -190,12 +179,8 @@ $n_basename = dirname($n_bam)."/".$n_id;
 $n_sys = load_system($n_system, $n_id);
 $ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short'];
 
-//make sure it is a BAM (MSIsensor does not work on CRAM)
+check_genome_build($t_bam, $sys['build']);
 check_genome_build($n_bam, $n_sys['build']);
-if(in_array("msi", $steps))
-{
-	$n_bam = convert_to_bam_if_cram($n_bam, $parser, $sys['build'], $threads);
-}
 
 if ($sys["name_short"] != $n_sys["name_short"] && in_array("cn", $steps))
 {
@@ -981,33 +966,14 @@ if (in_array("msi", $steps))
 	//temp folder so other output (_dis, _germline and _somatic files) is written to tmp and automatically deleted even if the tool crashes
 	$msi_tmp_folder = $parser->tempFolder("sp_detect_msi_");
 	$msi_tmp_file = $msi_tmp_folder."/msi_tmp_out.tsv";
-	//file that contains MSI in target
 	$msi_folder = get_path("data_folder")."/dbs/msisensor-pro/";
-	$msi_ref = $msi_folder."/msisensor_references_".$n_sys['build'].".site";
-	if(!file_exists($msi_ref)) // create msi-ref file
-	{
-		print("Could not find loci reference file $msi_ref. Trying to generate it.\n");
-		if (!file_exists($msi_folder)) $parser->exec("mkdir", "-p {$msi_folder}");
-		$parser->execApptainer("msisensor-pro", "msisensor-pro", "scan -d $ref_genome -o $msi_ref", [$ref_genome], [$msi_folder]);
-
-		//remove sites with more than 100 repeat_times as that crashes dragen MSI:
-		$out_lines = [];
-		foreach(file($msi_ref) as $line)
-		{
-			#$chr, $pos, $repeat_unit_len, $repeat_unit_bin, $repeat_times, ...
-			$parts = explode("\t", $line);
-
-			if ($parts[0] != "chromosome" && !chr_check($parts[0], 22, false)) continue;
-			if (is_numeric($parts[4]) && floatval($parts[4]) > 100) continue;
-			$out_lines[] = $line;
-		}
-
-		file_put_contents($msi_ref, implode("", $out_lines));
-	}
-
-	$parameters = "-n_bam $n_bam -t_bam $t_bam -msi_ref $msi_ref -threads $threads -out " .$msi_tmp_file. " -build ".$n_sys['build'];
 	
-	$parser->execTool("Tools/detect_msi.php",$parameters);
+	if (!file_exists($msi_folder)) $parser->exec("mkdir", "-p {$msi_folder}");
+	
+	$msi_ref = $msi_folder."/msisensor_references_".$n_sys['build'].".site";
+	$parameters = "-n_bam $n_bam -t_bam $t_bam -msi_ref $msi_ref -ref $ref_genome -threads $threads -out " .$msi_tmp_file. " -build ".$n_sys['build'];
+	
+	$parser->execTool("Tools/detect_msi.php", $parameters);
 	$parser->copyFile($msi_tmp_file, $msi_o_file);
 }
 
