@@ -53,7 +53,7 @@ You can find installation instructions for the components:
 - NGSD: <https://github.com/imgag/ngs-bits/blob/master/doc/install_ngsd.md>
 - GSvar client: <https://github.com/imgag/ngs-bits/blob/master/doc/install_unix.md#building-gsvar-optional>
 - GSvar server: <https://github.com/imgag/ngs-bits/blob/master/doc/GSvarServer/index.md>
-- IGV: **TODO**
+- IGV: <https://github.com/imgag/ngs-bits/blob/master/doc/GSvar/igv_integration.md>
 
 ## Support
 
