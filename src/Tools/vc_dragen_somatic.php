@@ -136,10 +136,15 @@ if ($out_sv != "")
 }
 
 //MSI: microsattelite instability:
-if ($n_bam != "")
+$msi_ref = get_path("data_folder") . "/dbs/DRAGEN/". ($is_targeted ? "WES" : "WGS") ."_v1.1.0_".$build."_microsatellites.list";
+if (! is_file($msi_ref))
+{
+	trigger_error("Skipping dragen MSI calling because MSI reference: '{$msi_ref}' doesn't exist.", E_USER_WARNING);
+}
+
+if ($n_bam != "" && is_file($msi_ref))
 {
 	$dragen_parameter[] = "--msi-command tumor-normal";
-	$msi_ref = get_path("data_folder") . "/dbs/msisensor-pro/msisensor_references_".$build.".site";
 	$dragen_parameter[] = "--msi-microsatellites-file $msi_ref";
 	$dragen_parameter[] = "--msi-coverage-threshold 60"; //recommended value is 60 for solid and 500 for liquid tumor (Dragen V4.2)
 }
