@@ -154,8 +154,26 @@ if (in_array("vc", $steps))
 		}
 		$parser->execTool("Tools/vc_manta.php", implode(" ", $args_manta));
 		
+		//convert VCF to BEDPE
 		$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in $manta_sv -out $manta_sv_bedpe", [$manta_sv], [dirname($manta_sv_bedpe)]);
 		
+		//add analysis type to BEDPE file
+		$tmp = $parser->tempFile(".bedpe");
+		$ostream = fopen2($tmp, 'w');
+		fwrite($ostream, "##fileformat=BEDPE_TUMOR_ONLY\n");
+		fwrite($ostream, "##ANALYSISTYPE=BEDPE_TUMOR_ONLY\n");
+		foreach(file($manta_sv_bedpe) as $line)
+		{
+			$line = nl_trim($line);
+			if ($line=="" || starts_with($line, "#fileformat=")) continue;
+			
+			fwrite($ostream, $line);
+			fwrite($ostream, "\n");			
+		}
+		fclose($ostream);
+		$parser->moveFile($tmp, $manta_sv_bedpe);
+		
+		//annotate BEDPE
 		if( db_is_enabled("NGSD") )
 		{
 			$parser->execApptainer("ngs-bits", "BedpeGeneAnnotation", "-in $manta_sv_bedpe -out $manta_sv_bedpe -add_simple_gene_names", [$manta_sv_bedpe]);
