@@ -59,7 +59,7 @@ if (!file_exists($out_folder))
 $out_folder = realpath($out_folder);
 
 //create log file in output folder if none is provided
-if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/somatic_tumor_only".date("YmdHis").".log");
+if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/somatic_tumor_only_".date("YmdHis").".log");
 
 //log server, user, etc.
 $parser->logServerEnvronment();
@@ -429,12 +429,29 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	}
 
 	// import variants into NGSD
+	$args = ["-t_ps {$t_id}", "-force"];
+	$binds = [];
 	if (file_exists($variants_gsvar))
 	{
-		check_genome_build($variants_gsvar, $build);
-		$parser->execApptainer("ngs-bits", "NGSDAddVariantsSomatic", "-t_ps $t_id -var $variants_gsvar -force", [$variants_gsvar]);
+		check_genome_build($variants_gsvar, $sys['build']);
+		$args[] = "-var {$variants_gsvar}";
+		$binds[] = $variants_gsvar;
 	}
-			
+	if(file_exists($som_clincnv))
+	{
+		$args[] = "-cnv {$som_clincnv}";
+		$binds[] = $som_clincnv;
+	}			
+	if(file_exists($manta_sv_bedpe))
+	{
+		$args[] = "-sv {$manta_sv_bedpe}";
+		$binds[] = $manta_sv_bedpe;
+	}
+	if (count($binds)>0)
+	{
+		$parser->execApptainer("ngs-bits", "NGSDAddVariantsSomatic", implode(" ", $args), $binds);
+	}	
+				
 	//add secondary analysis (if missing)
 	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'somatic' -gsvar {$variants_gsvar}");
 }
