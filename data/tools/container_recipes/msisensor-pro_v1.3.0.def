@@ -31,10 +31,10 @@ rm -rf htslib-1.17
 rm htslib-1.17.tar.bz2
 
 # Download msisensor-pro
-mkdir -p "msisensor-pro-1.2.0/"
-cd "msisensor-pro-1.2.0/"
-wget https://github.com/xjtu-omics/msisensor-pro/releases/download/v1.2.0/msisensor-pro
-chmod +x msisensor-pro 
+mkdir -p "msisensor-pro-1.3.0/"
+cd "msisensor-pro-1.3.0/"
+wget https://github.com/xjtu-omics/msisensor-pro/releases/download/v1.3.0/msisensor-pro-v1.3.0
+chmod +x msisensor-pro-v1.3.0
 
 # Cleanup build dependencies
 cd /
@@ -53,5 +53,5 @@ rm -rf /var/lib/apt/lists/*
 %environment
 export LANG=C.UTF-8
 export LC_ALL=C.UTF-8
-export PATH=/opt/msisensor-pro-1.2.0:/opt/htslib-install:$PATH
+export PATH=/opt/msisensor-pro-1.3.0:/opt/htslib-install:$PATH
 export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH

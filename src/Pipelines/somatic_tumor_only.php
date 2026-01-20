@@ -59,7 +59,7 @@ if (!file_exists($out_folder))
 $out_folder = realpath($out_folder);
 
 //create log file in output folder if none is provided
-if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/somatic_tumor_only".date("YmdHis").".log");
+if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/somatic_tumor_only_".date("YmdHis").".log");
 
 //log server, user, etc.
 $parser->logServerEnvronment();
@@ -154,8 +154,26 @@ if (in_array("vc", $steps))
 		}
 		$parser->execTool("Tools/vc_manta.php", implode(" ", $args_manta));
 		
+		//convert VCF to BEDPE
 		$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in $manta_sv -out $manta_sv_bedpe", [$manta_sv], [dirname($manta_sv_bedpe)]);
 		
+		//add analysis type to BEDPE file
+		$tmp = $parser->tempFile(".bedpe");
+		$ostream = fopen2($tmp, 'w');
+		fwrite($ostream, "##fileformat=BEDPE_TUMOR_ONLY\n");
+		fwrite($ostream, "##ANALYSISTYPE=BEDPE_TUMOR_ONLY\n");
+		foreach(file($manta_sv_bedpe) as $line)
+		{
+			$line = nl_trim($line);
+			if ($line=="" || starts_with($line, "#fileformat=")) continue;
+			
+			fwrite($ostream, $line);
+			fwrite($ostream, "\n");			
+		}
+		fclose($ostream);
+		$parser->moveFile($tmp, $manta_sv_bedpe);
+		
+		//annotate BEDPE
 		if( db_is_enabled("NGSD") )
 		{
 			$parser->execApptainer("ngs-bits", "BedpeGeneAnnotation", "-in $manta_sv_bedpe -out $manta_sv_bedpe -add_simple_gene_names", [$manta_sv_bedpe]);
@@ -411,12 +429,29 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	}
 
 	// import variants into NGSD
+	$args = ["-t_ps {$t_id}", "-force"];
+	$binds = [];
 	if (file_exists($variants_gsvar))
 	{
-		check_genome_build($variants_gsvar, $build);
-		$parser->execApptainer("ngs-bits", "NGSDAddVariantsSomatic", "-t_ps $t_id -var $variants_gsvar -force", [$variants_gsvar]);
+		check_genome_build($variants_gsvar, $sys['build']);
+		$args[] = "-var {$variants_gsvar}";
+		$binds[] = $variants_gsvar;
 	}
-			
+	if(file_exists($som_clincnv))
+	{
+		$args[] = "-cnv {$som_clincnv}";
+		$binds[] = $som_clincnv;
+	}			
+	if(file_exists($manta_sv_bedpe))
+	{
+		$args[] = "-sv {$manta_sv_bedpe}";
+		$binds[] = $manta_sv_bedpe;
+	}
+	if (count($binds)>0)
+	{
+		$parser->execApptainer("ngs-bits", "NGSDAddVariantsSomatic", implode(" ", $args), $binds);
+	}	
+				
 	//add secondary analysis (if missing)
 	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'somatic' -gsvar {$variants_gsvar}");
 }
