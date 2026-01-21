@@ -100,6 +100,8 @@ If you plan to use **NGSD** and it is not initialized yet, follow these steps:
    NGSDImportGeneInfo --help  
    NGSDImportOMIM --help  
    NGSDImportORPHA --help  
+   NGSDImportCSpec --help  
+   
    ```
 
 **Note:** To call `ngs-bits` tools, use: `apptainer exec -B <path-to-host-data-folder>/tools/ngsbits_settings.ini ngs-bits_[version].sif [tool] [parameters] --settings <path-to-host-data-folder>/tools/ngsbits_settings.ini`. The `ngs-bits` container is downloaded to `<path-to-host-data-folder>/tools/apptainer_container`.
