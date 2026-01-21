@@ -33,6 +33,8 @@ $parser->addFlag("skip_run_merging", "Do not merge this run with a previous run.
 $parser->addFlag("manual_demux", "Ignore NovaSeqX Analysis results and use maunal demux.");
 $parser->addFlag("no_queuing", "Do not include queuing commands in the default target of the Makefile.");
 
+$parser->addString("ignore_samples" ,"Comma-separated list of samples which should not be copied/analyzed",true, "");
+
 extract($parser->parse($argv));
 
 //check if GenLab is available
@@ -267,6 +269,9 @@ if(!file_exists($samplesheet)) trigger_error("ERROR: Provided SampleSheet '{$sam
 //get file names
 $run_folder = dirname(realpath($samplesheet));
 
+//get ignored samples
+$ignored_samples = explode(",", $ignore_samples);
+
 //get run id and check FlowCell id
 $run_folder_parts = explode("_", basename($run_folder));
 $run_name = $run_folder_parts[count($run_folder_parts) - 1];
@@ -328,6 +333,13 @@ else if ($skip_run_merging) $merge_former_run = "n";
 //get sample data
 if($is_novaseq_x) $sample_data = get_sample_data_from_db($db_conn, $run_name);
 else $sample_data = extract_sample_data($db_conn, $samplesheet);
+
+//remove ignored samples
+foreach ($ignored_samples as $sample) 
+{
+	unset($sample_data[$sample]);
+}
+
 //import data from Genlab
 if (!$no_genlab)
 {
@@ -517,7 +529,7 @@ foreach($sample_data as $sample => $sample_infos)
 		$fastq_folder = $analysis_id."/Data/BCLConvert/fastq";
 
 		$old_location = $analysis_id."/Data";
-		if($ignore_analysis || ($sys_type == "RNA") || ($sys_type == "Panel") || ($sys_type == "cfDNA (patient-specific)") || ($sys_type == "cfDNA") || ($sys_type == "WGS (shallow)"))
+		if(($sys_type == "RNA") || ($sys_type == "Panel") || ($sys_type == "cfDNA (patient-specific)") || ($sys_type == "cfDNA") || ($sys_type == "WGS (shallow)"))
 		{
 			$old_location .= "/BCLConvert";
 			if (file_exists($old_location."/ora_fastq"))
@@ -591,7 +603,7 @@ foreach($sample_data as $sample => $sample_infos)
 				//check count
 				if(count($fastq_files) != count($sample_infos["ps_lanes"]) * 2) 
 				{
-					trigger_error("ERROR: Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found: ".count($fastq_files).")", E_USER_ERROR);
+					trigger_error("Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found: ".count($fastq_files).")", E_USER_ERROR);
 				}
 
 				//copy files
@@ -632,11 +644,11 @@ foreach($sample_data as $sample => $sample_infos)
 			//check count
 			if(count($fastq_files) != count($sample_infos["ps_lanes"]) * 2) 
 			{
-				trigger_error("ERROR: Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found in {$fastq_folder}: ".count($fastq_files).")", E_USER_ERROR);
+				trigger_error("Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found in {$fastq_folder}: ".count($fastq_files).")", E_USER_ERROR);
 			}
 
 			//check & copy analyzed data
-			if ($nsx_analysis_done && !$merge_sample)
+			if ($nsx_analysis_done && !$merge_sample && !$ignore_analysis)
 			{
 				//check if all files are present
 				$tmp = glob("$old_location/{$sample}/*_seq");
@@ -711,8 +723,8 @@ foreach($sample_data as $sample => $sample_infos)
 
 			}
 			
-
-			if(($sample_infos["preserve_fastqs"] == 1) || ($project_analysis=="fastq") || !$nsx_analysis_done || $merge_sample)
+			// copy fastq/ORA
+			if(($sample_infos["preserve_fastqs"] == 1) || ($project_analysis=="fastq") || !$nsx_analysis_done || $merge_sample || $ignore_analysis)
 			{
 				foreach ($fastq_files as $fastq_file) 
 				{
@@ -854,7 +866,7 @@ foreach($sample_data as $sample => $sample_infos)
 			{
 				if (($sys_type == "WGS") || ($sys_type == "WES"))
 				{
-					if ($nsx_analysis_done && !$merge_sample)
+					if ($nsx_analysis_done && !$merge_sample && !$ignore_analysis)
 					{
 						$args[] = "-steps vc,cn,sv,re,db";
 					}
