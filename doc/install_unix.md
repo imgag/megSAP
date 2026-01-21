@@ -6,15 +6,8 @@ Currently only Linux is supported!
 
 ## Base dependencies
 
-We are providing instructions for the latest Ubuntu LTS distibutions here.  
+We are providing instructions for the latest Ubuntu LTS distibution (Ubuntu 24.04).  
 If you are using other Linux distributions, you have to adapt them yourself.
-    
-Ubuntu 22.04
-
-	> sudo apt-get update
-	> sudo apt-get install -y rsync zlib1g bzip2 php8.1-cli php8.1-xml php8.1-mysql make unzip wget git gnumeric pigz ghostscript
-
-Ubuntu 24.04
 
 	> sudo apt-get update
 	> sudo apt-get install -y rsync zlib1g bzip2 php8.3-cli php8.3-xml php8.3-mysql make unzip wget git gnumeric pigz ghostscript
@@ -29,7 +22,7 @@ Install Apptainer:
 
 Clone the last release of megSAP:
 
-	> it clone --branch 2025_10 https://github.com/imgag/megSAP.git
+	> git clone --branch 2025_10 https://github.com/imgag/megSAP.git
 
 ### Resolving proxy issues with git
 
@@ -73,24 +66,8 @@ Finally, we need to download and convert some open-source databases for annotati
 
 If you want to use the NGSD and it is not initialized already, perform the following steps:
 
-1) Install a MariaDB server
-2) Create a database and a associated user in the SQL database.
-3) Add the NGSD information to the megSAP `settings.ini` file.
-4) Create tables using the following script:
-
-	> php ../src/Install/db_init.php
-
-5) Import genomics base data (genes, transcripts, phenotypes, gene-phenotype associations, ...) using the following tools from ngs-bits:
-
-	> NGSDImportQC --help  
-	> NGSDImportHGNC --help  
-	> NGSDImportEnsembl --help  
-	> NGSDImportHPO --help  
-	> NGSDImportGeneInfo --help  
-	> NGSDImportOMIM --help  
-	> NGSDImportORPHA --help  
-
-**Note:** To call ngs-bits tools, you have to call the apptainer container like that `singularity exec data/tools/apptainer_container/ngs-bits_[version].sif [tool] [parameters]`.
+1) Install the database server and perform initial import of gene, transcript and disease data as described [here](https://github.com/imgag/ngs-bits/blob/master/doc/install_ngsd.md).
+2) Add the NGSD credentials to the megSAP `settings.ini` file.
 
 **Note:** To annotate variants with NGSD in-house counts, classifications, etc., NGSD data has to be exported regularly. To do so, adapt the file `data\dbs\NGSD\Makefile` and execute `make export` once a week using a cronjob.
 
@@ -105,3 +82,4 @@ Settings entries are described [here](settings.md)
 ## Execution
 
 Now the pipelines with all required tools and data are installed. They can be found within the `src/Pipelines` folder. Go to the [documentation](../README.md) for further details.
+
