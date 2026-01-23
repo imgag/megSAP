@@ -1,0 +1,42 @@
+##fileformat=VCFv4.2
+##FILTER=<ID=PASS,Description="All filters passed">
+##FILTER=<ID=RefCall,Description="Genotyping model thinks this site is reference.">
+##FILTER=<ID=LowQual,Description="Confidence in this variant being real is below calling threshold.">
+##FILTER=<ID=NoCall,Description="Site has depth=0 resulting in no call.">
+##INFO=<ID=SOURCE_VAR,Number=A,Type=String,Description="Source variant">
+##INFO=<ID=END,Number=1,Type=Integer,Description="End position (for use with symbolic alleles)">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=GQ,Number=1,Type=Integer,Description="Conditional genotype quality">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read depth">
+##FORMAT=<ID=MIN_DP,Number=1,Type=Integer,Description="Minimum DP observed within the GVCF block.">
+##FORMAT=<ID=AD,Number=R,Type=Integer,Description="Read depth for each allele">
+##FORMAT=<ID=VAF,Number=A,Type=Float,Description="Variant allele fractions.">
+##FORMAT=<ID=PL,Number=G,Type=Integer,Description="Phred-scaled genotype likelihoods rounded to the closest integer">
+##FORMAT=<ID=PS,Number=1,Type=Integer,Description="Phase set">
+##FORMAT=<ID=MF,Number=R,Type=Float,Description="Methylation fraction for each of the reference and alternate allele">
+##FORMAT=<ID=MD,Number=R,Type=Integer,Description="Methylation depth for each of the reference and alternate allele">
+##FORMAT=<ID=MT,Number=1,Type=String,Description="Methylation type: 0/0=Unmethylated, 0/1=Heterozygous, 1/1=Methylated">
+##FORMAT=<ID=MED_DP,Number=1,Type=Integer,Description="Median DP observed within the GVCF block rounded to the nearest integer.">
+##DeepVariant_version=1.9.0
+##INFO=<ID=TYPE,Number=A,Type=String,Description="The type of allele, either snp, mnp, ins, del, or complex.">
+##INFO=<ID=LEN,Number=A,Type=Integer,Description="allele length">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	vc_freebayes_in
+chr22	10678964	.	A	G	23	PASS	.	GT:DP:AF:GQ	0/1:45:0.489:21
+chr22	10678984	.	G	T	20	PASS	.	GT:DP:AF:GQ	0/1:43:0.442:18
+chr22	10703585	.	G	A	24	PASS	.	GT:DP:AF:GQ	0/1:359:0.256:21
+chr22	10752838	.	A	G	25	PASS	.	GT:DP:AF:GQ	1/1:382:0.990:22
+chr22	10940656	.	G	T	25	PASS	.	GT:DP:AF:GQ	0/1:35:0.229:22
+chr22	10949265	.	A	C	25	PASS	.	GT:DP:AF:GQ	0/1:67:0.209:22
+chr22	10959121	.	T	G	22	PASS	.	GT:DP:AF:GQ	0/1:42:0.810:19
+chr22	11065949	.	G	A	24	PASS	.	GT:DP:AF:GQ	0/1:471:0.544:21
+chr22	11067281	.	A	G	26	PASS	.	GT:DP:AF:GQ	0/1:144:0.486:22
+chr22	11067311	.	A	G	23	PASS	.	GT:DP:AF:GQ	0/1:213:0.455:21
+chr22	11067894	.	A	G	25	PASS	.	GT:DP:AF:GQ	0/1:145:0.248:22
+chr22	11067912	.	T	C	25	PASS	.	GT:DP:AF:GQ	0/1:182:0.286:20
+chr22	11068023	.	A	G	20	PASS	.	GT:DP:AF:GQ	0/1:492:0.394:18
+chr22	11068044	.	A	T	18	PASS	.	GT:DP:AF:GQ	0/1:595:0.887:14
+chr22	11068057	.	A	T	7	PASS	.	GT:DP:AF:GQ	0/1:629:0.313:7
+chr22	11068074	.	T	C	25	PASS	.	GT:DP:AF:GQ	0/1:682:0.518:22
+chr22	11068101	.	C	A	25	PASS	.	GT:DP:AF:GQ	0/1:716:0.617:21
+chr22	11068129	.	G	A	25	PASS	.	GT:DP:AF:GQ	0/1:644:0.391:22
+chr22	12616347	.	C	T	25	PASS	.	GT:DP:AF:GQ	0/1:34:0.618:22
