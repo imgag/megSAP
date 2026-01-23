@@ -20,7 +20,7 @@ function count_variants($gsvar_filtered, $roi)
 	global $parser;
 	$output = 0;
 	
-	list($stdout) = $parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in {$gsvar_filtered} -reg {$roi} -mode gsvar", [$roi]);
+	list($stdout) = $parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in {$gsvar_filtered} -reg {$roi}  -mode gsvar", [$roi]);
 	foreach($stdout as $line)
 	{
 		$line = nl_trim($line);
