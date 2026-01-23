@@ -710,11 +710,15 @@ while(!gzeof($handle))
 		}
 	}
 	$info = $tmp;
-	
-	
+		
+	//special handling for DRAGEN calling
 	if (isset($info["TARGETED"]))
 	{
 		$filter[] = "targeted";
+	}
+	if ($chr!="chrMT" && isset($info["MOSAIC"]))
+	{
+		$filter[] = "mosaic";
 	}
 	
 	//convert genotype information to TSV format

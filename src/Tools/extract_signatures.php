@@ -73,6 +73,7 @@ function calculate_cnv_signatures($in, $minSig, $maxSig, $nmfRep, $seeds)
 	global $parser;
 	global $reference;
 	global $threads;
+	global $data;
 
 	$result_folder = temp_folder();
 	$tmp = cnv_prepare_clincnv($in);
@@ -88,8 +89,8 @@ function calculate_cnv_signatures($in, $minSig, $maxSig, $nmfRep, $seeds)
 	{
 		$in_files[] = $seeds;
 	}
-
-	$parser->execApptainer("SigProfilerExtractor", "python3 -c", "'from SigProfilerExtractor import sigpro as sig; sig.sigProfilerExtractor(\"seg:FACETS\", \"$result_folder\", \"$tmp\", reference_genome=\"{$reference}\", minimum_signatures={$minSig}, maximum_signatures={$maxSig}, nmf_replicates={$nmfRep}, cpu={$threads}, seeds=\"{$seeds}\")'", $in_files);
+	
+	$parser->execApptainer("SigProfilerExtractor", "python3 -c", "'from SigProfilerExtractor import sigpro as sig; sig.sigProfilerExtractor(\"seg:FACETS\", \"$result_folder\", \"$tmp\", reference_genome=\"{$reference}\", minimum_signatures={$minSig}, maximum_signatures={$maxSig}, nmf_replicates={$nmfRep}, cpu={$threads}, seeds=\"{$seeds}\", volume=\"{$data}\")'", $in_files, [$data]);
 
 	copy_cnv_result_files($result_folder);
 }
@@ -151,6 +152,7 @@ function calculate_snv_signatures($in, $minSig, $maxSig, $nmfRep, $seeds)
 	global $parser;
 	global $reference;
 	global $threads;
+	global $data;
 
 	$result_folder = temp_folder();
 	$in_dir = prepare_input_files($in);
@@ -161,7 +163,10 @@ function calculate_snv_signatures($in, $minSig, $maxSig, $nmfRep, $seeds)
 	}
 
 	$in_files[] = $in_dir;
-	$parser->execApptainer("SigProfilerExtractor", "python3 -c", "'from SigProfilerExtractor import sigpro as sig; sig.sigProfilerExtractor(\"vcf\", \"$result_folder\", \"{$in_dir}\", reference_genome=\"{$reference}\", minimum_signatures={$minSig}, maximum_signatures={$maxSig}, nmf_replicates={$nmfRep}, cpu={$threads}, seeds=\"{$seeds}\")'", $in_files);
+	$in_files[] = $data;
+	
+	//run container
+	$parser->execApptainer("SigProfilerExtractor", "python3 -c", "'from SigProfilerExtractor import sigpro as sig; sig.sigProfilerExtractor(\"vcf\", \"$result_folder\", \"{$in_dir}\", reference_genome=\"{$reference}\", minimum_signatures={$minSig}, maximum_signatures={$maxSig}, nmf_replicates={$nmfRep}, cpu={$threads}, seeds=\"{$seeds}\", volume=\"{$data}\")'", $in_files, [$data]);
 
 	copy_snv_result_files($result_folder);
 }
@@ -254,7 +259,38 @@ function test_input($in, $mode, $out_folder, $minSig, $maxSig, $nmfRep, $seeds)
 	}
 }
 
+function reference_installed($data, $reference)
+{
+	
+}
+
+function install_reference($parser, $data, $reference)
+{
+	global $full_env_prefix;
+	
+	if (! is_dir($data)) mkdir($data);
+	$parser->log("Installing reference '{$reference}' for MatrixGenerator in folder '{$data}'");
+	$cmd = $parser->execApptainer("SigProfilerExtractor", "python3 -c", "'from SigProfilerMatrixGenerator.scripts import reference_genome_manager; rgm = reference_genome_manager.ReferenceGenomeManager(\"${data}\"); rgm.download_genome(\"GRCh38\")'", [], [$data], true);
+	$parser->exec("{$full_env_prefix} {$cmd}", "");
+}
+
+
 //MAIN
+$data = get_path("sigprofilerextractor_data").get_path("container_SigProfilerExtractor")."/";
+
+
+$env_var1 = "SIGPROFILERMATRIXGENERATOR_VOLUME={$data}";
+$env_var2 = "SIGPROFILERASSIGNMENT_VOLUME={$data}";
+$prefix = container_platform()=='apptainer' ? "APPTAINERENV" : "SINGULARITYENV";
+$full_env_prefix = "{$prefix}_{$env_var1} {$prefix}_{$env_var2}";
+
+if (true || ! reference_installed($data, $reference))
+{
+	install_reference($parser, $data, $reference);
+}
+
+
+
 test_input($in, $mode, $out, $minSig, $maxSig, $nmfRep, $seeds);
 if ($mode === "snv")
 {

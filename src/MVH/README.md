@@ -1,64 +1,64 @@
 # Modellvorhaben Genomsequenzierung
 
 
-## Projektübersicht
+## ProjektÃ¼bersicht
 
 ### Grundlagen
 
-Das Institut für Medizinische Genetik und Angewandte Genomik (IMGAG) führt den Datenexport für das Modellvorhaben durch 
+Das Institut fÃ¼r Medizinische Genetik und Angewandte Genomik (IMGAG) fÃ¼hrt den Datenexport fÃ¼r das Modellvorhaben durch 
 
-- für KDK-Daten des SE Netzwerks (KDK-Export für OE wird vom ZPM gemacht)
-- für GRZ-Daten aller Netzwerke
+- fÃ¼r KDK-Daten des SE Netzwerks (KDK-Export fÃ¼r OE wird vom ZPM gemacht)
+- fÃ¼r GRZ-Daten aller Netzwerke
 
-Voraussetzungen/Zuständigkeiten:
+Voraussetzungen/ZustÃ¤ndigkeiten:
 
 - Modellvorhaben-Fall abgeschlossen/abgebrochen
 - Documentation abgeschlossen in:
-  - RedCap `Fallverwaltung Modellvorhaben Genomsequenzierung` für SE (ZSE) und OE (ZPM)
-  - RedCap `Netzwerk Seltene Erkankungen` für SE (ZSE)
+  - RedCap `Fallverwaltung Modellvorhaben Genomsequenzierung` fÃ¼r SE (ZSE) und OE (ZPM)
+  - RedCap `Netzwerk Seltene Erkankungen` fÃ¼r SE (ZSE)
   - NGSD (NGS-Datenbank IMGAG)
 
-### Schritt 1 – Datenaggregation + Prüfung
+### Schritt 1 â€“ Datenaggregation + PrÃ¼fung
 
-Um den Datenexport durchzuführen wurde die Applikation MVHub entwickelt:
+Um den Datenexport durchzufÃ¼hren wurde die Applikation MVHub entwickelt:
 
 ![MVHub](MVHub.png)
 
-MVHub ermöglicht einen Gesamtübersicht aller Daten zu den Fällen im Modellvorhaben.
-Dazu werden für jeden Fall die Daten aus folgenden Quellen in einem Datenbank-Backend von MVHub gesammelt:
+MVHub ermÃ¶glicht einen GesamtÃ¼bersicht aller Daten zu den FÃ¤llen im Modellvorhaben.
+Dazu werden fÃ¼r jeden Fall die Daten aus folgenden Quellen in einem Datenbank-Backend von MVHub gesammelt:
 
 - Daten aus RedCap `Fallverwaltung Modellvorhaben Genomsequenzierung` via XML-Export
 - Daten aus RedCap `Netzwerk Seltene Erkankungen` via XML-Export
 - Proben-IDs der Genetik aus NGSD (NGS-Datenbank IMGAG)
-- Einwilligung Forschung (REST API des meDIC für Broad Consent)
+- Einwilligung Forschung (REST API des meDIC fÃ¼r Broad Consent)
 
-Die primäre Datenquelle ist dabei das RedCap der Fallverwaltung.
-Alle anderen Daten werden über die Patienten-ID von SAP mit den Daten der Fallverwaltung zusammengeführt.
+Die primÃ¤re Datenquelle ist dabei das RedCap der Fallverwaltung.
+Alle anderen Daten werden Ã¼ber die Patienten-ID von SAP mit den Daten der Fallverwaltung zusammengefÃ¼hrt.
 
-Vor dem Datenexport muss geprüft werden ob die Daten bereit sind für den Upload:
+Vor dem Datenexport muss geprÃ¼ft werden ob die Daten bereit sind fÃ¼r den Upload:
 
 - Fall abgeschlossen oder abgebrochen
-- Grobe Prüfung der Daten (alles vorhanden, keine Wiedersprüche)
+- Grobe PrÃ¼fung der Daten (alles vorhanden, keine WiedersprÃ¼che)
 
 ### Schritt 2 - Upload
 
-Nach positiver Prüfung eines Datensatzes kann aus MVHub der Upload der Daten angestoßen werden.  
+Nach positiver PrÃ¼fung eines Datensatzes kann aus MVHub der Upload der Daten angestoÃŸen werden.  
 Dazu wird der Auftrag zum Export an KDK/GRZ in der MVHub-Datenbank hinterlegt.
 
-Auf dem IMGAG Applikationsserver läuft ein Background-Prozess der den eigentlichen Export durchführt. Das Ergebnis jedes Exports (erfolgreich/abgebrochen und Ausgabe auf stdout/stderr) werden in der Datenbank gespeichert (siehe Screenshot). Falls ein Upload nicht erfolgreich ist, kann er nach Korrektur der Metadaten wiederholt werden.
+Auf dem IMGAG Applikationsserver lÃ¤uft ein Background-Prozess der den eigentlichen Export durchfÃ¼hrt. Das Ergebnis jedes Exports (erfolgreich/abgebrochen und Ausgabe auf stdout/stderr) werden in der Datenbank gespeichert (siehe Screenshot). Falls ein Upload nicht erfolgreich ist, kann er nach Korrektur der Metadaten wiederholt werden.
 
-Für jeden Upload wird eine TAN über das Trustcenter des meDIC generiert.
+FÃ¼r jeden Upload wird eine TAN Ã¼ber das Trustcenter des meDIC generiert.
 
-### Schritt 3 - Meldebestätigung
+### Schritt 3 - MeldebestÃ¤tigung
 
-Nach erfolgreichem Upload, wird im RedCap „ Fallverwaltung” die Information zum Upload hinterlegt (Datum, TAN, …):
+Nach erfolgreichem Upload, wird im RedCap â€ Fallverwaltungâ€ die Information zum Upload hinterlegt (Datum, TAN, â€¦):
 
 ![Pruefbericht](Pruefbericht.png)
 
-Nach Prüfung der hochgeladenen Daten schickt das KDK/GRZ einen Prüfbericht ans BfArM.
-Das BfArM schickt dann eine Meldebestätigung mit der TAN per Email an ein Funktionspostfach des UKT.
+Nach PrÃ¼fung der hochgeladenen Daten schickt das KDK/GRZ einen PrÃ¼fbericht ans BfArM.
+Das BfArM schickt dann eine MeldebestÃ¤tigung mit der TAN per Email an ein Funktionspostfach des UKT.
 
-ZSE/ZPM dokumentieren die Meldebestätigung dann im RedCap und SAP:
+ZSE/ZPM dokumentieren die MeldebestÃ¤tigung dann im RedCap und SAP:
 
 
 ![Meldebestaetigung](Meldebestaetigung.png)
@@ -101,17 +101,24 @@ ZSE/ZPM dokumentieren die Meldebestätigung dann im RedCap und SAP:
 
 see <https://github.com/BfArM-MVH/grz-tools/blob/main/packages/grz-cli/README.md> for details
 
-- Install miniforge at /mnt/storage2/megSAP/tools/miniforge3/
+Install miniforge at /mnt/storage2/megSAP/tools/miniforge3/
+
 	> curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
 	> bash Miniforge3-$(uname)-$(uname -m).sh
-- Install GRZ-CLI		
+
+Install GRZ-CLI
+
 	> /mnt/storage2/MVH/tools/miniforge3/bin/conda create -n grz-tools -c conda-forge -c bioconda "grz-cli"
 	> /mnt/storage2/MVH/tools/miniforge3/bin/conda activate grz-tools
-- Updates with:
+
+Updates with:
+
 	> /mnt/storage2/MVH/tools/miniforge3/bin/conda update -n base -c conda-forge conda -c bioconda
 	> /mnt/storage2/MVH/tools/miniforge3/bin/conda update -n grz-tools -c conda-forge -c bioconda grz-cli
 	> cd /mnt/storage2/MVH/tools/GRZ_QC_Workflow && git pull
-- List all package versions:
+
+List all package versions:
+
 	> /mnt/storage2/MVH/tools/miniforge3/bin/conda list -n grz-tools 
 
 ## Installation of python3

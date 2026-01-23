@@ -2,19 +2,21 @@
 
 ## Dependencies
 
-These instructions are for **Ubuntu 20.04**, but as long as you can install **Apptainer**, the container should work on other systems as well.
+We are providing instructions for the latest Ubuntu LTS distibution (Ubuntu 24.04).  
+If you are using other Linux distributions, you have to adapt them yourself.
 
-## Install Apptainer (Ubuntu 20.04)
+	> sudo apt-get update
+	> sudo apt-get install -y rsync zlib1g bzip2 php8.3-cli php8.3-xml php8.3-mysql make unzip wget git gnumeric pigz ghostscript
 
-```sh
-sudo add-apt-repository -y ppa:apptainer/ppa
-sudo apt update
-sudo apt install -y apptainer
-```
+Install Apptainer:
+
+	> sudo add-apt-repository -y ppa:apptainer/ppa
+	> sudo apt update
+	> sudo apt install -y apptainer
 
 ## Downloading
 
-Download the megSAP Apptainer container:
+Download the megSAP Apptainer container (currently 2025_03):
 
 ```sh
 wget --no-check-certificate -O megSAP_master.sif https://megsap.de/download/container/megSAP_master.sif
@@ -74,37 +76,12 @@ For a detailed description of settings, refer to [settings.md](settings.md).
 
 ## NGSD Initialization
 
-If you plan to use **NGSD** and it is not initialized yet, follow these steps:
+If you want to use the NGSD and it is not initialized already, perform the following steps:
 
-1. Install a MariaDB server.
+1) Install the database server and perform initial import of gene, transcript and disease data as described [here](https://github.com/imgag/ngs-bits/blob/master/doc/install_ngsd.md).
+2) Add the NGSD credentials to the megSAP `settings.ini` file.
 
-2. Create a database and user in the SQL database.
-
-3. Add NGSD connection details to `settings.ini`.
-
-4. Create tables using:
-
-   ```sh
-   apptainer exec -B <path-to-new-settings.ini>:/megSAP/settings.ini,<path-to-host-data-folder>:/megSAP/data/data_folder/ megSAP_[version].sif php /megSAP/src/Install/db_init.php
-   ```
-
-   During this step, a `ngsbits_settings.ini` is created from the megSAP settings.ini and saved under `<path-to-host-data-folder>/tools/ngsbits_settings.ini`. This `ngsbits_settings.ini` file is required to run the ngs-bits container independently of the megSAP container.
-
-5. Import base genomic data using `ngs-bits` tools:
-
-   ```sh
-   NGSDImportQC --help  
-   NGSDImportHGNC --help  
-   NGSDImportEnsembl --help  
-   NGSDImportHPO --help  
-   NGSDImportGeneInfo --help  
-   NGSDImportOMIM --help  
-   NGSDImportORPHA --help  
-   ```
-
-**Note:** To call `ngs-bits` tools, use: `apptainer exec -B <path-to-host-data-folder>/tools/ngsbits_settings.ini ngs-bits_[version].sif [tool] [parameters] --settings <path-to-host-data-folder>/tools/ngsbits_settings.ini`. The `ngs-bits` container is downloaded to `<path-to-host-data-folder>/tools/apptainer_container`.
-
-**Note:** To annotate variants with NGSD in-house counts, classifications, etc., NGSD data has to be exported regularly. To do so, adapt the file `data\dbs\NGSD\Makefile` and execute `make export` once a week using a cronjob. To do so in the megSAP container version you have to copy the Makefile to your host system, change it and mount it when executing the `make export`.
+**Note:** To annotate variants with NGSD in-house counts, classifications, etc., NGSD data has to be exported regularly. To do so, adapt the file `data\dbs\NGSD\Makefile` and execute `make export` once a week using a cronjob.
 
 ## Execution
 

@@ -917,7 +917,7 @@ if (in_array("cn", $steps))
 			if (!file_exists($bed))
 			{
 				$pipeline = [
-						["", $parser->execApptainer("ngs-bits", "BedChunk", "{$roi} -n {$bin_size}", [$roi], [], true)],
+						["", $parser->execApptainer("ngs-bits", "BedChunk", "-in {$roi} -n {$bin_size}", [$roi], [], true)],
 						["", $parser->execApptainer("ngs-bits", "BedAnnotateGC", "-clear -ref ".$genome, [$genome], [], true)],
 						["", $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-out {$bed}", [], [dirname($bed)], true)]
 					];

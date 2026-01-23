@@ -3,7 +3,7 @@ From: ubuntu:24.04
 
 %labels
     Maintainer KilianIlius
-    Version subread_v2.0.2
+    Version kraken2-v2.17.1
 
 %post
 	LANG=C.UTF-8
@@ -13,27 +13,26 @@ From: ubuntu:24.04
 	apt-get update --fix-missing 
 	apt-get install -y \
 		wget \
-		gcc \
+		build-essential \
 		zlib1g-dev \
-		make \
-		libc6-dev
+		libperl4-corelibs-perl \
+		g++
 	
-	# Download and build tool
-	cd /opt/
-	wget https://sourceforge.net/projects/subread/files/subread-2.0.6/subread-2.0.6-source.tar.gz
-	tar xzf subread-2.0.6-source.tar.gz
-	rm subread-2.0.6-source.tar.gz
-	cd subread-2.0.6-source/src
-	make -f Makefile.Linux
+	# Download kraken2
+	mkdir -p /opt/kraken2
+	cd /opt
+	wget https://github.com/DerrickWood/kraken2/archive/refs/tags/v2.17.1.tar.gz
+	tar -xzf v2.17.1.tar.gz
+	cd kraken2-2.17.1
+	./install_kraken2.sh /opt/kraken2
 	cd ..
-	mv bin/ /opt
-	cd .. rm -rf subread-2.0.6-source/
+	rm -rf kraken2-2.17.1/
+	rm v2.17.1.tar.gz
 	
 	# Cleanup build dependencies
 	cd /
 	apt-get remove -y \
-		wget \
-		gcc \
+		build-essential \
 		zlib1g-dev
 	apt-get autoremove -y
 	apt-get clean
@@ -42,5 +41,4 @@ From: ubuntu:24.04
 %environment
 	export LANG=C.UTF-8
 	export LC_ALL=C.UTF-8
-	export PATH=/opt/bin:$PATH
-	export PATH=/opt/bin/utilities:$PATH
+	export PATH=/opt/kraken2:$PATH
