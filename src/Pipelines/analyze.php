@@ -516,29 +516,17 @@ if (in_array("vc", $steps))
 			if (!$no_dragen && file_exists($dragen_output_vcf))
 			{
 				trigger_error("DRAGEN analysis found in sample folder. Using this data for small variant calling. ", E_USER_NOTICE);
-				$pipeline = [];
-
-				$pipeline[] = array("zcat", $dragen_output_vcf);
 				
 				//filter by target region (extended by 200) and quality 5
 				$target = $parser->tempFile("_roi_extended.bed");
 				$parser->execApptainer("ngs-bits", "BedExtend", "-in {$roi} -n 200 -out $target -fai ".$genome.".fai", [$roi, $genome]);
-				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfFilter", "-reg {$target} -qual 5 -filter_clear -remove_invalid -ref $genome", [$genome], [], true));
 
-				//split multi-allelic variants
-				$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "", [], [], true)];
-
-				//normalize all variants and align INDELs to the left
-				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], true));
-
-				//sort variants by genomic position
-				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true));
+				$tmp_out = $parser->tempFile(".vcf");
+				$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$dragen_output_vcf} -out {$tmp_out} -reg {$target} -qual 5 -filter_clear -remove_invalid -ref $genome", [$genome]);
+				$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_out} -out {$tmp_out} -build {$build}");
 
 				//zip
-				$pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c > $vcffile", [], [dirname($vcffile)], true));
-
-				//execute pipeline
-				$parser->execPipeline($pipeline, "Dragen small variants post processing");
+				$parser->execApptainer("htslib", "bgzip", "-c $tmp_out > $vcffile", [], [dirname($vcffile)]);
 
 				//mark off-target variants
 				$tmp = $parser->tempFile("_offtarget.vcf");
@@ -628,27 +616,13 @@ if (in_array("vc", $steps))
 			if (!$no_dragen && file_exists($dragen_output_vcf) && contains_mito($dragen_output_vcf))
 			{
 				trigger_error("DRAGEN analysis found in sample folder. Using this data for mito small variant calling. ", E_USER_NOTICE);
-				$pipeline = [];
-				
-				$pipeline[] = array("zcat", $dragen_output_vcf);
-				
-				//filter by target region and quality 5
-				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfFilter", "-reg chrMT:1-16569 -qual 5 -filter_clear -ref $genome", [$genome], [], true));
 
-				//split multi-allelic variants
-				$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "", [], [], true)];
-
-				//normalize all variants and align INDELs to the left
-				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], true));
-
-				//sort variants by genomic position
-				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true));
+				$tmp_out = $parser->tempFile(".vcf");
+				$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$dragen_output_vcf} -out {$tmp_out} -reg chrMT:1-16569 -qual 5 -filter_clear -ref $genome", [$genome]);
+				$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_out} -out {$tmp_out} -build {$build}");
 
 				//zip
-				$pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c > $vcffile_mito", [], [], true));
-
-				//execute pipeline
-				$parser->execPipeline($pipeline, "Dragen small variants post processing (chrMT)");
+				$parser->execApptainer("htslib", "bgzip", "-c $tmp_out > $vcffile_mito");
 
 				//index output file
 				$parser->execApptainer("htslib", "tabix", "-p vcf $vcffile_mito");

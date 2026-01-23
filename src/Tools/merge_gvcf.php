@@ -185,41 +185,10 @@ $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfExtractSamples", "-sam
 $pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c > {$tmp_vcf}", [], [], true));
 $parser->execPipeline($pipeline, "Merge VCF");
 
-//post-processing 
-$pipeline = [];
-//stream vcf.gz
-$pipeline[] = ["zcat", $tmp_vcf];
-
-//filter variants according to variant quality>5
-$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-qual 5 -ref $genome", [$genome], [], true)];
-
-//split complex variants to primitives
-//this step has to be performed before VcfBreakMulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
-$pipeline[] = ["", $parser->execApptainer("vcflib", "vcfallelicprimitives", "-kg", [], [], true)];
-
-//split multi-allelic variants
-$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "-no_errors", [], [], true)];
-//remove invalid variants
-$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-remove_invalid -ref $genome", [$genome], [], true)];
-
-//normalize all variants and align INDELs to the left
-$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], true)];
-
-//sort variants by genomic position
-$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true)];
-
-//fix error in VCF file and strip unneeded information
-if ($mode=="mixed") $pipeline[] = array("php ".repository_basedir()."/src/Tools/vcf_fix.php", "--dragen_mode", false); // second run for mixed trios
-
+//post-processing
 $uncompressed_vcf = $parser->tempFile(".vcf");
-$args = [];
-if (($mode=="clair3") || ($mode=="mixed")) $args[] = "--clair3_mode";
-if ($mode=="dragen") $args[] = "--dragen_mode";
-$args[] = "> {$uncompressed_vcf}";
-$pipeline[] = array("php ".repository_basedir()."/src/Tools/vcf_fix.php", implode(" ", $args), false);
-
-//execute post-processing pipeline
-$parser->execPipeline($pipeline, "merge_gvcf post processing");
+$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp_vcf} -out {$uncompressed_vcf} -qual 5 -remove_invalid -ref $genome", [$genome]);
+$parser->execTool("Tools/normalize_small_variants.php", "-in {$uncompressed_vcf} -out {$uncompressed_vcf} -build {$build} -primitives -fix -mode {$mode}");
 
 //add name/pipeline info to VCF header
 if (($mode=="clair3") || ($mode=="mixed"))

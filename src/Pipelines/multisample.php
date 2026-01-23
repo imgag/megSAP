@@ -326,22 +326,11 @@ if (in_array("vc", $steps))
 			$pipeline[] = ["", $parser->execApptainer("htslib", "bgzip", "-@ -c > {$tmp_vcf_merged}", [], [], true)];
 			$parser->execPipeline($pipeline, "GLnexus gVCF merging");
 			
-			//post-processing pipeline
+			//post-processing
 			$tmp_vcf_post = $parser->tempFile(".vcf");
-			$pipeline = [];
-			$pipeline[] = array("zcat", $tmp_vcf_merged);
-			//split complex variants to primitives - this step has to be performed before VcfBreakMulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
-			$pipeline[] = ["", $parser->execApptainer("vcflib", "vcfallelicprimitives", "-kg", [], [], true)];
-			//split multi-allelic variants
-			$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "-no_errors", [], [], true)];
-			//remove invalid variants
-			$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-remove_invalid -ref {$genome}", [$genome], [], true)];
-			//normalize all variants and align INDELs to the left
-			$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref {$genome}", [$genome], [], true)];
-			//sort variants by genomic position
-			$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "> {$tmp_vcf_post}", [], [], true)];
-			//execute post-processing pipeline
-			$parser->execPipeline($pipeline, "DeepVariant multi-sample post processing");
+
+			$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp_vcf_merged} -out {$tmp_vcf_post} -remove_invalid -ref $genome", [$genome]);
+			$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_vcf_post} -out {$tmp_vcf_post} -build ".$sys['build']." -primitives");
 			
 			//bgzip and index
 			$parser->execApptainer("htslib", "bgzip", "-@ {$threads} -c {$tmp_vcf_post} > {$vcf_all}", [], [dirname($vcf_all)]);

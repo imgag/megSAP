@@ -89,28 +89,10 @@ $vcf_deepvar_out = $parser->tempFile(".vcf.gz");
 $command = $parser->execApptainer($container, "run_deepvariant", implode(" ", $args)." --output_vcf={$vcf_deepvar_out}", [$genome, $bam], [dirname($out)], true);
 $parser->exec("{$prefix}_OMP_NUM_THREADS={$threads} {$prefix}_TF_NUM_INTRAOP_THREADS={$threads} {$prefix}_TF_NUM_INTEROP_THREADS={$threads} {$command}", "");
 
-//filter variants according to variant quality>5
-$pipeline[] = ["zcat", "$vcf_deepvar_out"];
-$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-qual 5 -remove_invalid -ref $genome", [$genome], [], true)];
-
-//split complex variants to primitives
-//this step has to be performed before VcfBreakMulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
-$pipeline[] = ["", $parser->execApptainer("vcflib", "vcfallelicprimitives", "-kg", [], [], true)];
-
-//split multi-allelic variants - -no_errors flag can be removed, when vcfallelicprimitives is replaced
-$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "-no_errors", [], [], true)];
-//normalize all variants and align INDELs to the left
-$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], true)];
-
-//sort variants by genomic position
-$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true)];
-
-//fix errors and merge variants
+//normalize variants
 $tmp_out = $parser->tempFile(".vcf");
-$pipeline[] = ["php ".repository_basedir()."/src/Tools/vcf_fix.php", "--deepvariant_mode > $tmp_out", false];
-
-//(2) execute pipeline
-$parser->execPipeline($pipeline, "deepvariant post processing");
+$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$vcf_deepvar_out} -out {$tmp_out} -qual 5 -remove_invalid -ref $genome", [$genome]);
+$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_out} -out {$tmp_out} -build {$build} -mode deepvariant -primitves -fix");
 
 //Add header to VCF file
 $vcf = Matrix::fromTSV($tmp_out);

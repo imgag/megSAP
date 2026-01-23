@@ -84,7 +84,7 @@ $in_files = array_merge($in_files, $bam);
 
 //TODO: switch to VarScan or use ToolBase::execParallel with correct error handling!
 // run freebayes
-$pipeline = array();
+$tmp_vcf = $parser->tempFile(".vcf");
 if (isset($target) && $threads > 1) 
 {	
 	$freebayes_start = microtime(true);
@@ -251,7 +251,7 @@ if (isset($target) && $threads > 1)
 		return;
 	}
 	
-	$pipeline[] = array("cat", $vcf_combined);
+	$tmp_vcf = $vcf_combined;
 } 
 else 
 {
@@ -261,32 +261,15 @@ else
 		return;
 	}
 	
-	$pipeline[] = ["", $parser->execApptainer("freebayes", "freebayes", implode(" ", $args), $in_files, [], true)];
+	$parser->execApptainer("freebayes", "freebayes", implode(" ", $args)." > $tmp_vcf", $in_files);
 }
 
-//filter variants according to variant quality>5
-$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-qual 5 -remove_invalid -ref $genome", [$genome], [], true)];
-
-//split complex variants to primitives
-//this step has to be performed before VcfBreakMulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
-$pipeline[] = ["", $parser->execApptainer("vcflib", "vcfallelicprimitives", "-kg", [], [], true)];
-
-//split multi-allelic variants - -no_errors flag can be removed, when vcfallelicprimitives is replaced
-$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "-no_errors", [], [], true)];
-//normalize all variants and align INDELs to the left
-$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], true)];
-
-//sort variants by genomic position
-$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true)];
-
-//fix error in VCF file and strip unneeded information
-$pipeline[] = array("php ".repository_basedir()."/src/Tools/vcf_fix.php", "", false);
+$tmp_vcf_post = $parser->tempFile(".vcf");
+$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp_vcf} -out {$tmp_vcf_post} -qual 5 -remove_invalid -ref $genome", [$genome]);
+$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_vcf_post} -out {$tmp_vcf_post} -build {$build} -primitives -fix");
 
 //zip
-$pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c > $out", [], [dirname($out)], true));
-
-//(2) execute pipeline
-$parser->execPipeline($pipeline, "freebayes post processing");
+$parser->execApptainer("htslib", "bgzip", "-c $tmp_vcf_post > $out", [], [dirname($out)]);
 
 //(3) mark off-target variants
 if ($target_extend>0)
