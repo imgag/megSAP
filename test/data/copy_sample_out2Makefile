@@ -26,6 +26,8 @@ Sample_DX181277_01:
 	mv Unaligned/SomaticAndTreatment/Sample_DX181277_01/ /test/project/folder/
 	chmod -R 775 /test/project/folder/Sample_DX181277_01
 	chgrp -R f_ad_bi_l_medgen_access_storages /test/project/folder/Sample_DX181277_01
+	#queue
+	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181277_01 -use_dragen -args '-somatic'
 
 Sample_DX181278_01:
 	#copy
@@ -44,7 +46,6 @@ Sample_DX181279_01:
 	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181279_01 -args '-steps ma,db -somatic' -use_dragen
 
 queue_somatic:
-	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'single sample' -samples DX181277_01 -args '-steps ma,vc,cn,sv,db -somatic'
 	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'somatic' -samples DX181280_01 DX181277_01 -info tumor normal -use_dragen
 	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'somatic' -samples DX181278_01 DX181277_01 -info tumor normal -use_dragen
 	php /mnt/storage2/megSAP/pipeline/src/Tools/db_queue_analysis.php -type 'somatic' -samples DX181279_01 -info tumor

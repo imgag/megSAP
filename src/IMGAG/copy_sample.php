@@ -371,9 +371,6 @@ foreach($sample_data as $sample => $sample_infos)
 	//check run name (the same for all samples)
 	if($run_name != $sample_infos['run_name']) trigger_error("Sequencing run doesn't match sample info ('".$sample_infos['run_name']."')", E_USER_ERROR);
 }
-$queued_normal_samples = [];
-
-
 
 //Check for former run that contains more than 50% same samples and offer merging to user
 $former_run_name = "";
@@ -799,7 +796,7 @@ foreach($sample_data as $sample => $sample_infos)
 	//additional arguments for db_queue_analysis
 	$args = array();
 
-	if($project_analysis!="fastq" && !$is_normal_with_tumor) //if more than FASTQ creation should be done for samples's project
+	if($project_analysis!="fastq") //if more than FASTQ creation should be done for samples's project
 	{	
 		//queue analysis
 		if ($sample_is_tumor && $sys_type!="RNA")
@@ -818,24 +815,13 @@ foreach($sample_data as $sample => $sample_infos)
 				$outputline .= ($use_dragen ? " -use_dragen": "");
 			}
 			
-			
-			
-			
 			if (isset($tumor2normal[$sample]))
 			{
-				$normal = $tumor2normal[$sample];
-				//queue normal if on same run, with somatic specific options
-				if (!in_array($normal, $queued_normal_samples)  && array_key_exists($normal,$sample_data) && $sample_data[$normal]["run_name"] === $sample_infos["run_name"])
-				{
-					$queue_somatic[] = "\tphp {$repo_folder}/src/Tools/db_queue_analysis.php -type 'single sample' -samples {$normal} -args '-steps ".(!$nsx_analysis_done ? "ma,": "")."vc,cn,sv,db -somatic'";
-					//track that normal sample is queued
-					$queued_normal_samples[] = $normal;
-				}
-				
+				$normal = $tumor2normal[$sample];				
 				$normal_processed_info = get_processed_sample_info($db_conn,$normal);
 				$n_dir = $normal_processed_info["ps_folder"];
-				//queue somatic analysis: only if normal sample is included in this run or its folder exists
-				if(in_array($normal,$queued_normal_samples) || is_dir($n_dir))
+				//queue somatic analysis: only if normal sample is included in this run or its already folder exists
+				if(in_array($normal, array_keys($sample_data)) || is_dir($n_dir))
 				{
 					$queue_somatic[] = "\tphp {$repo_folder}/src/Tools/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal ".($use_dragen ? "-use_dragen": "");
 				}
@@ -881,6 +867,12 @@ foreach($sample_data as $sample => $sample_infos)
 					}
 				}
 				//other sample types > use all default steps
+			}
+			
+			//add somatic specific options if it is the normal to a tumor sample
+			if ($is_normal_with_tumor)
+			{
+				$args[] = "-somatic";
 			}
 			
 			//check if trio needs to be queued
