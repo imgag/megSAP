@@ -98,7 +98,7 @@ while (!feof($handle))
 			$af = $tmp/100.0;
 		}
 	}
-	if (isset($sample['VAF'])) //deepvariant reports AF as VAF
+	if (isset($sample['VAF'])) //deepvariant/deepsomatic reports AF as VAF
 	{
 		$tmp = $sample['VAF'];
 		if (is_numeric($tmp)) //skip faulty variants with multiple values caused by vcfallelicprimitves

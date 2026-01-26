@@ -1,0 +1,98 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%post
+
+# Write environment.yaml
+echo "
+name: umivar
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - python
+  - scipy=1.10.1
+  - samtools
+  - pybedtools=0.9.0
+  - pysam=0.20.0
+  - numpy=1.24.2
+  - networkx=3.0
+  - pandas=1.5.3
+  - bioconductor-survcomp
+  - r-base=4.1.0
+  - r-argparse
+  - r-bbmle
+  - r-data.table
+  - r-ggplot2
+  - r-gridextra
+  - r-seqinr
+  - r-vgam
+  - r-scales
+  - r-crayon
+  - r-pkgconfig
+" > /environment.yaml
+
+# Set environment variables
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+
+# update ubuntu packages
+apt-get update --fix-missing && \
+yes | apt-get upgrade && \
+apt-get install -y \
+wget \
+git \
+g++ \
+zlib1g-dev \
+make && \
+rm -rf /var/lib/apt/lists/*
+
+# Install miniconda3
+mkdir -p ~/miniconda3
+wget https://repo.anaconda.com/miniconda/Miniconda3-py39_25.1.1-2-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+rm ~/miniconda3/miniconda.sh
+
+. ~/miniconda3/bin/activate
+conda init --all
+
+# Install the conda environment from the YAML file
+conda config --add channels defaults && \
+conda config --add channels bioconda && \
+conda config --add channels conda-forge && \
+conda env create --name umivar --file /environment.yaml
+
+PATH=/root/miniconda3/envs/umivar/bin:$PATH
+CONDA_DEFAULT_ENV=umivar
+
+/bin/bash -c ". ~/miniconda3/bin/activate && conda activate umivar"
+
+# Download and setup umiVar2
+mkdir -p /opt/umiVar2
+cd /opt/umiVar2
+git clone https://github.com/imgag/umiVar2.git umiVar2_2025_12
+cd umiVar2_2025_12
+git checkout 2025_12
+rm -rf Test/
+
+# Refactor settings.default to settings.ini with correct paths
+sed -i 's|python = \[PATH_TO_PYTHON\]/python3|python = /root/miniconda3/envs/umivar/bin/python|' settings.default
+sed -i 's|R = \[PATH_TO_R\]/RScript|R = /root/miniconda3/envs/umivar/bin/Rscript|' settings.default
+sed -i 's|samtools = \[PATH_TO_samtools\]/samtools|samtools = /root/miniconda3/envs/umivar/bin/samtools|' settings.default
+mv settings.default settings.ini
+
+# Add shebang to all .py scripts
+sed -i '1i#!/root/miniconda3/envs/umivar/bin/python3' /opt/umiVar2/umiVar2_2025_12/*.py
+chmod +x /opt/umiVar2/umiVar2_2025_12/*.py
+
+# Clean up
+cd /
+conda clean --all -y
+apt-get remove -y wget git zlib1g-dev g++ make && \
+apt-get autoremove -y && \
+apt-get clean && \
+rm -rf /var/lib/apt/lists/*
+
+%environment
+export PATH=/opt/umiVar2/umiVar2_2025_12:/root/miniconda3/envs/umivar/bin:$PATH

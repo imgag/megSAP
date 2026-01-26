@@ -705,7 +705,7 @@ function resolve_symlink($filename)
 /**
 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
 */
-function execApptainer($container, $command, $parameters, $in_files=[], $out_folders=[], $command_only=false, $return_for_toolbase=false, $abort_on_error=true)
+function execApptainer($container, $command, $parameters, $in_files=[], $out_folders=[], $command_only=false, $return_for_toolbase=false, $abort_on_error=true, $gpu_container=false)
 {
 	//check input
 	if (is_array($command))
@@ -749,10 +749,10 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 	}
 		
 	//to run a gpu supported apptainer container you need the --nv flag
-	if ($container=="deepvariant-gpu" || $container=="clair3-gpu")
+	if ($gpu_container)
 	{
 		$apptainer_args[] = "--nv";
-		$apptainer_args[] = "--env TF_FORCE_GPU_ALLOW_GROWTH=true"; //to avoid OOM error when using clair3-gpu container
+		$apptainer_args[] = "--env TF_FORCE_GPU_ALLOW_GROWTH=true"; //to avoid OOM error when using container with GPU support
 	}
 
 	//if ngs-bits container is executed the settings.ini is mounted into the container during execution 
@@ -929,7 +929,7 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 	//compose Apptainer command
 	$apptainer_command = "singularity exec ".implode(" ", $apptainer_args)." {$container_path} {$command} {$parameters}";
 
-	if ($container=="deepvariant" || $container=="deepvariant-gpu")
+	if ($container=="deepvariant")
 	{
 		$apptainer_command = "TF_CPP_MIN_LOG_LEVEL=2 $apptainer_command";
 	}
@@ -1033,6 +1033,5 @@ function container_platform($add_version=false)
 	
 	return $platform;
 }
-
 
 ?>
