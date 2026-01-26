@@ -91,8 +91,8 @@ $parser->exec("{$prefix}_OMP_NUM_THREADS={$threads} {$prefix}_TF_NUM_INTRAOP_THR
 
 //normalize variants
 $tmp_out = $parser->tempFile(".vcf");
-$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$vcf_deepvar_out} -out {$tmp_out} -qual 5 -remove_invalid -ref $genome", [$genome]);
-$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_out} -out {$tmp_out} -build {$build} -mode deepvariant -primitves -fix");
+exec2("zcat {$vcf_deepvar_out} | ".$parser->execApptainer("ngs-bits", "VcfFilter", "-out {$tmp_out} -qual 5 -remove_invalid -ref $genome", [$genome], [], true));
+$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_out} -out {$tmp_out} -build {$build} -mode deepvariant -primitives -fix");
 
 //Add header to VCF file
 $vcf = Matrix::fromTSV($tmp_out);

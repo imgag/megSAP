@@ -131,8 +131,11 @@ else
 	$clair_merged_gvcf2 = $clair_gvcf;
 }
 
+//filter variants
 $uncompressed_vcf = $parser->tempFile(".vcf");
-$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$clair_merged_vcf2} -out {$uncompressed_vcf} -qual 5 -remove_invalid -ref $genome", [$genome]);
+exec2("zcat {$clair_merged_vcf2} | ".$parser->execApptainer("ngs-bits", "VcfFilter", "-out {$uncompressed_vcf} -qual 5 -remove_invalid -ref $genome", [$genome], [], true));
+
+//normalize vcf
 $parser->execTool("Tools/normalize_small_variants.php", "-in {$uncompressed_vcf} -out {$uncompressed_vcf} -build {$build} -primitives -fix -mode clair3");
 
 //add name/pipeline info to VCF header

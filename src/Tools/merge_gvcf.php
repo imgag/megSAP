@@ -187,7 +187,7 @@ $parser->execPipeline($pipeline, "Merge VCF");
 
 //post-processing
 $uncompressed_vcf = $parser->tempFile(".vcf");
-$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp_vcf} -out {$uncompressed_vcf} -qual 5 -remove_invalid -ref $genome", [$genome]);
+exec2("zcat {$tmp_vcf} | ".$parser->execApptainer("ngs-bits", "VcfFilter", "-out {$uncompressed_vcf} -qual 5 -remove_invalid -ref $genome", [$genome], [], true));
 $parser->execTool("Tools/normalize_small_variants.php", "-in {$uncompressed_vcf} -out {$uncompressed_vcf} -build {$build} -primitives -fix -mode {$mode}");
 
 //add name/pipeline info to VCF header

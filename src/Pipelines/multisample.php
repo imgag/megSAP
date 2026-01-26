@@ -329,7 +329,7 @@ if (in_array("vc", $steps))
 			//post-processing
 			$tmp_vcf_post = $parser->tempFile(".vcf");
 
-			$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp_vcf_merged} -out {$tmp_vcf_post} -remove_invalid -ref $genome", [$genome]);
+			exec2("zcat {$tmp_vcf_merged} | ".$parser->execApptainer("ngs-bits", "VcfFilter", "-out {$tmp_vcf_post} -remove_invalid -ref $genome", [$genome], [], true));
 			$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_vcf_post} -out {$tmp_vcf_post} -build ".$sys['build']." -primitives");
 			
 			//bgzip and index
