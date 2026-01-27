@@ -1,1 +1,0 @@
-apptainer pull deepvariant_1.8.0.sif docker://google/deepvariant:1.8.0

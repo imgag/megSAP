@@ -182,7 +182,7 @@ if (count($bams_to_merge) > 1)
 	$bam_list = $parser->tempFile(".bams_to_merge.txt");
 	file_put_contents($bam_list, implode("\n", $bams_to_merge));
 	$dorado_model_path = get_path("dorado_model_path");
-	$parser->execApptainer("samtools", "samtools cat", "--threads 20 -o {$merged_bam} -b {$bam_list}", [$run_dir], []);
+	$parser->execApptainer("samtools", "samtools cat", "-o {$merged_bam} -b {$bam_list}", [$run_dir], []);
 
 	
 	//copy output

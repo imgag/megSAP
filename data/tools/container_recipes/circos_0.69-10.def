@@ -1,0 +1,71 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%environment
+    export PATH=/opt/circos-0.69-10/bin:$PATH
+    export PERL5LIB=/usr/local/lib/perl5:$PERL5LIB
+
+%post
+	# Install certificates
+    apt-get update && apt-get install -y --no-install-recommends ca-certificates
+	
+    # Update and install system dependencies
+    apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+        wget \
+        tar \
+        perl \
+        libgd-dev \
+        libgd3 \
+        libfreetype-dev \
+        libpng-dev \
+        libjpeg-dev \
+        libxpm-dev \
+        pkg-config \
+        libextutils-pkgconfig-perl \
+        libmath-bigint-perl \
+        libmath-round-perl \
+        libmath-vecstat-perl \
+        libyaml-perl \
+        libparams-validate-perl \
+        libreadonly-perl \
+        libregexp-common-perl \
+        libset-intspan-perl \
+        libstatistics-basic-perl \
+        fontconfig
+    apt-get clean
+	rm -rf /var/lib/apt/lists/*
+
+    # Install CPANminus for Perl module management
+    wget https://cpanmin.us/ -O /usr/local/bin/cpanm
+    chmod +x /usr/local/bin/cpanm
+
+    # Install required Perl modules for Circos
+    cpanm --notest \
+        YAML \
+        Config::General \
+        Font::TTF::Font \
+        GD \
+        Clone \
+        List::MoreUtils \
+        Math::Bezier \
+        Text::Format \
+        SVG \
+        Math::Round \
+        Math::BigInt \
+        Math::VecStat \
+        Statistics::Basic \
+        Readonly \
+        Set::IntSpan \
+        Regexp::Common
+
+    # Download and install Circos 0.69-10
+    mkdir -p /opt
+    cd /opt
+    wget --no-check-certificate https://circos.ca/distribution/circos-0.69-10.tgz
+    tar xzf circos-0.69-10.tgz
+    rm circos-0.69-10.tgz
+	
+	# Clean up
+	apt-get purge -y build-essential libgd-dev libfreetype-dev libpng-dev libjpeg-dev libxpm-dev pkg-config make
+	apt-get autoremove -y

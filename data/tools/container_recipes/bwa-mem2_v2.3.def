@@ -1,0 +1,40 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%post
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+	
+# update ubuntu packages and install build dependencies
+apt-get update
+apt-get install -y \
+	wget \
+	build-essential \
+	make \
+	git \
+	cmake \
+	zlib1g-dev
+	
+#get bwa-mem2
+mkdir -p /opt
+cd /opt
+git clone https://github.com/bwa-mem2/bwa-mem2.git
+cd bwa-mem2
+git checkout v2.3
+git submodule update --recursive --init
+make -j$(nproc)
+
+# cleanup build dependencies
+apt-get remove -y \
+	wget \
+	build-essential \
+	make \
+	git \
+	cmake \
+	zlib1g-dev
+apt-get autoremove -y && \
+apt-get clean && \
+rm -rf /var/lib/apt/lists/*
+
+%environment
+PATH=/opt/bwa-mem2/:$PATH

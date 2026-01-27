@@ -1075,7 +1075,7 @@ if (in_array("sv", $steps))
 			$vcf_inv_corrected = $parser->tempFile("_sv_inv_corrected.vcf");
 			$inv_script = repository_basedir()."/src/Tools/convertInversion.py";
 			$vc_manta_command = "python2 ".$inv_script;
-			$vc_manta_parameters = "/usr/bin/samtools {$genome} {$dragen_output_sv_vcf} dragen > {$vcf_inv_corrected}";
+			$vc_manta_parameters = "/usr/local/bin/samtools {$genome} {$dragen_output_sv_vcf} dragen > {$vcf_inv_corrected}";
 			$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, [$genome, $inv_script, $dragen_output_sv_vcf]);
 
 			// fix VCF file (remove variants with empty "REF" entry and duplicates)

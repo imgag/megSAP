@@ -455,7 +455,7 @@ else //bam output
 				// concat bams
 				$pipeline = [];
 				$pipeline[] = ["find", "{$bam_paths_glob} -name '*.bam' -type f"];
-				$pipeline[] = ["", $parser->execApptainer("samtools", "samtools cat", "--threads {$threads} -o {$out_bam} -b -", [$run_dir], [$out_dir], true)]; //no reference required
+				$pipeline[] = ["", $parser->execApptainer("samtools", "samtools cat", "-o {$out_bam} -b -", [$run_dir], [$out_dir], true)]; //no reference required
 				$parser->execPipeline($pipeline, "merge unaligned BAM files");
 
 				//apply file access permissions
@@ -646,7 +646,7 @@ foreach ($result as $record)
 		}
 		else
 		{
-			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools cat", "--threads {$threads} -o {$out_bam} -b -", [$run_dir], [$out_dir], true)]; //no reference required
+			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools cat", "-o {$out_bam} -b -", [$run_dir], [$out_dir], true)]; //no reference required
 			$parser->execPipeline($pipeline, "merge unaligned BAM files");
 		}
 	}

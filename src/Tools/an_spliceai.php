@@ -192,7 +192,6 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	$args[] = "-A ".strtolower($build);
 	$args[] = "-M 1"; //enable masked scores
 	$args[] = "-D 50";
-	/* putenv("PYTHONPATH"); */
 
 	//set bind paths for container execution
 	$in_files = [genome_fasta($build), $vcf_filtered];

@@ -742,11 +742,8 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 		$apptainer_args[] = "--env REF_PATH={$ref_cache_folder}/%2s/%2s/%s:http://www.ebi.ac.uk/ena/cram/md5/%s";
 	}
 
-	//subread specific parameters 
-	if ($container=="subread")
-	{
-		$apptainer_args[] = "--pwd=/tmp/";
-	}
+	//set working dir to /tmp (otherwise the user home is used as default WD. But it is not mounted and this generates a warning)
+	$apptainer_args[] = "--pwd=/tmp/";
 		
 	//to run a gpu supported apptainer container you need the --nv flag
 	if ($gpu_container)
@@ -1034,4 +1031,45 @@ function container_platform($add_version=false)
 	return $platform;
 }
 
+//check if a URL exists. If $content is set, it returns the content of the file.
+function url_exists($url, &$content = null)
+{
+	//options
+    $options = [
+		CURLOPT_RETURNTRANSFER  => true,
+        CURLOPT_FOLLOWLOCATION  => true,
+        CURLOPT_TIMEOUT         => 5, //5s
+        CURLOPT_CONNECTTIMEOUT  => 5, //5s
+        CURLOPT_SSL_VERIFYPEER  => true,
+        CURLOPT_SSL_VERIFYHOST  => 2,
+    ];
+	if (is_null($content)) $options[CURLOPT_NOBODY] = true;
+	
+	//exec
+    $ch = curl_init($url);
+	curl_setopt_array($ch, $options);
+    $result = curl_exec($ch);
+	
+	//handle error
+    if (curl_errno($ch))
+	{
+        curl_close($ch);
+		if (!is_null($content)) $content = "";
+        return false;
+    }
+	
+	//get http code
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($http_code < 200 || $http_code >= 400)
+	{
+		if (!is_null($content)) $content = "";
+        return false;
+    }
+	
+	if (!is_null($content)) $content = trim($result);
+	
+	return true;
+}
 ?>

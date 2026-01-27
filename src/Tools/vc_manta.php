@@ -33,6 +33,8 @@ extract($parser->parse($argv));
 $genome = genome_fasta($build);
 $in_files = array();
 $out_files = array();
+$temp_folder = ($temp=="auto") ? $parser->tempFolder() : $temp;
+$manta_folder = "{$temp_folder}/mantaAnalysis";
 
 // determine mode (somatic, tumor-only, germline)
 if (!isset($t_bam) && !isset($bam))
@@ -48,15 +50,43 @@ $mode_somatic = isset($t_bam) && isset($bam) && count($bam) == 1;
 $mode_tumor_only = isset($t_bam) && !isset($bam);
 $mode_germline = !isset($t_bam) && isset($bam) && !$rna;
 
+//this code is needed when we switch to CRAM 3.1
+//convert CRAM to BAM (manta is a statically linked binary with a old HTSlib. It cannot read CRAM 3.1 files)
+/*
+if (isset($bam))
+{
+	for ($i=0; $i<count($bam); ++$i)
+	{
+		if (ends_with($bam[$i], ".cram"))
+		{
+			
+			$bam_folder = $temp_folder."/bam_n{$i}/";
+			exec2("mkdir -p {$bam_folder}");
+			$tmp = $bam_folder.basename($bam[$i]);
+			$parser->execTool("Tools/cram_to_bam.php", "-cram ".$bam[$i]." -bam {$tmp} -threads {$threads}");
+			$bam[$i] = $tmp;
+		}
+	}
+}
+if (isset($t_bam))
+{
+	if (ends_with($t_bam, ".cram"))
+	{
+		$bam_folder = $temp_folder."/bam_t/";
+		exec2("mkdir -p {$bam_folder}");
+		$tmp = $bam_folder.basename($t_bam);
+		$parser->execTool("Tools/cram_to_bam.php", "-cram {$t_bam} -bam {$tmp} -threads {$threads}");
+		$t_bam = $tmp;
+	}
+}
+*/
+
 //resolve configuration preset
 $config = "/opt/manta/bin/configManta.py.ini";
 if ($config_preset === "high_sensitivity")
 {
 	$config = "/opt/manta/bin/configManta_high_sensitivity.py.ini";
 }
-
-$temp_folder = $temp === "auto" ? $parser->tempFolder() : $temp;
-$manta_folder = "{$temp_folder}/mantaAnalysis";
 
 $args = [
 	"--referenceFasta ".$genome,
@@ -136,7 +166,7 @@ if (!$skip_inv_merging)
 	$inv_script = repository_basedir()."/src/Tools/convertInversion.py";
 	$in_files[] = $inv_script;
 	$vc_manta_command = "python2 ".$inv_script;
-	$vc_manta_parameters = "/usr/bin/samtools ".$genome." {$sv} manta > {$sv_inv}";
+	$vc_manta_parameters = "/usr/local/bin/samtools ".$genome." {$sv} manta > {$sv_inv}";
 	$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, $in_files, $out_files);
 }
 else

@@ -207,7 +207,7 @@ if (isset($target) && $threads > 1)
 				$parser->log("Finshed processing chromosome {$chr} in ".time_readable(microtime(true)-$start_time), $add_info);
 				
 				//abort if failed
-				if ($job_aborted) trigger_error("Processing of chromosome $chr with freebayes failed: ".$stderr, E_USER_ERROR);
+				if ($job_aborted) trigger_error("Processing of chromosome {$chr} with freebayes failed: {$stderr}", E_USER_ERROR);
 				
 				unset($running[$chr]);
 			}
