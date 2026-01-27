@@ -186,14 +186,15 @@ $pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c > {$tmp_vc
 $parser->execPipeline($pipeline, "Merge VCF");
 
 //post-processing
-$uncompressed_vcf = $parser->tempFile(".vcf");
-exec2("zcat {$tmp_vcf} | ".$parser->execApptainer("ngs-bits", "VcfFilter", "-out {$uncompressed_vcf} -qual 5 -remove_invalid -ref $genome", [$genome], [], true));
-$parser->execTool("Tools/normalize_small_variants.php", "-in {$uncompressed_vcf} -out {$uncompressed_vcf} -build {$build} -primitives -fix -mode {$mode}");
+$tmp_vcf_filtered = $parser->tempFile(".vcf");
+$tmp_vcf_norm = $parser->tempFile(".vcf");
+exec2("zcat {$tmp_vcf} | ".$parser->execApptainer("ngs-bits", "VcfFilter", "-out {$tmp_vcf_filtered} -qual 5 -ref $genome", [$genome], [], true));
+$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_vcf_filtered} -out {$tmp_vcf_norm} -build {$build} -primitives -fix -mode {$mode} -remove_invalid");
 
 //add name/pipeline info to VCF header
 if (($mode=="clair3") || ($mode=="mixed"))
 {
-	$vcf = Matrix::fromTSV($uncompressed_vcf);
+	$vcf = Matrix::fromTSV($tmp_vcf_norm);
 	$comments = $vcf->getComments();
 	$comments[] = "#reference={$genome}\n";
 	$comments[] = "#ANALYSISTYPE={$analysis_type}\n";
@@ -205,11 +206,11 @@ if (($mode=="clair3") || ($mode=="mixed"))
 		$comments[] = gsvar_sample_header($samples[$i], array("DiseaseStatus"=>$status[$i]), "#", "");
 	}
 	$vcf->setComments($comments);
-	$vcf->toTSV($uncompressed_vcf);
+	$vcf->toTSV($tmp_vcf_norm);
 }
 
 //create zip + idx
-$parser->execApptainer("htslib", "bgzip", "-@ {$threads} -c $uncompressed_vcf > $out", [], [dirname($out)]);
+$parser->execApptainer("htslib", "bgzip", "-@ {$threads} -c $tmp_vcf_norm > $out", [], [dirname($out)]);
 //index output file
 $parser->execApptainer("htslib", "tabix", "-f -p vcf $out", [], [dirname($out)]);
 

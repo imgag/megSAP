@@ -90,12 +90,13 @@ $command = $parser->execApptainer($container, "run_deepvariant", implode(" ", $a
 $parser->exec("{$prefix}_OMP_NUM_THREADS={$threads} {$prefix}_TF_NUM_INTRAOP_THREADS={$threads} {$prefix}_TF_NUM_INTEROP_THREADS={$threads} {$command}", "");
 
 //normalize variants
-$tmp_out = $parser->tempFile(".vcf");
-exec2("zcat {$vcf_deepvar_out} | ".$parser->execApptainer("ngs-bits", "VcfFilter", "-out {$tmp_out} -qual 5 -remove_invalid -ref $genome", [$genome], [], true));
-$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_out} -out {$tmp_out} -build {$build} -mode deepvariant -primitives -fix");
+$tmp_vcf_filtered = $parser->tempFile(".vcf");
+$tmp_vcf_norm = $parser->tempFile(".vcf");
+exec2("zcat {$vcf_deepvar_out} | ".$parser->execApptainer("ngs-bits", "VcfFilter", "-out {$tmp_vcf_filtered} -qual 5 -remove_invalid -ref $genome", [$genome], [], true));
+$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_vcf_filtered} -out {$tmp_vcf_norm} -build {$build} -mode deepvariant -primitives -fix");
 
 //Add header to VCF file
-$vcf = Matrix::fromTSV($tmp_out);
+$vcf = Matrix::fromTSV($tmp_vcf_norm);
 $comments = $vcf->getComments();
 $comments[] = "#fileformat=VCFv4.2\n";
 $comments[] = "#source=DeepVariant ".get_path("container_deepvariant")."\n";
@@ -108,10 +109,10 @@ if ($add_sample_header)
 	$comments[] = gsvar_sample_header($name, array("DiseaseStatus"=>"Affected"), "#", "");
 }
 $vcf->setComments($comments);
-$vcf->toTSV($tmp_out);
+$vcf->toTSV($tmp_vcf_norm);
 
 //zip
-$parser->execApptainer("htslib", "bgzip", "-c $tmp_out > $out", [], [dirname($out)]);
+$parser->execApptainer("htslib", "bgzip", "-c $tmp_vcf_norm > $out", [], [dirname($out)]);
 
 //(3) mark off-target variants
 if ($target_extend>0)

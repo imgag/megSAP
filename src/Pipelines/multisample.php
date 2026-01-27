@@ -327,13 +327,13 @@ if (in_array("vc", $steps))
 			$parser->execPipeline($pipeline, "GLnexus gVCF merging");
 			
 			//post-processing
-			$tmp_vcf_post = $parser->tempFile(".vcf");
-
-			exec2("zcat {$tmp_vcf_merged} | ".$parser->execApptainer("ngs-bits", "VcfFilter", "-out {$tmp_vcf_post} -remove_invalid -ref $genome", [$genome], [], true));
-			$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_vcf_post} -out {$tmp_vcf_post} -build ".$sys['build']." -primitives");
+			$tmp_vcf_filtered = $parser->tempFile(".vcf");
+			$tmp_vcf_norm = $parser->tempFile(".vcf");
+			exec2("zcat {$tmp_vcf_merged} | ".$parser->execApptainer("ngs-bits", "VcfFilter", "-out {$tmp_vcf_filtered} -remove_invalid -ref $genome", [$genome], [], true));
+			$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_vcf_filtered} -out {$tmp_vcf_norm} -build ".$sys['build']." -primitives");
 			
 			//bgzip and index
-			$parser->execApptainer("htslib", "bgzip", "-@ {$threads} -c {$tmp_vcf_post} > {$vcf_all}", [], [dirname($vcf_all)]);
+			$parser->execApptainer("htslib", "bgzip", "-@ {$threads} -c {$tmp_vcf_norm} > {$vcf_all}", [], [dirname($vcf_all)]);
 			$parser->execApptainer("htslib", "tabix", "-f -p vcf {$vcf_all}", [], [dirname($vcf_all)]);
 		}
 

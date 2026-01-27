@@ -156,14 +156,15 @@ function parse_vcf_info($info, $format, $format_values)
 //call variants
 $freebayes_start = microtime(true);
 $called_vcf = temp_file(".vcf");
+$called_vcf_norm = temp_file(".vcf");
 $parser->exec("php ".repository_basedir()."/src/Tools/vc_freebayes.php ", " -target $target -bam $in -out $called_vcf -build $build -no_ploidy -min_af $min_af -min_mq $min_mq -min_bq $min_bq -min_qsum $min_qsum -raw_output -threads $threads");
 
 //normalization and annotation
-$parser->execTool("Tools/normalize_small_variants.php", "-in {$called_vcf} -out {$called_vcf} -build {$build} -primitives");
+$parser->execTool("Tools/normalize_small_variants.php", "-in {$called_vcf} -out {$called_vcf_norm} -build {$build} -primitives");
 
 $tmp_annotated = temp_file("_annotated.vcf");
 $gnomad_file = get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz";
-$parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", "-in $called_vcf -out $tmp_annotated -source $gnomad_file -info_keys AF -prefix gnomADg -threads $threads", [$gnomad_file]);
+$parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", "-in $called_vcf_norm -out $tmp_annotated -source $gnomad_file -info_keys AF -prefix gnomADg -threads $threads", [$gnomad_file]);
 
 //filter
 $tmp_filtered = temp_file("_filtered.vcf");

@@ -132,14 +132,15 @@ else
 }
 
 //filter variants
-$uncompressed_vcf = $parser->tempFile(".vcf");
-exec2("zcat {$clair_merged_vcf2} | ".$parser->execApptainer("ngs-bits", "VcfFilter", "-out {$uncompressed_vcf} -qual 5 -remove_invalid -ref $genome", [$genome], [], true));
+$tmp_vcf_filtered = $parser->tempFile(".vcf");
+$tmp_vcf_norm = $parser->tempFile(".vcf");
+exec2("zcat {$clair_merged_vcf2} | ".$parser->execApptainer("ngs-bits", "VcfFilter", "-out {$tmp_vcf_filtered} -qual 5 -remove_invalid -ref $genome", [$genome], [], true));
 
 //normalize vcf
-$parser->execTool("Tools/normalize_small_variants.php", "-in {$uncompressed_vcf} -out {$uncompressed_vcf} -build {$build} -primitives -fix -mode clair3");
+$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_vcf_filtered} -out {$tmp_vcf_norm} -build {$build} -primitives -fix -mode clair3");
 
 //add name/pipeline info to VCF header
-$vcf = Matrix::fromTSV($uncompressed_vcf);
+$vcf = Matrix::fromTSV($tmp_vcf_norm);
 $comments = $vcf->getComments();
 $comments[] = "#reference={$genome}\n";
 $comments[] = "#fileDate=".date("Ymd")."\n";
@@ -147,7 +148,7 @@ $comments[] = "#ANALYSISTYPE=GERMLINE_SINGLESAMPLE\n";
 $comments[] = "#PIPELINE=".repository_revision(true)."\n";
 $comments[] = gsvar_sample_header($name, array("DiseaseStatus"=>"Affected"), "#", "");
 $vcf->setComments($comments);
-$vcf->toTSV($uncompressed_vcf);
+$vcf->toTSV($tmp_vcf_norm);
 
 //mark off-target variants
 if ($target_extend>0)
@@ -155,12 +156,12 @@ if ($target_extend>0)
 	$on_target_region = $parser->tempFile(".bed");
 	$result = $parser->execApptainer("ngs-bits", "BedAdd", "-in {$target} {$target_mito} -out {$on_target_region}", [$target]);
 	$tmp = $parser->tempFile(".vcf");
-	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $uncompressed_vcf -mark off-target -reg {$on_target_region} -out $tmp", [$on_target_region]);
+	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $tmp_vcf_norm -mark off-target -reg {$on_target_region} -out $tmp", [$on_target_region]);
 	$parser->execApptainer("htslib", "bgzip", "-c $tmp > $out", [], [dirname($out)]);
 }
 else
 {
-	$parser->execApptainer("htslib", "bgzip", "-c $uncompressed_vcf > $out", [], [dirname($out)]);
+	$parser->execApptainer("htslib", "bgzip", "-c $tmp_vcf_norm > $out", [], [dirname($out)]);
 }
 
 //index output file

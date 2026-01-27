@@ -148,13 +148,16 @@ function write($h_out, $var)
 		$info_output = array();
 		if(isset($info["F"])) $info_output[] = "F";
 		if(isset($info["P"])) $info_output[] = "P";
+		if(isset($info["SOURCE_VAR"])) $info_output[] = "SOURCE_VAR=".$info["SOURCE_VAR"];
 		// write '.' if INFO column is empty
 		if(count($info_output) == 0) $info_output[] = ".";
 		fwrite($h_out, implode(";", $info_output)."\t");
 	}
 	else
 	{
-		fwrite($h_out, "MQM=".number_format($info['MQM'], 0, ".", "").";SAP=".number_format($info['SAP'], 0, ".", "").";SAR=".number_format($info['SAR'], 0, ".", "").";SAF=".number_format($info['SAF'], 0, ".", "").";ABP=".number_format($info['ABP'], 0, ".", "")."\t");
+		$source_var = "";
+		if (isset($info["SOURCE_VAR"])) $source_var = ";SOURCE_VAR=".$info['SOURCE_VAR'];
+		fwrite($h_out, "MQM=".number_format($info['MQM'], 0, ".", "").";SAP=".number_format($info['SAP'], 0, ".", "").";SAR=".number_format($info['SAR'], 0, ".", "").";SAF=".number_format($info['SAF'], 0, ".", "").";ABP=".number_format($info['ABP'], 0, ".", "").$source_var."\t");
 	}
 	
 	//write FORMAT/SAMPLE

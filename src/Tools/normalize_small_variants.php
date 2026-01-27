@@ -17,6 +17,7 @@ $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addString("mode", "Set mode for vcf_fix.php (deepvariant, mosaic, clair3, dragen, mixed)", true, "freebayes");
 $parser->addFlag("primitives", "Enables vcfallelicprimitives");
 $parser->addFlag("fix", "Enables vcf_fix.php step");
+$parser->addFlag("remove_invalid", "Adds an extra filter step to remove invalid variants after VcfBreakMulti");
 
 extract($parser->parse($argv));
 
@@ -35,6 +36,10 @@ if ($primitives) $pipeline[] = ["", $parser->execApptainer("vcflib", "vcfallelic
 
 //split multi-allelic variants - -no_errors flag can be removed, when vcfallelicprimitives is replaced
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "-no_errors", [], [], true)];
+
+//remove invalids
+if ($remove_invalid) $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-remove_invalid -ref $genome", [$genome], [], true)];
+
 //normalize all variants and align INDELs to the left
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], true)];
 
@@ -49,7 +54,7 @@ if ($fix) $pipeline[] = ["php ".repository_basedir()."/src/Tools/vcf_fix.php", "
 if ($fix && $mode == "mixed") $pipeline[] = ["php ".repository_basedir()."/src/Tools/vcf_fix.php", "--clair3_mode", false];
 
 //Prune unchanged source variant annotation
-$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfPruneSourceVariant", "-ref $genome -out $out", [$genome], [], true)];
+$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfPruneSourceVariant", "-ref $genome -out $out", [$genome], [$out], true)];
 
 //execute pipeline
 $parser->execPipeline($pipeline, "Variant normalization pipeline");

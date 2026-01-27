@@ -521,12 +521,13 @@ if (in_array("vc", $steps))
 				$target = $parser->tempFile("_roi_extended.bed");
 				$parser->execApptainer("ngs-bits", "BedExtend", "-in {$roi} -n 200 -out $target -fai ".$genome.".fai", [$roi, $genome]);
 
-				$tmp_out = $parser->tempFile(".vcf");
-				exec2("zcat {$dragen_output_vcf} | ".$parser->execApptainer("ngs-bits", "VcfFilter", "-out {$tmp_out} -reg {$target} -qual 5 -filter_clear -remove_invalid -ref $genome", [$genome], [], true));
-				$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_out} -out {$tmp_out} -build {$build}");
+				$tmp_vcf_filtered = $parser->tempFile(".vcf");
+				$tmp_vcf_norm = $parser->tempFile(".vcf");
+				exec2("zcat {$dragen_output_vcf} | ".$parser->execApptainer("ngs-bits", "VcfFilter", "-out {$tmp_vcf_filtered} -reg {$target} -qual 5 -filter_clear -remove_invalid -ref $genome", [$genome], [], true));
+				$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_vcf_filtered} -out {$tmp_vcf_norm} -build {$build}");
 
 				//zip
-				$parser->execApptainer("htslib", "bgzip", "-c $tmp_out > $vcffile", [], [dirname($vcffile)]);
+				$parser->execApptainer("htslib", "bgzip", "-c $tmp_vcf_norm > $vcffile", [], [dirname($vcffile)]);
 
 				//mark off-target variants
 				$tmp = $parser->tempFile("_offtarget.vcf");
@@ -617,12 +618,13 @@ if (in_array("vc", $steps))
 			{
 				trigger_error("DRAGEN analysis found in sample folder. Using this data for mito small variant calling. ", E_USER_NOTICE);
 
-				$tmp_out = $parser->tempFile(".vcf");
-				exec2("zcat {$dragen_output_vcf} | ".$parser->execApptainer("ngs-bits", "VcfFilter", "-out {$tmp_out} -reg chrMT:1-16569 -qual 5 -filter_clear -ref $genome", [$genome], [], true));
-				$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_out} -out {$tmp_out} -build {$build}");
+				$tmp_vcf_filtered = $parser->tempFile(".vcf");
+				$tmp_vcf_norm = $parser->tempFile(".vcf");
+				exec2("zcat {$dragen_output_vcf} | ".$parser->execApptainer("ngs-bits", "VcfFilter", "-out {$tmp_vcf_filtered} -reg chrMT:1-16569 -qual 5 -filter_clear -ref $genome", [$genome], [], true));
+				$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_vcf_filtered} -out {$tmp_vcf_norm} -build {$build}");
 
 				//zip
-				$parser->execApptainer("htslib", "bgzip", "-c $tmp_out > $vcffile_mito");
+				$parser->execApptainer("htslib", "bgzip", "-c $tmp_vcf_norm > $vcffile_mito");
 
 				//index output file
 				$parser->execApptainer("htslib", "tabix", "-p vcf $vcffile_mito");

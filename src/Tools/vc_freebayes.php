@@ -264,12 +264,13 @@ else
 	$parser->execApptainer("freebayes", "freebayes", implode(" ", $args)." > $tmp_vcf", $in_files);
 }
 
-$tmp_vcf_post = $parser->tempFile(".vcf");
-$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp_vcf} -out {$tmp_vcf_post} -qual 5 -remove_invalid -ref $genome", [$genome]);
-$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_vcf_post} -out {$tmp_vcf_post} -build {$build} -primitives -fix");
+$tmp_vcf_filtered = $parser->tempFile(".vcf");
+$tmp_vcf_norm = $parser->tempFile(".vcf");
+$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp_vcf} -out {$tmp_vcf_filtered} -qual 5 -remove_invalid -ref $genome", [$genome]);
+$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_vcf_filtered} -out {$tmp_vcf_norm} -build {$build} -primitives -fix");
 
 //zip
-$parser->execApptainer("htslib", "bgzip", "-c $tmp_vcf_post > $out", [], [dirname($out)]);
+$parser->execApptainer("htslib", "bgzip", "-c $tmp_vcf_norm > $out", [], [dirname($out)]);
 
 //(3) mark off-target variants
 if ($target_extend>0)
