@@ -175,7 +175,7 @@ foreach($stderr as $line)
 //annotate consequence
 print "annotating variant consequences\n";
 $vcf_tmp3 = $parser->tempFile(".vcf");
-list ($stdout, $stderr) = exec2("VcfAnnotateConsequence -in {$vcf_tmp2} -gff /mnt/storage2/megSAP/data/dbs/Ensembl/Homo_sapiens.GRCh38.115.gff3 -out {$vcf_tmp3}"); //absolute paths are or since this script is only executed once at IMGAG
+list ($stdout, $stderr) = exec2("VcfAnnotateConsequence -in {$vcf_tmp2} -gff /mnt/storage2/megSAP/data/dbs/Ensembl/Homo_sapiens.GRCh38.115.gff3 -out {$vcf_tmp3}"); //absolute paths are ok since this script is only executed once at IMGAG
 foreach($stderr as $line)
 {
 	$line = trim($line);

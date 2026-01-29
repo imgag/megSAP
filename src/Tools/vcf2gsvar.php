@@ -394,6 +394,8 @@ $skip_short_read_overlap_annotation = true; //true as long as no IN_SHORT_READ h
 $missing_domains = [];
 $multisample_vcf = false; //determines if the input VCF is a standard multi-sample VCF or single-sample VCF/megSAP multi-sample VCF (no extra columns for each sample)
 $annotate_refseq_consequences = false;
+$source_var_annotated = false; //determines if source variants are annotated in the input VCF
+$source_var_csq = false; //determines if source variant consequence annotation is present in the input VCF
 
 //write date (of input file)
 fwrite($handle_out, "##CREATION_DATE=".date("Y-m-d", filemtime($in))."\n");
@@ -550,7 +552,7 @@ while(!gzeof($handle))
 			$i_pubmed = index_of($cols, "PUBMED", "CSQ"); 
 		}
 
-		//get annotation indices in CSQ field from VcfAnnotateConsequence (also used for CSQ_REFSEQ)
+		//get annotation indices in CSQ field from VcfAnnotateConsequence (also used for CSQ_REFSEQ and CSQ2_SOURCE)
 		if (starts_with($line, "##INFO=<ID=CSQ2,"))
 		{
 			$cols = explode("|", substr($line, 0, -2));
@@ -571,6 +573,20 @@ while(!gzeof($handle))
 			$column_desc[] = ["coding_and_splicing_refseq", "Variant consequence based on RefSeq transcripts (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p)."];
 		}
 		
+		//determine if Source Variants were annotated
+		if (starts_with($line, "##INFO=<ID=SOURCE_VAR"))
+		{
+			$source_var_annotated = true;
+			$column_desc[] = ["source_variant", "Source Variant"];
+		}
+
+		//determine if Source Variant consequence annotation is present
+		if (starts_with($line, "##INFO=<ID=CSQ2_SOURCE"))
+		{
+			$source_var_csq = true;
+			$column_desc[] = ["variant_type_source", "Variant type of source variant"];
+		}
+
 		//Targeted info (Dragen targeted caller was used) - is written into filter colum, change header accordingly
 		if (starts_with($line, "##INFO=<ID=TARGETED,"))
 		{
@@ -952,6 +968,8 @@ while(!gzeof($handle))
 	$dbsnp = array();
 	$genes = array();
 	$variant_details = array();
+	$variant_details_source = array();
+	$variant_details_source_updown = array();
 	$coding_and_splicing_details = array();
 	$coding_and_splicing_refseq = array();
 	$af_gnomad_genome = array();
@@ -969,12 +987,13 @@ while(!gzeof($handle))
 	$maxentscan = array();
 	$regulatory = array();
 	$pubmed = array();
+	$source_variant = "";
 	$custom_column_data = [];
 	
 	//variant details based on Ensembl (up/down-stream)
 	$variant_details_updown = array();
 	$genes_updown = array();
-	$coding_and_splicing_details_updown = array(); 
+	$coding_and_splicing_details_updown = array();
 	if (isset($info["CSQ"]) && isset($info["CSQ2"]))
 	{
 		//VEP - used for regulatory features, PubMed, Domains
@@ -1145,6 +1164,36 @@ while(!gzeof($handle))
 			}
 		}	
 	}
+
+	//VcfAnnotateConsequence Source Variant (Ensembl)
+	if (isset($info["CSQ2_SOURCE"]))
+	{
+		foreach(explode(",", $info["CSQ2_SOURCE"]) as $entry)
+		{			
+			$entry = trim($entry);
+			if ($entry=="") continue;
+			
+			$parts = explode("|", $entry);
+			
+			$consequence = $parts[$i_vac_consequence];
+			$consequence = strtr($consequence, ["&NMD_transcript_variant"=>"", "splice_donor_variant&intron_variant"=>"splice_donor_variant", "splice_acceptor_variant&intron_variant"=>"splice_acceptor_variant"]);
+			
+			//extract variant type
+			$variant_type = strtr($consequence, array("_variant"=>"", "_prime_"=>"'"));
+			$is_updown = $variant_type=="upstream_gene" || $variant_type=="downstream_gene";
+			if (!$is_updown)
+			{
+				$variant_details_source[] = $variant_type;
+			}
+			else
+			{
+				$variant_details_source_updown[] = $variant_type;
+			}
+		}
+	}
+
+	//Source variant (VcfStoreSourceVariant)
+	if (isset($info["SOURCE_VAR"]))	$source_variant = $info["SOURCE_VAR"];
 
 	if (isset($info["CSQ_REFSEQ"]))
 	{
@@ -1546,6 +1595,10 @@ while(!gzeof($handle))
 	$variant_details = implode(",", array_unique($variant_details));
 	$coding_and_splicing_details =  implode(",", $coding_and_splicing_details);
 	
+	//add up/down-stream variants if requested (Source Variants)
+	if ($updown) $variant_details_source = array_merge($variant_details_source, $variant_details_source_updown);
+	$variant_details_source = implode(",", array_unique($variant_details_source));
+
 	//regulatory
 	$regulatory = implode(",", collapse($tag, "Regulatory", $regulatory, "unique"));
 
@@ -1610,6 +1663,14 @@ while(!gzeof($handle))
 	if ($annotate_refseq_consequences)
 	{
 		fwrite($handle_out, "\t".implode(",", $coding_and_splicing_refseq));
+	}
+	if ($source_var_annotated)
+	{
+		fwrite($handle_out, "\t".$source_variant);
+	}
+	if ($source_var_csq)
+	{
+		fwrite($handle_out, "\t$variant_details_source");
 	}
 	if (!$skip_ngsd_som)
 	{
