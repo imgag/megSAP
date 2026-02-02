@@ -91,15 +91,31 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 		print "  note: fastp results already exist in folder {$fastp_folder} - using them\n";
 	}
 	
+	//determine QC thresholds
+	$lib_type = ($is_lrgs ? "wgs_lr" : strtolower($seq_mode));
+	$seq_subtype = ($is_tumor ? "somatic" : "germline");
+	$study_subtype = ($is_somatic ? "tumor+germline" : "germline-only");
+	$qc_data = json_decode(file_get_contents("/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/lib/python3.12/site-packages/grz_pydantic_models/resources/thresholds.json"), true);
+	$thresholds = NULL;
+	foreach($qc_data as $entry)
+	{
+		if ($entry['libraryType']!=$lib_type) continue;
+		if ($entry['sequenceSubtype']!=$seq_subtype) continue;
+		if ($entry['genomicStudySubtype']!=$study_subtype) continue;
+		
+		$thresholds = $entry['thresholds'];
+	}
+	if (is_null($thresholds)) trigger_error("Could not determine thresholds for {$lib_type}/{$seq_subtype}/{$$study_subtype}!", E_USER_ERROR);
+	
 	//generate report
 	$report = "{$qc_folder}/{$ps}_report.csv";
 	$args = [];
 	$args[] = "--donorPseudonym '{$patient_id}'";
 	$args[] = "--sample_id '{$ps}'";
 	$args[] = "--labDataName 'blood DNA'";
-	$args[] = "--libraryType ".($is_lrgs ? "wgs_lr" : strtolower($seq_mode));
-	$args[] = "--sequenceSubtype ".($is_tumor ? "somatic" : "germline");
-	$args[] = "--genomicStudySubtype ".($is_somatic ? "tumor+germline" : "germline-only");
+	$args[] = "--libraryType {$lib_type}";
+	$args[] = "--sequenceSubtype {$seq_subtype}";
+	$args[] = "--genomicStudySubtype {$study_subtype}";
 	$args[] = "--fastp_json {$fastp_json}";
 	$args[] = "--mosdepth_global_summary {$mosdepth_summary}";
 	$args[] = "--mosdepth_target_regions_bed {$mosdepth_regions}";
@@ -107,8 +123,13 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 	$args[] = "--meanDepthOfCoverage 1"; //dummy value, not used on our case
 	$args[] = "--targetedRegionsAboveMinCoverage 1"; //dummy value, not used on our case
 	$args[] = "--percentBasesAboveQualityThreshold 1"; //dummy value, not used on our case
+	$args[] = "--meanDepthOfCoverageRequired ".$thresholds['meanDepthOfCoverage']; 
+	$args[] = "--qualityThreshold ".$thresholds['percentBasesAboveQualityThreshold']['qualityThreshold'];
+	$args[] = "--percentBasesAboveQualityThresholdRequired ".$thresholds['percentBasesAboveQualityThreshold']['percentBasesAbove'];
+	$args[] = "--minCoverage ".$thresholds['targetedRegionsAboveMinCoverage']['minCoverage'];
+	$args[] = "--targetedRegionsAboveMinCoverageRequired ".$thresholds['targetedRegionsAboveMinCoverage']['fractionAbove'];
 	exec2("/mnt/storage2/MVH/tools/python3/bin/python3 {$qc_wf_folder}/bin/compare_threshold.py ".implode(" ", $args));
-	
+
 	//parse QC report
 	$file = file($report);
 	$headers = explode(",", trim($file[0]));
