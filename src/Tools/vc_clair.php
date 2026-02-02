@@ -19,6 +19,7 @@ $parser->addString("model", "Model used for calling.", false);
 $parser->addInt("target_extend",  "Call variants up to n bases outside the target region (they are flagged as 'off-target' in the filter column).", true, 0);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addFlag("gpu", "Enable Clair3 GPU support.", true);
+$parser->addFlag("keep_temp_data", "Keep clair temp folder in sample folder.", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 
 extract($parser->parse($argv));
@@ -27,9 +28,16 @@ extract($parser->parse($argv));
 $genome = genome_fasta($build);
 
 //output files
-//$clair_temp = "{$folder}/clair_temp";
-$clair_temp = $parser->tempFolder("clair_temp");
-$clair_mito_temp = $parser->tempFolder("clair_mito_temp");
+if ($keep_temp_data)
+{
+	$clair_temp = "{$folder}/clair_temp";
+	$clair_mito_temp = "{$folder}/clair_mito_temp";
+}
+else
+{
+	$clair_temp = $parser->tempFolder("clair_temp");
+	$clair_mito_temp = $parser->tempFolder("clair_mito_temp");
+}
 $out = "{$folder}/{$name}_var.vcf.gz";
 $out_gvcf = "{$folder}/{$name}_var.gvcf.gz";
 
