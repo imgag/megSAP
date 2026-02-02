@@ -21,12 +21,10 @@ sigprofilerextractor_data = [path]/data/dbs/SigProfilerExtractor/
 [apptainer-container]
 container_abra2 = v2.23
 container_arriba = v2.5.1-20250904
-container_blastn = v2.9.0+
 container_bwa = v0.7.19-20260126
 container_bwa-mem2 = v2.3-20260126
 container_circos = 0.69-10-20260123
 container_clair3 = v1.2.0-20251119
-container_clair3-trio = v0.7
 container_ClinCNV = v1.18.3
 container_deepvariant = 1.9.0
 container_deepsomatic = 1.9.0
