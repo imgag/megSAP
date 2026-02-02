@@ -1,5 +1,9 @@
 # megSAP release
+
+1. Check that containers are ok
 	
+	> php src/IMGAG/container_status.php -check_md5
+
 1. Check for unused tools/functions (on SRV005)
 
 	> make find_unused_tools
