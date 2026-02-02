@@ -170,7 +170,7 @@ function create_files_json($files_to_submit, $info, $read_length)
 		else if (ends_with($file, ".bed")) $data["fileType"] = "bed";
 		$data["checksumType"] = "sha256";
 		$checksum_file = "{$qc_folder}/checksums/".basename($file).".sha256sum";
-		if (!file_exists($checksum_file))
+		if (!file_exists($checksum_file) || trim(file_get_contents($checksum_file))=="")
 		{
 			exec2("sha256sum {$file} > {$checksum_file}");
 		}
