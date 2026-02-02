@@ -775,11 +775,12 @@ print "\n";
 
 //validate the submission
 print "running grz-cli validate...\n";
+$config = "/mnt/storage2/MVH/config/config_".($test ? "test_phase" : "production").".txt";
 $output = [];
 $exit_code = null;
 $stdout = "{$folder}/logs/grz_cli_validate.stdout";
 $stderr = "{$folder}/logs/grz_cli_validate.stderr";
-exec2("{$grz_cli} validate --submission-dir {$folder} > {$stdout} 2> {$stderr}", $output, $exit_code); //when using exec2 the process hangs indefinitely sometimes
+exec2("{$grz_cli} validate --submission-dir {$folder} --config-file {$config} > {$stdout} 2> {$stderr}", $output, $exit_code); //when using exec2 the process hangs indefinitely sometimes
 if ($exit_code!=0)
 {
 	trigger_error("grz-cli validate failed!\nSTDOUT:\n".implode("\n", file($stdout, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES))."\nSTDERR:\n".implode("\n", file($stderr, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES)), E_USER_ERROR);
@@ -790,7 +791,6 @@ $time_start = microtime(true);
 
 //Encrypt the submission
 print "running grz-cli encrypt...\n";
-$config = "/mnt/storage2/MVH/config/config_".($test ? "test_phase" : "production").".txt";
 $stdout = "{$folder}/logs/grz_cli_encrypt.stdout";
 $stderr = "{$folder}/logs/grz_cli_encrypt.stderr";
 $output = [];
