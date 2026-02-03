@@ -58,7 +58,7 @@ $sge_folder = get_path("data_folder")."/sge/archive/";
 $base = "{$sge_folder}".date("Ymdhis")."_".basename($in)."_{$user}";
 $sge_out = "{$base}.out";
 $sge_err = "{$base}.err";
-$command_sge = "qsub -V -pe smp 1 -b y -wd {$sge_folder} -m ea -M {$email} -e {$sge_err} -o {$sge_out} -q archive_srv018 -N {$folder_name}";
+$command_sge = "qsub -V -pe smp 1 -b y -wd {$sge_folder} -m ea -M {$email} -e {$sge_err} -o {$sge_out} -q archive_srv018 -N Backup_job_{$folder_name}";
 $command = "{$command_sge} php {$backup_script} -in {$in}";
 if ($include_raw_signal)
 {
