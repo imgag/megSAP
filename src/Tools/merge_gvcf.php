@@ -154,6 +154,7 @@ foreach($chr_regions as list($chr, $length))
 	$command = $parser->execApptainer("gatk", "gatk", implode(" ", $args), [$genome], [], true);
 	$jobs_call_genotypes[] = array($job_name, $command);
 }
+
 // run genotype calling for every chromosome separately
 $parser->execParallel($jobs_call_genotypes, $threads);
 

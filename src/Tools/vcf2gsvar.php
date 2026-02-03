@@ -477,6 +477,10 @@ while(!gzeof($handle))
 		{
 			fwrite($handle_out, "##SOURCE=".trim(substr($line,9))."\n");
 		}
+		if (starts_with($line, "##GLnexusConfigName=")) //after gVCF merging of DeepVariant we need to reconstruct the DeepVariant version (GLnexus removes it...)
+		{
+			fwrite($handle_out, "##SOURCE=DeepVariant ".get_path("container_deepvariant")."\n");
+		}
 		if (starts_with($line, "##source=strelka2"))
 		{
 			fwrite($handle_out, "##SOURCE=".trim(substr($line,9))."\n");

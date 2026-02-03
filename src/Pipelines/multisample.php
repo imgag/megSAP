@@ -285,6 +285,7 @@ if (in_array("vc", $steps))
 		}
 		else //calling with DeepVariant with gVCF file creation
 		{
+			//TODO Marc perform gVCF calling in the single sample pipline (if not too slow) and only merge here if all samples already have a gVCF
 			$deepvar_gvcfs = array();
 			foreach($local_bams as $local_bam) // DeepVariant calling for each bam with gVCF output
 			{
