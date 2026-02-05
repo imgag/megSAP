@@ -104,8 +104,17 @@ if(isset($rna_counts))
 	$approved_gene_map = [];
 	if (db_is_enabled("NGSD"))
 	{
+		$gene_name_idx = 7;
+		
+		//check header:
+		list($stdout, $stderr, $exit_code) = exec2("head -n1 $rna_counts | cut -f $gene_name_idx");
+		if ($exit_code != 0 || trim($stdout[0]) != "gene_name")
+		{
+			trigger_error("Couldn't check the header of the RNA count file or index of 'gene_name' changed: $rna_counts", E_USER_ERROR);
+		}
+		
 		$tmp_file1 = temp_file(".txt");
-		exec2("cut -f6 $rna_counts | sort | uniq > $tmp_file1", false);
+		exec2("cut -f {$gene_name_idx} $rna_counts | sort | uniq > $tmp_file1", false);
 		list($stdout) = $parser->execApptainer("ngs-bits", "GenesToApproved", "-in $tmp_file1");
 		foreach($stdout as $line)
 		{			
@@ -123,6 +132,14 @@ if(isset($rna_counts))
 	//Create result array of genes and tpm that occur in RNA_counts and CNV file
 	$results = array();
 	$handle = fopen2($rna_counts, "r");
+	
+	//check header is unchanged:
+	list($stdout, $stderr, $exit_code) = exec2("head -n1 $rna_counts");
+	if ($exit_code != 0 || $stdout[0] != implode("\t", ["#gene_id", "length", "raw", "cpm", "fpkm", "tpm", "gene_name", "gene_biotype"]))
+	{
+		trigger_error("Couldn't check the header of the RNA count file or header changed: $rna_counts", E_USER_ERROR);
+	}
+	
 	while(!feof($handle))
 	{
 		$line = fgets($handle);
@@ -130,8 +147,8 @@ if(isset($rna_counts))
 		if(starts_with($line,"#")) continue;
 		if(empty($line)) continue;
 		
-		//order of line: gene_id, raw count, cpm, fpkm, tpm, gene symbol
-		list(,,,,$tpm, $rna_gene) = explode("\t", $line);
+		//order of line: gene_id, length, raw count, cpm, fpkm, tpm, gene symbol
+		list(,,,,,$tpm, $rna_gene) = explode("\t", $line);
 		$rna_gene = strtoupper($rna_gene);
 		
 		//replace outdated gene symbols
