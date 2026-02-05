@@ -113,14 +113,15 @@ if(isset($rna_counts))
 			trigger_error("Couldn't check the header of the RNA count file or index of 'gene_name' changed: $rna_counts", E_USER_ERROR);
 		}
 		
-		$tmp_file1 = temp_file(".txt");
-		exec2("cut -f {$gene_name_idx} $rna_counts | sort | uniq > $tmp_file1", false);
-		list($stdout) = $parser->execApptainer("ngs-bits", "GenesToApproved", "-in $tmp_file1");
-		foreach($stdout as $line)
+		$gene_names_old = temp_file(".txt");
+		$gene_names_new = temp_file(".txt");
+		exec2("cut -f {$gene_name_idx} $rna_counts | sort | uniq > $gene_names_old", false);
+		list($stdout) = $parser->execApptainer("ngs-bits", "GenesToApproved", "-in $gene_names_old -out $gene_names_new");
+		foreach(file($gene_names_new) as $line)
 		{			
 			if($line=="") continue;
 			if(!contains($line, "REPLACED:")) continue;
-						
+			$parser->log("GenesToApproved: ".trim($line));
 			list($new_symbol, $message) = explode("\t", $line);
 			
 			//old gene symbol is contained as text in a sentence of the form "REPLACED: SYMBOL is a ..."
