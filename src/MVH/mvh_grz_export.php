@@ -751,10 +751,9 @@ else //consent not signed
 	else if ($reason_missing=="patient-refusal") $reason_missing = "patient refuses to sign consent";
 	else if ($reason_missing=="consent-not-returned") $reason_missing = "patient did not return consent documents";
 	else if ($reason_missing=="other-patient-reason") $reason_missing = "other patient-related reason";
-	else if ($reason_missing=="technical-issues") $reason_missing = "consent information cannot be submitted by LE due to technical reason";
-	else if ($reason_missing=="organizational-issues") $reason_missing = "consent is not implemented at LE due to organizational issues";
 	else trigger_error("Count not convert reason why BC is missing: '{$reason_missing}'!", E_USER_ERROR);
 	$json['donors'][0]['researchConsents'][] = [
+					"schemaVersion" => "2025.0.1",
 					"presentationDate" => xml_str($cm_data->bc_date),
 					"noScopeJustification" => $reason_missing
 					];
