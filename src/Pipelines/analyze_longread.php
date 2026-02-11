@@ -389,12 +389,8 @@ if (in_array("vc", $steps))
 		$args[] = "-min_bq ".$min_bq;
 		$args[] = "-add_sample_header";
 		$args[] = "-name ".$name;
-
-		if ($gpu)
-		{
-			$args[] = "-gpu";
-		}
-
+		if ($gpu) $args[] = "-gpu";
+		
 		$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
 	}
 	else //ONT
