@@ -589,101 +589,121 @@ if ($is_somatic)
 {
 	$lab_data[] = create_lab_data_json($files_t, $info_t, $grz_qc_t, true, $info);
 }
-//TODO add support for kids (SE: RedCap, OE: ???, FBREK: ???)
-//prepare research consent data - for format see https://www.medizininformatik-initiative.de/Kerndatensatz/KDS_Consent_V2025/MII-IG-Modul-Consent-TechnischeImplementierung-FHIRProfile-Consent.html
-$active_consent_count = 0;
-$research_use_allowed = false;
-$date = "";
-$start = "";
-$end = "";
-$rc_data = get_rc_data($db_mvh, $id);
-if ($rc_data!=false)
+
+//if SE > check if it is a BC for children
+$is_kids_bc = false;
+if (xml_str($cm_data->bc_signed)=="Ja" && $network=="Netzwerk Seltene Erkrankungen")
 {
-	foreach($rc_data->consent as $consent)
+	$se_data_rep = get_se_data($db_mvh, $id, true);
+	list($bc_type, $bc_item) = get_bc_data_se($se_data_rep);
+	$is_kids_bc = starts_with($bc_type, "Kinder");
+}
+
+//prepare research consent data - for format see https://www.medizininformatik-initiative.de/Kerndatensatz/KDS_Consent_V2025/MII-IG-Modul-Consent-TechnischeImplementierung-FHIRProfile-Consent.html
+if ($is_kids_bc)
+{
+	$se_data = get_se_data($db_mvh, $id);
+	$research_consent = convert_se_kids_bc_to_fhir($bc_item, $se_data, $parser);
+}
+else
+{
+	$active_consent_count = 0;
+	$research_use_allowed = false;
+	$date = "";
+	$start = "";
+	$end = "";
+	$rc_data = get_rc_data($db_mvh, $id);
+	if ($rc_data!=false)
 	{
-		if ($consent->status!="active") continue;
-		++$active_consent_count;
-		
-		$date = xml_str($consent->date);
-		$start = xml_str($consent->start);
-		$end = xml_str($consent->end);
-		
-		foreach($consent->permit as $permit)
+		foreach($rc_data->consent as $consent)
 		{
-			if ($permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.8" || $permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.1")
+			if ($consent->status!="active") continue;
+			++$active_consent_count;
+			
+			$date = xml_str($consent->date);
+			$start = xml_str($consent->start);
+			$end = xml_str($consent->end);
+			
+			foreach($consent->permit as $permit)
 			{
-				$research_use_allowed = true;
+				if ($permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.8" || $permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.1")
+				{
+					$research_use_allowed = true;
+				}
 			}
 		}
 	}
-}
-if ($active_consent_count>1) trigger_error("More than one active consent found in MVH data:\n{$rc_data}", E_USER_ERROR);
-if (xml_str($cm_data->bc_signed)=="Ja" && $active_consent_count==0) trigger_error("Pacient has signed BC, but no active consent found in MVH data\n{$rc_data}", E_USER_ERROR);
-$research_consent = [
-	"status" => "active",
-	"scope" => [
-		"coding" => [
-				0 => [
-					"system" => "http://terminology.hl7.org/CodeSystem/consentscope",
-					"code" => "research"					
+	if ($active_consent_count>1) trigger_error("More than one active consent found in MVH data:\n{$rc_data}", E_USER_ERROR);
+	if (xml_str($cm_data->bc_signed)=="Ja" && $active_consent_count==0) trigger_error("Patient has signed BC, but no active consent found in MVH data\n{$rc_data}", E_USER_ERROR);
+	
+	$research_consent = [
+		"status" => "active",
+		"scope" => [
+			"coding" => [
+					0 => [
+						"system" => "http://terminology.hl7.org/CodeSystem/consentscope",
+						"code" => "research"					
+					]
 				]
-			]
-		],
-	"category" => [
-			[
-				"coding" => [
-						[
-							"system" => "http://loinc.org",
-							"code" => "57016-8"					
-						]
-					]
 			],
-			[
-				"coding" => [
-						[
-							"system" => "https://www.medizininformatik-initiative.de/fhir/modul-consent/CodeSystem/mii-cs-consent-consent_category",
-							"code" => "2.16.840.1.113883.3.1937.777.24.2.184"					
-						]
-					]
-			]
-		],
-	"patient" => [
-		"reference" => $patient_id
-		],
-	"dateTime" => $date,
-	"policy" => [
-			[
-				"uri" => "urn:oid:2.16.840.1.113883.3.1937.777.24.2.1791"
-			]
-		],
-	"provision" => [
-		"type" => "deny",
-		"period" => [
-			"start" => $start,
-			"end" => $end
-			],
-		"provision" => [
-			[
-				"code" => [
-					[
-						"coding" => [
+		"category" => [
+				[
+					"coding" => [
 							[
-								"system" => "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
-								"code" => "2.16.840.1.113883.3.1937.777.24.5.3.1",
-								"display" => "PATDAT_erheben_speichern_nutzen"
+								"system" => "http://loinc.org",
+								"code" => "57016-8"					
 							]
 						]
-					]
 				],
-				"type" => ($research_use_allowed ? "permit" : "deny"),
-				"period" => [
-					"start" => $start,
-					"end" => $end
+				[
+					"coding" => [
+							[
+								"system" => "https://www.medizininformatik-initiative.de/fhir/modul-consent/CodeSystem/mii-cs-consent-consent_category",
+								"code" => "2.16.840.1.113883.3.1937.777.24.2.184"					
+							]
+						]
+				]
+			],
+		"patient" => [
+			"reference" => $patient_id
+			],
+		"dateTime" => $date,
+		"policy" => [
+				[
+					"uri" => "urn:oid:2.16.840.1.113883.3.1937.777.24.2.1791"
+				]
+			],
+		"provision" => [
+			"type" => "deny",
+			"period" => [
+				"start" => $start,
+				"end" => $end
+				],
+			"provision" => [
+				[
+					"code" => [
+						[
+							"coding" => [
+								[
+									"system" => "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+									"code" => "2.16.840.1.113883.3.1937.777.24.5.3.1",
+									"display" => "PATDAT_erheben_speichern_nutzen"
+								]
+							]
+						]
 					],
+					"type" => ($research_use_allowed ? "permit" : "deny"),
+					"period" => [
+						"start" => $start,
+						"end" => $end
+						],
+				]
 			]
 		]
-	]
-];
+	];
+}
+
+
 
 //create meta data JSON
 print "  creating metadata...\n";
@@ -751,10 +771,9 @@ else //consent not signed
 	else if ($reason_missing=="patient-refusal") $reason_missing = "patient refuses to sign consent";
 	else if ($reason_missing=="consent-not-returned") $reason_missing = "patient did not return consent documents";
 	else if ($reason_missing=="other-patient-reason") $reason_missing = "other patient-related reason";
-	else if ($reason_missing=="technical-issues") $reason_missing = "consent information cannot be submitted by LE due to technical reason";
-	else if ($reason_missing=="organizational-issues") $reason_missing = "consent is not implemented at LE due to organizational issues";
 	else trigger_error("Count not convert reason why BC is missing: '{$reason_missing}'!", E_USER_ERROR);
 	$json['donors'][0]['researchConsents'][] = [
+					"schemaVersion" => "2025.0.1",
 					"presentationDate" => xml_str($cm_data->bc_date),
 					"noScopeJustification" => $reason_missing
 					];
