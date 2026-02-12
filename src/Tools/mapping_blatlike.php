@@ -20,8 +20,9 @@ extract($parser->parse($argv));
 
 //init
 $seq = strtoupper(trim($seq));
+if (strlen($seq)<20) trigger_error("Sequence is shorter than 20bp. This is not supported!", E_USER_ERROR);
+if (strlen($seq)>500) trigger_error("Sequence is longer than 500bp. This is not supported!", E_USER_ERROR);
 if (!preg_match("/^[ACGT]+$/", $seq)) trigger_error("Sequence '$seq' contains not only A,C,G,T!", E_USER_ERROR);
-if (strlen($seq)>500) trigger_error("Sequence '$seq' is longer than 500bp. This is not supported!", E_USER_ERROR);
 $genome_fasta = genome_fasta($build);
 
 //store sequence as FASTA
