@@ -168,6 +168,7 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	global $parser;
 	global $build;
 	global $threads;
+	global $transcript_annotations;
 	
 	//check if SpliceAI INFO header is already present in the input VCF
 	$header_old = "";
@@ -189,12 +190,12 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	$args[] = "-I {$vcf_filtered}";
 	$args[] = "-O {$tmp1}";
 	$args[] = "-R ".genome_fasta($build);
-	$args[] = "-A ".strtolower($build);
+	$args[] = "-A ".$transcript_annotations;
 	$args[] = "-M 1"; //enable masked scores
-	$args[] = "-D 50";
+	$args[] = "-D 50";//TODO
 
 	//set bind paths for container execution
-	$in_files = [genome_fasta($build), $vcf_filtered];
+	$in_files = [genome_fasta($build), $vcf_filtered, $transcript_annotations];
 
 	//run spliceai container
 	$spliceai_command = $parser->execApptainer("spliceai", "spliceai", implode(" ", $args), $in_files, [], true);
@@ -242,20 +243,15 @@ if($var_count==0)
 	return;
 }
 
-//filter for variants in SpliceAI transcript regions
-$tmp_fields = $parser->tempFile("spliceai_tmp_fields.txt");
-$tmp_prefixed = $parser->tempFile("spliceai_tmp_prefixed.txt");
+//create SpliceAI transcript regions BED file
+$transcript_annotations = repository_basedir()."/data/misc/spliceai_gene_annotations/{$build}_original.txt";//TODO
 $spliceai_regions = $parser->tempFile("spliceai_scoring_regions.bed");
+$pipeline = [];
+$pipeline[] = array("cut", "-f 2,4,5 -d'\t' {$transcript_annotations}");
+$pipeline[] = array("sed", "'1d' > {$spliceai_regions}");
+$parser->execPipeline($pipeline, "Dragen small variants post processing");
 
-$spliceai_parameters = "-f 2,4,5 -d'\t' /opt/spliceai/splice_env/lib/python3.8/site-packages/spliceai/annotations/".strtolower($build).".txt > {$tmp_fields}";
-$parser->execApptainer("spliceai", "cut", $spliceai_parameters);
-
-$spliceai_parameters = "'s/^/chr/' {$tmp_fields} > {$tmp_prefixed}";
-$parser->execApptainer("spliceai", "sed", $spliceai_parameters);
-
-$spliceai_parameters = "'1d' {$tmp_prefixed} > {$spliceai_regions}";
-$parser->execApptainer("spliceai", "sed", $spliceai_parameters);
-
+//filter for variants in SpliceAI transcript regions
 $tmp2 = $parser->tempFile("_spliceai_filtered_regions.vcf");
 $parser->execApptainer("ngs-bits", "VcfFilter", "-reg {$spliceai_regions} -in {$tmp1} -out {$tmp2} -ref ".genome_fasta($build), [genome_fasta($build)]);
 $var_count = vcf_variant_count($tmp2);
@@ -264,7 +260,7 @@ $parser->log("Variants after SpliceAI transcript regions filter: {$var_count}");
 //abort if no variants or too many variants must be scored
 if($var_count==0 || $var_count > $max_vars)
 {
-	if ($var_count > $max_vars) trigger_error("SpliceAI annotation skipped: Number of private variants ({$var_count}) is above max_vars ({$max_vars})!", E_USER_NOTICE);
+	if ($var_count > $max_vars) trigger_error("SpliceAI annotation skipped: Number of private variants ({$var_count}) is zero or above max_vars ({$max_vars})!", E_USER_NOTICE);
 	$parser->copyFile($in, $out);
 	return;
 }
