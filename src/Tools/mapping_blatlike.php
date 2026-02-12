@@ -68,8 +68,15 @@ $hits = [];
 foreach($stdout as $line)
 {
 	if (!starts_with($line, "MY_READ\t")) continue;
+	
+	if ($debug) print "READ: $line\n";
+	
 	$parts =  explode("\t", $line);
 	list($id, $flags, $chr, $start, $map_q, $cigar) = $parts;
+	
+	//skip unmapped
+	if ($chr=='*') continue;
+
 	$length = match_length($cigar);
 	$edit_distance = "";
 	for($i=11; $i<count($parts); ++$i)
@@ -97,6 +104,5 @@ foreach($hits as $hit)
 	fputs($h, implode("\t", $hit)."\n");
 }
 fclose($h);
-
 
 ?>
