@@ -265,6 +265,16 @@ mkdir -p tandem-repeats
 cd tandem-repeats
 wget -O human_GRCh38_no_alt_analysis_set.trf.bed https://raw.githubusercontent.com/fritzsedlazeck/Sniffles/fdf6e6d334353a06872fe98f74fe68cc9a9a7d1f/annotations/human_GRCh38_no_alt_analysis_set.trf.bed
 
+#download illumina EPIC ids:
+cd $dbs
+mkdir -p illumina-epicids
+cd illumina-epicids
+wget -O InfiniumMethylationEPICv2.0ProductFiles.zip "https://support.illumina.com/content/dam/illumina-support/documents/downloads/productfiles/methylationepic/InfiniumMethylationEPICv2.0ProductFiles(ZIPFormat).zip"
+unzip -d . InfiniumMethylationEPICv2.0ProductFiles.zip
+cp "MethylationEPIC v2.0 Files/EPIC-8v2-0_A1.csv" .
+rm -r "MethylationEPIC v2.0 Files"
+rm InfiniumMethylationEPICv2.0ProductFiles.zip
+
 # # install OMIM (you might need a license; production NGSD has to be available and initialized)
 # cd $dbs
 # mkdir -p OMIM

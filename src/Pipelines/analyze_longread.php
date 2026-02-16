@@ -97,6 +97,7 @@ $lowcov_file = $folder."/".$name."_".$sys["name_short"]."_lowcov.bed";
 //methylation 
 $modkit_track = $folder."/".$name."_modkit_track.bed.gz";
 $modkit_summary = $folder."/".$name."_modkit_summary.txt";
+$epigen_tsv = $folder."/".$name."_epigen.tsv";
 //variant calling
 $vcf_file = $folder."/".$name."_var.vcf.gz";
 $vcf_file_annotated = $folder."/".$name."_var_annotated.vcf.gz";
@@ -956,6 +957,11 @@ if (in_array("me", $steps))
 			$args[] = "-regions {$methyl_regions}";
 		}
 		$parser->execTool("Tools/create_methyl_plot.php", implode(" ", $args));
+		
+		// create Epigen TSV file
+		$epic_id_file = get_path("data_folder")."/dbs/illumina-epicids/EPIC-8v2-0_A1.csv";
+		$parser->execApptainer("ngs-bits", "BedToEpigen", "-in {$modkit_track} -out {$epigen_tsv} -id_file {$epic_id_file} -sample {$name}", [$epic_id_file, $modkit_track], [dirname($epigen_tsv)]);
+		
 	}
 }
 
