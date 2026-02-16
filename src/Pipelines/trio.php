@@ -187,13 +187,13 @@ if (!$no_check && !$is_wgs_shallow && !$annotation_only)
 {
 	//check parent-child correlation
 	$min_corr = 0.45;
-	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in $f $c -mode bam -build ".ngsbits_build($sys['build']), [$f, $c]);
+	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in $f $c -mode bam -ref {$genome} -build ".ngsbits_build($sys['build']), [$f, $c, $genome]);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)
 	{
 		trigger_error("The genotype correlation of father and child is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
 	}
-	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in $m $c -mode bam -build ".ngsbits_build($sys['build']), [$m, $c]);
+	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in $m $c -mode bam -ref {$genome} -build ".ngsbits_build($sys['build']), [$m, $c, $genome]);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)
 	{

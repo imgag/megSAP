@@ -77,6 +77,7 @@ while(!feof($handle))
 		if(contains($line, "varscan2") ) $var_caller = "varscan2";
 		if(contains($line, "umivar2") ) $var_caller = "umivar2";
 		if(contains($line, "dragen") ) $var_caller = "dragen";
+		if(contains($line, "deepsomatic")) $var_caller = "deepsomatic";
 		echo $line."\n";
 
 		//add umivar specific columns
@@ -116,7 +117,7 @@ while(!feof($handle))
 if($source_lines!=1) trigger_error("Found ".($source_lines==0 ? "no" : "several")." 'source' entries in VCF header (needed to identify the variant caller).", E_USER_ERROR);
 if($var_caller===false) trigger_error("Unknown variant caller from 'source' entry in VCF header.", E_USER_ERROR);
 if($tumor_idx===false) trigger_error("Could not identify tumor column '$t_col' in VCF header.", E_USER_ERROR);
-if(!$tumor_only && $normal_idx===false) trigger_error("Could not identify tumor column '$t_col' in VCF header.", E_USER_ERROR);
+if(!$tumor_only && $normal_idx===false && $var_caller !== "deepsomatic") trigger_error("Could not identify normal column '$n_col' in VCF header.", E_USER_ERROR);
 
 //process variants
 $r = -1;
@@ -232,6 +233,10 @@ while(!feof($handle))
 			$gsvar->set($r, $i_homopolymer, $homopolymer);
 		}
 	}
+	else if ($var_caller == "deepsomatic")
+	{
+		list($tumor_dp, $tumor_af) = vcf_deepvariant($format, $cols[$tumor_idx]);
+	}
 	
 	$gsvar->set($r, $i_tumor_dp, $tumor_dp);
 	$gsvar->set($r, $i_tumor_af, number_format($tumor_af, 4));
@@ -258,66 +263,15 @@ while(!feof($handle))
 		{
 			list($normal_dp, $normal_af) = vcf_dragen_var($format, $cols[$normal_idx]);
 		}
+		else if ($var_caller == "deepsomatic")
+		{
+			list($normal_dp, $normal_af) = vcf_deepsomatic($info, $n_col);
+		}
 		$gsvar->set($r, $i_normal_dp, $normal_dp);
 		$gsvar->set($r, $i_normal_af, number_format($normal_af, 4));
 	}
-	
 }
 gzclose($handle);
-
-//add somatic variant classification from NGSD (just after classification_comment column
-if(db_is_enabled($db))
-{
-	$db = DB::getInstance($db);
-	$som_classifications = array();
-	$som_class_comments = array();
-	for($i=0; $i<$gsvar->rows(); ++$i)
-	{
-		list($chr,$start,$end,$ref,$obs) = $gsvar->getRow($i);
-		
-		$variant_id = get_variant_id($db, $chr, $start, $end, $ref, $obs);
-		if($variant_id != -1)
-		{
-			$res = $db->executeQuery("SELECT id, class, comment FROM somatic_variant_classification WHERE variant_id = $variant_id");
-			
-			if(!empty($res))
-			{				
-				$som_classifications[] = $res[0]["class"];
-				$tmp = $res[0]["comment"];
-				//replace \t and \n
-				$tmp = str_replace("\t"," ",$tmp);
-				$tmp = str_replace("\n", " ", $tmp);
-				
-				$som_class_comments[] = $tmp;
-				
-			}
-			else
-			{
-				$som_classifications[] = "";
-				$som_class_comments[] = "";
-			}
-		}
-		else
-		{
-			$som_classifications[] = "";
-			$som_class_comments[] = "";
-		}
-	}
-
-	$idx = $gsvar->getColumnIndex("classification_comment", false, false);
-	if($idx !== false)
-	{
-		$gsvar->insertCol(1+$idx, $som_class_comments, "somatic_classification_comment", "Somatic classification comment from the NGSD.");
-		$gsvar->insertCol(1+$idx, $som_classifications, "somatic_classification", "Somatic classification from the NGSD.");
-	}
-	else
-	{
-		$gsvar->addCol($som_class_comments, "somatic_classification_comment", "Somatic classification comment from the NGSD.");
-		$gsvar->addCol($som_classifications, "somatic_classification", "Somatic classification from the NGSD.");
-	}
-	
-	$gsvar->toTSV($out);
-}
 
 //store output
 $gsvar->toTSV($out);

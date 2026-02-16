@@ -1,0 +1,88 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%post
+    # Set timezone
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime
+    echo $TZ > /etc/timezone
+
+    # Update and install necessary system packages
+    apt-get update --fix-missing && apt-get -y upgrade
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
+        build-essential \
+        curl \
+        git \
+        locales \
+        rsync \
+        wget \
+        poppler-utils \
+		libatlas-base-dev \
+		liblapack-dev \
+		gfortran \
+		make \
+		zlib1g-dev \
+		bzip2 \
+		libssl-dev \
+		libffi-dev \
+		libbz2-dev \
+		liblzma-dev
+
+	# install python 3.12.12
+	mkdir -p /opt/Python3.12.12
+	cd /opt
+	wget https://www.python.org/ftp/python/3.12.12/Python-3.12.12.tgz
+	tar -zxvf Python-3.12.12.tgz
+	cd Python-3.12.12
+	./configure --prefix=/opt/Python3.12.12/
+	make
+	make install
+	cd ..
+	rm -rf Python-3.12.12.tgz
+	rm -rf Python-3.12.12/
+	
+	# Add to path
+	ln -s /opt/Python3.12.12/bin/python3 /usr/bin/python3
+	ln -s /opt/Python3.12.12/bin/pip3 /usr/bin/pip
+
+    # Set the locale
+    localedef -i de_DE -f UTF-8 de_DE.UTF-8
+
+    # Install Python packages
+    #python3 -m pip install --upgrade pip
+	pip install --no-cache-dir pypdf==6.4.0 \
+		pandas==2.3.3 \
+		numpy==2.3.3 \
+		scipy==1.16.3 \
+		scikit-learn==1.7.2
+	
+    pip install --no-cache-dir SigProfilerExtractor==1.2.6 \
+		SigProfilerPlotting==1.4.2 \
+		SigProfilerMatrixGenerator==1.3.6 \
+		SigProfilerAssignment==1.1.1
+	
+	# Suppress font warning
+	python3 -c "import warnings; warnings.filterwarnings('ignore', message='findfont: Font family \'Arial\' not found')"
+	
+	# Clean up
+	apt-get remove -y \
+        build-essential \
+        git \
+        locales \
+        poppler-utils \
+		libatlas-base-dev \
+		liblapack-dev \
+		bzip2 \
+		make \
+		zlib1g-dev \
+		libssl-dev \
+		libffi-dev \
+		liblzma-dev \
+		libbz2-dev
+    apt-get clean && \
+	apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+%environment
+    export TZ=Europe/Berlin
+    export LC_ALL=de_DE.UTF-8
+    export LANG=de_DE.UTF-8
+    export LANGUAGE=de_DE.UTF-8

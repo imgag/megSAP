@@ -48,40 +48,12 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data, $se_data_rep)
 	if (xml_str($cm_data->bc_signed)=="Ja")
 	{
 		//get BC meta data from SE RedCap
-		$consents_se = [];
-		foreach($se_data_rep->item as $item)
-		{		
-			$bc_date = xml_str($item->datum_einwillig_forsch);
-			$bc_ver = xml_str($item->vers_einwillig_forsch);
-			if ($bc_date=="" || $bc_ver=="") continue;
-			
-			$bc_retracted = xml_str($item->datum_einwillig_f_wid);
-			if ($bc_retracted!="") continue;
-
-			$consents_se[] = [$bc_ver, $item];
-		}
-		if (count($consents_se)>1) trigger_error("Several research consent forms found in SE RedCap!", E_USER_ERROR);
-		if (count($consents_se)==0) trigger_error("No research consent form found in SE RedCap!", E_USER_ERROR);
-		list($bc_type, $bc_item) = $consents_se[0];
+		list($bc_type, $bc_item) = get_bc_data_se($se_data_rep);
 		
 		$active_rcs = [];
 		if (starts_with($bc_type, "Kinder")) //generate consent JSON from SE RedCap
 		{
-			//store consent from SE RedCap as JSON
-			$form = [];
-			foreach(["psn", "redcap_repeat_instrument", "redcap_repeat_instance", "datum_einwillig_forsch", "vers_einwillig_forsch", "bc_sb_1",  "bc_sb_2",  "bc_sb_3",  "bc_sb_4",  "bc_sb_5",  "bc_sb_6",  "bc_sb_7",  "bc_sb_8",  "bc_sb_9", "datum_einwillig_f_wid", "umfang_einwillig_f_wid", "forschungseinwilligungen_complete"] as $key)
-			{
-				$form[] = "\"{$key}\": \"".xml_str($bc_item->$key)."\"";
-			}
-			$tmp = $parser->tempFile(".json");
-			file_put_contents($tmp, "[\n  {},\n    {\n    ".implode(",\n    ", $form)."\n  }\n]");
-			
-			//generate consent JSON
-			$tmp2 = $parser->tempFile(".json");
-			$birthdate = new DateTime($se_data->birthdate);
-			exec2("java -jar /mnt/storage2/MVH/tools/mii_broad_consent_mapper/build/libs/consent-mapper-all.jar --redcap_formular {$tmp} --output {$tmp2} --date_of_birth ".$birthdate->format("m.Y"));
-			
-			$active_rcs[] = json_decode(file_get_contents($tmp2), true);
+			$active_rcs[] = convert_se_kids_bc_to_fhir($bc_item, $se_data, $parser);
 		}
 		else //adult > search for consent data from SAP
 		{
@@ -111,7 +83,7 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data, $se_data_rep)
 	}
 	else
 	{
-		//TODO implement until 1.1.26: reasonResearchConsentMissing (bc_reason_missing)
+		$output["reasonResearchConsentMissing"] = convert_bc_missing(xml_str($cm_data->bc_reason_missing));
 	}
 			
 	return $output;
@@ -175,6 +147,7 @@ function json_diagnoses($se_data, $se_data_rep)
 	if ($icd10!="")
 	{
 		$code = get_raw_value($se_data->psn, "diag_icd10");
+		if (ends_with($code, '+')) $code = substr($code, 0, -1);
 		
 		$codes[] = [
 			"code" => $code,
@@ -189,8 +162,10 @@ function json_diagnoses($se_data, $se_data_rep)
 	$orpha_ver = xml_str($se_data->diag_orphacode_ver);
 	if ($orpha!="")
 	{
+		$code = get_raw_value($se_data->psn, "diag_orphacode");
+		$code = strtr($code, ["ORDO:Orphanet_"=>"ORPHA:"]);
 		$codes[] = [
-			"code" => get_raw_value($se_data->psn, "diag_orphacode"),
+			"code" => $code,
 			"display" => "ORPHA:".$orpha,
 			"system" => "https://www.orpha.net",
 			"version" => $orpha_ver
@@ -753,16 +728,21 @@ function json_results($se_data, $se_data_rep, $info)
 			}
 			if (count($consequences)>0)
 			{
-				list($t_gene, $t_trans, $t_type, $t_impact, $t_exon, $t_cdna, $t_prot) = $consequences[0];
+				$parts = $consequences[0];
+				if (count($parts)==7)
+				{
+					list($t_gene, $t_trans, $t_type, $t_impact, $t_exon, $t_cdna, $t_prot) = $consequences[0];
+					if ($t_cdna!="")
+					{
+						$var_data['cDNAChange'] = $t_trans.":".$t_cdna;
+					}
+					if($t_prot!="")
+					{
+						$var_data['proteinChange'] = $t_trans.":".$t_prot;
+					}
+				}
+				else trigger_error("Could not determine cDNA and protein change of variant (not in NGSD)", E_USER_NOTICE);
 				
-				if ($t_cdna!="")
-				{
-					$var_data['cDNAChange'] = $t_trans.":".$t_cdna;
-				}
-				if($t_prot!="")
-				{
-					$var_data['proteinChange'] = $t_trans.":".$t_prot;
-				}
 				if (count($consequences)>1) trigger_error("More than one variant consequence found. Only one is allowed in KDK-SE. Using first variant consequence!", E_USER_WARNING);
 			}
 			

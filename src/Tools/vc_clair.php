@@ -19,6 +19,7 @@ $parser->addString("model", "Model used for calling.", false);
 $parser->addInt("target_extend",  "Call variants up to n bases outside the target region (they are flagged as 'off-target' in the filter column).", true, 0);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addFlag("gpu", "Enable Clair3 GPU support.", true);
+$parser->addFlag("keep_temp_data", "Keep clair temp folder in sample folder.", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 
 extract($parser->parse($argv));
@@ -27,9 +28,16 @@ extract($parser->parse($argv));
 $genome = genome_fasta($build);
 
 //output files
-//$clair_temp = "{$folder}/clair_temp";
-$clair_temp = $parser->tempFolder("clair_temp");
-$clair_mito_temp = $parser->tempFolder("clair_mito_temp");
+if ($keep_temp_data)
+{
+	$clair_temp = "{$folder}/clair_temp";
+	$clair_mito_temp = "{$folder}/clair_mito_temp";
+}
+else
+{
+	$clair_temp = $parser->tempFolder("clair_temp");
+	$clair_mito_temp = $parser->tempFolder("clair_mito_temp");
+}
 $out = "{$folder}/{$name}_var.vcf.gz";
 $out_gvcf = "{$folder}/{$name}_var.gvcf.gz";
 
@@ -50,6 +58,7 @@ if ($gpu)
 	if ($status != 0 || empty($output)) 
 	{
 		trigger_error("No GPU available to run GPU accelerated Clair3. Falling back to CPU-only version", E_USER_NOTICE);
+		$gpu = false;
 	}
 	else
 	{
@@ -97,7 +106,7 @@ if(isset($target))
 }
 
 //run Clair3 container
-$parser->execApptainer("clair3", "run_clair3.sh", implode(" ", $args), $in_files);
+$parser->execApptainer("clair3", "run_clair3.sh", implode(" ", $args), $in_files, [], false, true, true, true, $gpu);
 $clair_vcf = $clair_temp."/merge_output.vcf.gz";
 $clair_gvcf = $clair_temp."/merge_output.gvcf.gz";
 
@@ -108,7 +117,7 @@ file_put_contents($target_mito, "chrMT\t0\t16569");
 $args_mito[] = "--bed_fn={$target_mito}";
 $args_mito[] = "--haploid_sensitive";
 
-$parser->execApptainer("clair3", "run_clair3.sh", implode(" ", $args_mito), $in_files);
+$parser->execApptainer("clair3", "run_clair3.sh", implode(" ", $args_mito), $in_files, [], false, true, true, true, $gpu);
 $clair_mito_vcf = $clair_mito_temp."/merge_output.vcf.gz";
 $clair_mito_gvcf = $clair_mito_temp."/merge_output.gvcf.gz";
 

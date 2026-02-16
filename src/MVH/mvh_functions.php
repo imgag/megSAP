@@ -45,6 +45,7 @@ function get_se_data($db_mvh, $id, $with_repeat_instances=false)
 	}
 	return $main_item;
 }
+
 //returns GenLab data as an XML object
 function get_gl_data($db_mvh, $id)
 {
@@ -461,5 +462,54 @@ function convert_hpo_change($change)
 	
 	trigger_error(__FUNCTION__.": Unhandled HPO change '{$change}'!", E_USER_ERROR);
 }
+
+function convert_bc_missing($reason)
+{
+	if ($reason=="Einwilligung durch den Patienten nicht möglich") return "patient-inability";
+	if ($reason=="Einwilligung vom Patienten abgelehnt") return "patient-refusal";
+	if ($reason=="Einwilligung vom Patienten nicht abgegeben") return "consent-not-returned";
+	if ($reason=="Anderer Patienten-bedingter Grund") return "other-patient-reason";
+	
+	trigger_error(__FUNCTION__.": Unhandled BC missing reason '{$reason}'!", E_USER_ERROR);
+}
+
+function get_bc_data_se($se_data_rep)
+{
+	//get BC meta data from SE RedCap
+	$consents_se = [];
+	foreach($se_data_rep->item as $item)
+	{		
+		$bc_date = xml_str($item->datum_einwillig_forsch);
+		$bc_ver = xml_str($item->vers_einwillig_forsch);
+		if ($bc_date=="" || $bc_ver=="") continue;
+		
+		$bc_retracted = xml_str($item->datum_einwillig_f_wid);
+		if ($bc_retracted!="") continue;
+
+		$consents_se[] = [$bc_ver, $item];
+	}
+	if (count($consents_se)>1) trigger_error("Several research consent forms found in SE RedCap!", E_USER_ERROR);
+	if (count($consents_se)==0) trigger_error("No research consent form found in SE RedCap!", E_USER_ERROR);
+	return $consents_se[0];
+}
+
+function convert_se_kids_bc_to_fhir($bc_item, $se_data, $parser)
+{
+	//store consent from SE RedCap as JSON
+	$form = [];
+	foreach(["psn", "redcap_repeat_instrument", "redcap_repeat_instance", "datum_einwillig_forsch", "vers_einwillig_forsch", "bc_sb_1",  "bc_sb_2",  "bc_sb_3",  "bc_sb_4",  "bc_sb_5",  "bc_sb_6",  "bc_sb_7",  "bc_sb_8",  "bc_sb_9", "datum_einwillig_f_wid", "umfang_einwillig_f_wid", "forschungseinwilligungen_complete"] as $key)
+	{
+		$form[] = "\"{$key}\": \"".xml_str($bc_item->$key)."\"";
+	}
+	$tmp = $parser->tempFile(".json");
+	file_put_contents($tmp, "[\n  {},\n    {\n    ".implode(",\n    ", $form)."\n  }\n]");
+	
+	//generate consent JSON in FHIR format
+	$tmp2 = $parser->tempFile(".json");
+	$birthdate = new DateTime($se_data->birthdate);
+	exec2("java -jar /mnt/storage2/MVH/tools/mii_broad_consent_mapper/build/libs/consent-mapper-all.jar --redcap_formular {$tmp} --output {$tmp2} --date_of_birth ".$birthdate->format("m.Y"));
+	
+	return json_decode(file_get_contents($tmp2), true);
+}	
 
 ?>

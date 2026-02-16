@@ -1,0 +1,46 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    Maintainer KilianIlius
+    Version subread_v2.1.1
+
+%post
+	LANG=C.UTF-8
+	LC_ALL=C.UTF-8
+
+	# Update package list and install build dependencies
+	apt-get update --fix-missing 
+	apt-get install -y \
+		wget \
+		gcc \
+		zlib1g-dev \
+		make \
+		libc6-dev
+	
+	# Download and build tool
+	cd /opt/
+	wget https://sourceforge.net/projects/subread/files/subread-2.1.1/subread-2.1.1-source.tar.gz
+	tar xzf subread-2.1.1-source.tar.gz
+	rm subread-2.1.1-source.tar.gz
+	cd subread-2.1.1-source/src
+	make -f Makefile.Linux
+	cd ..
+	mv bin/ /opt
+	cd .. rm -rf subread-2.1.1-source/
+	
+	# Cleanup build dependencies
+	cd /
+	apt-get remove -y \
+		wget \
+		gcc \
+		zlib1g-dev
+	apt-get autoremove -y
+	apt-get clean
+	rm -rf /var/lib/apt/lists/*
+
+%environment
+	export LANG=C.UTF-8
+	export LC_ALL=C.UTF-8
+	export PATH=/opt/bin:$PATH
+	export PATH=/opt/bin/utilities:$PATH

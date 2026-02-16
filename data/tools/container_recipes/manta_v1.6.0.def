@@ -4,19 +4,20 @@ From: ubuntu:24.04
 %post
 	LANG=C.UTF-8
 	LC_ALL=C.UTF-8
-	PATH=/opt/manta:/bin:$PATH
 
 	# Update ubuntu packages and install build dependencies
-	apt-get update --fix-missing && \
+	apt-get update --fix-missing
 	apt-get install -y \
 		wget \
 		build-essential \
+		unzip \
 		liblzma-dev \
 		bzip2 \
-		samtools \
 		make \
+		gcc \
 		zlib1g-dev \
 		autoconf \
+		automake \
 		build-essential \
 		libbz2-dev \
 		libffi-dev \
@@ -24,10 +25,14 @@ From: ubuntu:24.04
 		libreadline-dev \
 		libncurses5-dev \
 		libsqlite3-dev \
+		libcurl4-gnutls-dev \
+		libdeflate-dev \
+		perl \
+		libdigest-perl-md5-perl \
 		pkg-config
-	rm -rf /var/lib/apt/lists/*
 
-	# Download and build Python 2.7
+	# download and build Python 2.7
+	mkdir -p /opt
 	cd /opt
 	mkdir python2.7
 	wget https://www.python.org/ftp/python/2.7.18/Python-2.7.18.tgz
@@ -39,28 +44,38 @@ From: ubuntu:24.04
 	cd ..
 	rm -rf Python-2.7.18
 	rm Python-2.7.18.tgz
-
-	# Add to path
 	ln -s /opt/python2.7/bin/python2.7 /usr/bin/python2
 
-	# Download and build manta
-	mkdir -p /opt
+	# download and build samtools (in /usr/local/bin)
 	cd /opt
-	wget https://github.com/Illumina/manta/releases/download/v1.6.0/manta-1.6.0.centos6_x86_64.tar.bz2 && \
-	tar -xjf manta-1.6.0.centos6_x86_64.tar.bz2 && \
-	rm manta-1.6.0.centos6_x86_64.tar.bz2 && \
+	wget -c https://github.com/samtools/samtools/releases/download/1.23/samtools-1.23.tar.bz2
+	tar xjf samtools-1.23.tar.bz2
+	rm samtools-1.23.tar.bz2
+	cd samtools-1.23
+	./configure
+	make
+	make install
+	cd ..
+	rm -rf samtools-1.23
+
+	# download and build manta
+	cd /opt
+	wget https://github.com/Illumina/manta/releases/download/v1.6.0/manta-1.6.0.centos6_x86_64.tar.bz2
+	tar -xjf manta-1.6.0.centos6_x86_64.tar.bz2
+	rm manta-1.6.0.centos6_x86_64.tar.bz2
 	mv manta-1.6.0.centos6_x86_64/ manta/
 
 	sed 's/^minEdgeObservations.\+$/minEdgeObservations = 2/; s/^minCandidateSpanningCount.\+/minCandidateSpanningCount = 2/' /opt/manta/bin/configManta.py.ini > /opt/manta/bin/configManta_high_sensitivity.py.ini
 
 	# Cleanup build dependencies
-	cd /
 	apt-get remove -y \
 		wget \
 		bzip2 \
 		build-essential \
+		unzip \
 		liblzma-dev \
 		make \
+		automake \
 		zlib1g-dev \
 		autoconf \
 		build-essential \
@@ -70,12 +85,15 @@ From: ubuntu:24.04
 		libreadline-dev \
 		libncurses5-dev \
 		libsqlite3-dev \
-		pkg-config
-	apt-get autoremove -y && \
-	apt-get clean && \
+		libdeflate-dev \
+		pkg-config \
+		gcc
+
+	apt-get autoremove -y
+	apt-get clean
 	rm -rf /var/lib/apt/lists/*
 
 %environment
 	export LANG=C.UTF-8
 	export LC_ALL=C.UTF-8
-	export PATH=/opt/manta:/bin:$PATH
+	export PATH=/opt/manta:/bin:/usr/local/bin:$PATH

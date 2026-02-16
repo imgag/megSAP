@@ -33,6 +33,8 @@ $parser->addFlag("skip_run_merging", "Do not merge this run with a previous run.
 $parser->addFlag("manual_demux", "Ignore NovaSeqX Analysis results and use maunal demux.");
 $parser->addFlag("no_queuing", "Do not include queuing commands in the default target of the Makefile.");
 
+$parser->addString("ignore_samples" ,"Comma-separated list of samples which should not be copied/analyzed",true, "");
+
 extract($parser->parse($argv));
 
 //check if GenLab is available
@@ -108,6 +110,7 @@ function check_number_of_lanes($run_info_xml_file, $sample_sheet)
 		return false;
 	}
 	$xml = simplexml_load_file($run_info_xml_file);
+	if ($xml===false) trigger_error("Could not load XML file: $run_info_xml_file", E_USER_ERROR);
 	if(empty($xml->Run->FlowcellLayout->attributes()->LaneCount))
 	{
 		return false;
@@ -266,6 +269,9 @@ if(!file_exists($samplesheet)) trigger_error("ERROR: Provided SampleSheet '{$sam
 //get file names
 $run_folder = dirname(realpath($samplesheet));
 
+//get ignored samples
+$ignored_samples = explode(",", $ignore_samples);
+
 //get run id and check FlowCell id
 $run_folder_parts = explode("_", basename($run_folder));
 $run_name = $run_folder_parts[count($run_folder_parts) - 1];
@@ -276,6 +282,7 @@ $run_name = "#".$run_name;
 //get flowcell id
 if(!file_exists($runinfo)) trigger_error("ERROR: Run info file '{$runinfo}' not found!", E_USER_ERROR);
 $xml = simplexml_load_file($runinfo);
+if ($xml===false) trigger_error("Could not load XML file: $runinfo", E_USER_ERROR);
 if(empty($xml->Run->Flowcell)) trigger_error("ERROR: Run info file doesn't contain flowcell id!", E_USER_ERROR);
 $flowcell_id = $xml->Run->Flowcell;
 
@@ -326,6 +333,13 @@ else if ($skip_run_merging) $merge_former_run = "n";
 //get sample data
 if($is_novaseq_x) $sample_data = get_sample_data_from_db($db_conn, $run_name);
 else $sample_data = extract_sample_data($db_conn, $samplesheet);
+
+//remove ignored samples
+foreach ($ignored_samples as $sample) 
+{
+	unset($sample_data[$sample]);
+}
+
 //import data from Genlab
 if (!$no_genlab)
 {
@@ -357,9 +371,6 @@ foreach($sample_data as $sample => $sample_infos)
 	//check run name (the same for all samples)
 	if($run_name != $sample_infos['run_name']) trigger_error("Sequencing run doesn't match sample info ('".$sample_infos['run_name']."')", E_USER_ERROR);
 }
-$queued_normal_samples = [];
-
-
 
 //Check for former run that contains more than 50% same samples and offer merging to user
 $former_run_name = "";
@@ -515,7 +526,7 @@ foreach($sample_data as $sample => $sample_infos)
 		$fastq_folder = $analysis_id."/Data/BCLConvert/fastq";
 
 		$old_location = $analysis_id."/Data";
-		if($ignore_analysis || ($sys_type == "RNA") || ($sys_type == "Panel") || ($sys_type == "cfDNA (patient-specific)") || ($sys_type == "cfDNA") || ($sys_type == "WGS (shallow)"))
+		if(($sys_type == "RNA") || ($sys_type == "Panel") || ($sys_type == "cfDNA (patient-specific)") || ($sys_type == "cfDNA") || ($sys_type == "WGS (shallow)"))
 		{
 			$old_location .= "/BCLConvert";
 			if (file_exists($old_location."/ora_fastq"))
@@ -589,7 +600,7 @@ foreach($sample_data as $sample => $sample_infos)
 				//check count
 				if(count($fastq_files) != count($sample_infos["ps_lanes"]) * 2) 
 				{
-					trigger_error("ERROR: Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found: ".count($fastq_files).")", E_USER_ERROR);
+					trigger_error("Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found: ".count($fastq_files).")", E_USER_ERROR);
 				}
 
 				//copy files
@@ -630,11 +641,11 @@ foreach($sample_data as $sample => $sample_infos)
 			//check count
 			if(count($fastq_files) != count($sample_infos["ps_lanes"]) * 2) 
 			{
-				trigger_error("ERROR: Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found in {$fastq_folder}: ".count($fastq_files).")", E_USER_ERROR);
+				trigger_error("Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found in {$fastq_folder}: ".count($fastq_files).")", E_USER_ERROR);
 			}
 
 			//check & copy analyzed data
-			if ($nsx_analysis_done && !$merge_sample)
+			if ($nsx_analysis_done && !$merge_sample && !$ignore_analysis)
 			{
 				//check if all files are present
 				$tmp = glob("$old_location/{$sample}/*_seq");
@@ -709,8 +720,8 @@ foreach($sample_data as $sample => $sample_infos)
 
 			}
 			
-
-			if(($sample_infos["preserve_fastqs"] == 1) || ($project_analysis=="fastq") || !$nsx_analysis_done || $merge_sample)
+			// copy fastq/ORA
+			if(($sample_infos["preserve_fastqs"] == 1) || ($project_analysis=="fastq") || !$nsx_analysis_done || $merge_sample || $ignore_analysis)
 			{
 				foreach ($fastq_files as $fastq_file) 
 				{
@@ -785,7 +796,7 @@ foreach($sample_data as $sample => $sample_infos)
 	//additional arguments for db_queue_analysis
 	$args = array();
 
-	if($project_analysis!="fastq" && !$is_normal_with_tumor) //if more than FASTQ creation should be done for samples's project
+	if($project_analysis!="fastq") //if more than FASTQ creation should be done for samples's project
 	{	
 		//queue analysis
 		if ($sample_is_tumor && $sys_type!="RNA")
@@ -804,24 +815,13 @@ foreach($sample_data as $sample => $sample_infos)
 				$outputline .= ($use_dragen ? " -use_dragen": "");
 			}
 			
-			
-			
-			
 			if (isset($tumor2normal[$sample]))
 			{
-				$normal = $tumor2normal[$sample];
-				//queue normal if on same run, with somatic specific options
-				if (!in_array($normal, $queued_normal_samples)  && array_key_exists($normal,$sample_data) && $sample_data[$normal]["run_name"] === $sample_infos["run_name"])
-				{
-					$queue_somatic[] = "\tphp {$repo_folder}/src/Tools/db_queue_analysis.php -type 'single sample' -samples {$normal} -args '-steps ".(!$nsx_analysis_done ? "ma,": "")."vc,cn,sv,db -somatic'";
-					//track that normal sample is queued
-					$queued_normal_samples[] = $normal;
-				}
-				
+				$normal = $tumor2normal[$sample];				
 				$normal_processed_info = get_processed_sample_info($db_conn,$normal);
 				$n_dir = $normal_processed_info["ps_folder"];
-				//queue somatic analysis: only if normal sample is included in this run or its folder exists
-				if(in_array($normal,$queued_normal_samples) || is_dir($n_dir))
+				//queue somatic analysis: only if normal sample is included in this run or its already folder exists
+				if(in_array($normal, array_keys($sample_data)) || is_dir($n_dir))
 				{
 					$queue_somatic[] = "\tphp {$repo_folder}/src/Tools/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal ".($use_dragen ? "-use_dragen": "");
 				}
@@ -852,7 +852,7 @@ foreach($sample_data as $sample => $sample_infos)
 			{
 				if (($sys_type == "WGS") || ($sys_type == "WES"))
 				{
-					if ($nsx_analysis_done && !$merge_sample)
+					if ($nsx_analysis_done && !$merge_sample && !$ignore_analysis)
 					{
 						$args[] = "-steps vc,cn,sv,re,db";
 					}
@@ -867,6 +867,12 @@ foreach($sample_data as $sample => $sample_infos)
 					}
 				}
 				//other sample types > use all default steps
+			}
+			
+			//add somatic specific options if it is the normal to a tumor sample
+			if ($is_normal_with_tumor)
+			{
+				$args[] = "-somatic";
 			}
 			
 			//check if trio needs to be queued

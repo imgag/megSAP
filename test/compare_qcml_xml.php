@@ -11,6 +11,8 @@ function rewrite_qcml($qcml, &$tmpfile)
 {
 	// load qcML with SimpleXML
 	$sxml = simplexml_load_file($qcml);
+	if ($sxml===false) trigger_error("Could not load XML file: $qcml", E_USER_ERROR);
+
 	// array to hold entries as accession => [name, value]
 	$values = [];
 	// output file

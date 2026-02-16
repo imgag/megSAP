@@ -43,7 +43,7 @@ $parser->logServerEnvronment();
 $sys = load_system($system, $name);
 $build = $sys['build'];
 $platform = get_longread_sequencing_platform($sys['name_short']);
-
+trigger_error("Determined platform (ONT or PacBio): {$platform}", E_USER_NOTICE);
 if ($test) trigger_error("Pipeline running in test mode!", E_USER_WARNING);
 
 //check steps
@@ -263,7 +263,7 @@ if (in_array("ma", $steps))
 	if (get_path("delete_fastq_files"))
 	{
 		//check if project overwrites the settings
-		$preserve_fastqs = false;
+		$preserve_fastqs = true;
 		if (db_is_enabled("NGSD"))
 		{
 			$db = DB::getInstance("NGSD", false);
@@ -375,7 +375,7 @@ if(db_is_enabled("NGSD") && !$no_gender_check)
 //variant calling
 if (in_array("vc", $steps))
 {
-	if ($platform == "PB")
+	if ($platform == "PB") //Pacbio
 	{
 		$args = [];
 		$args[] = "-model_type PACBIO";
@@ -390,17 +390,12 @@ if (in_array("vc", $steps))
 		$args[] = "-min_bq ".$min_bq;
 		$args[] = "-add_sample_header";
 		$args[] = "-name ".$name;
-
-		if ($gpu)
-		{
-			$args[] = "-gpu";
-		}
-
+		if ($gpu) $args[] = "-gpu";
+		
 		$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
 	}
-	else
+	else //ONT
 	{
-
 		//determine basecall model
 		$basecall_model = get_basecall_model($used_bam_or_cram);
 		$basecall_model_path = "";
@@ -422,10 +417,10 @@ if (in_array("vc", $steps))
 			}
 			else
 			{
-				trigger_error("Unsupported processing system '".$sys["name_short"]."' provided!", E_USER_ERROR);
+				trigger_error("Could not determine Clair basecall model for processing system '".$sys["name_short"]."'!", E_USER_ERROR);
 			}
 
-			trigger_error("No basecall info found in BAM file. Using default model at '{$basecall_model_path}'.", E_USER_NOTICE);
+			trigger_error("No basecall info found in BAM file. Using default model based on processing system: '{$basecall_model_path}'.", E_USER_NOTICE);
 		}
 		//special handling of old models
 		else if ($basecall_model == "dna_r10.4.1_e8.2_400bps_hac@v3.5.2")
@@ -1159,7 +1154,7 @@ if (in_array("db", $steps))
 					trigger_error("GSvar file {$ps_gsvar} not found! Skipping sample similarity check", E_USER_WARNING);
 					continue;
 				}
-				$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$var_file} {$ps_gsvar} -mode gsvar -build ".ngsbits_build($sys['build']), [$folder, $ps_gsvar]);
+				$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$var_file} {$ps_gsvar} -mode gsvar -ref {$genome} -build ".ngsbits_build($sys['build']), [$folder, $ps_gsvar, $genome]);
 				$correlation = explode("\t", $output[0][1])[3];
 				if ($correlation<$min_corr)
 				{

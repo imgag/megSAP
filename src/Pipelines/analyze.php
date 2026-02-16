@@ -743,14 +743,9 @@ if (in_array("vc", $steps))
 				else
 				{
 					$args = [];
-
-					if ($is_wes || $is_panel)	$args[] = "-model_type WES";
-					elseif ($is_wgs) $args[] = "-model_type WGS";
-					else
-					{
-						trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types are: WES, WGS, Panel, Panel Haloplex.", E_USER_ERROR);
-					}
-
+					if ($is_wes || $is_panel) $args[] = "-model_type WES";
+					else if ($is_wgs) $args[] = "-model_type WGS";
+					else trigger_error("Unsupported system type '".$sys['type']."' detected in {$system}. Compatible system types are: WES, WGS, Panel, Panel Haloplex.", E_USER_ERROR);
 					$args[] = "-bam ".$used_bam_or_cram;
 					$args[] = "-out ".$tmp_low_mappability;
 					$args[] = "-build ".$build;
@@ -917,7 +912,7 @@ if (in_array("cn", $steps))
 			if (!file_exists($bed))
 			{
 				$pipeline = [
-						["", $parser->execApptainer("ngs-bits", "BedChunk", "{$roi} -n {$bin_size}", [$roi], [], true)],
+						["", $parser->execApptainer("ngs-bits", "BedChunk", "-in {$roi} -n {$bin_size}", [$roi], [], true)],
 						["", $parser->execApptainer("ngs-bits", "BedAnnotateGC", "-clear -ref ".$genome, [$genome], [], true)],
 						["", $parser->execApptainer("ngs-bits", "BedAnnotateGenes", "-out {$bed}", [], [dirname($bed)], true)]
 					];
@@ -1075,7 +1070,7 @@ if (in_array("sv", $steps))
 			$vcf_inv_corrected = $parser->tempFile("_sv_inv_corrected.vcf");
 			$inv_script = repository_basedir()."/src/Tools/convertInversion.py";
 			$vc_manta_command = "python2 ".$inv_script;
-			$vc_manta_parameters = "/usr/bin/samtools {$genome} {$dragen_output_sv_vcf} dragen > {$vcf_inv_corrected}";
+			$vc_manta_parameters = "/usr/local/bin/samtools {$genome} {$dragen_output_sv_vcf} dragen > {$vcf_inv_corrected}";
 			$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, [$genome, $inv_script, $dragen_output_sv_vcf]);
 
 			// fix VCF file (remove variants with empty "REF" entry and duplicates)

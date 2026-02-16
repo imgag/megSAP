@@ -285,6 +285,7 @@ if (in_array("vc", $steps))
 		}
 		else //calling with DeepVariant with gVCF file creation
 		{
+			//TODO Marc perform gVCF calling in the single sample pipline (if not too slow) and only merge here if all samples already have a gVCF
 			$deepvar_gvcfs = array();
 			foreach($local_bams as $local_bam) // DeepVariant calling for each bam with gVCF output
 			{
@@ -292,14 +293,9 @@ if (in_array("vc", $steps))
 				$deepvar_gvcf = $parser->tempFile("_deepvar.gvcf.gz");
 
 				$args = [];
-
-				if ($is_wes)	$args[] = "-model_type WES";
-				elseif ($is_wgs) $args[] = "-model_type WGS";
-				else
-				{
-					trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types for multisample analysis are: WES, WGS", E_USER_ERROR);
-				}
-
+				if ($is_wes) $args[] = "-model_type WES";
+				else if ($is_wgs) $args[] = "-model_type WGS";
+				else trigger_error("Unsupported system type '".$sys['type']."' detected in {$system}. Compatible system types for multi-sample analysis are: WES, WGS", E_USER_ERROR);
 				$args[] = "-bam ".$local_bam;
 				$args[] = "-out ".$deepvar_vcf;
 				$args[] = "-gvcf ".$deepvar_gvcf;
@@ -307,6 +303,7 @@ if (in_array("vc", $steps))
 				$args[] = "-threads ".$threads;
 				$args[] = "-target ".$sys['target_file'];
 				$args[] = "-target_extend 200";
+				$args[] = "-min_af 0.1";
 				$args[] = "-allow_empty_examples";
 
 				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
@@ -315,13 +312,14 @@ if (in_array("vc", $steps))
 			}
 			
 			//merge gVCFs with GLnexus
+			$wes_config = "{$repository_basedir}/data/misc/glnexus_configs/DeepVariantWES.yml";
 			$tmp_vcf_merged = $parser->tempFile(".vcf.gz");
 			$args = [];
 			$args[] = "--dir ".$parser->tempFolder()."/GLnexus.DB/";
-			$args[] = "--config DeepVariant".($is_wes ? "WES" : "WGS");
+			$args[] = "--config ".($is_wes ? $wes_config : "DeepVariantWGS");
 			$args[] = implode(" ", $deepvar_gvcfs);
 			$pipeline = [];
-			$pipeline[] = ["", $parser->execApptainer("glnexus", "glnexus_cli", implode(" ", $args), [], [], true)];
+			$pipeline[] = ["", $parser->execApptainer("glnexus", "glnexus_cli", implode(" ", $args), [$wes_config], [], true)];
 			$pipeline[] = ["", $parser->execApptainer("glnexus", "bcftools view", "", [], [], true)];
 			$pipeline[] = ["", $parser->execApptainer("htslib", "bgzip", "-@ -c > {$tmp_vcf_merged}", [], [], true)];
 			$parser->execPipeline($pipeline, "GLnexus gVCF merging");

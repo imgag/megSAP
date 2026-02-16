@@ -33,7 +33,7 @@ extract($parser->parse($argv));
 //init
 $genome = genome_fasta($build);
 
-//create basic variant calls
+//prepare DeepVariant arguments
 $args = [];
 $args[] = "--reads={$bam}";
 if(isset($target))
@@ -66,27 +66,27 @@ if ($allow_empty_examples)
 }
 $args[] = "--model_type={$model_type}";
 $args[] = "--make_examples_extra_args=min_mapping_quality={$min_mq},min_base_quality={$min_bq},vsc_min_fraction_indels={$min_af},vsc_min_fraction_snps={$min_af}";
+$args[] = "--postprocess_variants_extra_args=cpus={$threads}";
 $args[] = "--ref={$genome}";
 $args[] = "--num_shards={$threads}";
 if (!empty($gvcf))
 {
 	$args[] = "--output_gvcf={$gvcf}";
 }
-
+$args[] = "--intermediate_results_dir=".$parser->tempFolder(); //if not set, examples are written to /tmp/, even if tmp folder is overwritten in environment variables, e.g. in SGE
 
 // run deepvariant
 $pipeline = array();
-$container = ($gpu) ? "deepvariant-gpu" : "deepvariant";
 $prefix = container_platform()=='apptainer' ? "APPTAINERENV" : "SINGULARITYENV";
 if ($raw_output)
 {
-	$command = $parser->execApptainer($container, "run_deepvariant" ,implode(" ", $args)." --output_vcf={$out}", [$genome, $bam], [dirname($out)], true);
+	$command = $parser->execApptainer("deepvariant", "run_deepvariant" ,implode(" ", $args)." --output_vcf={$out}", [$genome, $bam], [dirname($out)], true, true, true, true, $gpu);
 	$parser->exec("{$prefix}_OMP_NUM_THREADS={$threads} {$prefix}_TF_NUM_INTRAOP_THREADS={$threads} {$prefix}_TF_NUM_INTEROP_THREADS={$threads} {$command}", "");
 	return;
 }
 
 $vcf_deepvar_out = $parser->tempFile(".vcf.gz");
-$command = $parser->execApptainer($container, "run_deepvariant", implode(" ", $args)." --output_vcf={$vcf_deepvar_out}", [$genome, $bam], [dirname($out)], true);
+$command = $parser->execApptainer("deepvariant", "run_deepvariant", implode(" ", $args)." --output_vcf={$vcf_deepvar_out}", [$genome, $bam], [dirname($out)], true, true, true, true, $gpu);
 $parser->exec("{$prefix}_OMP_NUM_THREADS={$threads} {$prefix}_TF_NUM_INTRAOP_THREADS={$threads} {$prefix}_TF_NUM_INTEROP_THREADS={$threads} {$command}", "");
 
 //filter variants according to variant quality>5

@@ -3,8 +3,6 @@
 	@page mvh_grz_export
 */
 
-//TODO update to grz-cli v1.5 until 1.1.26 (see email "GRZ Tübingen Updates" from 2025-10-30)
-
 require_once("mvh_functions.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
@@ -93,15 +91,31 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 		print "  note: fastp results already exist in folder {$fastp_folder} - using them\n";
 	}
 	
+	//determine QC thresholds
+	$lib_type = ($is_lrgs ? "wgs_lr" : strtolower($seq_mode));
+	$seq_subtype = ($is_tumor ? "somatic" : "germline");
+	$study_subtype = ($is_somatic ? "tumor+germline" : "germline-only");
+	$qc_data = json_decode(file_get_contents("/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/lib/python3.12/site-packages/grz_pydantic_models/resources/thresholds.json"), true);
+	$thresholds = NULL;
+	foreach($qc_data as $entry)
+	{
+		if ($entry['libraryType']!=$lib_type) continue;
+		if ($entry['sequenceSubtype']!=$seq_subtype) continue;
+		if ($entry['genomicStudySubtype']!=$study_subtype) continue;
+		
+		$thresholds = $entry['thresholds'];
+	}
+	if (is_null($thresholds)) trigger_error("Could not determine thresholds for {$lib_type}/{$seq_subtype}/{$$study_subtype}!", E_USER_ERROR);
+	
 	//generate report
 	$report = "{$qc_folder}/{$ps}_report.csv";
 	$args = [];
 	$args[] = "--donorPseudonym '{$patient_id}'";
 	$args[] = "--sample_id '{$ps}'";
 	$args[] = "--labDataName 'blood DNA'";
-	$args[] = "--libraryType ".($is_lrgs ? "wgs_lr" : strtolower($seq_mode));
-	$args[] = "--sequenceSubtype ".($is_tumor ? "somatic" : "germline");
-	$args[] = "--genomicStudySubtype ".($is_somatic ? "tumor+germline" : "germline-only");
+	$args[] = "--libraryType {$lib_type}";
+	$args[] = "--sequenceSubtype {$seq_subtype}";
+	$args[] = "--genomicStudySubtype {$study_subtype}";
 	$args[] = "--fastp_json {$fastp_json}";
 	$args[] = "--mosdepth_global_summary {$mosdepth_summary}";
 	$args[] = "--mosdepth_target_regions_bed {$mosdepth_regions}";
@@ -109,8 +123,13 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 	$args[] = "--meanDepthOfCoverage 1"; //dummy value, not used on our case
 	$args[] = "--targetedRegionsAboveMinCoverage 1"; //dummy value, not used on our case
 	$args[] = "--percentBasesAboveQualityThreshold 1"; //dummy value, not used on our case
+	$args[] = "--meanDepthOfCoverageRequired ".$thresholds['meanDepthOfCoverage']; 
+	$args[] = "--qualityThreshold ".$thresholds['percentBasesAboveQualityThreshold']['qualityThreshold'];
+	$args[] = "--percentBasesAboveQualityThresholdRequired ".$thresholds['percentBasesAboveQualityThreshold']['percentBasesAbove'];
+	$args[] = "--minCoverage ".$thresholds['targetedRegionsAboveMinCoverage']['minCoverage'];
+	$args[] = "--targetedRegionsAboveMinCoverageRequired ".$thresholds['targetedRegionsAboveMinCoverage']['fractionAbove'];
 	exec2("/mnt/storage2/MVH/tools/python3/bin/python3 {$qc_wf_folder}/bin/compare_threshold.py ".implode(" ", $args));
-	
+
 	//parse QC report
 	$file = file($report);
 	$headers = explode(",", trim($file[0]));
@@ -151,7 +170,7 @@ function create_files_json($files_to_submit, $info, $read_length)
 		else if (ends_with($file, ".bed")) $data["fileType"] = "bed";
 		$data["checksumType"] = "sha256";
 		$checksum_file = "{$qc_folder}/checksums/".basename($file).".sha256sum";
-		if (!file_exists($checksum_file))
+		if (!file_exists($checksum_file) || trim(file_get_contents($checksum_file))=="")
 		{
 			exec2("sha256sum {$file} > {$checksum_file}");
 		}
@@ -183,7 +202,7 @@ function create_files_json($files_to_submit, $info, $read_length)
 	return $output;
 }
 
-function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
+function create_lab_data_json($files, $info, $grz_qc, $is_tumor, $info_germline=null)
 {
 	global $megsap_ver;
 	global $db_ngsd;
@@ -257,14 +276,14 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor)
 								"minimumQuality" => (float)($grz_qc["qualityThreshold"]),
 								"percent" => (float)($grz_qc["percentBasesAboveQualityThreshold"])
 							], 
-						"meanDepthOfCoverage" => (float)($grz_qc["meanDepthOfCoverage"]),
+						"meanDepthOfCoverage" => (float)($grz_qc["meanDepthOfCoverage"])*1.05, //TODO remove?
 						"minCoverage" => (float)($grz_qc["minCoverage"]),
 						"targetedRegionsAboveMinCoverage" => (float)(number_format($grz_qc["targetedRegionsAboveMinCoverage"],2)),
 						"nonCodingVariants" => "true",
 						"callerUsed" => [
-								0 => [ //TODO remove hard-coded somatic caller when somatic small variants callset is implemented in NGSD
-									"name" => $is_tumor ? "DRAGEN" : $db_ngsd->getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='".$info["ps_id"]."'"),
-									"version" => $is_tumor ? "4.3.13" : $db_ngsd->getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='".$info["ps_id"]."'"),
+								0 => [
+									"name" => $is_tumor ? $db_ngsd->getValue("SELECT caller FROM somatic_snv_callset WHERE processed_sample_id_tumor='".$info["ps_id"]."' AND processed_sample_id_normal='".$info_germline["ps_id"]."'") : $db_ngsd->getValue("SELECT caller FROM small_variants_callset WHERE processed_sample_id='".$info["ps_id"]."'"),
+									"version" => $is_tumor ? $db_ngsd->getValue("SELECT caller_version  FROM somatic_snv_callset WHERE processed_sample_id_tumor='".$info["ps_id"]."' AND processed_sample_id_normal='".$info_germline["ps_id"]."'") : $db_ngsd->getValue("SELECT caller_version FROM small_variants_callset WHERE processed_sample_id='".$info["ps_id"]."'"),
 									]
 							],
 						"files" => $files
@@ -357,7 +376,7 @@ else trigger_error("Unhandled network type '{$network}'!", E_USER_ERROR);
 
 //check seqencing mode
 $seq_mode = xml_str($cm_data->seq_mode);
-if ($seq_mode!="WGS" && $seq_mode!="WES") trigger_error("Unhandled seq_mode '{$seq_mode}'!", E_USER_ERROR);
+if ($seq_mode!="WGS" && $seq_mode!="lrGS" && $seq_mode!="WES") trigger_error("Unhandled seq_mode '{$seq_mode}'!", E_USER_ERROR);
 
 //start export
 print "CM ID: {$cm_id} (MVH DB id: {$id} / CM Fallnummer: ".xml_str($cm_data->case_id)." / seq_mode: {$seq_mode} / network: {$network})\n";
@@ -371,6 +390,7 @@ $sys = $info['sys_name_short'];
 $sys_type = $info['sys_type'];
 $is_lrgs = $sys_type=="lrGS";
 print "germline sample: {$ps} (system: {$sys}, type: {$sys_type})\n";
+if ($seq_mode!=$sys_type) trigger_error("Sequencing mode in CM RedCap is '{$seq_mode}', but processing system type is '{$sys_type}'!", E_USER_ERROR);
 
 //check germline processed sample is ok
 $ps_t = "";
@@ -391,7 +411,7 @@ if ($is_somatic)
 //determine ROI
 $roi = "";
 if ($sys=="twistCustomExomeV2" || $sys=="twistCustomExomeV2Covaris") $roi = "{$mvh_folder}/rois/twist_exome_core_plus_refseq.bed";
-if ($seq_mode!="WGS" && $roi=="") trigger_error("Could not determine target region for sample '{$ps}' with processing system '{$sys}'!", E_USER_ERROR);
+if ($seq_mode!="WGS" && $seq_mode!="lrGS" && $roi=="") trigger_error("Could not determine target region for sample '{$ps}' with processing system '{$sys}'!", E_USER_ERROR);
 
 //determine tanG==VNg
 $sub_ids = $db_mvh->getValues("SELECT id FROM `submission_grz` WHERE status='pending' AND case_id='{$id}'");
@@ -567,102 +587,123 @@ $lab_data = [];
 $lab_data[] = create_lab_data_json($files, $info, $grz_qc, false);
 if ($is_somatic)
 {
-	$lab_data[] = create_lab_data_json($files_t, $info_t, $grz_qc_t, true);
+	$lab_data[] = create_lab_data_json($files_t, $info_t, $grz_qc_t, true, $info);
 }
-//TODO add support for kids (SE: RedCap, OE: ???, FBREK: ???)
-//prepare research consent data - for format see https://www.medizininformatik-initiative.de/Kerndatensatz/KDS_Consent_V2025/MII-IG-Modul-Consent-TechnischeImplementierung-FHIRProfile-Consent.html
-$active_consent_count = 0;
-$research_use_allowed = false;
-$date = "";
-$start = "";
-$end = "";
-$rc_data = get_rc_data($db_mvh, $id);
-if ($rc_data!=false)
+
+//if SE > check if it is a BC for children
+$is_kids_bc = false;
+if (xml_str($cm_data->bc_signed)=="Ja" && $network=="Netzwerk Seltene Erkrankungen")
 {
-	foreach($rc_data->consent as $consent)
+	$se_data_rep = get_se_data($db_mvh, $id, true);
+	list($bc_type, $bc_item) = get_bc_data_se($se_data_rep);
+	$is_kids_bc = starts_with($bc_type, "Kinder");
+}
+
+//prepare research consent data - for format see https://www.medizininformatik-initiative.de/Kerndatensatz/KDS_Consent_V2025/MII-IG-Modul-Consent-TechnischeImplementierung-FHIRProfile-Consent.html
+if ($is_kids_bc)
+{
+	$se_data = get_se_data($db_mvh, $id);
+	$research_consent = convert_se_kids_bc_to_fhir($bc_item, $se_data, $parser);
+}
+else
+{
+	$active_consent_count = 0;
+	$research_use_allowed = false;
+	$date = "";
+	$start = "";
+	$end = "";
+	$rc_data = get_rc_data($db_mvh, $id);
+	if ($rc_data!=false)
 	{
-		if ($consent->status!="active") continue;
-		++$active_consent_count;
-		
-		$date = xml_str($consent->date);
-		$start = xml_str($consent->start);
-		$end = xml_str($consent->end);
-		
-		foreach($consent->permit as $permit)
+		foreach($rc_data->consent as $consent)
 		{
-			if ($permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.8" || $permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.1")
+			if ($consent->status!="active") continue;
+			++$active_consent_count;
+			
+			$date = xml_str($consent->date);
+			$start = xml_str($consent->start);
+			$end = xml_str($consent->end);
+			
+			foreach($consent->permit as $permit)
 			{
-				$research_use_allowed = true;
+				if ($permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.8" || $permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.1")
+				{
+					$research_use_allowed = true;
+				}
 			}
 		}
 	}
 	if ($active_consent_count>1) trigger_error("More than one active consent found in MVH data:\n{$rc_data}", E_USER_ERROR);
-}
-$research_consent = [
-	"status" => "active",
-	"scope" => [
-		"coding" => [
-				0 => [
-					"system" => "http://terminology.hl7.org/CodeSystem/consentscope",
-					"code" => "research"					
+	if (xml_str($cm_data->bc_signed)=="Ja" && $active_consent_count==0) trigger_error("Patient has signed BC, but no active consent found in MVH data\n{$rc_data}", E_USER_ERROR);
+	
+	$research_consent = [
+		"status" => "active",
+		"scope" => [
+			"coding" => [
+					0 => [
+						"system" => "http://terminology.hl7.org/CodeSystem/consentscope",
+						"code" => "research"					
+					]
 				]
-			]
-		],
-	"category" => [
-			[
-				"coding" => [
-						[
-							"system" => "http://loinc.org",
-							"code" => "57016-8"					
-						]
-					]
 			],
-			[
-				"coding" => [
-						[
-							"system" => "https://www.medizininformatik-initiative.de/fhir/modul-consent/CodeSystem/mii-cs-consent-consent_category",
-							"code" => "2.16.840.1.113883.3.1937.777.24.2.184"					
-						]
-					]
-			]
-		],
-	"patient" => [
-		"reference" => $patient_id
-		],
-	"dateTime" => $date,
-	"policy" => [
-			[
-				"uri" => "urn:oid:2.16.840.1.113883.3.1937.777.24.2.1791"
-			]
-		],
-	"provision" => [
-		"type" => "deny",
-		"period" => [
-			"start" => $start,
-			"end" => $end
-			],
-		"provision" => [
-			[
-				"code" => [
-					[
-						"coding" => [
+		"category" => [
+				[
+					"coding" => [
 							[
-								"system" => "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
-								"code" => "2.16.840.1.113883.3.1937.777.24.5.3.1",
-								"display" => "PATDAT_erheben_speichern_nutzen"
+								"system" => "http://loinc.org",
+								"code" => "57016-8"					
 							]
 						]
-					]
 				],
-				"type" => ($research_use_allowed ? "permit" : "deny"),
-				"period" => [
-					"start" => $start,
-					"end" => $end
+				[
+					"coding" => [
+							[
+								"system" => "https://www.medizininformatik-initiative.de/fhir/modul-consent/CodeSystem/mii-cs-consent-consent_category",
+								"code" => "2.16.840.1.113883.3.1937.777.24.2.184"					
+							]
+						]
+				]
+			],
+		"patient" => [
+			"reference" => $patient_id
+			],
+		"dateTime" => $date,
+		"policy" => [
+				[
+					"uri" => "urn:oid:2.16.840.1.113883.3.1937.777.24.2.1791"
+				]
+			],
+		"provision" => [
+			"type" => "deny",
+			"period" => [
+				"start" => $start,
+				"end" => $end
+				],
+			"provision" => [
+				[
+					"code" => [
+						[
+							"coding" => [
+								[
+									"system" => "urn:oid:2.16.840.1.113883.3.1937.777.24.5.3",
+									"code" => "2.16.840.1.113883.3.1937.777.24.5.3.1",
+									"display" => "PATDAT_erheben_speichern_nutzen"
+								]
+							]
+						]
 					],
+					"type" => ($research_use_allowed ? "permit" : "deny"),
+					"period" => [
+						"start" => $start,
+						"end" => $end
+						],
+				]
 			]
 		]
-	]
-];
+	];
+}
+
+
 
 //create meta data JSON
 print "  creating metadata...\n";
@@ -709,18 +750,32 @@ $json['donors'] = [
 						],
 				]
 			],
-		"researchConsents" => [], //TODO implement until 1.1.26: presentationDate mandatory, set 'noScoreJustification' if no consent data given (bc_reason_missing)
+		"researchConsents" => [],
 		"labData" => $lab_data		 
 		]
 	];
 
-//add optional data
-if ($active_consent_count>0)
+//add consent data
+if (xml_str($cm_data->bc_signed)=="Ja") //consent signed
 {
 	$json['donors'][0]['researchConsents'][] = [
 					"schemaVersion" => "2025.0.1",
 					"presentationDate" => xml_str($cm_data->bc_date),
 					"scope" => $research_consent
+					];
+}
+else //consent not signed
+{
+	$reason_missing = convert_bc_missing(xml_str($cm_data->bc_reason_missing));
+	if ($reason_missing=="patient-inability") $reason_missing = "patient unable to consent";
+	else if ($reason_missing=="patient-refusal") $reason_missing = "patient refuses to sign consent";
+	else if ($reason_missing=="consent-not-returned") $reason_missing = "patient did not return consent documents";
+	else if ($reason_missing=="other-patient-reason") $reason_missing = "other patient-related reason";
+	else trigger_error("Count not convert reason why BC is missing: '{$reason_missing}'!", E_USER_ERROR);
+	$json['donors'][0]['researchConsents'][] = [
+					"schemaVersion" => "2025.0.1",
+					"presentationDate" => xml_str($cm_data->bc_date),
+					"noScopeJustification" => $reason_missing
 					];
 }
 
@@ -731,7 +786,6 @@ file_put_contents($json_file, json_encode($json, JSON_PRETTY_PRINT));
 print "creating JSON took ".time_readable(microtime(true)-$time_start)."\n";
 $time_start = microtime(true);
 
-//TODO update to v1.5.0 in Jan 2026
 //print grz-cli version info
 $grz_cli = "/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/bin/grz-cli";
 list($stdout) = exec2("{$grz_cli} --version");
@@ -740,11 +794,12 @@ print "\n";
 
 //validate the submission
 print "running grz-cli validate...\n";
+$config = "/mnt/storage2/MVH/config/config_".($test ? "test_phase" : "production").".txt";
 $output = [];
 $exit_code = null;
 $stdout = "{$folder}/logs/grz_cli_validate.stdout";
 $stderr = "{$folder}/logs/grz_cli_validate.stderr";
-exec2("{$grz_cli} validate --submission-dir {$folder} > {$stdout} 2> {$stderr}", $output, $exit_code); //when using exec2 the process hangs indefinitely sometimes
+exec2("{$grz_cli} validate --submission-dir {$folder} --config-file {$config} > {$stdout} 2> {$stderr}", $output, $exit_code); //when using exec2 the process hangs indefinitely sometimes
 if ($exit_code!=0)
 {
 	trigger_error("grz-cli validate failed!\nSTDOUT:\n".implode("\n", file($stdout, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES))."\nSTDERR:\n".implode("\n", file($stderr, FILE_IGNORE_NEW_LINES|FILE_SKIP_EMPTY_LINES)), E_USER_ERROR);
@@ -755,7 +810,6 @@ $time_start = microtime(true);
 
 //Encrypt the submission
 print "running grz-cli encrypt...\n";
-$config = "/mnt/storage2/MVH/config/config_".($test ? "test_phase" : "production").".txt";
 $stdout = "{$folder}/logs/grz_cli_encrypt.stdout";
 $stderr = "{$folder}/logs/grz_cli_encrypt.stderr";
 $output = [];

@@ -1,0 +1,82 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%post
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+	
+# update ubuntu packages and install build dependencies
+apt-get update --fix-missing
+apt-get upgrade -y
+apt-get install -y \
+	git \
+	make \
+	g++ \
+	qt6-base-dev \
+	libqt6sql6 \
+	libqt6sql6-mysql \
+	libqt6sql6-odbc \
+	libqt6charts6-dev \
+	libqt6svg6-dev \
+	python3 \
+	python3-matplotlib \
+	libbz2-dev \
+	liblzma-dev \
+	libcurl4 \
+	libcurl4-openssl-dev \
+	zlib1g-dev \
+	curl \
+	pkg-config \
+	libxml2 \
+	libxml2-dev \
+	gnupg \
+	libssl-dev \
+	libdeflate-dev \
+	unzip \
+	ca-certificates \
+	libtool
+	
+#install Microsoft driver for MSSQL needed for Qt ODBC library
+curl -o /etc/apt/sources.list.d/mssql-release.list https://packages.microsoft.com/config/ubuntu/24.04/prod.list
+curl https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
+apt update
+ACCEPT_EULA=Y apt install -y msodbcsql18 unixodbc unixodbc-dev
+
+#symlink for qmake
+ln -fs /usr/bin/qmake6 /usr/bin/qmake
+
+# clone and build ngs-bits
+mkdir -p /opt
+cd /opt
+git clone https://github.com/imgag/ngs-bits.git
+cd ngs-bits
+git checkout 2025_12 && git submodule update --recursive --init
+make build_3rdparty
+make build_libs_release
+make build_tools_release
+
+# cleanup build dependencies
+cd /
+find /opt/ngs-bits -mindepth 1 -maxdepth 1 ! -name 'bin' -exec rm -rf {} +
+apt-get remove -y \
+	git \
+	make \
+	g++ \
+	qt6-base-dev \
+	libqt6charts6-dev \
+	libqt6svg6-dev \
+	libbz2-dev \
+	liblzma-dev \
+	libcurl4 \
+	zlib1g-dev \
+	curl
+apt-get install -y libqt6network6 libqt6xml6 libqt6svg6 libqt6sql6-mysql libqt6sql6-odbc libqt6charts6 libqt6svg6 
+
+apt-get autoremove -y
+apt-get clean
+rm -rf /var/lib/apt/lists/*
+
+%environment
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+export PATH=/opt/ngs-bits/bin:/bin:$PATH

@@ -11,7 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("merge_gvcf", "Merge multiple gVCF files using GATK CombineGVCFs");
 $parser->addInfileArray("gvcfs", "List of gVCF files which should be merged (bgzipped and sorted).", false);
 $parser->addStringArray("status", "List of affected status of the input samples (gVCFs) - can be 'affected' or 'control'.", false);
-$parser->addEnum("mode", "Mode.", false, ["clair3", "dragen"]);
+$parser->addEnum("mode", "Mode.", false, ["clair3", "dragen", "mixed"]);
 $parser->addOutfile("out", "Output VCF files containing calls of the merged gVCFs.", false);
 
 //optional
@@ -59,7 +59,7 @@ foreach($gvcfs as $gvcf)
 			$chr = trim(explode(",", explode("ID=", $line, 2)[1], 2)[0]);
 			$length = (int) explode(">", explode("length=", $line, 2)[1], 2)[0];
 			$skip_chr = false;
-			if ($mode=="dragen")
+			if (($mode=="dragen") || ($mode=="mixed"))
 			{
 				if (starts_with($chr, "chrUn")) $skip_chr = true;
 				if (ends_with($chr, "_random")) $skip_chr = true;
@@ -149,11 +149,12 @@ foreach($chr_regions as list($chr, $length))
 	$args[] = "-O {$temp_folder_out}/{$chr}.vcf.gz";
 	$args[] = "--call-genotypes";
 	$args[] = "--seconds-between-progress-updates 3600"; //only update progress once every hour to keep log-file smaller
-	if ($mode=="clair3") $args[] = "--standard-min-confidence-threshold-for-calling 5"; //decrease threshold in clair3-mode to improve de-novo calling 
+	if (($mode=="clair3") || ($mode=="mixed")) $args[] = "--standard-min-confidence-threshold-for-calling 5"; //decrease threshold in clair3-mode to improve de-novo calling 
 
 	$command = $parser->execApptainer("gatk", "gatk", implode(" ", $args), [$genome], [], true);
 	$jobs_call_genotypes[] = array($job_name, $command);
 }
+
 // run genotype calling for every chromosome separately
 $parser->execParallel($jobs_call_genotypes, $threads);
 
@@ -209,9 +210,11 @@ $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stre
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true)];
 
 //fix error in VCF file and strip unneeded information
+if ($mode=="mixed") $pipeline[] = array("php ".repository_basedir()."/src/Tools/vcf_fix.php", "--dragen_mode", false); // second run for mixed trios
+
 $uncompressed_vcf = $parser->tempFile(".vcf");
 $args = [];
-if ($mode=="clair3") $args[] = "--clair3_mode";
+if (($mode=="clair3") || ($mode=="mixed")) $args[] = "--clair3_mode";
 if ($mode=="dragen") $args[] = "--dragen_mode";
 $args[] = "> {$uncompressed_vcf}";
 $pipeline[] = array("php ".repository_basedir()."/src/Tools/vcf_fix.php", implode(" ", $args), false);
@@ -220,7 +223,7 @@ $pipeline[] = array("php ".repository_basedir()."/src/Tools/vcf_fix.php", implod
 $parser->execPipeline($pipeline, "merge_gvcf post processing");
 
 //add name/pipeline info to VCF header
-if ($mode=="clair3")
+if (($mode=="clair3") || ($mode=="mixed"))
 {
 	$vcf = Matrix::fromTSV($uncompressed_vcf);
 	$comments = $vcf->getComments();

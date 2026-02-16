@@ -21,7 +21,7 @@ $parser->addString("prefix", "Output file prefix.", true, "somatic");
 
 $steps_all = array("vc", "vi", "cn", "an", "an_rna", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\n" .
-	"vc=variant calling, an=annotation,\n" .
+	"vc=variant calling (small variants and SVs), an=annotation (small variants and SVs),\n" .
 	"cn=copy-number analysis\n".
 	"an_rna=annotate data from somatic RNA files,\n".
 	"vi=virus detection, db=database import",
@@ -32,6 +32,7 @@ $parser->addFlag("skip_contamination_check", "Skips check of female tumor sample
 $parser->addFlag("skip_correlation", "Skip sample correlation check.");
 $parser->addFlag("skip_low_cov", "Skip low coverage statistics.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
+$parser->addFlag("use_deepsomatic_test", "Use DeepSomatic for somatic variant calling. (normally set in settings.ini)");
 
 //default cut-offs
 $parser->addFloat("min_af", "Allele frequency detection limit (for small variant calling).", true, 0.01);
@@ -51,6 +52,9 @@ foreach($steps as $step)
 }
 
 ###################################### SCRIPT START ######################################
+//check which caller to use
+$use_deepsomatic = $use_deepsomatic_test ?: get_path("use_deepsomatic");
+
 if (!file_exists($out_folder))
 {
 	exec2("mkdir -p $out_folder");
@@ -59,7 +63,7 @@ if (!file_exists($out_folder))
 $out_folder = realpath($out_folder);
 
 //create log file in output folder if none is provided
-if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/somatic_tumor_only".date("YmdHis").".log");
+if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/somatic_tumor_only_".date("YmdHis").".log");
 
 //log server, user, etc.
 $parser->logServerEnvronment();
@@ -71,9 +75,16 @@ $full_prefix = "{$out_folder}/{$prefix}";
 $t_id = basename2($t_bam);
 $t_basename = dirname($t_bam)."/".$t_id;
 $sys = load_system($system, $t_id);
-$roi = $sys["target_file"];
+$roi = trim($sys["target_file"]);
 $build = $sys['build'];
 $ref_genome = genome_fasta($build);
+
+//check that ROI is sorted
+if ($roi!="")
+{
+	$roi = realpath($roi);
+	if (!bed_is_sorted($roi)) trigger_error("Target region file not sorted: ".$roi, E_USER_ERROR);
+}
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
 if (!$no_sync)
@@ -116,8 +127,39 @@ if (in_array("vc", $steps))
 	$parser->execTool("Tools/hla_genotyper.php", "-bam {$t_bam} -name {$t_id} -out {$hla_file_tumor}");
 	
 	//small variant calling
-	$parser->execTool("Tools/vc_varscan2.php", "-bam {$t_bam} -out {$variants} -build {$build} -target {$roi} -name {$t_id} -min_af {$min_af}");
+	//DeepSomatic calling
+	if ($use_deepsomatic)
+	{
+		$args = [];
+		if ($sys['type'] !== "WGS") $args[] = "-model_type WES_TUMOR_ONLY";
+		else $args[] = "-model_type WGS_TUMOR_ONLY";
+		$args[] = "-bam_tumor ".$t_bam;
+		$args[] = "-out ".$variants;
+		$args[] = "-build {$build}";
+		$args[] = "-threads ".$threads;
+		$args[] = "-tumor_id {$t_id}";
+		$args[] = "-min_af_indels $min_af";
+		$args[] = "-min_af_snps $min_af";
+		$args[] = "-tumor_only";
+		$args[] = "-min_mq 15"; //taken from vc_varscan2.php
+		$args[] = "-min_bq 20"; //taken from vc_varscan2.php
+
+		if (!empty($roi))
+		{
+			$args[] = "-target {$roi}";
+		}
+		$args[] = "-allow_empty_examples";
+
+		$parser->execTool("Tools/vc_deepsomatic.php", implode(" ", $args));
+	}
+	//Varscan2 calling
+	else
+	{
+		$parser->execTool("Tools/vc_varscan2.php", "-bam {$t_bam} -out {$variants} -build {$build} -target {$roi} -name {$t_id} -min_af {$min_af}");
+	}
+	
 	$parser->execApptainer("htslib", "tabix", "-f -p vcf {$variants}", [], [dirname($variants)]);
+
 	
 	// structural variant calling
 	if (!$sys['shotgun'])
@@ -147,8 +189,26 @@ if (in_array("vc", $steps))
 		}
 		$parser->execTool("Tools/vc_manta.php", implode(" ", $args_manta));
 		
+		//convert VCF to BEDPE
 		$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in $manta_sv -out $manta_sv_bedpe", [$manta_sv], [dirname($manta_sv_bedpe)]);
 		
+		//add analysis type to BEDPE file
+		$tmp = $parser->tempFile(".bedpe");
+		$ostream = fopen2($tmp, 'w');
+		fwrite($ostream, "##fileformat=BEDPE_TUMOR_ONLY\n");
+		fwrite($ostream, "##ANALYSISTYPE=BEDPE_TUMOR_ONLY\n");
+		foreach(file($manta_sv_bedpe) as $line)
+		{
+			$line = nl_trim($line);
+			if ($line=="" || starts_with($line, "#fileformat=")) continue;
+			
+			fwrite($ostream, $line);
+			fwrite($ostream, "\n");			
+		}
+		fclose($ostream);
+		$parser->moveFile($tmp, $manta_sv_bedpe);
+		
+		//annotate BEDPE
 		if( db_is_enabled("NGSD") )
 		{
 			$parser->execApptainer("ngs-bits", "BedpeGeneAnnotation", "-in $manta_sv_bedpe -out $manta_sv_bedpe -add_simple_gene_names", [$manta_sv_bedpe]);
@@ -360,7 +420,7 @@ if (in_array("an", $steps))
 
 if (in_array("an_rna", $steps))
 {
-	$args = array();
+	$args = [];
 	$args[] = "-t_bam {$t_bam}";
 	$args[] = "-full_prefix $full_prefix";
 	$args[] = "-steps ".count($steps);
@@ -372,11 +432,17 @@ if (in_array("an_rna", $steps))
 	$parser->execTool("Tools/an_somatic_rna.php", implode(" ", $args));
 }
 
-//Collect QC terms if necessary
+//create QC data when necessary
 $qc_other = $full_prefix."_stats_other.qcML";
 if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("cn", $steps) || in_array("db", $steps))
 {
-	$parser->execTool("Auxilary/create_qcml.php", "-full_prefix {$full_prefix} -viral_tsv {$t_basename}_viral.tsv -tumor_only");
+	$args = [
+		"-full_prefix {$full_prefix}",
+		"-viral_tsv {$t_basename}_viral.tsv",
+		"-tumor_only",
+	];
+	if (!empty($roi)) $args[] = "-roi {$roi}";
+	$parser->execTool("Tools/create_qcml.php", implode(" ", $args));
 }
 
 //DB import
@@ -388,12 +454,8 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	if (is_null($t_info)) trigger_error("NGSD import failed: Could not find processed sample '$t_id' in NGSD!", E_USER_ERROR);
 	
 	// import qcML files
-	$qcmls = implode(" ", array_filter([
-		"{$t_basename}_stats_fastq.qcML",
-		"{$t_basename}_stats_map.qcML",
-		$qc_other
-	], "file_exists"));
-	$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps $t_id -files $qcmls -force", ["{$t_basename}_stats_fastq.qcML", "{$t_basename}_stats_map.qcML", $qc_other]);
+	$qcmls = array_filter(["{$t_basename}_stats_fastq.qcML", "{$t_basename}_stats_map.qcML", $qc_other], "file_exists");
+	$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps $t_id -files ".implode(" ", $qcmls)." -force", $qcmls);
 
 	// check tumor/normal flag
 	if (!$t_info['is_tumor'])
@@ -402,12 +464,29 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	}
 
 	// import variants into NGSD
+	$args = ["-t_ps {$t_id}", "-force"];
+	$binds = [];
 	if (file_exists($variants_gsvar))
 	{
-		check_genome_build($variants_gsvar, $build);
-		$parser->execApptainer("ngs-bits", "NGSDAddVariantsSomatic", "-t_ps $t_id -var $variants_gsvar -force", [$variants_gsvar]);
+		check_genome_build($variants_gsvar, $sys['build']);
+		$args[] = "-var {$variants_gsvar}";
+		$binds[] = $variants_gsvar;
 	}
-			
+	if(file_exists($som_clincnv))
+	{
+		$args[] = "-cnv {$som_clincnv}";
+		$binds[] = $som_clincnv;
+	}			
+	if(file_exists($manta_sv_bedpe))
+	{
+		$args[] = "-sv {$manta_sv_bedpe}";
+		$binds[] = $manta_sv_bedpe;
+	}
+	if (count($binds)>0)
+	{
+		$parser->execApptainer("ngs-bits", "NGSDAddVariantsSomatic", implode(" ", $args), $binds);
+	}	
+				
 	//add secondary analysis (if missing)
 	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'somatic' -gsvar {$variants_gsvar}");
 }

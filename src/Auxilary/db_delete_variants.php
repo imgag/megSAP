@@ -58,7 +58,7 @@ foreach($file as $line)
 	}
 	
 	//check if variant is used in other tables
-	$ref_tables = ["variant_publication","somatic_variant_classification","somatic_vicc_interpretation","detected_variant","detected_somatic_variant","somatic_report_configuration_variant","somatic_report_configuration_germl_var","report_configuration_variant","variant_validation","variant_literature"];
+	$ref_tables = ["variant_publication","somatic_vicc_interpretation","detected_variant","detected_somatic_variant","somatic_report_configuration_variant","somatic_report_configuration_germl_var","report_configuration_variant","variant_validation","variant_literature"];
 	if (!$del_class) $ref_tables[] = "variant_classification";
 	$hits = [];
 	foreach($ref_tables as $table)

@@ -68,29 +68,29 @@ test_pipeline_ml: dummy
 	@cd test/data_multi_longread && make all
 
 test_all: dummy
-	php src/Tools/data_setup.php > setup.log
-	(cd test && find . -name "test_*.php" | sort | xargs -l1 php && echo "DONE") > f.log 2>&1
-	(cd test && find . -name "tool_test_*.php" | sort | xargs -l1 php && echo "DONE") > t.log 2>&1 &
-	make test_pipeline_a > p_a.log 2>&1 &
-	make test_pipeline_x > p_x.log 2>&1 &
-	make test_pipeline_s > p_s.log 2>&1 &
-	make test_pipeline_t > p_t.log 2>&1 &
-	make test_pipeline_m > p_m.log 2>&1 &
-	make test_pipeline_r > p_r.log 2>&1 &
-	make test_pipeline_c > p_c.log 2>&1 &
-	make test_pipeline_l > p_l.log 2>&1 &
-	make test_pipeline_tl > p_tl.log 2>&1 &
-	make test_pipeline_ml > p_ml.log 2>&1 &
+	php src/Tools/data_setup.php > test_setup.log
+	(cd test && find . -name "test_*.php" | sort | xargs -l1 php && echo "DONE") > test_function.log 2>&1
+	(cd test && find . -name "tool_test_*.php" | sort | xargs -l1 php && echo "DONE") > test_tools.log 2>&1 &
+	make test_pipeline_a > test_p_a.log 2>&1 &
+	make test_pipeline_x > test_p_x.log 2>&1 &
+	make test_pipeline_s > test_p_s.log 2>&1 &
+	make test_pipeline_t > test_p_t.log 2>&1 &
+	make test_pipeline_m > test_p_m.log 2>&1 &
+	make test_pipeline_r > test_p_r.log 2>&1 &
+	make test_pipeline_c > test_p_c.log 2>&1 &
+	make test_pipeline_l > test_p_l.log 2>&1 &
+	make test_pipeline_tl > test_p_tl.log 2>&1 &
+	make test_pipeline_ml > test_p_ml.log 2>&1 &
 
 test_all_status:
 	@clear
-	@ls *.log | grep -v setup.log | xargs tail -v -n3
+	@ls test_*.log | grep -v test_setup.log | xargs tail -v -n3
 	@echo ""
 	@echo "### WARNINGS ###"
-	@egrep -a -i "WARNING" *.log || :
+	@egrep -a -i "WARNING" test_*.log | grep -v "command6_exit123" || :
 	@echo ""
 	@echo "### ERRORS ###"
-	@egrep -a -i "ERROR|FAILED" *.log | grep -v "Mendelian error rate:" || :
+	@egrep -a -i "ERROR|FAILED" test_*.log | egrep -v "Mendelian error rate:|command6_exit123" || :
 
 test_clear:
 	@cd test/data_amplicon && make clean

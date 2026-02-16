@@ -1,0 +1,44 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%labels
+    Maintainer KilianIlius
+    Version kraken2-v2.17.1
+
+%post
+	LANG=C.UTF-8
+	LC_ALL=C.UTF-8
+
+	# Update package list and install build dependencies
+	apt-get update --fix-missing 
+	apt-get install -y \
+		wget \
+		build-essential \
+		zlib1g-dev \
+		libperl4-corelibs-perl \
+		g++
+	
+	# Download kraken2
+	mkdir -p /opt/kraken2
+	cd /opt
+	wget https://github.com/DerrickWood/kraken2/archive/refs/tags/v2.17.1.tar.gz
+	tar -xzf v2.17.1.tar.gz
+	cd kraken2-2.17.1
+	./install_kraken2.sh /opt/kraken2
+	cd ..
+	rm -rf kraken2-2.17.1/
+	rm v2.17.1.tar.gz
+	
+	# Cleanup build dependencies
+	cd /
+	apt-get remove -y \
+		build-essential \
+		zlib1g-dev
+	apt-get autoremove -y
+	apt-get clean
+	rm -rf /var/lib/apt/lists/*
+
+%environment
+	export LANG=C.UTF-8
+	export LC_ALL=C.UTF-8
+	export PATH=/opt/kraken2:$PATH

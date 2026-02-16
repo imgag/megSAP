@@ -1,0 +1,4 @@
+Allele frequency	max_af=0.01
+Allele frequency (sub-populations)	max_af=0.01
+Count NGSD	max_count=50	ignore_genotype=yes	mosaic_as_het=yes
+Filter columns	entries=low_conf_region	action=REMOVE

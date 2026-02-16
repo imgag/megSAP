@@ -860,7 +860,7 @@ class ToolBase
 	/**
 	 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
 	 */
-	function execApptainer($container, $command, $parameters, $in_files=[], $out_files=[], $command_only=false, $log_output=true, $abort_on_error=true, $warn_on_error=true)
+	function execApptainer($container, $command, $parameters, $in_files=[], $out_files=[], $command_only=false, $log_output=true, $abort_on_error=true, $warn_on_error=true, $gpu_container=false)
 	{
 		//execute local ngs-bits installation if ngs-bits_local path is set in settings.ini
 		$ngsbits_local = get_path("ngs-bits_local", false);
@@ -879,7 +879,7 @@ class ToolBase
 		}
 
 		//get apptainer command, bind paths and container path from execApptainer function in functions.php
-		list($apptainer_command, $bind_paths, $container_path, $container_version) = execApptainer($container, $command, $parameters, $in_files, $out_files, false, true);
+		list($apptainer_command, $bind_paths, $container_path, $container_version) = execApptainer($container, $command, $parameters, $in_files, $out_files, false, true, true, $gpu_container);
 		
 		//if command only option is true, only the apptainer command is being return, without execution
 		if($command_only) 
@@ -909,10 +909,10 @@ class ToolBase
 			$add_info[] = "parameters          = $parameters";
 			$this->log("Calling external tool '$command' in container '".basename2($container_path)."'", $add_info);
 		}
-		/* 		
-		$this->log("DEBUG: Apptainer version: ".$this->extractVersion("apptainer"));
-		$this->log("DEBUG: Apptainer command: ".$apptainer_command); 
-		 */
+				
+/* 		$this->log("DEBUG: Apptainer version: ".$this->extractVersion("apptainer"));
+		$this->log("DEBUG: Apptainer command: ".$apptainer_command);  */
+		
 		
 		$pid = getmypid();
 		//execute call - pipe stdout/stderr to file

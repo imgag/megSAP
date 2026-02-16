@@ -22,7 +22,7 @@ $parser->addString("prefix", "Output file prefix.", true, "somatic");
 
 $steps_all = array("vc", "vi", "cn", "an", "msi", "an_rna", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\n" .
-	"vc=variant calling, an=annotation,\n" .
+	"vc=variant calling (small variants and SVs), an=annotation (small variants and SVs),\n" .
 	"cn=copy-number analysis, msi=microsatellite analysis,\n".
 	"an_rna=annotate data from somatic RNA files,\n".
 	"vi=virus detection, db=database import",
@@ -37,6 +37,7 @@ $parser->addFlag("skip_signatures", "Skip calculation of mutational signatures."
 $parser->addFlag("skip_HRD", "Skip calculation HRD.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("use_dragen", "Use Illumina dragen for somatic variant calling.");
+$parser->addFlag("use_deepsomatic_test", "Use DeepSomatic for somatic variant calling. (normally set in settings.ini)");
 $parser->addFlag("validation", "Option used for analyzing validation samples. Ignores checks: flagging in NGSD, report config, correlation");
 //default cut-offs
 $parser->addFloat("min_correlation", "Minimum correlation for tumor/normal pair.", true, 0.8);
@@ -129,13 +130,15 @@ if (in_array("vc", $steps)  && $use_dragen)
 
 
 ###################################### SCRIPT START ######################################
+//check which caller to use
+$use_deepsomatic = $use_deepsomatic_test ?: get_path("use_deepsomatic");
+
 if($validation)
 {
 	$skip_correlation = true;
 	$skip_contamination_check = true;
 	$skip_signatures = true;
 }
-
 
 if (!file_exists($out_folder))
 {
@@ -157,7 +160,7 @@ $full_prefix = "{$out_folder}/{$prefix}";
 $t_id = basename2($t_bam);
 $t_basename = dirname($t_bam)."/".$t_id;
 $sys = load_system($system, $t_id);
-$roi = $sys["target_file"];
+$roi = trim($sys["target_file"]);
 $ref_genome = genome_fasta($sys['build']);
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
@@ -166,14 +169,11 @@ if (!$no_sync)
 	$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
 }
 
-//make sure it is a BAM (MSIsensor does not work on CRAM)
-check_genome_build($t_bam, $sys['build']);
-
-
-//msisensor needs BAM input, all other tools can use CRAM.
-if(in_array("msi", $steps))
+//check that ROI is sorted
+if ($roi!="")
 {
-	$t_bam = convert_to_bam_if_cram($t_bam, $parser, $sys['build'], $threads);
+	$roi = realpath($roi);
+	if (!bed_is_sorted($roi)) trigger_error("Target region file not sorted: ".$roi, E_USER_ERROR);
 }
 
 //normal sample data
@@ -183,12 +183,8 @@ $n_basename = dirname($n_bam)."/".$n_id;
 $n_sys = load_system($n_system, $n_id);
 $ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short'];
 
-//make sure it is a BAM (MSIsensor does not work on CRAM)
+check_genome_build($t_bam, $sys['build']);
 check_genome_build($n_bam, $n_sys['build']);
-if(in_array("msi", $steps))
-{
-	$n_bam = convert_to_bam_if_cram($n_bam, $parser, $sys['build'], $threads);
-}
 
 if ($sys["name_short"] != $n_sys["name_short"] && in_array("cn", $steps))
 {
@@ -243,10 +239,12 @@ if ($skip_correlation || $validation)
 else
 {
 	$in_files = $bams;
+	$in_files[] = $ref_genome;
 	$args_similarity = [
 		"-in ".implode(" ", $bams),
 		"-mode bam",
-		"-build ".ngsbits_build($sys['build'])
+		"-build ".ngsbits_build($sys['build']),
+		"-ref {$ref_genome}"
 	];
 	if (!empty($roi))
 	{
@@ -563,6 +561,30 @@ if (in_array("vc", $steps))
 			unlink($n_bam_dragen);
 		}
 		
+	}
+	elseif($use_deepsomatic)
+	{
+		$args = [];
+
+		if ($sys['type'] === "WGS")	$args[] = "-model_type WGS";
+		else $args[] = "-model_type WES";
+
+		$args[] = "-bam_tumor ".$t_bam;
+		$args[] = "-bam_normal ".$n_bam;
+		$args[] = "-out ".$variants;
+		$args[] = "-build ".$sys['build'];
+		$args[] = "-threads ".$threads;
+		$args[] = "-tumor_id {$t_id}";
+		$args[] = "-normal_id {$n_id}";
+		$args[] = "-default";
+
+		if (!empty($roi))
+		{
+			$args[] = "-target {$roi}";
+		}
+		#$args[] = "-allow_empty_examples";
+
+		$parser->execTool("Tools/vc_deepsomatic.php", implode(" ", $args));
 	}
 	else //Strelka calling
 	{
@@ -962,6 +984,7 @@ if (in_array("an", $steps))
 	$params[] = "-r $ref_genome";
 	$params[] = "-n 65"; //number of variants to select
 	$params[] = "-i"; // ignore INDELS
+	$params[] = "-s $n_id";
 	$parser->execApptainer("umiVar", "select_monitoring_variants.py", implode(" ", $params), [$variants_gsvar, $ref_genome], [$out_folder]);
 }
 
@@ -972,33 +995,14 @@ if (in_array("msi", $steps))
 	//temp folder so other output (_dis, _germline and _somatic files) is written to tmp and automatically deleted even if the tool crashes
 	$msi_tmp_folder = $parser->tempFolder("sp_detect_msi_");
 	$msi_tmp_file = $msi_tmp_folder."/msi_tmp_out.tsv";
-	//file that contains MSI in target
 	$msi_folder = get_path("data_folder")."/dbs/msisensor-pro/";
-	$msi_ref = $msi_folder."/msisensor_references_".$n_sys['build'].".site";
-	if(!file_exists($msi_ref)) // create msi-ref file
-	{
-		print("Could not find loci reference file $msi_ref. Trying to generate it.\n");
-		if (!file_exists($msi_folder)) $parser->exec("mkdir", "-p {$msi_folder}");
-		$parser->execApptainer("msisensor-pro", "msisensor-pro", "scan -d $ref_genome -o $msi_ref", [$ref_genome], [$msi_folder]);
-
-		//remove sites with more than 100 repeat_times as that crashes dragen MSI:
-		$out_lines = [];
-		foreach(file($msi_ref) as $line)
-		{
-			#$chr, $pos, $repeat_unit_len, $repeat_unit_bin, $repeat_times, ...
-			$parts = explode("\t", $line);
-
-			if ($parts[0] != "chromosome" && !chr_check($parts[0], 22, false)) continue;
-			if (is_numeric($parts[4]) && floatval($parts[4]) > 100) continue;
-			$out_lines[] = $line;
-		}
-
-		file_put_contents($msi_ref, implode("", $out_lines));
-	}
-
-	$parameters = "-n_bam $n_bam -t_bam $t_bam -msi_ref $msi_ref -threads $threads -out " .$msi_tmp_file. " -build ".$n_sys['build'];
 	
-	$parser->execTool("Tools/detect_msi.php",$parameters);
+	if (!file_exists($msi_folder)) $parser->exec("mkdir", "-p {$msi_folder}");
+	
+	$msi_ref = $msi_folder."/msisensor_references_".$n_sys['build'].get_path("container_msisensor-pro").".site";
+	$parameters = "-n_bam $n_bam -t_bam $t_bam -msi_ref $msi_ref -ref $ref_genome -threads $threads -out " .$msi_tmp_file. " -build ".$n_sys['build'];
+	
+	$parser->execTool("Tools/detect_msi.php", $parameters);
 	$parser->copyFile($msi_tmp_file, $msi_o_file);
 }
 
@@ -1020,7 +1024,7 @@ if (in_array("an_rna", $steps))
 $qc_other = $full_prefix."_stats_other.qcML";
 if (in_array("vc", $steps) || in_array("vi", $steps) || in_array("msi", $steps) || in_array("cn", $steps) || in_array("db", $steps))
 {
-	$parser->execTool("Auxilary/create_qcml.php", "-full_prefix {$full_prefix} -viral_tsv {$t_basename}_viral.tsv");
+	$parser->execTool("Tools/create_qcml.php", "-full_prefix {$full_prefix} -viral_tsv {$t_basename}_viral.tsv");
 }
 
 //DB import

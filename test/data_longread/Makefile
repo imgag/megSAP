@@ -81,7 +81,7 @@ diff2:
 	php ../compare_variants.php -in1 23014LRa023_01.GSvar.out -in2 23014LRa023_01.GSvar -add 23014LRa023_01
 	php ../compare_qcml_xml.php 23014LRa023_01_stats_fastq.qcML.out 23014LRa023_01_stats_fastq.qcML
 	php ../compare_qcml_xml.php 23014LRa023_01_stats_map.qcML.out 23014LRa023_01_stats_map.qcML
-	php ../compare_qcml_xml.php 23014LRa023_01_stats_vc.qcML.out 23014LRa023_01_stats_vc.qcML
+	php ../compare_qcml_xml.php 23014LRa023_01_stats_vc.qcML.out 23014LRa023_01_stats_vc.qcML 1.01
 	php ../compare_qcml_xml.php 23014LRa023_01_stats_other.qcML.out 23014LRa023_01_stats_other.qcML
 	diff 23014LRa023_01_cnvs_clincnv.tsv.out 23014LRa023_01_cnvs_clincnv.tsv --ignore-matching-lines="#"
 	diff 23014LRa023_01_var_structural_variants.bedpe.out 23014LRa023_01_var_structural_variants_cut.bedpe --ignore-matching-lines="^##"

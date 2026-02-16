@@ -50,7 +50,7 @@ function getCohortSamples($db, $ps_name, $cohort_strategy)
 	$args[] = "-only_samples";
 	$args[] = "-cohort_strategy $cohort_strategy";
 	$args[] = "-allowed_systems $ps_allowed_systems";
-	list ($stdout, $stderr, $return) = $parser->exec("/mnt/storage2/users/ahott1a1/ngs-bits/bin/NGSDExtractRNACohort", implode(" ", $args));
+	list ($stdout, $stderr) = execApptainer("ngs-bits", "NGSDExtractRNACohort", implode(" ", $args));
 	
 	return $stdout;
 }

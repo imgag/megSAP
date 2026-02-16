@@ -30,16 +30,16 @@ check_file($out_file3, data_folder().$name."_out3.vcf.gz");
 
 ########################## raw output ##########################
 
-$out_file4 = output_folder().$name."_out4.vcf";
+$out_file4 = output_folder().$name."_out4.vcf.gz";
 check_exec("php ".src_folder()."/Tools/{$name}.php -bam ".data_folder().$name."_in.bam -out $out_file4 -model_type WES -target ".data_folder().$name."_in.bed -raw_output --log ".output_folder().$name."_out4.log");
 remove_lines_containing($out_file4, ["##contig=", "##fileDate=", "##commandline=", "##reference=", "11067308", "11065934"]); //the last two entries are genomic positions of variants the cause numeric problems 
-check_file($out_file4, data_folder().$name."_out4.vcf");
+check_file($out_file4, data_folder().$name."_out4.vcf.gz");
 
 ########################## gvcf output ##########################
 
 $out_file6 = output_folder().$name."_out6.vcf.gz";
-check_exec("php ".src_folder()."/Tools/{$name}.php -bam ".data_folder().$name."_in.bam -out $out_file6 -model_type WES -target ".data_folder().$name."_in.bed -gvcf ".output_folder().$name."_out6.gvcf --log ".output_folder().$name."_out6.log");
-check_file(output_folder().$name."_out6.gvcf", data_folder().$name."_out6.gvcf");
+check_exec("php ".src_folder()."/Tools/{$name}.php -bam ".data_folder().$name."_in.bam -out $out_file6 -model_type WES -target ".data_folder().$name."_in.bed -gvcf ".output_folder().$name."_out6.gvcf.gz --log ".output_folder().$name."_out6.log");
+check_file(output_folder().$name."_out6.gvcf.gz", data_folder().$name."_out6.gvcf.gz");
 
 end_test();
 
