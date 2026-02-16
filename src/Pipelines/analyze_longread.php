@@ -965,7 +965,7 @@ if (in_array("me", $steps))
 		
 		// create Epigen TSV file
 		$epic_id_file = get_path("data_folder")."/dbs/illumina-epicids/EPIC-8v2-0_A1.csv";
-		$parser->execApptainer("ngs-bits", "BedToEpigen", "-in {$modkit_track} -out {$epigen_tsv} -id_file {$epic_id_file} -sample {$name}", [$epic_id_file, $modkit_track], [$epigen_tsv]);
+		$parser->execApptainer("ngs-bits", "BedToEpigen", "-in {$modkit_track} -out {$epigen_tsv} -id_file {$epic_id_file} -sample {$name}", [$epic_id_file, $modkit_track], [dirname($epigen_tsv)]);
 		
 	}
 }
