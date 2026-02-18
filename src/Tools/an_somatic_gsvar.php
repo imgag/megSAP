@@ -11,7 +11,7 @@ $parser->addString("rna_ref_tissue", "Annotate RNA reference data from The Human
 $parser->addOutfile("out", "Output file name", false);
 extract($parser->parse($argv));
 
-$gsvar_input = Matrix::fromTSV($gsvar_in);
+$gsvar_input = Null;
 
 if(isset($rna_bam) || isset($rna_counts) || isset($rna_id))
 {
@@ -20,63 +20,71 @@ if(isset($rna_bam) || isset($rna_counts) || isset($rna_id))
 		trigger_error("For annotation of RNA data the parameters -rna_bam, -rna_counts and -rna_id must be specified jointly.", E_USER_ERROR);
 	}
 	
+	$tmp_gsvar = $parser->tempFile(".Gsvar", "an_somatic_gsvar_");
+	
+	$parser->log("Annotation of RNA depth and af starting.");
 	/************************
 	 * RNA DEPTH AND RNA AF *
 	 ************************/
+	 
+	$args = [];
+	$args[] = "-in {$gsvar_in}";
+	$args[] = "-bam {$rna_bam}";
+	$args[] = "-out {$tmp_gsvar}";
+	$args[] = "-fragments";
+	$args[] = "-depth";
+	$args[] = "-name {$rna_id}";
+	$parser->execApptainer("ngs-bits", "VariantAnnotateFrequency", implode(" ", $args), [$gsvar_in, $rna_bam], []);
+	
+	$gsvar_input = Matrix::fromTSV($tmp_gsvar);
+	
 	//Remove old annotations 
-	$gsvar_input->removeColByName("{$rna_id}_rna_tpm");
 	$gsvar_input->removeColByName("{$rna_id}_rna_depth");
 	$gsvar_input->removeColByName("{$rna_id}_rna_af");
 	
 	//Remove outdated comments/columns in header
-	$gsvar_input->removeColByName("rna_tpm");
 	$gsvar_input->removeColByName("rna_depth");
 	$gsvar_input->removeColByName("rna_af");
 	$gsvar_input->removeComment("RNA_PROCESSED_SAMPLE_ID", true);
-	$gsvar_input->removeComment("RNA_TRANSCRIPT_COUNT_FILE", true);
 	$gsvar_input->removeComment("RNA_BAM_FILE", true);
-	 
-	 
-	$rna_afs = array();
-	$rna_depths = array();
 	
-	$i_variant_type = $gsvar_input->getColumnIndex("variant_type");
+	//rename headers and comments
+	$gsvar_headers = $gsvar_input->getHeaders();
 	
-	for($i=0; $i<$gsvar_input->rows(); ++$i)
+	$idx_freq = array_search("{$rna_id}_freq", $gsvar_headers);
+	if ($idx_freq !== false) $gsvar_headers[$idx_freq] = "{$rna_id}_rna_af";
+	
+	$idx_depth = array_search("{$rna_id}_depth", $gsvar_headers);
+	if ($idx_depth !== false) $gsvar_headers[$idx_depth] = "{$rna_id}_rna_depth";
+	
+	$gsvar_headers = $gsvar_input->setHeaders($gsvar_headers);
+	
+	$gsvar_comments = $gsvar_input->getComments();
+	for($i=0; $i<count($gsvar_comments); $i++)
 	{
-		//Skip intronic variants (in these cases we only see DNA artefacts)
-		$variant_type =  $gsvar_input->get($i, $i_variant_type);
-		if($variant_type == "intron" || $variant_type == "intergenic")
+		$comment = $gsvar_comments[$i];
+		if (starts_with($comment, "#DESCRIPTION={$rna_id}_freq="))
 		{
-			$rna_depths[] = ".";
-			$rna_afs[] = ".";
-			continue;
+			$gsvar_comments[$i] = "#DESCRIPTION={$rna_id}_rna_af=Allele frequency in RNA BAM file ".realpath($rna_bam);
 		}
-		
-		list($chr,$start,$end,$ref,$obs) = $gsvar_input->getRow($i);
-
-		$counts = allele_count($rna_bam,$chr,$start);
-		
-		$depth = 0; //we use depth that only counts bases from mpileup and e.g. no reference skips
-		foreach(array_values($counts) as $val) $depth += $val; 
-		
-		$obs = str_replace("-", "*", $obs); //deletion
-		$obs = str_replace("+", "*", $obs); //insertion
-		if(strlen($obs) != 1) $obs = "*"; //insertion 
-		
-		$rna_depths[] = $depth;
-		$rna_afs[] = ($depth != 0) ? number_format($counts[$obs] / $depth,  2) : number_format(0, 2);
-		
-		if(!array_key_exists($obs,$counts)) echo $obs ."\n";
+		if (starts_with($comment, "#DESCRIPTION={$rna_id}_depth="))
+		{
+			$gsvar_comments[$i] = "#DESCRIPTION={$rna_id}_rna_depth=Depth in RNA BAM file ".realpath($rna_bam);
+		}
 	}
+	$gsvar_input->setComments($gsvar_comments);
 	
-	$gsvar_input->addCol($rna_depths, "{$rna_id}_rna_depth", "Depth in RNA BAM file " . realpath($rna_bam));
-	$gsvar_input->addCol($rna_afs, "{$rna_id}_rna_af", "Allele frequency in RNA BAM file " . realpath($rna_bam));
-
+	$parser->log("Annotation of RNA depth and af finished.");
+	$parser->log("Annotation of RNA transcription counts starting:");
 	
 	/*********************
 	 * TRANSCRIPT COUNTS *
 	 *********************/
+	//Remove old annotations
+	$gsvar_input->removeColByName("{$rna_id}_rna_tpm");
+	$gsvar_input->removeColByName("rna_tpm");
+	$gsvar_input->removeComment("RNA_TRANSCRIPT_COUNT_FILE", true);
+	
 	$handle = fopen2($rna_counts,"r");	
 	
 	$genes_of_interest = array();
@@ -141,10 +149,14 @@ if(isset($rna_bam) || isset($rna_counts) || isset($rna_id))
 	fclose($handle);
 	
 	$gsvar_input->addCol(array_values($results),"{$rna_id}_rna_tpm","Transcript count as annotated per gene from " . realpath($rna_counts));
+	$parser->log("Annotation of RNA transcription counts finished.");
 }
+
+if ($gsvar_input ==  null) $gsvar_input = Matrix::fromTSV($gsvar_in);
 
 if(isset($rna_ref_tissue))
 {
+	$parser->log("Annotation of reference tissue data starting:");
 	//Resubstitute zeroes by spaces (opposite happens in somatic_tumor_normal.php/somatic_tumor_only.php)
 	$rna_ref_tissue = str_replace("0", " ", $rna_ref_tissue);
 	
@@ -221,13 +233,16 @@ if(isset($rna_ref_tissue))
 	
 	$gsvar_input->removeColByName("rna_ref_tpm");
 	$gsvar_input->addCol(array_values($ref_results), "rna_ref_tpm", "RNA reference data in transcripts per million for tissue {$rna_ref_tissue} from proteinatlas.org.");
+	$parser->log("Annotation of reference tissue data finished.");
 }
 
 if($include_ncg)
 {
+	$parser->log("Annotation of NCG starting:");
 	$ncg_file = get_path("data_folder") . "/dbs/NCG7.2/NCG7.2_oncogene.tsv";
 	annotate_gsvar_by_gene($gsvar_input, $ncg_file, "symbol", "NCG_oncogene", "ncg_oncogene", "1:gene is oncogene according NCG7.2, 0:No oncogene according NCG7.2, na: no information available about gene in NCG7.2. Order is the same as in column gene.", false);
 	annotate_gsvar_by_gene($gsvar_input, $ncg_file, "symbol", "NCG_tsg", "ncg_tsg", "1:gene is TSG according NCG7.2, 0:No TSG according NCG7.2, na: no information available about gene in NCG7.2. Order is the same as in column gene.", false);	
+	$parser->log("Annotation of NCG finished.");
 }
 
 
