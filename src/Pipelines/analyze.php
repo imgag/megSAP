@@ -743,14 +743,9 @@ if (in_array("vc", $steps))
 				else
 				{
 					$args = [];
-
-					if ($is_wes || $is_panel)	$args[] = "-model_type WES";
-					elseif ($is_wgs) $args[] = "-model_type WGS";
-					else
-					{
-						trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types are: WES, WGS, Panel, Panel Haloplex.", E_USER_ERROR);
-					}
-
+					if ($is_wes || $is_panel) $args[] = "-model_type WES";
+					else if ($is_wgs) $args[] = "-model_type WGS";
+					else trigger_error("Unsupported system type '".$sys['type']."' detected in {$system}. Compatible system types are: WES, WGS, Panel, Panel Haloplex.", E_USER_ERROR);
 					$args[] = "-bam ".$used_bam_or_cram;
 					$args[] = "-out ".$tmp_low_mappability;
 					$args[] = "-build ".$build;
