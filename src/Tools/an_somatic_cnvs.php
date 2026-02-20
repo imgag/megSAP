@@ -104,11 +104,12 @@ if(isset($rna_counts))
 	$approved_gene_map = [];
 	if (db_is_enabled("NGSD"))
 	{
-		$gene_name_idx = 7;
-		
 		//check header:
-		list($stdout, $stderr, $exit_code) = exec2("head -n1 $rna_counts | cut -f $gene_name_idx");
-		if ($exit_code != 0 || trim($stdout[0]) != "gene_name")
+		list($stdout, $stderr, $exit_code) = exec2("head -n1 $rna_counts");
+		var_dump(explode("\t", $stdout[0]));
+		$gene_name_idx = array_search("gene_name", explode("\t", $stdout[0]));
+		
+		if ($exit_code != 0 || $gene_name_idx === false)
 		{
 			trigger_error("Couldn't check the header of the RNA count file or index of 'gene_name' changed: $rna_counts", E_USER_ERROR);
 		}
@@ -136,7 +137,10 @@ if(isset($rna_counts))
 	
 	//check header is unchanged:
 	list($stdout, $stderr, $exit_code) = exec2("head -n1 $rna_counts");
-	if ($exit_code != 0 || $stdout[0] != implode("\t", ["#gene_id", "length", "raw", "cpm", "fpkm", "tpm", "gene_name", "gene_biotype"]))
+	$idx_gene = array_search("gene_name", explode("\t", $stdout[0]));
+	$idx_tpm  = array_search("tpm", explode("\t", $stdout[0]));
+	
+	if ($exit_code != 0 || $idx_gene === false || $idx_tpm === false)
 	{
 		trigger_error("Couldn't check the header of the RNA count file or header changed: $rna_counts", E_USER_ERROR);
 	}
@@ -148,9 +152,9 @@ if(isset($rna_counts))
 		if(starts_with($line,"#")) continue;
 		if(empty($line)) continue;
 		
-		//order of line: gene_id, length, raw count, cpm, fpkm, tpm, gene symbol
-		list(,,,,,$tpm, $rna_gene) = explode("\t", $line);
-		$rna_gene = strtoupper($rna_gene);
+		$parts = explode("\t", $line);
+		$rna_gene = strtoupper($parts[$idx_gene]);
+		$tpm = $parts[$idx_tpm];
 		
 		//replace outdated gene symbols
 		if(array_key_exists($rna_gene, $approved_gene_map)) 

@@ -156,7 +156,8 @@ foreach($ps_rna_bams as $rna_id => $rna_bam)
 	"-out $variants_gsvar",
 	"-rna_id $rna_id",
 	"-rna_counts $rna_count",
-	"-rna_bam $rna_bam"
+	"-rna_bam $rna_bam",
+	"-rna_target NGSD"
 	];
 	$parser->execTool("Tools/an_somatic_gsvar.php", implode(" ", $args));
 	
