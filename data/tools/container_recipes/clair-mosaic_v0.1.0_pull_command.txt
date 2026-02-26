@@ -1,0 +1,1 @@
+apptainer pull clair-mosaic_v0.1.0.sif docker://hkubal/clair-mosaic:v0.1.0
