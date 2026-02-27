@@ -20,15 +20,15 @@ apt-get install -qq -y \
 
 # install longphase
 cd /opt
-wget -c https://github.com/twolinin/longphase/archive/refs/tags/v2.0.tar.gz
-tar xzf v2.0.tar.gz --no-same-owner
-rm -rf v2.0.tar.gz
-cd longphase-2.0 && autoreconf -i && \
+wget -c https://github.com/twolinin/longphase/archive/refs/tags/v2.0.1.tar.gz
+tar xzf v2.0.1.tar.gz --no-same-owner
+rm -rf v2.0.1.tar.gz
+cd longphase-2.0.1 && autoreconf -i && \
 ./configure && \
 make -j 4 && \
 mv longphase /opt/longphase
 cd ..
-rm -rf longphase-2.0/
+rm -rf longphase-2.0.1/
 
 # cleanup build dependencies
 cd /
