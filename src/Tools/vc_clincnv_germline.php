@@ -376,7 +376,6 @@ function run_clincnv($out, $mosaic=FALSE)
 		$args[] = "--maxNumGermCNVs {$max_cnvs}";
 		$args[] = "--lengthG ".($regions-1); //lengthG actually gives the number of additional regions > subtract 1
 		$args[] = "--scoreG 20";
-		
 	}
 
 	//use_off_target is set for tumor_only with off target cov/bed files
@@ -475,6 +474,7 @@ function run_clincnv($out, $mosaic=FALSE)
 	//post-processing of calls:
 	//- add analysis type, high-quality CNV count and mean correlation to reference samples to header
 	//- remove call with log-likelihood below 0 (they are artefacts: ClinCNV first does the calling and the a correction of log-likelihoods. In very noisy regions that log-likelihood can be below zero after the correction)
+	//- remove extra spaces in some fields produced by ClinCNV
 	$cnv_calls = [];
 	$hq_cnvs = 0;
 	$analysistype = 0;
@@ -495,11 +495,14 @@ function run_clincnv($out, $mosaic=FALSE)
 		}
 		else //content line
 		{
-			list($c, $s, $e, $cn, $ll) = explode("\t", $line);
-			
+			$parts = explode("\t", $line);
+			list($c, $s, $e, $cn, $ll) = $parts;
 			if ($ll>=20) ++$hq_cnvs;
-			
 			if ($ll<0) continue;
+			
+			//correct excess spaces
+			$parts = array_map('trim', $parts);
+			$line = implode("\t", $parts);
 		}
 		
 		$cnv_calls[] = $line."\n";
