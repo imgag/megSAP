@@ -20,6 +20,7 @@ $parser->addFlag("copy_pod5", "Copy pod5 files to /tmp to reduce IO/network load
 $parser->addFlag("file_based_calling", "Call each POD5 file separately.");
 $parser->addString("secondary_output", "Folder to store a (additional) copy of the basecalled files (e.g. for backup)", true);
 $parser->addFlag("rename_skip_folder", "Rename the 'pod5_skip' folder(s) after basecalling.");
+$parser->addFlag("emit_moves", "Write the move table to the 'mv' tag of the output BAM (see https://software-docs.nanoporetech.com/dorado/latest/basecaller/move_table/)");
 
 extract($parser->parse($argv));
 
@@ -57,6 +58,10 @@ else
 {
 	trigger_error("Custom basecall model '{$basecall_model}' provided!", E_USER_WARNING);
 }
+
+//set flags:
+($emit_moves)?$emit_moves="--emit-moves":$emit_moves="";
+
 //set ulimit
 exec2("ulimit -n 10000");
 
@@ -142,7 +147,7 @@ if ($file_based_calling)
 	foreach ($pod5_files as $pod5_file) 
 	{
 		$tmp_bam = $parser->tempFile(basename2($pod5_file).".mod.unmapped.bam");
-		$parser->exec(get_path("dorado"), "basecaller --models-directory {$dorado_model_path} {$basecall_model} {$pod5_file} --min-qscore {$min_qscore} > {$tmp_bam}");
+		$parser->exec(get_path("dorado"), "basecaller --models-directory {$dorado_model_path} {$basecall_model} {$pod5_file} {$emit_moves} --min-qscore {$min_qscore} > {$tmp_bam}");
 		$bams_to_merge[] = $tmp_bam;
 	}
 }
@@ -151,7 +156,7 @@ else
 	foreach ($pod5_location as $folder) 
 	{
 		$tmp_bam = $parser->tempFile(".mod.unmapped.bam");
-		$parser->exec(get_path("dorado"), "basecaller --models-directory {$dorado_model_path} -r {$basecall_model} {$folder} --min-qscore {$min_qscore} > {$tmp_bam}");
+		$parser->exec(get_path("dorado"), "basecaller --models-directory {$dorado_model_path} -r {$basecall_model} {$folder} {$emit_moves} --min-qscore {$min_qscore} > {$tmp_bam}");
 		$bams_to_merge[] = $tmp_bam;
 	}
 }
