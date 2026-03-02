@@ -2,7 +2,7 @@
 
 1. Check run quality using MinKNOW UI software
 
-    Basecalled bases >50Gb (good), 30 to 50Gb (medium), <30GB (bad)   
+    Basecalled bases >90Gb (good), 75 to 90Gb (medium), <75GB (bad) (per sample)   
     Approximate N50 >10kb (human WGS)   
 
 2. Set the run quality in the NGSD 
