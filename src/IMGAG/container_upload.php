@@ -80,18 +80,17 @@ if ($tool=="ngs-bits" && $tag=="master")
 
 //get file names
 exec("ls | grep '^" . preg_quote($tool."_".$tag, '/') . ".*\\.sif$'", $sif);
-exec("ls | grep '^" . preg_quote($tool."_".$tag, '/') . ".*\\.log$'", $log);
-exec("ls | grep '^" . preg_quote($tool."_".$tag, '/') . ".*\\.md5$'", $md5);
-$sif = reset($sif);
-$log = reset($log);
-$md5 = reset($md5);
+@$sif = trim($sif[0]);
+if ($sif=="") trigger_error("SIF file not found!", E_USER_ERROR);
 print "SIF: {$sif}\n";
-print "MD5: {$md5}\n";
+exec("ls | grep '^" . preg_quote($tool."_".$tag, '/') . ".*\\.log$'", $log);
+@$log = trim($log[0]);
+if ($log=="") trigger_error("LOG file not found!", E_USER_ERROR);
 print "LOG: {$log}\n";
-if (!is_file($sif) || !is_file($log) || !is_file($md5))
-{
-	trigger_error("Either sif, log or md5 file not found. Check that the container, the log file and the MD5 sum file created by container_build.php are present!", E_USER_ERROR);
-}
+exec("ls | grep '^" . preg_quote($tool."_".$tag, '/') . ".*\\.md5$'", $md5);
+@$md5 = trim($md5[0]);
+if ($md5=="") trigger_error("MD5 file not found!", E_USER_ERROR);
+print "MD5: {$md5}\n";
 
 //upload
 if (!$no_upload)
@@ -105,7 +104,8 @@ if (!$no_upload)
 	{
 		if ($pw == "") trigger_error("Password for megsap.de must be set. Use parameter '-pw'", E_USER_ERROR);
 		
-		$web_container_dir = "megsap@megsap.de:/public_html/download/container/";
+		$user = trim(exec('whoami'));
+		$web_container_dir = "{$user}@megsap.de:/mnt/nginx/public_html/download/container/";
 		print "Uploading $sif and $md5 to megsap.de ...\n";
 
 		//Check if container and checksum file are already present on megsap.de
@@ -135,8 +135,8 @@ if (!$no_upload)
 		else
 		{
 			print "Uploading container $sif...\n";
-			exec2("sshpass -p $pw scp $sif {$web_container_dir}{$sif}");
-			exec2("sshpass -p $pw scp $md5 {$web_container_dir}checksums/{$md5}");
+			exec2("sshpass -p $pw scp -o PreferredAuthentications=password $sif {$web_container_dir}{$sif}");
+			exec2("sshpass -p $pw scp -o PreferredAuthentications=password $md5 {$web_container_dir}checksums/{$md5}");
 		}
 	}
 	elseif (strtolower($input) === "n") 
@@ -153,9 +153,9 @@ if (!$no_upload)
 //move/copy to container repository
 $container_repo = "/mnt/storage2/megSAP/tools/apptainer_container/";
 print "Deploying container {$sif} to {$container_repo}\n";
-if (is_file("{$container_repo}/{$sif}"))
+if (file_exists("{$container_repo}/{$sif}"))
 {
-	if (!is_file("{$container_repo}/checksums/{$md5}"))
+	if (!file_exists("{$container_repo}/checksums/{$md5}"))
 	{
 		print "MD5 checksum missing for {$container_repo}/{$sif}, creating it now...\n";
 		exec2("md5sum -b {$container_repo}/{$sif} | cut -d ' ' -f1 > {$container_repo}/checksums/{$md5}");
@@ -191,7 +191,4 @@ else
 	deploy_container($log, $sif, $md5, $container_repo, $copy);
 }
 
-
-
-//- container_upload.php: gzip logs
 ?>

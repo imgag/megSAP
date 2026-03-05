@@ -92,58 +92,37 @@ else
 {
 	exec("ls -1 $recipe_folder | grep '^{$tool}.*\\.def$'", $def_available);
 	print "Recipe '$def' not found! The following recipes are available for your tool: \n".implode("\n", $def_available)."\n";
-	exit();
+	exit(1);
 }
 exec2("chmod 777 {$sif}");
 print "Building container finished.\n";
 
 //calculate checksum
-if ($tool != "ngs-bits" || $tag != "master")
-{
-	print "Calculating MD5 sum for $sif\n";
-	exec2("md5sum -b {$sif} | cut -d ' ' -f1 > {$sif}.md5");
-}
-if ($tool=="ngs-bits")
+print "Calculating MD5 sum for $sif\n";
+exec2("md5sum -b {$sif} | cut -d ' ' -f1 > {$sif}.md5");
+
+//rename files for ngs-bits master (use git version in name instead of date)
+if ($tool=="ngs-bits" && $tag=="master")
 {
 	//determine version
 	list($stdout) = exec2("singularity exec {$sif} MappingQC --version");
 	$version = trim(strtr(implode("", $stdout), ["MappingQC"=>""]));
+	$version = strtr($version, "_", "-");
 	print "ngs-bits version determined from container: {$version}\n";
-
-	//determine final container name
-	if($tag=="master")
-	{
-		$sif2 = "ngs-bits_master-".strtr($version, "_", "-").".sif";
-		$log2 = "ngs-bits_master-".strtr($version, "_", "-").".log";
-
-		//Calculate MD5 sum and move container and .md5 to container repo
-		$container_repo = "/mnt/storage2/megSAP/tools/apptainer_container/";
-		print "Calculating MD5 sum for $sif2\n";
-		exec2("md5sum -b {$sif} | cut -d ' ' -f1 > {$container_repo}/checksums/{$sif2}.md5");
-
-		print "Deploying container {$sif2} to {$container_repo}\n";
-		exec2("mv {$sif} {$container_repo}/{$sif2}");
-		print "Deploying finished\n";
-
-		//Remove any old logs (in case multiple exist)
-		$old_logs = glob($container_recipes . "ngs-bits_master-*.log");
-		foreach ($old_logs as $old_log) 
-		{
-			print "Removing old logfile $old_log\n";
-			unlink($old_log);
-		}
-
-		//Move new log
-		print "Deploying new logfile to {$container_recipes}{$log2}\n";
-		exec2("mv {$log} {$container_recipes}{$log2}");
-	}
+	$tag = "{$tag}-{$version}";
+	
+	//rename files
+	$sif2 = "ngs-bits_{$tag}.sif";
+	exec2("mv {$sif} {$sif2}");
+	exec2("mv {$sif}.md5 {$sif2}.md5");
+	$log2 = "ngs-bits_{$tag}.log";
+	exec2("mv {$log} {$log2}");
 }
-else
-{
-	print "\n";
-	print "Note: If you want to test the container in megSAP, you can deploy it locally using:\n";
-	print "> php src/IMGAG/container_upload.php -tool {$tool} -tag {$tag} -no_upload -copy\n";
-	print "For use of the container outside UKT, you have to upload the contain later!\n";
-}
+
+//deployment infos
+print "\n";
+print "Note: If you want to test the container in megSAP, you can deploy it locally using:\n";
+print "> php src/IMGAG/container_upload.php -tool {$tool} -tag {$tag} -no_upload -copy\n";
+print "For use of the container outside UKT, you have to upload the contain later!\n";
 
 ?>
