@@ -244,7 +244,7 @@ if($var_count==0)
 }
 
 //create SpliceAI transcript regions BED file
-$transcript_annotations = repository_basedir()."/data/misc/spliceai_gene_annotations/{$build}_original.txt";//TODO
+$transcript_annotations = repository_basedir()."/data/misc/spliceai_gene_annotations/{$build}_original.txt";//TODO use new and extend by parameter -D bases
 $spliceai_regions = $parser->tempFile("spliceai_scoring_regions.bed");
 $pipeline = [];
 $pipeline[] = array("cut", "-f 2,4,5 -d'\t' {$transcript_annotations}");

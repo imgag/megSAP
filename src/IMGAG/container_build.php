@@ -74,7 +74,7 @@ if (file_exists($def))
 }
 else if (file_exists($pull_file))
 {
-	print "No definition file available for $tool, but found a pull command to download container. \n";
+	print "No apptainer recipe exists, using Docker pull command for {$tool}_{$tag}.\n";
 	exec("cat $pull_file", $pull_command);
 	print "Pulling container {$sif} - in case of error see {$log}\n";
 
