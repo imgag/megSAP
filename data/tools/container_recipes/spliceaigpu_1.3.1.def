@@ -1,0 +1,35 @@
+# Attention, you need the correct unbuntu/python/tensorflow versions:
+# tensorflow<>cuda compatibilty: https://www.tensorflow.org/install/source
+# Ubuntu 24.04: Python 3.12 Tensorflow 2.20
+# Ubuntu 22.04: Python 3.10 
+
+
+Bootstrap: docker
+From: nvidia/cuda:12.5.1-runtime-ubuntu22.04
+
+%environment
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+	export PATH=/opt/spliceai-venv/bin:$PATH
+
+%post
+    # install python/pip
+    apt-get update
+	apt-get install -y --no-install-recommends software-properties-common wget curl git build-essential ca-certificates unzip python3.10 python3.10-venv python3.10-dev python3-pip
+	rm -rf /var/lib/apt/lists/*
+	
+	# create virtual environment
+    python3.12 -m venv /opt/spliceai-venv
+	
+	# Activate venv for the rest of the post
+    export PATH=/opt/spliceai-venv/bin:$PATH
+	
+	# Upgrade pip inside venv
+    python -m ensurepip --upgrade
+	python -m pip install --upgrade pip setuptools wheel
+	
+	# Install tensorflow
+	python -m pip install tensorflow==2.20.*
+	
+    # Install SpliceAI
+    python -m pip install git+https://github.com/geertvandeweyer/SpliceAI.git

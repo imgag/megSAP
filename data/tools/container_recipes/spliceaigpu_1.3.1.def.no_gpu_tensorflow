@@ -1,0 +1,30 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%environment
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+	export PATH=/opt/spliceai-venv/bin:$PATH
+	export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+
+%post
+    # install python/pip
+    apt-get update
+	apt-get install -y --no-install-recommends software-properties-common wget curl git build-essential ca-certificates unzip python3.12 python3.12-venv python3.12-dev python3-pip
+	rm -rf /var/lib/apt/lists/*
+	
+	# create virtual environment
+    python3.12 -m venv /opt/spliceai-venv
+	
+	# Activate venv for the rest of the post
+    export PATH=/opt/spliceai-venv/bin:$PATH
+	
+	# Upgrade pip inside venv
+    python -m ensurepip --upgrade
+	python -m pip install --upgrade pip setuptools==68.0.0 wheel
+	
+	# Install tensorflow
+	python -m pip install tensorflow==2.20.*
+	
+    # Install SpliceAI
+    python -m pip install git+https://github.com/geertvandeweyer/SpliceAI.git
