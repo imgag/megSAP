@@ -461,6 +461,36 @@ if (in_array("vc", $steps))
 		if ($gpu) $args[] = "-gpu";
 		
 		$parser->execTool("Tools/vc_clair.php", implode(" ", $args));
+
+		//mosaic calling only for SUP samples
+		if (str_contains($basecall_model, "_sup@"))
+		{
+			$tmp_mosaic = $parser->tempFile("_mosaic.vcf.gz");
+
+			$args = [];
+			$args[] = "-bam {$used_bam_or_cram}";
+			$args[] = "-out {$tmp_mosaic}";
+			$args[] = "-name {$name}";
+			$args[] = "-model ont_r10_dorado_sup_5khz";
+			$args[] = "-threads ".$threads;
+			$args[] = "-build ".$build;
+
+			$parser->execTool("Tools/vc_clair_mosaic.php", implode(" ", $args));
+			
+			//add to main variant list
+			$vcf_merged = $parser->tempFile("_merged_mosaic.vcf");
+			$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mosaic} -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out {$vcf_merged}", [$vcf_file, $tmp_mosaic]);
+			$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
+		}
+		else
+		{
+			trigger_error("Mosaic calling is only done for superaccuracy samples!", E_USER_NOTICE);
+		}
+
+		//sort and remove unused contig lines
+		$parser->execApptainer("ngs-bits", "VcfSort", "-in {$vcf_file} -remove_unused_contigs -compression_level 5 -out {$vcf_file}", [$vcf_file], [dirname($vcf_file)]);
+		$parser->execApptainer("htslib", "tabix", "-f -p vcf {$vcf_file}", [$vcf_file], [dirname($vcf_file)]);
+		
 	}
 
 	//create b-allele frequency file

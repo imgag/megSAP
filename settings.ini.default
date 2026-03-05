@@ -6,7 +6,7 @@
 
 [tools]
 interop = /mnt/storage2/megSAP/tools/interop-1.2.4-Linux-GNU/bin/summary
-dorado = /mnt/storage2/megSAP/tools/dorado-1.1.1-linux-x64/bin/dorado
+dorado = /mnt/storage2/megSAP/tools/dorado-1.4.0-linux-x64/bin/dorado
 ngs-bits_local =
 
 [tools-data]
@@ -25,6 +25,7 @@ container_bwa = v0.7.19-20260126
 container_bwa-mem2 = v2.3-20260126
 container_circos = 0.69-10-20260123
 container_clair3 = v1.2.0-20251119
+container_clair-mosaic = v0.1.0-20260206
 container_ClinCNV = v1.19.1-20260213
 container_deepvariant = 1.9.0
 container_deepsomatic = 1.9.0
@@ -36,7 +37,7 @@ container_happy = v0.3.14
 container_hla-genotyper = 2025-04
 container_htslib = 1.23-20260123
 container_kraken2 = v2.17.1-20260108
-container_longphase = v1.7.3
+container_longphase = v2.0.1-20260223
 container_manta = v1.6.0-20260123
 container_methylartist = v1.5.2-20251105
 container_minimap2 = v2.30-20251119
@@ -51,7 +52,7 @@ container_samblaster = v0.1.26
 container_samtools = 1.23-20260122
 container_scarHRD = v1
 container_SigProfilerExtractor = v1.2.6-20260116
-container_sniffles = v2.7.1-20251112
+container_sniffles = v2.7.2-20260305
 container_spliceai = v1.3.1
 container_STAR = v2.7.11b
 container_straglr = v1.5.5-20251119

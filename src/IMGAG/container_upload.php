@@ -51,8 +51,8 @@ function replace_remote_container($message, $sif, $pw, $md5, $web_container_dir)
 	if (strtolower($input) === "y") 
 	{
 		print "Uploading container $sif...\n";
-		exec2("sshpass -p $pw scp $sif {$web_sif_file}");
-		exec2("sshpass -p $pw scp $md5 {$web_md5_file}");
+		exec2("sshpass -p '$pw' scp $sif {$web_sif_file}");
+		exec2("sshpass -p '$pw' scp $md5 {$web_md5_file}");
 	}
 	elseif (strtolower($input) === "n")
 	{
@@ -135,8 +135,8 @@ if (!$no_upload)
 		else
 		{
 			print "Uploading container $sif...\n";
-			exec2("sshpass -p $pw scp -o PreferredAuthentications=password $sif {$web_container_dir}{$sif}");
-			exec2("sshpass -p $pw scp -o PreferredAuthentications=password $md5 {$web_container_dir}checksums/{$md5}");
+			exec2("sshpass -p '$pw' scp -o PreferredAuthentications=password $sif {$web_container_dir}{$sif}");
+			exec2("sshpass -p '$pw' scp -o PreferredAuthentications=password $md5 {$web_container_dir}checksums/{$md5}");
 		}
 	}
 	elseif (strtolower($input) === "n") 

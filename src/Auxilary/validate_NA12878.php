@@ -23,6 +23,7 @@ $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addString("ref_sample", "Reference sample to use for validation.", true, "NA12878");
 $parser->addFlag("matches", "Do not only show variants that were missed (-), are novel (+) or with genotype mismatch (g), but also show matches (=) in output.");
 $parser->addFlag("skip_depth_calculation", "Do not calculate depth of missed variants to speed up calculation.");
+$parser->addFlag("keep_mosaic", "Do not remove variants which are flagged as 'mosaic'.");
 extract($parser->parse($argv));
 
 //returns the variants of a VCF file in the given ROI
@@ -30,6 +31,7 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skippe
 {
 	global $parser;
 	global $genome;
+	global $keep_mosaic;
 		
 	//get variants
 	$tmp = $parser->tempFile(".vcf");
@@ -83,7 +85,7 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skippe
 		}
 		
 		//skip mosaic variants (megSAP)
-		if (contains($filter, "mosaic"))
+		if (!$keep_mosaic && contains($filter, "mosaic"))
 		{
 			@$skipped["mosaic"] += 1;
 			continue;
@@ -94,14 +96,18 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skippe
 		
 		//skip mosaic variants (DRAGEN)
 		$info = explode(";",$info);
-		foreach($info as $entry)
+		if (!$keep_mosaic)
 		{
-			if ($entry=="MOSAIC")
+			foreach($info as $entry)
 			{
-				@$skipped["mosaic"] += 1;
-				continue(2);
+				if ($entry=="MOSAIC")
+				{
+					@$skipped["mosaic"] += 1;
+					continue(2);
+				}
 			}
 		}
+		
 		
 		//compile output
 		$var = array();

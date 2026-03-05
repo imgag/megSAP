@@ -34,6 +34,7 @@ $parser->addFlag("manual_demux", "Ignore NovaSeqX Analysis results and use mauna
 $parser->addFlag("no_queuing", "Do not include queuing commands in the default target of the Makefile.");
 
 $parser->addString("ignore_samples" ,"Comma-separated list of samples which should not be copied/analyzed",true, "");
+$parser->addInt("threads_genlab", "Number of threads used to do the GenLab import.", true, 6);
 
 extract($parser->parse($argv));
 
@@ -334,29 +335,31 @@ else if ($skip_run_merging) $merge_former_run = "n";
 if($is_novaseq_x) $sample_data = get_sample_data_from_db($db_conn, $run_name);
 else $sample_data = extract_sample_data($db_conn, $samplesheet);
 
+//import data from Genlab
+if (!$no_genlab)
+{
+	print "Importing information from GenLab...\n";
+	$import_jobs = [];
+	foreach($sample_data as $sample => $data)
+	{
+		$args = [];
+		$args[] = "-ps {$sample}";
+		if ($db=="NGSD_TEST") $args[] = "-test";
+		$import_jobs[] = ["GenLabImport_".$sample, $parser->execApptainer("ngs-bits", "NGSDImportGenlab", implode(" ", $args), [], [], true)];
+	}
+	$parser->execParallel($import_jobs, $threads_genlab);
+
+	//update sample data after importing sample relations
+	if($is_novaseq_x) $sample_data = get_sample_data_from_db($db_conn, $run_name);
+	else $sample_data = extract_sample_data($db_conn, $samplesheet);
+}
+
 //remove ignored samples
 foreach ($ignored_samples as $sample) 
 {
 	unset($sample_data[$sample]);
 }
 
-//import data from Genlab
-if (!$no_genlab)
-{
-	print "Importing information from GenLab...\n";
-
-	foreach($sample_data as $sample => $data)
-	{
-		$args = [];
-		$args[] = "-ps {$sample}";
-		if ($db=="NGSD_TEST") $args[] = "-test";
-		$parser->execApptainer("ngs-bits", "NGSDImportGenlab", implode(" ", $args));
-	}
-
-	//update sample data after importing sample relations
-	if($is_novaseq_x) $sample_data = get_sample_data_from_db($db_conn, $run_name);
-	else $sample_data = extract_sample_data($db_conn, $samplesheet);
-}
 //extract tumor-normal pair infos
 $normal2tumor = array();
 $tumor2normal = array();
@@ -600,7 +603,7 @@ foreach($sample_data as $sample => $sample_infos)
 				//check count
 				if(count($fastq_files) != count($sample_infos["ps_lanes"]) * 2) 
 				{
-					trigger_error("Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found: ".count($fastq_files).")", E_USER_ERROR);
+					trigger_error("Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found: ".count($fastq_files).")", ((in_array($sample, $ignored_samples))?E_USER_WARNING:E_USER_ERROR));
 				}
 
 				//copy files
