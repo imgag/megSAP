@@ -18,7 +18,7 @@ mkdir -p sniffles
 cd sniffles && python3 -m venv sniffles_env
 . sniffles_env/bin/activate
 pip install --upgrade pip
-pip install --no-cache-dir sniffles==2.7.1
+pip install --no-cache-dir sniffles==2.7.2
 deactivate
 
 # cleanup build dependencies
