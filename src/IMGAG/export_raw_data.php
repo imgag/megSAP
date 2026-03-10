@@ -131,7 +131,8 @@ foreach($samples as $ps)
 		else
 		{
 			print "  Generating FASTQ files from BAM ...\n";
-			$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$bam} -out1 {$out}/{$ps}_R1_001.fastq.gz -out2 {$out}/{$ps}_R2_001.fastq.gz", [$bam], [$out]);
+			$out_abs = realpath($out);
+			$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$bam} -out1 {$out_abs}/{$ps}_R1_001.fastq.gz -out2 {$out_abs}/{$ps}_R2_001.fastq.gz", [$bam], [$out_abs]);
 		}
 	}
 }
