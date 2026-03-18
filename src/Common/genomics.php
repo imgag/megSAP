@@ -416,18 +416,16 @@ function load_system(&$filename, $ps_name = "")
 	//determine system from processed sample name
 	if (is_null($filename) || $filename=="")
 	{
-		//get ID of processed sample
 		$db_conn = DB::getInstance("NGSD", false);
+
+		//get ID of processed sample
 		$ps_id = get_processed_sample_id($db_conn, $ps_name, false);
-		if ($ps_id==-1)
-		{
-			trigger_error("load_system: Cannot determine processing system - processed sample name '$ps_name' is invalid!", E_USER_ERROR);
-		}
+		if ($ps_id==-1) trigger_error("load_system: Cannot determine processing system - processed sample name '$ps_name' is invalid!", E_USER_ERROR);
 		
 		//store system INI file
-		$sys_name = $db_conn->getValue("SELECT sys.name_short FROM processing_system sys, processed_sample ps WHERE ps.processing_system_id=sys.id AND ps.id=$ps_id");
-		$filename = temp_file(".ini", "pro_sys_".$sys_name."_");
-		store_system($db_conn, $sys_name, $filename);
+		$name_short = $db_conn->getValue("SELECT sys.name_short FROM processing_system sys, processed_sample ps WHERE ps.processing_system_id=sys.id AND ps.id={$ps_id}");
+		$filename = temp_file(".ini", "pro_sys_".$name_short."_");
+		store_system($db_conn, $name_short, $filename);
 	}
 	
 	return parse_ini_file($filename);
@@ -446,6 +444,7 @@ function store_system(&$db_conn, $name_short, $filename)
 	$output = array();
 	$output[] = "name_short = \"".$name_short."\"";
 	$output[] = "name_manufacturer = \"".$res[0]['name_manufacturer']."\"";
+	$output[] = "platform = \"".$res[0]['platform']."\"";
 	$roi = trim($res[0]['target_file']);
 	if ($roi!="") $roi = get_path("data_folder")."/enrichment/".$roi;
 	$output[] = "target_file = \"".$roi."\"";
@@ -2521,21 +2520,6 @@ function compare_bam_read_count($bam_file1, $bam_file2, $threads = 4, $throw_err
 		if ($throw_error) trigger_error("Bam file read count do not match! ({$read_count1} vs. {$read_count2} reads)", E_USER_ERROR);
 		return false;
 	}
-}
-
-/**
-    @brief Determines the sequencing platform type for a processing system.
-    @param string $name_short Short name of the processing system.
-    @return string 'PB', 'ONT'.
-*/
-function get_longread_sequencing_platform($name_short)
-{
-	//TODO: use better way than short name comparison
-    if (starts_with($name_short, 'LR-PB-')) {
-        return 'PB';
-    } else {
-        return 'ONT';
-    }
 }
 
 /**

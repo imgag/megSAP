@@ -317,6 +317,7 @@ if (in_array("vc", $steps))
 			$args = [];
 			$args[] = "--dir ".$parser->tempFolder()."/GLnexus.DB/";
 			$args[] = "--config ".($is_wes ? $wes_config : "DeepVariantWGS");
+			$args[] = "--threads {$threads}";
 			$args[] = implode(" ", $deepvar_gvcfs);
 			$pipeline = [];
 			$pipeline[] = ["", $parser->execApptainer("glnexus", "glnexus_cli", implode(" ", $args), [$wes_config], [], true)];

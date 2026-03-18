@@ -88,72 +88,101 @@ for ($i=0; $i<count($bams); ++$i)
 }
 
 //check input sample names
-$names = array();
+$names = [];
 foreach($bams as $bam)
 {
 	$name = basename2($bam);
-	if (in_array($name, array_values($names)))
-	{
-		trigger_error("Sample file name '$name' occurs twice in input file list. Each sample must be uniquely identifiable by name!", E_USER_ERROR);
-	}
+	if (in_array($name, array_values($names))) trigger_error("Sample file name '$name' occurs twice in input file list. Each sample must be uniquely identifiable by name!", E_USER_ERROR);
 	$names[$bam] = $name;
 }
 
-//check processing systems are supported
-foreach($bams as $bam)
-{
-	$sys = load_system($system, $names[$bam]);
-	if ($sys['target_file']=="")
-	{
-		trigger_error("Cannot perform multi-sample analysis without target region (processing systems of ".$bam." is '".$sys["name_short"]."')!", E_USER_ERROR);
-	}
-	if($sys['type'] != "lrGS")
-	{
-		trigger_error("This pipeline only supports multisample analysis of long-read whole genome (lrGS) data, sample {$bam} is of type '".$sys['type']."'!", E_USER_ERROR);
-	} 
-}
+//determine system/platform (from first sample)
 $sys = load_system($system, $names[$bams[0]]);
-
-//check genome build of BAMs
+$genome = genome_fasta($sys['build']);
+$platform = $sys['platform'];
+trigger_error("Long-read platform: {$platform}", E_USER_NOTICE);
+if ($platform!="PacBio" && $platform!="ONT") trigger_error("Unsupported platform '{$platform}'! Only 'ONT' or 'PacBio' are supported!", E_USER_ERROR);
+if ($sys['target_file']=="") trigger_error("Unsupported processing system '".$sys2["name_short"]."' (has no target region)!", E_USER_ERROR);
+	
+//check genome build and processing systems of all samples
 foreach($bams as $bam)
 {
 	check_genome_build($bam, $sys['build']);
+	$sys2 = load_system($system, $names[$bam]);
+	if($sys2['type']!="lrGS") trigger_error("Unsupported system type '".$sys2['type']."' of {$bam} (only 'lrGS' is supported)!", E_USER_ERROR);
+	if($sys2['platform']!=$platform) trigger_error("Unsupported mixed platforms '{$platform}' and '".$sys2['platform']."'!", E_USER_ERROR);
 }
 
-//check if target region covers whole genome (based on ROI size because pipeline test does not contain all chromosomes)
+//enable check if chromosomes are complete only if the ROI covers the whole genome (pipeline test are not)
 $check_chrs = bed_size(realpath($sys['target_file'])) > 3e9;
-		
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
-if (!$no_sync)
-{
-	$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
-}
+if (!$no_sync) $parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
 
 //variant calling (and phasing)
 if (in_array("vc", $steps))
 {
-	// merge GVCFs
-	$gvcfs = array();
+	//determine gVCFs	
+	$gvcfs = [];
 	foreach($bams as $bam)
 	{
 		$gvcf = dirname($bam)."/".basename2($bam)."_var.gvcf.gz";
 		if (!file_exists($gvcf)) trigger_error("gVCF file '{$gvcf}' not found! Please make sure the single-sample variant calling has run successfully.", E_USER_ERROR);
 		$gvcfs[] = $gvcf;
 	}
-	$args = array();
-	$args[] = "-gvcfs ".implode(" ", $gvcfs);
-	$args[] = "-status ".implode(" ", $status);
-	$args[] = "-out {$vcf_file}";
-	$args[] = "-threads {$threads}";
-	$args[] = "-analysis_type ".($prefix=="trio" ? "GERMLINE_TRIO" : "GERMLINE_MULTISAMPLE");
-	$args[] = "-mode clair3";
-	$parser->execTool("Tools/merge_gvcf.php", implode(" ", $args));
+	
+	// merge GVCFs
+	if($platform=="ONT")
+	{
+		$args = [];
+		$args[] = "-gvcfs ".implode(" ", $gvcfs);
+		$args[] = "-status ".implode(" ", $status);
+		$args[] = "-out {$vcf_file}";
+		$args[] = "-threads {$threads}";
+		$args[] = "-analysis_type ".($prefix=="trio" ? "GERMLINE_TRIO" : "GERMLINE_MULTISAMPLE");
+		$args[] = "-mode clair3";
+		$parser->execTool("Tools/merge_gvcf.php", implode(" ", $args));
+	}
+	else //PacBio
+	{
+		//merge gVCFs with GLnexus
+		$tmp_vcf_merged = $parser->tempFile(".vcf.gz");
+		$args = [];
+		$args[] = "--dir ".$parser->tempFolder()."/GLnexus.DB/";
+		$args[] = "--config DeepVariantWGS";
+		$args[] = "--threads {$threads}";
+		$args[] = implode(" ", $gvcfs);
+		$pipeline = [];
+		$pipeline[] = ["", $parser->execApptainer("glnexus", "glnexus_cli", implode(" ", $args), $gvcfs, [], true)];
+		$pipeline[] = ["", $parser->execApptainer("glnexus", "bcftools view", "", [], [], true)];
+		$pipeline[] = ["", $parser->execApptainer("htslib", "bgzip", "-@ -c > {$tmp_vcf_merged}", [], [], true)];
+		$parser->execPipeline($pipeline, "GLnexus gVCF merging");
+		
+		//post-processing pipeline
+		$tmp_vcf_post = $parser->tempFile(".vcf");
+		$pipeline = [];
+		$pipeline[] = array("zcat", $tmp_vcf_merged);
+		//split complex variants to primitives - this step has to be performed before VcfBreakMulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
+		$pipeline[] = ["", $parser->execApptainer("vcflib", "vcfallelicprimitives", "-kg", [], [], true)];
+		//split multi-allelic variants
+		$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "-no_errors", [], [], true)];
+		//remove invalid variants
+		$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-remove_invalid -ref {$genome}", [$genome], [], true)];
+		//normalize all variants and align INDELs to the left
+		$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref {$genome}", [$genome], [], true)];
+		//sort variants by genomic position
+		$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "> {$tmp_vcf_post}", [], [], true)];
+		//execute post-processing pipeline
+		$parser->execPipeline($pipeline, "DeepVariant multi-sample post processing");
+		
+		//bgzip and index
+		$parser->execApptainer("htslib", "bgzip", "-@ {$threads} -c {$tmp_vcf_post} > {$vcf_file}", [], [dirname($vcf_file)]);
+		$parser->execApptainer("htslib", "tabix", "-f -p vcf {$vcf_file}", [], [dirname($vcf_file)]);
+	}
 
 	//phasing (WhatsHap)
-	$genome = genome_fasta($sys['build']);
 	$vcf_file_phased = $parser->tempFile("_phased.vcf");
-	$args = array();
+	$args = [];
 	$args[] = "phase";
 	if ($ped != "")	$args[] = "--ped {$ped}";
 	$args[] = "--reference={$genome}";
@@ -201,7 +230,7 @@ if (in_array("sv", $steps))
 //annotation
 if (in_array("an", $steps))
 {
-	$status_map = array();
+	$status_map = [];
 	foreach ($status as $bam => $disease_status) 
 	{
 		$status_map[basename2($bam)] = $disease_status;
@@ -287,7 +316,7 @@ if (in_array("an", $steps))
 		//add NGSD counts from flat file
 		$ngsd_annotation_folder = get_path("data_folder")."/dbs/NGSD/";
 		$ngsd_sv_files = array("sv_deletion.bedpe.gz", "sv_duplication.bedpe.gz", "sv_insertion.bedpe.gz", "sv_inversion.bedpe.gz", "sv_translocation.bedpe.gz");
-		$db_file_dates = array();
+		$db_file_dates = [];
 
 		// check file existance
 		$all_files_available = file_exists($ngsd_annotation_folder."sv_breakpoint_density.igv");
