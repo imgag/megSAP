@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("merge_gvcf", "Merge multiple gVCF files using GATK CombineGVCFs");
+$parser = new ToolBase("merge_gvcf", "Merge multiple gVCF files of for multi-sample small variant calling.");
 $parser->addInfileArray("gvcfs", "List of gVCF files which should be merged (bgzipped and sorted).", false);
 $parser->addStringArray("status", "List of affected status of the input samples (gVCFs) - can be 'affected' or 'control'.", false);
 $parser->addEnum("mode", "Mode.", false, ["clair3", "dragen"]);

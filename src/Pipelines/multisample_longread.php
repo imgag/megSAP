@@ -189,14 +189,12 @@ if (in_array("vc", $steps))
 	$args[] = "-o {$vcf_file_phased}";
 	$args[] = "{$vcf_file}";
 	$args[] = implode(" ", $bams);
-
 	$out_files = [];
 	$out_files[] = dirname($vcf_file);
 	foreach($bams as $bam)
 	{
 		$out_files[] = dirname($bam);
 	}
-	
 	$parser->execApptainer("whatshap", "whatshap", implode(" ", $args), [$ped, $genome], $out_files);
 
 	//create compressed file and index and replace original VCF
