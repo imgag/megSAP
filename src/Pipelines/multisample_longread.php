@@ -132,6 +132,7 @@ if (in_array("vc", $steps))
 	}
 	
 	// merge GVCFs
+	$analysis_type = ($prefix=="trio" ? "GERMLINE_TRIO" : "GERMLINE_MULTISAMPLE");
 	if($platform=="ONT")
 	{
 		$args = [];
@@ -139,7 +140,7 @@ if (in_array("vc", $steps))
 		$args[] = "-status ".implode(" ", $status);
 		$args[] = "-out {$vcf_file}";
 		$args[] = "-threads {$threads}";
-		$args[] = "-analysis_type ".($prefix=="trio" ? "GERMLINE_TRIO" : "GERMLINE_MULTISAMPLE");
+		$args[] = "-analysis_type {$analysis_type}";
 		$args[] = "-mode clair3";
 		$parser->execTool("Tools/merge_gvcf.php", implode(" ", $args));
 	}
@@ -174,6 +175,17 @@ if (in_array("vc", $steps))
 		$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "> {$tmp_vcf_post}", [], [], true)];
 		//execute post-processing pipeline
 		$parser->execPipeline($pipeline, "DeepVariant multi-sample post processing");
+		
+		//add name/pipeline/sample info to VCF header
+		list($comments, $samples) = vcf_load_header($tmp_vcf_post);
+		$comments[] = "#reference={$genome}\n";
+		$comments[] = "#ANALYSISTYPE={$analysis_type}\n";
+		$comments[] = "#PIPELINE=".repository_revision(true)."\n";
+		for ($i=0; $i < count($gvcfs); $i++) 
+		{ 
+			$comments[] = gsvar_sample_header($samples[$i], array("DiseaseStatus"=>array_values($status)[$i]), "#", "");
+		}
+		vcf_replace_comments($tmp_vcf_post, $comments);
 		
 		//bgzip and index
 		$parser->execApptainer("htslib", "bgzip", "-@ {$threads} -c {$tmp_vcf_post} > {$vcf_file}", [], [dirname($vcf_file)]);

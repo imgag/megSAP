@@ -607,7 +607,7 @@ if (in_array("ph", $steps))
 	$contig_pipeline[] = array("zcat", $vcf_file);
 	$contig_pipeline[] = array("egrep", "-v \"^##contig=\" > {$tmp_vcf}");
 	$parser->execPipeline($contig_pipeline, "contig removal");
-	add_missing_contigs_to_vcf($sys['build'], $tmp_vcf);
+	vcf_add_missing_contigs($sys['build'], $tmp_vcf);
 	$parser->execApptainer("htslib", "bgzip", "-c {$tmp_vcf} > {$vcf_file}", [], [dirname($vcf_file)]);
 	$parser->execApptainer("htslib", "tabix", "-f -p vcf {$vcf_file}", [], [dirname($vcf_file)]);
 	
@@ -682,7 +682,7 @@ if (in_array("ph", $steps))
 	$parser->indexBam($tagged_bam_file, $threads);
 
 	//check if read counts of tagged and untagged BAMs match
-	compare_bam_read_count($used_bam_or_cram, $tagged_bam_file, max(8, $threads), true, true, 0.0, array(), $sys['build']);
+	compare_bam_read_count($used_bam_or_cram, $tagged_bam_file, max(8, $threads), true, true, 0.0, [], $sys['build']);
 
 	//use tagged bam in /tmp for further analysis
 	$used_bam_or_cram = $tagged_bam_file;
@@ -718,7 +718,7 @@ if (in_array("ph", $steps))
 		$parser->indexBam($cram_file, $threads);
 		
 		//check if read counts of tagged and untagged CRAMs match
-		compare_bam_read_count($cram_file.".backup.cram", $cram_file, max(8, $threads), true, true, 0.0, array(), $sys['build']);
+		compare_bam_read_count($cram_file.".backup.cram", $cram_file, max(8, $threads), true, true, 0.0, [], $sys['build']);
 		
 		//delete backup file
 		unlink($cram_file.".backup.cram");

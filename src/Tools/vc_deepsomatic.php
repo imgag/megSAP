@@ -107,95 +107,84 @@ $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "-out $tm
 //(2) execute pipeline
 $parser->execPipeline($pipeline, "deepsomatic post processing");
 
-//prepend source, date and reference to outfile:
-$file_format = "##fileformat=VCFv4.2\n";
-$file_date = "##fileDate=".date("Ymd")."\n";
-$source_line = "##source=DeepSomatic ".get_path("container_deepsomatic")."\n";
-$reference_line = "##reference=".genome_fasta($build, false)."\n";
-file_put_contents($tmp_out, $file_format . $file_date . $source_line . $reference_line . file_get_contents($tmp_out));
+//prepend source, date and reference to outfile
+list($comments) = vcf_load_header($tmp_out);
+$comments[] = "##fileformat=VCFv4.2";
+$comments[] = "##fileDate=".date("Ymd");
+$comments[] = "##source=DeepSomatic ".get_path("container_deepsomatic");
+$comments[] = "##reference=".genome_fasta($build, false);
+vcf_replace_comments($tmp_out, $comments);
+$final = $tmp_out;
 
+//Filter tumor-normal variants
 if (!$tumor_only)
 {
-	//################################################################################################
-	//Filter variants
-	//################################################################################################
-
-	$variants = Matrix::fromTSV($tmp_out);
-	$variants_filtered = new Matrix();
-
-	//fix column names
-	$colnames = $variants->getHeaders();
-	$colidx_tumor = array_search($tumor_id, $colnames);
-
-	//quality cutoffs (taken from Strelka)
+	list($comments, $samples) = vcf_load_header($tmp_out);
+	
+	//add filter headers (quality cutoffs taken from Strelka)
 	$min_td = 20;
 	$min_taf = 0.05;
 	$min_tsupp = 3;
+	$filter_format = '##FILTER=<ID=%s,Description="%s">';
+	$comments[] = sprintf($filter_format, "all-unknown", "Allele unknown");
+	$comments[] = sprintf($filter_format, "special-chromosome", "Special chromosome");
+	$comments[] = sprintf($filter_format, "depth-tum", "Sequencing depth in tumor is too low (< {$min_td})");
+	$comments[] = sprintf($filter_format, "freq-tum", "Allele frequency in tumor < {$min_taf}");
+	$comments[] = sprintf($filter_format, "lt-3-reads", "Less than {$min_tsupp} supporting tumor reads");
+	$comments = vcf_sort_comments($comments);
+	$colidx_tumor = array_search($tumor_id, $samples) + 9;
 
-	//set comments and column names
-	$filter_format = '#FILTER=<ID=%s,Description="%s">';
-	$comments = [
-		sprintf($filter_format, "all-unknown", "Allele unknown"),
-		sprintf($filter_format, "special-chromosome", "Special chromosome"),
-		sprintf($filter_format, "depth-tum", "Sequencing depth in tumor is too low (< {$min_td})"),
-		sprintf($filter_format, "freq-tum", "Allele frequency in tumor < {$min_taf}"),
-		sprintf($filter_format, "lt-3-reads", "Less than {$min_tsupp} supporting tumor reads")
-		];
-
-	$variants_filtered->setComments(sort_vcf_comments(array_merge($variants->getComments(), $comments)));
-	$variants_filtered->setHeaders($colnames);
-
-	for($i = 0; $i < $variants->rows(); ++$i)
+	//store comments
+	$tmp_out_filtered = $parser->tempFile(".vcf");
+	$ho = fopen2($tmp_out_filtered, 'w');
+	foreach($comments as $comment)
 	{
-		$row = $variants->getRow($i);
-
-		$ref = $row[3];
-		$alt = $row[4];
-		$format = $row[8];
-		$tumor = $row[$colidx_tumor];
-
-		$filters = [];
-		$type = (strlen($row[3]) > 1 || strlen($row[4]) > 1) ? "INDEL" : "SNV";
-
-		$filter = array_diff(explode(";", $row[6]), ["PASS"]);
+		fputs($ho, $comment."\n");
+	}
+	
+	//copy header line and (filtered) variants
+	$h = fopen2($tmp_out, 'r');
+	while(!feof($h))
+	{
+		$line = nl_trim(fgets($h));
+		if ($line=="" || starts_with($line, "##")) continue;
+		
+		//header line
+		if ($line[0]=="#")
+		{
+			fputs($ho, $line."\n");
+			continue;
+		}
+		
+		$parts = explode("\t", $line);
+		$filter = array_diff(explode(";", $parts[6]), ["PASS", ""]);
+		
 		//filter out variants called as germline variants
 		if (in_array("GERMLINE", $filter)) continue;
 
-		if (!preg_match("/^[acgtACGT]*$/", $alt))
+		if (!preg_match("/^[acgtACGT]*$/", $parts[4]))
 		{
 			$filter[] = "all-unknown";
 		}
-		if (chr_check($row[0], 22, false) === FALSE)
+		if (chr_check($parts[0], 22, false) === FALSE)
 		{
 			$filter[] = "special-chromosome";
 		}
-		$calls = [];
-		list($td, $tf) = vcf_deepvariant($format, $tumor);
-		$calls[] = [ $alt, $td, $tf, $filter];
+		list($td, $tf) = vcf_deepvariant($parts[8], $parts[$colidx_tumor]);
 
-		foreach ($calls as $call)
-		{
-			$variant = $row;
-			list($alt, $td, $tf, $filter) = $call;
-			$variant[4] = $alt;
+		if ($td * $tf < $min_tsupp) $filter[] = "lt-3-reads";
+		if ($td < $min_td) $filter[] = "depth-tum";
+		if ($tf < $min_taf) $filter[] = "freq-tum";
 
-			if ($td * $tf < $min_tsupp) $filter[] = "lt-3-reads";
-			if ($td < $min_td) $filter[] = "depth-tum";
-			if ($tf < $min_taf) $filter[] = "freq-tum";
+		if (empty($filter)) $filter[] = "PASS";
 
-			if (empty($filter))
-			{
-				$filter[] = "PASS";
-			}
-
-			$variant[6] = implode(";", $filter);
-			$variants_filtered->addRow($variant);		
-		}
+		$parts[6] = implode(";", $filter);
+		fputs($ho, implode("\t", $parts)."\n");
 	}
-	$final = $parser->tempFile("_filtered.vcf");
-	$variants_filtered->toTSV($final);
+	fclose($h);
+	fclose($ho);
+	$final = $tmp_out_filtered;
 }
-else $final = $tmp_out;
 
 //flag off-target variants
 if (!empty($target))

@@ -603,49 +603,6 @@ function is_writable2($file)
 	return $writable;
 }
 
-function sort_vcf_comments($comments_to_sort)
-{
-	//group comments
-	$groups = array(
-		"other"=>array(),
-		"#contig"=>array(),
-		"#INFO"=>array(),
-		"#FILTER"=>array(),
-		"#FORMAT"=>array(),
-		"#ALT"=>array(),
-		"#assembly"=>array(),
-		"#SAMPLE"=>array()
-		);
-	foreach($comments_to_sort as $comment)
-	{
-		list($i) = explode("=", $comment, 2);
-		if (starts_with($i, "##")) $i = substr($i, 1); //leading "##" => "#"
-		if(isset($groups[$i]))
-		{
-			$groups[$i][] = $comment;
-		}
-		else
-		{
-			$groups["other"][] = $comment;
-		}
-	}
-	
-	//sort by group / text
-	$sorted = array();
-	foreach($groups as $group => $comments)
-	{
-		//"other" contains fileformat and similar headers, which must not change order!
-		//"#SAMPLE" order must not change, otherwise the order of files shown in IGV is random
-		if ($group!="other" && $group!="#SAMPLE") 
-		{
-			sort($comments, SORT_FLAG_CASE|SORT_STRING);
-		}
-		$sorted = array_merge($sorted, $comments);
-	}
-
-	return $sorted;
-}
-
 //open an file and returns the file handle. Throws an error if it fails!
 function fopen2($filename, $mode)
 {

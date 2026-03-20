@@ -954,12 +954,10 @@ if (in_array("an", $steps))
 	$parser->execApptainer("ngs-bits", "SomaticQC", implode(" ", $args_somaticqc), $in_files, [dirname($somaticqc)]);
 
 	//add sample info to VCF header
-	$s = Matrix::fromTSV($tmp_vcf);
-	$comments = $s->getComments();
-	$comments[] = gsvar_sample_header($t_id, array("IsTumor" => "yes"), "#", "");
-	$comments[] = gsvar_sample_header($n_id, array("IsTumor" => "no"), "#", "");
-	$s->setComments(sort_vcf_comments($comments));
-	$s->toTSV($tmp_vcf);
+	list($comments) = vcf_load_header($tmp_vcf);
+	$comments[] = gsvar_sample_header($t_id, array("IsTumor" => "yes"));
+	$comments[] = gsvar_sample_header($n_id, array("IsTumor" => "no"));
+	vcf_replace_comments($tmp_vcf, $comments);
 
 	// zip and index vcf file
 	$parser->execApptainer("htslib", "bgzip", "-c $tmp_vcf > $variants_annotated", [], [dirname($variants_annotated)]);

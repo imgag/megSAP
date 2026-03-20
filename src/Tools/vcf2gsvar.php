@@ -14,7 +14,7 @@ $parser->addOutfile("out", "Output file in GSvar format.", false);
 $parser->addEnum("genotype_mode", "Genotype handling mode.", true, array("single", "multi", "skip"), "single");
 $parser->addFlag("updown", "Don't discard up- or downstream annotations (5000 bases around genes).");
 $parser->addFlag("wgs", "Enables WGS mode: MODIFIER variants with a AF>2% are skipped to reduce the number of variants to a manageable size.");
-$parser->addFlag("longread", "Add additional columns for long-read samples (e.g. pahsing information)");
+$parser->addFlag("longread", "Add additional columns for long-read samples (e.g. phasing information)");
 $parser->addString("custom", "Settings key name for custom column definitions.", true, "");
 $parser->addFlag("test", "Run in test mode. Skips replacing sample headers with NGSD information.");
 extract($parser->parse($argv));
@@ -741,7 +741,7 @@ while(!gzeof($handle))
 	{
 		if($multisample_vcf)
 		{
-			$sample = array();
+			$sample = [];
 			//extract format info and arrange format values based on key
 			foreach ($sample_format_values as $format_values) 
 			{
@@ -759,27 +759,28 @@ while(!gzeof($handle))
 			if (! isset($sample["PL"]) && isset($sample["JPL"])) $sample["PL"] = $sample["JPL"];
 			
 			//determine human-readable genotype
-			$genotypes = array();
+			$genotypes = [];
 			for ($i=0; $i < count($sample["GT"]); $i++) 
 			{ 
 				$gt = vcfgeno2human($sample["GT"][$i]);
 				if ($sample["DP"][$i]<3) $gt = "n/a";
 				$genotypes[] = $gt;
+				
 				if ($longread)
 				{
 					$phasing_info = "";
-					if (strpos($sample["GT"][$i], "|") !== false) 
+					if(strpos($sample["GT"][$i], "|") !== false)
 					{
 						$phasing_info = $sample["GT"][$i]." (".$sample["PS"][$i].")";
 					}
+					$genotypes[] = $phasing_info;
 				}
-				$genotypes[] = $phasing_info;
 			}
 
 			//combine certain values
 			$genotype = "\t".implode("\t", $genotypes);
-			$sample["DP"] = implode(",", $sample["DP"]);
-			$sample["AF"] = implode(",", $sample["AF"]);
+			$sample["DP"] = isset($sample["DP"]) ? implode(",", $sample["DP"]) : "";
+			$sample["AF"] = isset($sample["AF"]) ? implode(",", $sample["AF"]) : "";
 		}
 		else
 		{

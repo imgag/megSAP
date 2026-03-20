@@ -2,7 +2,6 @@
 
 require_once("framework.php");
 
-
 //##################################################################################
 start_test("container_platform");
 
@@ -343,52 +342,6 @@ check($data[1], array(" three", " four ", "five "));
 check($data[2], array("six"));
 
 unlink("/tmp/php_test_load_tsv.txt");
-
-end_test();
-
-//##################################################################################
-start_test("sort_vcf_comments");
-
-$comments = array(
-	"#contig=<ID=chrUn_gl000249,length=38502>",
-	"#SAMPLE=<ID=DX123458_01,Gender=n/a,DiseaseStatus=affected>",
-	"#SAMPLE=<ID=DX123457_01,Gender=female,DiseaseStatus=control>",
-	"#SAMPLE=<ID=DX123456_01,Gender=male,DiseaseStatus=control>",
-	"#content=strelka somatic indel calls",
-	"#INFO=<ID=QSI,Number=1,Type=Integer,Description=\"Quality score for any somatic variant, ie. for the ALT haplotype to be present at a significantly different frequency in the tumor and normal\">",
-	"#SnpSiftCmd=\"SnpSift dbnsfp -f Interpro_domain /tmp/annotate_XwplOa_somatic.vcf\"",
-	"#INFO=<ID=dbNSFP_Interpro_domain,Number=A,Type=String,Description=\"Field 'Interpro_domain' from dbNSFP\">",
-	);
-$comments_out = array(
-	"#content=strelka somatic indel calls",
-	"#SnpSiftCmd=\"SnpSift dbnsfp -f Interpro_domain /tmp/annotate_XwplOa_somatic.vcf\"",
-	"#contig=<ID=chrUn_gl000249,length=38502>",
-	"#INFO=<ID=dbNSFP_Interpro_domain,Number=A,Type=String,Description=\"Field 'Interpro_domain' from dbNSFP\">",
-	"#INFO=<ID=QSI,Number=1,Type=Integer,Description=\"Quality score for any somatic variant, ie. for the ALT haplotype to be present at a significantly different frequency in the tumor and normal\">",
-	"#SAMPLE=<ID=DX123458_01,Gender=n/a,DiseaseStatus=affected>",
-	"#SAMPLE=<ID=DX123457_01,Gender=female,DiseaseStatus=control>",
-	"#SAMPLE=<ID=DX123456_01,Gender=male,DiseaseStatus=control>",
-);
-check(sort_vcf_comments($comments), $comments_out);
-
-end_test();
-
-
-//##################################################################################
-start_test("add_missing_contigs_to_vcf");
-
-$input = data_folder()."/add_missing_contigs_to_vcf_in.vcf";
-$out_grch38_ref = data_folder()."/add_missing_contigs_to_vcf_out_grch38.vcf";
-$out_grch38 = output_folder()."/add_missing_contigs_to_vcf_out_grch38.vcf";
-
-//copy files
-copy($input, $out_grch38);
-
-//annotate contigs
-add_missing_contigs_to_vcf("GRCh38", $out_grch38);
-
-// compare 
-check_file($out_grch38, $out_grch38_ref, true);
 
 end_test();
 
