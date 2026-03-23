@@ -313,10 +313,15 @@ rm InfiniumMethylationEPICv2.0ProductFiles.zip
 # singularity exec <downloaded-ngs-bits-container> BedSort -with_name -in HGMD_CNVS_2025_2.bed -out HGMD_CNVS_2025_2.bed
 
 
-# # install COSMIC Cancer Mutation Census CMC (you need a license)
+# # install COSMIC
+# # for reasearch use, register at https://cancer.sanger.ac.uk/ and manually download data:
+# # - https://cancer.sanger.ac.uk/cosmic/download/cancer-mutation-census/v102/alldata-cmc
+# # - https://cancer.sanger.ac.uk/cosmic/download/cosmic/v102/genomescreensmutantvcf
+# # - https://cancer.sanger.ac.uk/cosmic/download/cosmic/v102/completetargetedscreensmutantvcf
+# # - https://cancer.sanger.ac.uk/cosmic/download/cosmic/v102/noncodingvariantsvcf
+# # for non-reasearch use, you need a license from Qiagen. Download from cmc-v102 and cosmic-v102.
 # cd $dbs
 # mkdir -p COSMIC
-# # manual download of CancerMutationCensus_AllData_Tsv_v102_GRCh37.tar, Cosmic_GenomeScreensMutant_Vcf_v102_GRCh38.tar, Cosmic_CompleteTargetedScreensMutant_Vcf_v102_GRCh38.tar and Cosmic_NonCodingVariants_Vcf_v102_GRCh38.tar from https://apps.ingenuity.com/ingsso/login
 # cd COSMIC
 # ls *.tar | xargs -l1 tar -xf 
 # gunzip -c CancerMutationCensus_AllData_v102_GRCh37.tsv.gz | php $src/Install/db_converter_cosmic.php -in_genome_vcf Cosmic_GenomeScreensMutant_v102_GRCh38.vcf.gz -in_non_coding_vcf Cosmic_NonCodingVariants_v102_GRCh38.vcf.gz -in_target_screens_vcf Cosmic_CompleteTargetedScreensMutant_v102_GRCh38.vcf.gz -out cmc_export_v102.vcf.gz

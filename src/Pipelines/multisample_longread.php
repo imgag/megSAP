@@ -9,7 +9,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("multisample_longread", "Multisample analysis pipeline of Nanopore long-read data.");
+$parser = new ToolBase("multisample_longread", "Multisample analysis pipeline for ONT/PacBio long-read data.");
 $parser->addInfileArray("bams", "Input BAM/CRAM files.", false);
 $parser->addStringArray("status", "List of affected status of the input samples (BAMs) - can be 'affected' or 'control'.", false);
 $parser->addInfile("out_folder", "Output folder name.", false);
@@ -21,6 +21,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=varia
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addInfile("ped", "(PLINK-compatible) Pedigree file to phase related samples.", true);
+$parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
 extract($parser->parse($argv));
 
 //create output folder if missing
@@ -176,14 +177,14 @@ if (in_array("vc", $steps))
 		//execute post-processing pipeline
 		$parser->execPipeline($pipeline, "DeepVariant multi-sample post processing");
 		
-		//add name/pipeline/sample info to VCF header
+		//add pipeline, sample infos, etc. to VCF header
 		list($comments, $samples) = vcf_load_header($tmp_vcf_post);
-		$comments[] = "#reference={$genome}\n";
-		$comments[] = "#ANALYSISTYPE={$analysis_type}\n";
-		$comments[] = "#PIPELINE=".repository_revision(true)."\n";
+		$comments[] = "##reference={$genome}\n";
+		$comments[] = "##ANALYSISTYPE={$analysis_type}\n";
+		$comments[] = "##PIPELINE=".repository_revision(true)."\n";
 		for ($i=0; $i < count($gvcfs); $i++) 
 		{ 
-			$comments[] = gsvar_sample_header($samples[$i], array("DiseaseStatus"=>array_values($status)[$i]), "#", "");
+			$comments[] = gsvar_sample_header($samples[$i], array("DiseaseStatus"=>array_values($status)[$i]), "##", "");
 		}
 		vcf_replace_comments($tmp_vcf_post, $comments);
 		
@@ -250,6 +251,13 @@ if (in_array("an", $steps))
 	if (file_exists($vcf_file))
 	{
 		//basic annotation
+		$args = [];
+		$args[] = "-out_name {$prefix}";
+		$args[] = "-out_folder {$out_folder}";
+		$args[] = "-system {$system}";
+		$args[] = "-threads {$threads}";
+		$args[] = "-multi";
+		if ($no_splice) $args[] = "-no_splice";
 		$parser->execTool("Tools/annotate.php", "-out_name $prefix -out_folder $out_folder -system $system -threads $threads -multi");
 		
 		//check for truncated output

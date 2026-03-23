@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("analyze_longread", "Complete NGS analysis pipeline for long-read data.");
+$parser = new ToolBase("analyze_longread", "Single-sample analysis pipeline for ONT/PacBio long-read data.");
 $parser->addInfile("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
@@ -25,6 +25,7 @@ $parser->addFloat("min_af", "Minimum VAF cutoff used for variant calling (DeepVa
 $parser->addFloat("min_bq", "Minimum base quality used for variant calling (DeepVariant 'min-base-quality' parameter).", true, 10);
 $parser->addFloat("min_mq", "Minimum mapping quality used for variant calling (DeepVariant 'min-mapping-quality' parameter).", true, 20);
 $parser->addFlag("test", "Run pipeline in test mode (e.g. use hard-coded cohort for methylation analysis)");
+$parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
 extract($parser->parse($argv));
 
 // create logfile in output folder if no filepath is provided:
@@ -760,8 +761,7 @@ if (in_array("an", $steps))
 		$args[] = "-system ".$system;
 		$args[] = "--log ".$parser->getLogFile();
 		$args[] = "-threads ".$threads;
-
-		//run annotation pipeline
+		if ($no_splice) $args[] = "-no_splice";
 		$parser->execTool("Tools/annotate.php", implode(" ", $args));
 
 		//check for truncated output
