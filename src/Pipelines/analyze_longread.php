@@ -100,6 +100,7 @@ $modkit_summary = $folder."/".$name."_modkit_summary.txt";
 $epigen_tsv = $folder."/".$name."_epigen.tsv";
 //variant calling
 $vcf_file = $folder."/".$name."_var.vcf.gz";
+$gvcf_file = $folder."/".$name."_var.gvcf.gz";
 $vcf_file_annotated = $folder."/".$name."_var_annotated.vcf.gz";
 $var_file = $folder."/".$name.".GSvar";
 $roh_file = $folder."/".$name."_rohs.tsv";
@@ -391,6 +392,7 @@ if (in_array("vc", $steps))
 		$args[] = "-add_sample_header";
 		$args[] = "-name ".$name;
 		if ($gpu) $args[] = "-gpu";
+		$args[] = "-gvcf ".$gvcf_file;
 		
 		$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
 	}
