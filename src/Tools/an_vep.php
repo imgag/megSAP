@@ -74,8 +74,6 @@ $args[] = "--species homo_sapiens --assembly {$build}"; //species
 $args[] = "--fork {$threads}"; //speed (--buffer_size did not change run time when between 1000 and 20000)
 $args[] = "--offline --cache --dir_cache {$vep_data_path}/ --fasta {$genome}"; //paths to data
 $args[] = "--transcript_version --domains --failed 1"; //annotation options
-$args[] = "--regulatory"; //regulatory features
-$fields[] = "BIOTYPE";
 $args[] = "--pubmed"; //add publications
 $fields[] = "PUBMED";
 if (!$all_transcripts)
@@ -124,7 +122,7 @@ $vcf_output_mes = $parser->tempFile("_mes.vcf");
 $in_files = [$gff, $genome];
 $parser->execApptainer("ngs-bits", "VcfAnnotateMaxEntScan", "-gff {$gff} -in {$vcf_output_phylop} -out {$vcf_output_mes} -ref $genome -swa -threads {$threads} -min_score 0.0 -decimals 1", [$gff, $genome]);
 
-// create config file for VcfAnnotateFromVcf
+//create config file for VcfAnnotateFromVcf
 $config_file_path = $parser->tempFile(".config");
 $config_file = fopen2($config_file_path, 'w');
 $in_files = array();
@@ -144,21 +142,21 @@ if ($custom!="")
 	}
 }
 
-// add dbSNP annotation
+//add dbSNP annotation
 fwrite($config_file, annotation_file_path("/dbs/dbSNP/dbSNP_b157.vcf.gz")."\t\tRS\t\n");
 $in_files[] = annotation_file_path("/dbs/dbSNP/dbSNP_b157.vcf.gz");
 
-// add gnomAD annotation
+//add gnomAD annotation
 fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz")."\tgnomADg\tAC,AF,Hom,Hemi,Het,Wt,AFR_AF,AMR_AF,EAS_AF,NFE_AF,SAS_AF\t\ttrue\n");
 $in_files[] = annotation_file_path("/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz");
 fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz")."\tgnomADm\tAF_hom\t\ttrue\n");
 $in_files[] = annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz");
 
-// add clinVar annotation
+//add ClinVar annotation
 fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20250907_converted_GRCh38.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
 $in_files[] = annotation_file_path("/dbs/ClinVar/clinvar_20250907_converted_GRCh38.vcf.gz");
 
-// add HGMD annotation
+//add HGMD annotation
 $hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2025_2_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
 if(file_exists($hgmd_file) && !$test)
 {
@@ -279,7 +277,7 @@ if ($somatic)
 // close config file
 fclose($config_file);
 
-// execute VcfAnnotateFromVcf
+// execute VcfAnnotateFromVcf with config file
 $vcf_annotate_output = $parser->tempFile("_annotateFromVcf.vcf");
 $parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in {$vcf_output_mes} -out {$vcf_annotate_output} -threads {$threads}", $in_files);
 
@@ -303,6 +301,11 @@ if (!$no_splice)
 	$parser->execTool("Tools/an_spliceai.php", "-in {$vcf_annotate_output} -out {$tmp} -threads {$threads} -build {$build}");
 	$parser->moveFile($tmp, $vcf_annotate_output);
 }
+
+//annotate regluatory data
+$tmp = $parser->tempFile("_regulatory.vcf");
+$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/Ensembl/Ensembl_regulatory_115.bed")." -name REGULATORY -sep ',' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", $in_files=[annotation_file_path("/dbs/Ensembl/Ensembl_regulatory_115.bed")]);
+$parser->moveFile($tmp, $vcf_annotate_output);
 
 //annotate RepeatMasker
 $tmp = $parser->tempFile("_repeatmasker.vcf");

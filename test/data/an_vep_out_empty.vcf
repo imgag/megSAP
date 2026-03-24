@@ -2629,7 +2629,7 @@
 ##INFO=<ID=MIN_DP,Number=1,Type=Integer,Description="Minimum depth in gVCF output block.">
 ##INFO=<ID=END,Number=1,Type=Integer,Description="Last position (inclusive) in gVCF output record.">
 ##INFO=<ID=technology.ILLUMINA,Number=A,Type=Float,Description="Fraction of observations supporting the alternate observed in reads from ILLUMINA">
-##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|Feature|Feature_type|DOMAINS|BIOTYPE|PUBMED">
+##INFO=<ID=CSQ,Number=.,Type=String,Description="Consequence annotations from Ensembl VEP. Format: Allele|Consequence|Feature|Feature_type|DOMAINS|PUBMED">
 ##INFO=<ID=CSQ2,Number=.,Type=String,Description="Consequence annotations from VcfAnnotateConsequence. Format: Allele|Consequence|IMPACT|SYMBOL|HGNC_ID|Feature|Feature_type|EXON|INTRON|HGVSc|HGVSp">
 ##INFO=<ID=PHYLOP,Number=1,Type=Float,Description="Annotation from hg38.phyloP100way.bw (mode max)">
 ##INFO=<ID=MES,Number=1,Type=String,Description="The MaxEntScan scores. FORMAT: A | separated list of maxentscan_ref&maxentscan_alt&transcript_name items.">
@@ -2660,6 +2660,7 @@
 ##INFO=<ID=NGSD_CLAS,Number=1,Type=String,Description="Classification from the NGSD. (from file an_vep_NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_CLAS_COM,Number=1,Type=String,Description="Classification comment from the NGSD. (from file an_vep_NGSD_germline.vcf.gz)">
 ##INFO=<ID=NGSD_COM,Number=1,Type=String,Description="Variant comments from the NGSD. (from file an_vep_NGSD_germline.vcf.gz)">
+##INFO=<ID=REGULATORY,Number=.,Type=String,Description="Annotation from Ensembl_regulatory_115.bed delimited by ','">
 ##INFO=<ID=REPEATMASKER,Number=.,Type=String,Description="Annotation from RepeatMasker_GRCh38.bed delimited by '&'">
 ##FILTER=<ID=low_conf_region,Description="Variant marked as 'low_conf_region'.">
 ##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">

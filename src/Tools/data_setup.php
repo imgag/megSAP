@@ -25,7 +25,7 @@ $local_data = get_path("local_data");
 $rsync  = "rsync --recursive --no-perms --no-acls --omit-dir-times --no-group --no-owner --chmod=ugo=rwX --copy-links --size-only";
 
 //determine DB files
-$db_files = array("/dbs/dbSNP/dbSNP_b157.vcf.gz", "/dbs/CADD/CADD_SNVs_1.7_GRCh38.vcf.gz", "/dbs/CADD/CADD_InDels_1.7_GRCh38.vcf.gz", "/dbs/REVEL/REVEL_1.3.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz", "/dbs/RepeatMasker/RepeatMasker_GRCh38.bed", "/dbs/ClinVar/clinvar_20250907_converted_GRCh38.vcf.gz", "/dbs/phyloP/hg38.phyloP100way.bw", "/dbs/SpliceAI/spliceai_scores_2024_08_26_GRCh38.vcf.gz");
+$db_files = array("/dbs/dbSNP/dbSNP_b157.vcf.gz", "/dbs/CADD/CADD_SNVs_1.7_GRCh38.vcf.gz", "/dbs/CADD/CADD_InDels_1.7_GRCh38.vcf.gz", "/dbs/REVEL/REVEL_1.3.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz", "/dbs/RepeatMasker/RepeatMasker_GRCh38.bed", "/dbs/ClinVar/clinvar_20250907_converted_GRCh38.vcf.gz", "/dbs/phyloP/hg38.phyloP100way.bw", "/dbs/SpliceAI/spliceai_scores_2024_08_26_GRCh38.vcf.gz", "/dbs/Ensembl/Ensembl_regulatory_115.bed");
 //add optional DBs
 $omim =  "/dbs/OMIM/omim.bed";
 if (file_exists($data_folder.$omim)) $db_files[] = $omim;
@@ -252,6 +252,7 @@ if ($build=="GRCh38")
 			$source = $data_folder.$db_file;
 			$target = $local_annotation_folder.basename($db_file);
 			print "  rsync-ing database {$source}\n";
+			print "   {$rsync} {$source} {$target}\n";
 			list($stdout, $stderr) = exec2("{$rsync} {$source} {$target}");
 			foreach(array_merge($stdout, $stderr) as $line)
 			{

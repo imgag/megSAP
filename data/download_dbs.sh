@@ -53,6 +53,16 @@ gunzip Homo_sapiens.GRCh38.115_original.gtf.gz
 # create sorted & indexed file for methylartist
 (grep ^"#" Homo_sapiens.GRCh38.115_original.gtf; grep -v ^"#" Homo_sapiens.GRCh38.115_original.gtf | sort -k1,1 -k4,4n | sed -e 's/^/chr/') | singularity exec $htslib bgzip  > Homo_sapiens.GRCh38.115.gtf.gz
 singularity exec $htslib tabix -p gff Homo_sapiens.GRCh38.115.gtf.gz
+
+#Download Ensembl regulatory data
+cd $dbs
+mkdir -p Ensembl
+cd Ensembl
+wget https://ftp.ensembl.org/pub/release-115/regulation/homo_sapiens/GRCh38/annotation/Homo_sapiens.GRCh38.regulatory_features.v115.gff3.gz
+wget https://ftp.ensembl.org/pub/release-115/regulation/homo_sapiens/GRCh38/annotation/Homo_sapiens.GRCh38.motif_features.v115.gff3.gz
+php $src/Install/db_converter_ensembl_regulatory.php Homo_sapiens.GRCh38.115.gff3 Homo_sapiens.GRCh38.regulatory_features.v115.gff3.gz Homo_sapiens.GRCh38.motif_features.v115.gff3.gz > Ensembl_regulatory_115.bed
+BedSort -in Ensembl_regulatory_115.bed -out Ensembl_regulatory_115.bed
+
 #Download RefSeq transcripts database
 cd $dbs
 mkdir -p RefSeq
