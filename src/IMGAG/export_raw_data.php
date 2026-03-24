@@ -10,7 +10,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 //parse command line arguments
 $parser = new ToolBase("export_raw_data", "Exports RAW data.");
 $parser->addStringArray("samples", "Processed sample names (or file with one sample per line).", false);
-$parser->addString("out", "Output folder and ZIP file name.", false);
+$parser->addString("out", "Output folder (folder name is also used for created ZIP file).", false);
 $parser->addEnum("mode", "Export mode (FASTQ only, BAM only, whole analysis folder).", true, ["fastq", "bam", "vcf", "folder"], "fastq");
 $parser->addFlag("internal", "Use internal webserver and do not use password for zip file.");
 $parser->addFlag("allow_bad_quality", "Allow export of samples with bad quality.");
@@ -25,6 +25,7 @@ if (!file_exists($out) || !is_dir($out))
 	print "Output folder '$out' is missing - creating it ...\n";
 	mkdir($out, 0777, true);
 }
+$out_abs = realpath($out);
 
 //load samples from file
 if (count($samples)==1 && file_exists($samples[0]))
@@ -106,9 +107,17 @@ foreach($samples as $ps)
 	}
 	else if ($mode=="bam")
 	{
-		print "  Copying BAM file ...\n";
 		$bam = $info['ps_bam'];
-		exec2("ln -s {$bam} {$out}/".basename($bam));
+		if (ends_with($bam, ".bam"))
+		{
+			print "  Linking BAM file ...\n";
+			exec2("ln -s {$bam} {$out}/".basename($bam));
+		}
+		else
+		{
+			print "  Creating BAM file from CRAM...\n";
+			$parser->execTool("Tools/cram_to_bam.php", "-cram {$bam} -bam {$out_abs}/".basename2($bam).".bam -threads 8");
+		}
 	}
 	else if ($mode=="vcf")
 	{
@@ -131,7 +140,6 @@ foreach($samples as $ps)
 		else
 		{
 			print "  Generating FASTQ files from BAM ...\n";
-			$out_abs = realpath($out);
 			$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$bam} -out1 {$out_abs}/{$ps}_R1_001.fastq.gz -out2 {$out_abs}/{$ps}_R2_001.fastq.gz", [$bam], [$out_abs]);
 		}
 	}
