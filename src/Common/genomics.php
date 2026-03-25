@@ -130,7 +130,7 @@ function get_ref_seq($build, $chr, $start, $end, $cache_size=0, $use_local_data=
 			$cache_end = $end + $cache_size;
 
 			// get sequence
-			$output = array();
+			$output = [];
 			list($output, $stderr, $ret) = execApptainer("samtools", "samtools faidx", genome_fasta($build, $use_local_data)." $chr:{$cache_start}-{$cache_end}", [genome_fasta($build, $use_local_data)], []);
 
 			if ($ret!=0)
@@ -164,7 +164,7 @@ function get_ref_seq($build, $chr, $start, $end, $cache_size=0, $use_local_data=
 		// run without caching
 
 		//get sequence
-		$output = array();
+		$output = [];
 		$genome = genome_fasta($build, $use_local_data);
 		list($output, $stderr, $ret) = execApptainer("samtools", "samtools faidx", "{$genome} {$chr}:{$start}-{$end}", [$genome], []);
 
@@ -416,18 +416,16 @@ function load_system(&$filename, $ps_name = "")
 	//determine system from processed sample name
 	if (is_null($filename) || $filename=="")
 	{
-		//get ID of processed sample
 		$db_conn = DB::getInstance("NGSD", false);
+
+		//get ID of processed sample
 		$ps_id = get_processed_sample_id($db_conn, $ps_name, false);
-		if ($ps_id==-1)
-		{
-			trigger_error("load_system: Cannot determine processing system - processed sample name '$ps_name' is invalid!", E_USER_ERROR);
-		}
+		if ($ps_id==-1) trigger_error("load_system: Cannot determine processing system - processed sample name '$ps_name' is invalid!", E_USER_ERROR);
 		
 		//store system INI file
-		$sys_name = $db_conn->getValue("SELECT sys.name_short FROM processing_system sys, processed_sample ps WHERE ps.processing_system_id=sys.id AND ps.id=$ps_id");
-		$filename = temp_file(".ini", "pro_sys_".$sys_name."_");
-		store_system($db_conn, $sys_name, $filename);
+		$name_short = $db_conn->getValue("SELECT sys.name_short FROM processing_system sys, processed_sample ps WHERE ps.processing_system_id=sys.id AND ps.id={$ps_id}");
+		$filename = temp_file(".ini", "pro_sys_".$name_short."_");
+		store_system($db_conn, $name_short, $filename);
 	}
 	
 	return parse_ini_file($filename);
@@ -443,9 +441,10 @@ function store_system(&$db_conn, $name_short, $filename)
 	}
 	
 	//store output
-	$output = array();
+	$output = [];
 	$output[] = "name_short = \"".$name_short."\"";
 	$output[] = "name_manufacturer = \"".$res[0]['name_manufacturer']."\"";
+	$output[] = "platform = \"".$res[0]['platform']."\"";
 	$roi = trim($res[0]['target_file']);
 	if ($roi!="") $roi = get_path("data_folder")."/enrichment/".$roi;
 	$output[] = "target_file = \"".$roi."\"";
@@ -548,7 +547,7 @@ function get_processed_samples_from_run(&$db, $run_id)
 	
 	$res = $db->executeQuery($query);
 	
-	$sample_names = array();
+	$sample_names = [];
 	
 	foreach($res as $data)
 	{
@@ -698,9 +697,9 @@ function load_vcf_normalized($filename)
 {
 	if (!file_exists($filename)) return  [];
 
-	$comments = array();
+	$comments = [];
 	$header = "";
-	$vars = array();
+	$vars = [];
 	
 	//load and normalize data
 	foreach(file($filename) as $line)
@@ -725,7 +724,7 @@ function load_vcf_normalized($filename)
 			
 			//convert INFO data to associative array
 			$info = explode(";", $info);
-			$tmp = array();
+			$tmp = [];
 			foreach($info as $entry)
 			{
 				if (!contains($entry, "="))
@@ -778,7 +777,7 @@ function load_vcf_normalized($filename)
 		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info) = $var;
 		
 		//info
-		$tmp = array();
+		$tmp = [];
 		foreach($info as $key => $value)
 		{
 			$tmp[] = "$key=$value";
@@ -789,7 +788,7 @@ function load_vcf_normalized($filename)
 		$format = implode(":", array_keys($var[8]));
 				
 		//sample columns (also additional sample columns of multi-sample VCF)
-		$samples = array();
+		$samples = [];
 		for($i=8; $i<count($var); ++$i)
 		{
 			$samples[] = implode(":", array_values($var[$i]));
@@ -1324,7 +1323,7 @@ function gsvar_sample_header($ps, $override_map, $prefix = "##", $suffix = "\n")
 function vcf_column_index($name, $header)
 {
 	//calculate distances (of prefix of same length)
-	$dists = array();
+	$dists = [];
 	for ($i=9; $i<count($header); ++$i)
 	{
 		$min_len = min(strlen($name), strlen($header[$i]));
@@ -1338,7 +1337,7 @@ function vcf_column_index($name, $header)
 	$indices = $dists[$min];
 	if (count($indices)>1)
 	{
-		$hits = array();
+		$hits = [];
 		foreach($indices as $index)
 		{
 			$hits[] = $header[$index];
@@ -1405,7 +1404,7 @@ function analysis_job_info(&$db_conn, $job_id, $error_if_not_found=true)
 	$info = $res[0];
 	
 	//extract samples
-	$info['samples'] = array();
+	$info['samples'] = [];
 	$res = $db_conn->executeQuery("SELECT processed_sample_id, info FROM analysis_job_sample WHERE analysis_job_id=:job_id ORDER BY id ASC", array("job_id"=>$job_id));
 	foreach($res as $row)
 	{
@@ -1413,7 +1412,7 @@ function analysis_job_info(&$db_conn, $job_id, $error_if_not_found=true)
 	}
 	
 	//extract history
-	$info['history'] = array();
+	$info['history'] = [];
 	$res = $db_conn->executeQuery("SELECT status FROM analysis_job_history WHERE analysis_job_id=:job_id ORDER BY id ASC", array("job_id"=>$job_id));
 	foreach($res as $row)
 	{
@@ -1617,7 +1616,7 @@ function cytobands($chr, $start, $end)
 {
 	$handle = fopen2(repository_basedir()."/data/misc/cytoBand.txt", "r");
 	
-	$out = array();
+	$out = [];
 	
 	while(!feof($handle))
 	{
@@ -1636,91 +1635,6 @@ function cytobands($chr, $start, $end)
 	asort($out);
 	
 	return $out;
-}
-
-//checks if any contig line is given, if not adds all contig lines from reference genome (using fasta index file)
-function add_missing_contigs_to_vcf($build, $vcf)
-{
-	$file = fopen2($vcf, 'c+');
-	$new_file_lines = array();
-	if($file)
-	{
-		$new_file_lines = explode("\n", fread($file, filesize($vcf)));
-		fseek($file, 0);
-	}
-	else
-	{
-		trigger_error("Could not open file ".$vcf.": no new contig lines written.", E_USER_WARNING);
-	}
-
-	$contains_contig = false;
-	$line_below_reference_info = 0;
-	$count = 0;
-
-	$new_contigs = array();
-
-	while(!feof($file))
-	{
-		$count += 1;
-		$line = trim(fgets($file));
-
-		if(starts_with($line, "##reference"))
-		{
-			$line_below_reference_info = $count;
-		}
-		else if (starts_with($line, "##"))
-		{
-			if(starts_with($line, "##contig"))
-			{
-				$contains_contig = true;
-				break;
-			}
-		}
-		else
-		{
-			//write contigs in second line if no reference genome line is given
-			if($line_below_reference_info == 0)
-			{
-				$line_below_reference_info = 1;
-			}
-			break;
-		}
-	}
-	if(!$contains_contig)
-	{
-		$fai_file_path = genome_fasta($build).".fai";
-		if (!file_exists($fai_file_path))
-		{
-			trigger_error("Fasta index file \"{$fai_file_path}\" is missing!", E_USER_ERROR);
-		}
-		$fai_file_content = file($fai_file_path, FILE_IGNORE_NEW_LINES);
-		foreach ($fai_file_content as $line) 
-		{
-			// skip empty lines
-			if (trim($line) == "") continue;
-
-			// split table
-			$parts = explode("\t", $line);
-			if (count($parts) != 5)
-			{
-				trigger_error("Error parsing Fasta index file!", E_USER_ERROR);
-			}
-			$chr = trim($parts[0]);
-			$len = intval($parts[1]);
-			$new_contigs[] = "##contig=<ID={$chr},length={$len}>";
-		}
-
-		if(empty($new_contigs))
-		{
-			trigger_error("No new contig lines were written for ".$vcf, E_USER_WARNING);
-		}
-		else
-		{
-			array_splice( $new_file_lines, $line_below_reference_info, 0, $new_contigs);  
-			file_put_contents($vcf, implode("\n", $new_file_lines));
-		}
-	}
-
 }
 
 $aa1_to_aa3 = array( 'A'=>"Ala", 'R'=>"Arg", 'N'=>"Asn", 'D'=>"Asp", 'C'=>"Cys", 'E'=>"Glu", 'Q'=>"Gln", 'G'=>"Gly", 'H'=>"His", 'I'=>"Ile", 'L'=>"Leu", 'K'=>"Lys", 'M'=>"Met", 'F'=>"Phe", 'P'=>"Pro", 'S'=>"Ser", 'T'=>"Thr", 'W'=>"Trp", 'Y'=>"Tyr", 'V'=>"Val", '*'=>"Ter");
@@ -1846,7 +1760,7 @@ function annotate_gsvar_by_gene(&$gsvar, $annotation_f, $key, $column, $column_n
 //If @throw_error is false, no error is triggered and -1 is returned. 
 function check_genome_build($filename, $build_expected, $throw_error = true)
 {
-	$builds = array();
+	$builds = [];
 	
 	//check file exists
 	if (!file_exists($filename))
@@ -2331,7 +2245,7 @@ function contains_methylation($bam_file, $n_rows=100, $build="GRCh38")
 //extracts base-calling description from BAM header
 function get_read_group_description($bam_file)
 {
-	$rg_description = array();
+	$rg_description = [];
 	$samtools_command = execApptainer("samtools", "samtools view", "-H $bam_file", [$bam_file], [], true);
 	list($stdout, $stderr, $exit_code) = exec2("{$samtools_command} | egrep '^@RG' ", false);
 	if  ($exit_code==0 || $exit_code==1)	{
@@ -2360,7 +2274,7 @@ function get_read_group_description($bam_file)
 //returns the model which was used for base-calling
 function get_basecall_model($bam_file)
 {
-	$basecall_model = array();
+	$basecall_model = [];
 	$samtools_command = execApptainer("samtools", "samtools view", "-H $bam_file", [$bam_file], [], true);
 	list($stdout, $stderr, $exit_code) = exec2("{$samtools_command} | egrep '^@RG' ", false);
 	if  ($exit_code==0 || $exit_code==1)	{
@@ -2466,28 +2380,23 @@ function update_gsvar_sample_header($file_name, $disease_status_map)
 }
 
 //get bam read count
-function get_read_count($bam_file, $threads = 4, $samtools_params = array(), $build = "GRCh38", $region = "")
+function get_read_count($bam_file, $threads = 4, $samtools_params = [], $build = "GRCh38", $region = "")
 {
-	$read_count = -1;
+	print "COMMAND: samtools view -@ {$threads} -c -T ".genome_fasta($build)." ".implode($samtools_params)." {$bam_file} {$region}\n";
 	list($stdout, $stderr, $exit_code) = execApptainer("samtools", "samtools view", "-@ {$threads} -c -T ".genome_fasta($build)." ".implode($samtools_params)." {$bam_file} {$region}", [$bam_file, genome_fasta($build)]);
-	if ($exit_code == 0)
-	{
-		$read_count = (int) $stdout[0];
-	}
-	else
-	{
-		trigger_error("Error calculating read counts: \n".implode("\n", $stderr), E_USER_ERROR);
-	}
-
+	if ($exit_code!=0) trigger_error("Error calculating read counts: \n".implode("\n", $stderr), E_USER_ERROR);
+	
+	$read_count = (int) $stdout[0];
+	print "COUNT ($bam_file $region): $read_count\n";
 	return $read_count;
 }
 
 //compare bam read count
-function compare_bam_read_count($bam_file1, $bam_file2, $threads = 4, $throw_error = true, $chr_wise = false, $relative_tolerance = 0.0, $samtools_params = array(), $build = "GRCh38")
+function compare_bam_read_count($bam_file1, $bam_file2, $threads = 4, $throw_error = true, $chr_wise = false, $relative_tolerance = 0.0, $samtools_params = [], $build = "GRCh38")
 {
 	if ($chr_wise)
 	{
-		$differences = array();
+		$differences = [];
 		foreach (chr_list() as $chr) 
 		{
 			$read_count1 = get_read_count($bam_file1, $threads, $samtools_params, $build, $chr);
@@ -2521,21 +2430,6 @@ function compare_bam_read_count($bam_file1, $bam_file2, $threads = 4, $throw_err
 		if ($throw_error) trigger_error("Bam file read count do not match! ({$read_count1} vs. {$read_count2} reads)", E_USER_ERROR);
 		return false;
 	}
-}
-
-/**
-    @brief Determines the sequencing platform type for a processing system.
-    @param string $name_short Short name of the processing system.
-    @return string 'PB', 'ONT'.
-*/
-function get_longread_sequencing_platform($name_short)
-{
-	//TODO: use better way than short name comparison
-    if (starts_with($name_short, 'LR-PB-')) {
-        return 'PB';
-    } else {
-        return 'ONT';
-    }
 }
 
 /**
@@ -2598,6 +2492,156 @@ function bed_is_sorted($filename)
 	if ($is_sorted=="yes") return true;
 	if ($is_sorted=="no") return false;
 	trigger_error("Could not determine if file is sorted: $filename", E_USER_ERROR);
+}
+
+//returns sorted VCF comments. Used to make comment order consistent when modifying comments
+function vcf_sort_comments($comments)
+{
+	//group comments
+	$groups = array(
+		"other"=>[],
+		"##contig"=>[],
+		"##INFO"=>[],
+		"##FILTER"=>[],
+		"##FORMAT"=>[],
+		"##ALT"=>[],
+		"##assembly"=>[],
+		"##SAMPLE"=>[]
+		);
+	foreach($comments as $comment)
+	{
+		if (!starts_with($comment, "##")) trigger_error("Comment line for sorting not starting with '##': {$comment}\n");
+		list($key) = explode("=", $comment, 2);
+		if(isset($groups[$key]))
+		{
+			$groups[$key][] = $comment;
+		}
+		else
+		{
+			$groups["other"][] = $comment;
+		}
+	}
+	
+	//sort by group / text
+	$sorted = [];
+	foreach($groups as $group => $comments)
+	{
+		//"other" contains fileformat and similar headers, which must not change order!
+		//"##SAMPLE" order must not change, otherwise the order of files shown in IGV from GSvar is random
+		//"##contig" should not be sorted. Some tools are confised by that e.g. XXX writes incomplete BAMs if they are in the wrong order //TODO Marc/Leon
+		if ($group!="other" && $group!="##SAMPLE" && $group!="##contig") 
+		{
+			sort($comments, SORT_FLAG_CASE|SORT_STRING);
+		}
+		$sorted = array_merge($sorted, $comments);
+	}
+
+	return $sorted;
+}
+
+//returns a two element array (first element is an array of comment lines, second element is a array of sample names). Comment lines are trimmed but otherwise untouched.
+function vcf_load_header($filename)
+{
+	$comments = [];
+	
+	$h = gzopen2($filename, 'r');
+	while(!feof($h))
+	{
+		$line = nl_trim(fgets($h));
+		if ($line=="") continue;
+		
+		if (starts_with($line, "##"))
+		{
+			$comments[] = $line;
+		}
+		else if (starts_with($line, "#CHROM\t"))
+		{
+			$samples = array_slice(explode("\t", $line), 9);
+			fclose($h);
+			return [$comments, $samples];
+		}
+	}
+	
+	fclose($h);
+	trigger_error("No header line starting with '#CHROM' found in {$filename}", E_USER_ERROR);
+}
+
+
+//replaces the comment lines in a VCF file.
+function vcf_replace_comments($filename, $comments)
+{
+	//open output tmp file
+	$tmp = temp_file(".vcf");
+	$ho = fopen2($tmp, "w");
+	
+	//write new comment lines into output file
+	foreach($comments as $line)
+	{
+		if (!starts_with($line, "##")) trigger_error("Comment line for writing to {$filename} not starting with '##': {$line}\n");
+		fputs($ho, nl_trim($line)."\n");
+	}
+	
+	//write non-comment lines from input to output
+	$h = gzopen2($filename, 'r');
+	while(!feof($h))
+	{
+		$line = nl_trim(fgets($h));
+		if ($line=="" || starts_with($line, "##")) continue;
+		
+		fputs($ho, $line."\n");
+	}
+	fclose($h);
+	fclose($ho);
+	
+	//move tmp file to input File
+	if (!rename($tmp, $filename))
+	{
+		trigger_error("Could not replace input file {$filename} in function 'vcf_replace_comments'!", E_USER_ERROR);
+	}
+}
+
+//all contig lines from reference genome to a VCF file, if no contig lines are contained
+function vcf_add_missing_contigs($build, $filename)
+{
+	list($comments) = vcf_load_header($filename);
+	
+	//check if contig lines are present
+	$contains_contig = false;
+	foreach($comments as $line)
+	{
+		if (starts_with($line, "##contig"))
+		{
+			$contains_contig = true;
+			break;
+		}
+	}
+	
+	//add contig lines if missing
+	if(!$contains_contig)
+	{
+		//add new contig lines to comments
+		$fai_file = genome_fasta($build).".fai";
+		if (!file_exists($fai_file)) trigger_error("FAI file '{$fai_file}' is missing!", E_USER_ERROR);
+		foreach (file($fai_file) as $line) 
+		{
+			$line = nl_trim($line);
+			if ($line=="") continue;
+
+			$parts = explode("\t", $line);
+			if (count($parts)!=5) trigger_error("Error parsing FAI file: Line does not contain 5 parts: {$line}", E_USER_ERROR);
+			
+			$chr = trim($parts[0]);
+			$len = intval($parts[1]);
+			
+			$comments[] = "##contig=<ID={$chr},length={$len}>";
+		}
+		
+		//sort comments
+		$comments = vcf_sort_comments($comments);
+		
+		//write comments back to input file
+		vcf_replace_comments($filename, $comments);
+	}
 }
 
 ?>

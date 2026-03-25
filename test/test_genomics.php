@@ -2,7 +2,6 @@
 
 include("framework.php");
 
-
 //##################################################################################
 start_test("bed_is_sorted");
 
@@ -434,6 +433,89 @@ check(contains_mito(data_folder()."/vc_clair_out2.vcf.gz"), false);
 
 check(contains_mito(data_folder()."/an_vep_NGSD_gene_info.bed"), true);
 check(contains_mito(data_folder()."/vc_clair_in_roi.bed"), false);
+
+end_test();
+
+//##################################################################################
+start_test("vcf_load_header");
+
+list($comments, $samples) = vcf_load_header(data_folder()."/add_missing_contigs_to_vcf_in.vcf");
+
+check(count($comments), 57);
+check($comments[0], "##fileformat=VCFv4.2");
+check($comments[56], "##FORMAT=<ID=MIN_DP,Number=1,Type=Integer,Description=\"Minimum depth in gVCF output block.\">");
+
+check(count($samples), 1);
+check($samples[0], "vc_freebayes_in");
+
+end_test();
+
+//##################################################################################
+start_test("vcf_replace_comments");
+
+//copy input file
+$out = output_folder()."/vcf_replace_comments.vcf";
+copy(data_folder()."/vcf_replace_comments.vcf", $out);
+
+//annotate contigs
+$comments_new = [
+	"##fileformat=VCFv4.2",
+	"##fileDate=20260320",
+	"##source=freeBayes v2.3.4"
+	];
+vcf_replace_comments($out, $comments_new);
+
+// compare 
+check_file($out, data_folder()."/vcf_replace_comments.vcf", true);
+
+end_test();
+
+//##################################################################################
+start_test("vcf_add_missing_contigs");
+
+//copy input file
+$out = output_folder()."/add_missing_contigs_to_vcf_out_grch38.vcf";
+copy(data_folder()."/add_missing_contigs_to_vcf_in.vcf", $out);
+
+//annotate contigs
+vcf_add_missing_contigs("GRCh38", $out);
+
+// compare 
+check_file($out, data_folder()."/add_missing_contigs_to_vcf_out_grch38.vcf", true);
+
+end_test();
+
+//##################################################################################
+start_test("vcf_sort_comments");
+
+$comments = array(
+	"##contig=<ID=chrUn_gl000249,length=38502>",
+	"##SAMPLE=<ID=DX123458_01,Gender=n/a,DiseaseStatus=affected>",
+	"##SAMPLE=<ID=DX123457_01,Gender=female,DiseaseStatus=control>",
+	"##SAMPLE=<ID=DX123456_01,Gender=male,DiseaseStatus=control>",
+	"##content=strelka somatic indel calls",
+	"##INFO=<ID=QSI,Number=1,Type=Integer,Description=\"Quality score for any somatic variant, ie. for the ALT haplotype to be present at a significantly different frequency in the tumor and normal\">",
+	"##SnpSiftCmd=\"SnpSift dbnsfp -f Interpro_domain /tmp/annotate_XwplOa_somatic.vcf\"",
+	"##INFO=<ID=dbNSFP_Interpro_domain,Number=A,Type=String,Description=\"Field 'Interpro_domain' from dbNSFP\">",
+	);
+$comments = vcf_sort_comments($comments);
+
+$comments_out = array(
+	"##content=strelka somatic indel calls",
+	"##SnpSiftCmd=\"SnpSift dbnsfp -f Interpro_domain /tmp/annotate_XwplOa_somatic.vcf\"",
+	"##contig=<ID=chrUn_gl000249,length=38502>",
+	"##INFO=<ID=dbNSFP_Interpro_domain,Number=A,Type=String,Description=\"Field 'Interpro_domain' from dbNSFP\">",
+	"##INFO=<ID=QSI,Number=1,Type=Integer,Description=\"Quality score for any somatic variant, ie. for the ALT haplotype to be present at a significantly different frequency in the tumor and normal\">",
+	"##SAMPLE=<ID=DX123458_01,Gender=n/a,DiseaseStatus=affected>",
+	"##SAMPLE=<ID=DX123457_01,Gender=female,DiseaseStatus=control>",
+	"##SAMPLE=<ID=DX123456_01,Gender=male,DiseaseStatus=control>",
+);
+
+check(count($comments), count($comments_out));
+for ($i=0; $i<count($comments); ++$i)
+{
+	check($comments[$i], $comments_out[$i]);
+}
 
 end_test();
 

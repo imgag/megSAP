@@ -502,11 +502,10 @@ if (in_array("vc", $steps))
 
 	//add sample info to VCF header
 	$tmp_vcf = $parser->tempFile(".vcf");
-	$s = Matrix::fromTSV($vcffile_annotated);
-	$comments = $s->getComments();
-	$comments[] = gsvar_sample_header($name, array("IsTumor" => "yes"), "#", "");
-	$s->setComments(sort_vcf_comments($comments));
-	$s->toTSV($tmp_vcf);
+	$parser->copyFile($vcffile_annotated, $tmp_vcf);
+	list($comments) = vcf_load_header($tmp_vcf);
+	$comments[] = gsvar_sample_header($name, array("IsTumor" => "yes"));
+	vcf_replace_comments($tmp_vcf, $comments);
 
 	// zip and index vcf file
 	$parser->execApptainer("htslib", "bgzip", "-c $tmp_vcf > $vcffile_annotated", [], [dirname($vcffile_annotated)]);

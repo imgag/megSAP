@@ -40,22 +40,16 @@ $qcml_map = $basename."_stats_map.qcML";
 //extract processing system information from DB
 $sys = load_system($system, $sample);
 $genome_fasta = genome_fasta($sys['build']);
-$platform = get_longread_sequencing_platform($sys['name_short']);
-
+$platform = $sys['platform'];
+if ($platform!="PacBio" && $platform!="ONT") trigger_error("Unsupported platform '{$platform}'! Only 'ONT' or 'PacBio' are supported!", E_USER_ERROR);
+	
 //set read group information
 $group_props = [];
 $group_props[] = "ID:{$sample}";
 $group_props[] = "SM:{$sample}";
 $group_props[] = "LB:{$sample}";
 $group_props[] = "DT:".date("c");
-if ($platform == "PB")
-{
-	$group_props[] = "PL:PACBIO";
-}
-elseif ($platform == "ONT")
-{
-	$group_props[] = "PL:ONT";
-}
+$group_props[] = $platform=="PacBio" ? "PL:PACBIO" : "PL:ONT";
 if(db_is_enabled("NGSD"))
 {
 	$db_conn = DB::getInstance("NGSD");
@@ -66,21 +60,6 @@ if(db_is_enabled("NGSD"))
 		$group_props[] = "en:".$psample_info['sys_name'];
 	}
 }
-
-//set preset, default to ONT
-if ($platform == "PB")
-{
-	$preset = "map-hifi";
-}
-elseif ($platform == "ONT")
-{
-	$preset = "map-ont";
-}
-else
-{
-	trigger_error("Could not determine preset as platform {$platform} is unknown", E_USER_ERROR);
-}
-
 
 // alignment pipeline:
 // BAM input available:
@@ -112,7 +91,7 @@ if ($bam_input)
 $minimap_options = [
 	"-a",
 	"--MD",
-	"-x {$preset}",
+	"-x ".($platform=="PacBio" ? "map-hifi" : "map-ont"),
 	"--eqx",
 	"-t {$threads}",
 	"-R '@RG\\t" . implode("\\t", $group_props) . "'",

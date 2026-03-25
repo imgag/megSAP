@@ -57,6 +57,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=varia
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
+$parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
 extract($parser->parse($argv));
 
 //init
@@ -317,6 +318,7 @@ if (in_array("vc", $steps))
 			$args = [];
 			$args[] = "--dir ".$parser->tempFolder()."/GLnexus.DB/";
 			$args[] = "--config ".($is_wes ? $wes_config : "DeepVariantWGS");
+			$args[] = "--threads {$threads}";
 			$args[] = implode(" ", $deepvar_gvcfs);
 			$pipeline = [];
 			$pipeline[] = ["", $parser->execApptainer("glnexus", "glnexus_cli", implode(" ", $args), [$wes_config], [], true)];
@@ -471,7 +473,14 @@ if (in_array("vc", $steps))
 	$parser->execApptainer("htslib", "tabix", "-p vcf $vcf_zipped", [], [dirname($vcf_zipped)]);
 
 	//basic annotation
-	$parser->execTool("Tools/annotate.php", "-out_name {$prefix} -out_folder {$out_folder} -system {$system} -threads {$threads} -multi");
+	$args = [];
+	$args[] = "-out_name {$prefix}";
+	$args[] = "-out_folder {$out_folder}";
+	$args[] = "-system {$system}";
+	$args[] = "-threads {$threads}";
+	$args[] = "-multi";
+	if ($no_splice) $args[] = "-no_splice";
+	$parser->execTool("Tools/annotate.php", implode(" ", $args));
 
 	//check for truncated output
 	if ($is_wgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$out_folder}/{$prefix}_var_annotated.vcf.gz -max_missing_perc 5");

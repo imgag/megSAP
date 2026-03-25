@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("analyze_longread", "Complete NGS analysis pipeline for long-read data.");
+$parser = new ToolBase("analyze_longread", "Single-sample analysis pipeline for ONT/PacBio long-read data.");
 $parser->addInfile("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
@@ -25,6 +25,7 @@ $parser->addFloat("min_af", "Minimum VAF cutoff used for variant calling (DeepVa
 $parser->addFloat("min_bq", "Minimum base quality used for variant calling (DeepVariant 'min-base-quality' parameter).", true, 10);
 $parser->addFloat("min_mq", "Minimum mapping quality used for variant calling (DeepVariant 'min-mapping-quality' parameter).", true, 20);
 $parser->addFlag("test", "Run pipeline in test mode (e.g. use hard-coded cohort for methylation analysis)");
+$parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
 extract($parser->parse($argv));
 
 // create logfile in output folder if no filepath is provided:
@@ -42,8 +43,9 @@ $parser->logServerEnvronment();
 //determine processing system
 $sys = load_system($system, $name);
 $build = $sys['build'];
-$platform = get_longread_sequencing_platform($sys['name_short']);
-trigger_error("Determined platform (ONT or PacBio): {$platform}", E_USER_NOTICE);
+$platform = $sys['platform'];
+trigger_error("Long-read platform: {$platform}", E_USER_NOTICE);
+if ($platform!="PacBio" && $platform!="ONT") trigger_error("Unsupported platform '{$platform}'! Only 'ONT' or 'PacBio' are supported!", E_USER_ERROR);
 if ($test) trigger_error("Pipeline running in test mode!", E_USER_WARNING);
 
 //check steps
@@ -182,7 +184,7 @@ if (in_array("ma", $steps))
 	elseif (count($old_bam_files) > 0)
 	{
 		//move BAMs/CRAMs to subfolder
-		$old_bam_files_moved = array();
+		$old_bam_files_moved = [];
 		$mapping_folder = "{$folder}/bams_for_mapping/";
 		$parser->exec("mkdir", $mapping_folder);
 
@@ -204,7 +206,7 @@ if (in_array("ma", $steps))
 	// create methylation track
 	if (contains_methylation($used_bam_or_cram, 100, $build))
 	{
-		$args = array();
+		$args = [];
 		$args[] = "-bam ".$used_bam_or_cram;
 		$args[] = "-bed ".$modkit_track;
 		$args[] = "-summary ".$modkit_summary;
@@ -317,7 +319,7 @@ if (in_array("ma", $steps))
 				$rc_unmapped = 0;
 				foreach ($fastq_files as $fastq_file) 
 				{
-					$rc_pipeline = array();
+					$rc_pipeline = [];
 					$rc_pipeline[] = array("zcat", $fastq_file);
 					$rc_pipeline[] = array("wc", "-l");
 					list($stdout, $stderr) = $parser->execPipeline($rc_pipeline, "FastQ read count", true);
@@ -376,7 +378,7 @@ if(db_is_enabled("NGSD") && !$no_gender_check)
 //variant calling
 if (in_array("vc", $steps))
 {
-	if ($platform == "PB") //Pacbio
+	if ($platform == "PacBio")
 	{
 		$args = [];
 		$args[] = "-model_type PACBIO";
@@ -496,7 +498,7 @@ if (in_array("vc", $steps))
 	}
 
 	//create b-allele frequency file
-	$params = array();
+	$params = [];
 	$params[] = "-vcf {$vcf_file}";
 	$params[] = "-name {$name}";
 	$params[] = "-out {$baf_file}";
@@ -602,11 +604,11 @@ if (in_array("ph", $steps))
 {
 	//replace contigs in VCF header (incorrect sorted contigs lead to errors in CRAM file)
 	$tmp_vcf = $parser->tempFile("_var.vcf");
-	$contig_pipeline = array();
+	$contig_pipeline = [];
 	$contig_pipeline[] = array("zcat", $vcf_file);
 	$contig_pipeline[] = array("egrep", "-v \"^##contig=\" > {$tmp_vcf}");
 	$parser->execPipeline($contig_pipeline, "contig removal");
-	add_missing_contigs_to_vcf($sys['build'], $tmp_vcf);
+	vcf_add_missing_contigs($sys['build'], $tmp_vcf);
 	$parser->execApptainer("htslib", "bgzip", "-c {$tmp_vcf} > {$vcf_file}", [], [dirname($vcf_file)]);
 	$parser->execApptainer("htslib", "tabix", "-f -p vcf {$vcf_file}", [], [dirname($vcf_file)]);
 	
@@ -618,7 +620,7 @@ if (in_array("ph", $steps))
 	{
 		//delete prev modcall file
 		if(file_exists($vcf_modcall)) $parser->exec("rm", $vcf_modcall);
-		$args = array();
+		$args = [];
 		$args[] = "modcall";
 		$args[] = "-b {$used_bam_or_cram}";
 		$args[] = "-r {$genome}";
@@ -633,14 +635,14 @@ if (in_array("ph", $steps))
 	$phased_tmp = $parser->tempFile(".vcf", "longphase");
 	$phased_sv_tmp = substr($phased_tmp,0,-4)."_SV.vcf";
 
-	$args = array();
+	$args = [];
 	$args[] = "phase";
 	$args[] = "-s {$vcf_file}";
 	$args[] = "-b {$used_bam_or_cram}";
 	$args[] = "-r {$genome}";
 	$args[] = "-t {$threads}";
 	$args[] = "-o ".substr($phased_tmp, 0, -4);
-	$args[] = $platform == "PB" ? "--pb" : "--ont";
+	$args[] = $platform == "PacBio" ? "--pb" : "--ont";
 	$args[] = "--indels";
 	if (file_exists($sv_vcf_file))
 	{
@@ -662,7 +664,7 @@ if (in_array("ph", $steps))
 	}
 
 	//tag BAM file 
-	$args = array();
+	$args = [];
 	$args[] = "haplotag";
 	$args[] = "-s {$vcf_file}";
 	$args[] = "-b {$used_bam_or_cram}";
@@ -681,7 +683,7 @@ if (in_array("ph", $steps))
 	$parser->indexBam($tagged_bam_file, $threads);
 
 	//check if read counts of tagged and untagged BAMs match
-	compare_bam_read_count($used_bam_or_cram, $tagged_bam_file, max(8, $threads), true, true, 0.0, array(), $sys['build']);
+	compare_bam_read_count($used_bam_or_cram, $tagged_bam_file, max(8, $threads), true, true, 0.0, [], $sys['build']);
 
 	//use tagged bam in /tmp for further analysis
 	$used_bam_or_cram = $tagged_bam_file;
@@ -717,7 +719,7 @@ if (in_array("ph", $steps))
 		$parser->indexBam($cram_file, $threads);
 		
 		//check if read counts of tagged and untagged CRAMs match
-		compare_bam_read_count($cram_file.".backup.cram", $cram_file, max(8, $threads), true, true, 0.0, array(), $sys['build']);
+		compare_bam_read_count($cram_file.".backup.cram", $cram_file, max(8, $threads), true, true, 0.0, [], $sys['build']);
 		
 		//delete backup file
 		unlink($cram_file.".backup.cram");
@@ -734,7 +736,7 @@ if (in_array("re", $steps))
 {
 	//Repeat-expansion calling using straglr
 	$variant_catalog = repository_basedir()."/data/repeat_expansions/straglr_variant_catalog_grch38.bed";
-	$parser->execTool("Tools/vc_straglr.php", "-include_partials -in {$used_bam_or_cram} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build} --log ".$parser->getLogFile());
+	$parser->execTool("Tools/vc_straglr.php", "-in {$used_bam_or_cram} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build} --log ".$parser->getLogFile());
 }
 
 
@@ -759,8 +761,7 @@ if (in_array("an", $steps))
 		$args[] = "-system ".$system;
 		$args[] = "--log ".$parser->getLogFile();
 		$args[] = "-threads ".$threads;
-
-		//run annotation pipeline
+		if ($no_splice) $args[] = "-no_splice";
 		$parser->execTool("Tools/annotate.php", implode(" ", $args));
 
 		//check for truncated output
@@ -856,7 +857,7 @@ if (in_array("an", $steps))
 		//add NGSD counts from flat file
 		$ngsd_annotation_folder = get_path("data_folder")."/dbs/NGSD/";
 		$ngsd_sv_files = array("sv_deletion.bedpe.gz", "sv_duplication.bedpe.gz", "sv_insertion.bedpe.gz", "sv_inversion.bedpe.gz", "sv_translocation.bedpe.gz");
-		$db_file_dates = array();
+		$db_file_dates = [];
 
 		// check file existance
 		$all_files_available = file_exists($ngsd_annotation_folder."sv_breakpoint_density.igv");
@@ -1161,7 +1162,7 @@ if (in_array("db", $steps))
 		//check similarity to (sr) WGS/WES sample
 		list($stdout, $stderr, $exit_code) = $parser->execApptainer("ngs-bits", "NGSDSameSample", "-ps $name -system_type WGS,WES");
 		//parse stdout
-		$same_samples = array();
+		$same_samples = [];
 		foreach ($stdout as $line) 
 		{
 			if (starts_with($line, "#")) continue;

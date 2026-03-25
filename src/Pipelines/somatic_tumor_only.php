@@ -400,12 +400,10 @@ if (in_array("an", $steps))
 	$parser->execTool("Tools/annotate.php", "-out_name {$prefix} -out_folder {$tmp_folder1} -system {$system} -vcf {$variants} -somatic -threads {$threads}");
 	
 	//add sample info to VCF header
-	$s = Matrix::fromTSV($tmp_vcf);
-	$comments = $s->getComments();
-	$comments[] = gsvar_sample_header($t_id, array("IsTumor" => "yes"), "#", "");
-	$s->setComments(sort_vcf_comments($comments));
-	$s->toTSV($tmp_vcf);
-
+	list($comments) = vcf_load_header($tmp_vcf);
+	$comments[] = gsvar_sample_header($t_id, array("IsTumor" => "yes"));
+	vcf_replace_comments($tmp_vcf, $comments);
+	
 	//zip and index VCF
 	$parser->execApptainer("htslib", "bgzip", "-c {$tmp_vcf} > {$variants_annotated}", [], [dirname($variants_annotated)]);
 	$parser->execApptainer("htslib", "tabix", "-f -p vcf {$variants_annotated}", [], [dirname($variants_annotated)]);

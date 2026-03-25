@@ -108,44 +108,54 @@ $parser->execPipeline($pipeline, "splitting InDels");
 //Merge SNV and INDELs into one VCF file
 //################################################################################################
 
-$strelka_snvs = Matrix::fromTSV($split_snvs);
-$strelka_indels = Matrix::fromTSV($split_indels);
-$merged = new Matrix();
 
-//collect comments
-$comments = array_unique(array_merge($strelka_snvs->getComments(), $strelka_indels->getComments()));
+$vcf_merged = $parser->tempFile("_merged.vcf");
+$ho = fopen2($vcf_merged, 'w');
 
+//store comments
+list($comments_snv, $samples) = vcf_load_header($split_snvs);
+list($comments_indel) = vcf_load_header($split_indels);
+$comments = array_unique(array_merge($comments_snv, $comments_indel));
 //remove duplicate DP (different description)
 $comments = array_diff($comments, [
-	'#FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read depth for tier1 (used+filtered)">',
-	'#INFO=<ID=QSI_NT,Number=1,Type=Integer,Description="Quality score reflecting the joint probability of a somatic variant and NT">'
+	'##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read depth for tier1 (used+filtered)">',
+	'##INFO=<ID=QSI_NT,Number=1,Type=Integer,Description="Quality score reflecting the joint probability of a somatic variant and NT">'
 	]);
-$comments[] = '#INFO=<ID=QSI_NT,Number=1,Type=Integer,Description="Quality score reflecting the joint probability of a somatic variant (indels) and NT">';
-$merged->setComments(sort_vcf_comments($comments));
-$merged->setHeaders($strelka_snvs->getHeaders());
+$comments[] = '##INFO=<ID=QSI_NT,Number=1,Type=Integer,Description="Quality score reflecting the joint probability of a somatic variant (indels) and NT">';
+foreach($comments as $comment)
+{
+	fputs($ho, $comment."\n");
+}
+
+//store header line
+fputs($ho, "#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	".implode("\t", $samples)."\n");
 
 //add SNVs
-for($i = 0; $i < $strelka_snvs->rows(); ++$i)
+$h = fopen2($split_snvs, 'r');
+while(!feof($h))
 {
-	$row = $strelka_snvs->getRow($i);
-	$merged->addRow($row);
+	$line = nl_trim(fgets($h));
+	if ($line=="" || starts_with($line, "#")) continue;
+	fputs($ho, $line."\n");
 }
+fclose($h);
 
 //add indels
-for ($i=0; $i < $strelka_indels->rows(); ++$i)
+$h = fopen2($split_indels, 'r');
+while(!feof($h))
 {
-	$row = $strelka_indels->getRow($i);
-
-	//remove overfluent '.' at end or beginning of indels that can be found with long indels - bug?
-	$row[3] = trim($row[3], ".");
-	$row[4] = trim($row[4], ".");
-
-	$merged->addRow($row);
+	$line = nl_trim(fgets($h));
+	if ($line=="" || starts_with($line, "#")) continue;
+	$parts = explode("\t", $line);
+	
+	//remove extra '.' at end or beginning of indels - bug?!
+	$parts[3] = trim($parts[3], ".");
+	$parts[4] = trim($parts[4], ".");
+	
+	fputs($ho, implode("\t", $parts)."\n");
 }
-
-//store
-$vcf_merged = $parser->tempFile("_merged.vcf");
-$merged->toTSV($vcf_merged);
+fclose($h);
+fclose($ho);
 
 //remove invalid variant
 $vcf_invalid = $parser->tempFile("_filtered_invalid.vcf");
@@ -163,65 +173,74 @@ $parser->execApptainer("ngs-bits", "VcfSort", "-in $vcf_aligned -out $vcf_sorted
 //Filter variants
 //################################################################################################
 
-$variants = Matrix::fromTSV($vcf_sorted);
-$variants_filtered = new Matrix();
+list($comments, $samples) = vcf_load_header($vcf_sorted);
 
-//fix column names
-$colnames = $variants->getHeaders();
-$colidx_tumor = array_search("TUMOR", $colnames);
-$colidx_normal = array_search("NORMAL", $colnames);
-$colnames[$colidx_tumor] = basename2($t_bam);
-$colnames[$colidx_normal] = basename2($n_bam);
+//fix sample names
+$colidx_tumor = array_search("TUMOR", $samples);
+$colidx_normal = array_search("NORMAL", $samples);
+$samples[$colidx_tumor] = basename2($t_bam);
+$samples[$colidx_normal] = basename2($n_bam);
+$colidx_tumor += 9;
+$colidx_normal += 9;
 
-//quality cutoffs
+//add filter headers
 $min_td = 20;
 $min_taf = 0.05;
 $min_tsupp = 3;
 $min_nd = 15;
 $max_naf_rel = 1/6;
+$filter_format = '##FILTER=<ID=%s,Description="%s">';
+$comments[] = sprintf($filter_format, "all-unknown", "Allele unknown");
+$comments[] = sprintf($filter_format, "special-chromosome", "Special chromosome");
+$comments[] = sprintf($filter_format, "depth-tum", "Sequencing depth in tumor is too low (< {$min_td})");
+$comments[] = sprintf($filter_format, "freq-tum", "Allele frequency in tumor < {$min_taf}");
+$comments[] = sprintf($filter_format, "depth-nor", "Sequencing depth in normal is too low (< {$min_nd})");
+$comments[] = sprintf($filter_format, "freq-nor", "Allele frequency in normal > ".number_format($max_naf_rel, 2)." * allele frequency in tumor");
+$comments[] = sprintf($filter_format, "lt-3-reads", "Less than {$min_tsupp} supporting tumor reads");
+$comments = vcf_sort_comments($comments);
 
-//set comments and column names
-$filter_format = '#FILTER=<ID=%s,Description="%s">';
-$comments = [
-	sprintf($filter_format, "all-unknown", "Allele unknown"),
-	sprintf($filter_format, "special-chromosome", "Special chromosome"),
-	sprintf($filter_format, "depth-tum", "Sequencing depth in tumor is too low (< {$min_td})"),
-	sprintf($filter_format, "freq-tum", "Allele frequency in tumor < {$min_taf}"),
-	sprintf($filter_format, "depth-nor", "Sequencing depth in normal is too low (< {$min_nd})"),
-	sprintf($filter_format, "freq-nor", "Allele frequency in normal > ".number_format($max_naf_rel, 2)." * allele frequency in tumor"),
-	sprintf($filter_format, "lt-3-reads", "Less than {$min_tsupp} supporting tumor reads")
-	];
-
-$variants_filtered->setComments(sort_vcf_comments(array_merge($variants->getComments(), $comments)));
-$variants_filtered->setHeaders($colnames);
-
-for($i = 0; $i < $variants->rows(); ++$i)
+//store comments
+$tmp_out_filtered = $parser->tempFile(".vcf");
+$ho = fopen2($tmp_out_filtered, 'w');
+foreach($comments as $comment)
 {
-	$row = $variants->getRow($i);
+	fputs($ho, $comment."\n");
+}
 
-	$ref = $row[3];
-	$alt = $row[4];
-	$format = $row[8];
-	$tumor = $row[$colidx_tumor];
-	$normal = $row[$colidx_normal];
+//store header line
+fputs($ho, "#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	".implode("\t", $samples)."\n");
 
-	$filters = [];
-	$type = (strlen($row[3]) > 1 || strlen($row[4]) > 1) ? "INDEL" : "SNV";
-
-
-	$filter = array_diff(explode(";", $row[6]), ["PASS"]);
-
-	if (!preg_match("/^[acgtACGT]*$/", $alt))
+//copy (filtered) variants
+$h = fopen2($vcf_sorted, 'r');
+while(!feof($h))
+{
+	$line = nl_trim(fgets($h));
+	if ($line=="" || starts_with($line, "#")) continue;
+	
+	$parts = explode("\t", $line);
+	$ref = $parts[3];
+	$alt = $parts[4];
+	$type = (strlen($ref) > 1 || strlen($alt) > 1) ? "INDEL" : "SNV";
+	$filter = array_diff(explode(";", $parts[6]), ["PASS", ""]);
+	$format = $parts[8];
+	$tumor = $parts[$colidx_tumor];
+	$normal = $parts[$colidx_normal];
+	
+	$valid_alt = preg_match("/^[acgtACGT]*$/", $alt);
+	if (!$valid_alt)
 	{
 		$filter[] = "all-unknown";
 	}
-	if (chr_check($row[0], 22, false) === FALSE)
+	if (chr_check($parts[0], 22, false) === FALSE)
 	{
 		$filter[] = "special-chromosome";
 	}
 	$calls = [];
-	if ($type === "SNV" && preg_match("/^[acgtACGT]*$/", $alt))
+	if ($type=="SNV" && $valid_alt)
 	{
+		print $format."\n";
+		print $tumor."\n";
+		print $normal."\n";
 		list($td, $tf) = vcf_strelka_snv($format, $tumor, $alt);
 		list($nd, $nf) = vcf_strelka_snv($format, $normal, $alt);
 		$calls[] = [ $alt, $td, $tf, $nd, $nf, $filter ];
@@ -233,8 +252,11 @@ for($i = 0; $i < $variants->rows(); ++$i)
 			$calls[] = [ $pc[0], $td, $pc[1], $nd, $nf, $filter ];
 		}
 	}
-	else if ($type === "INDEL")
+	else if ($type=="INDEL")
 	{
+		print $format."\n";
+		print $tumor."\n";
+		print $normal."\n";
 		list($td, $tf) = vcf_strelka_indel($format, $tumor);
 		list($nd, $nf) = vcf_strelka_indel($format, $normal);
 		$calls[] = [ $alt, $td, $tf, $nd, $nf, $filter ];
@@ -242,9 +264,9 @@ for($i = 0; $i < $variants->rows(); ++$i)
 
 	foreach ($calls as $call)
 	{
-		$variant = $row;
+		$parts_new = $parts;
 		list($alt, $td, $tf, $nd, $nf, $filter) = $call;
-		$variant[4] = $alt;
+		$parts_new[4] = $alt;
 
 		if ($td * $tf < $min_tsupp) $filter[] = "lt-3-reads";
 		if ($td < $min_td) $filter[] = "depth-tum";
@@ -252,21 +274,17 @@ for($i = 0; $i < $variants->rows(); ++$i)
 		if ($tf < $min_taf) $filter[] = "freq-tum";
 		if ($nf > $max_naf_rel * $tf && $nd*$nf >= 2) $filter[] = "freq-nor";
 
-		if (empty($filter))
+		if (empty($filter)) $filter[] = "PASS";
+		
+		if (!$keep_lq && $parts[6] !== "PASS") //variants that do not pass strelka2 quality "PASS" filter -> post filter do detect potential false negatives
 		{
-			$filter[] = "PASS";
-		}
-
-		if (!$keep_lq && $row[6] !== "PASS") //variants that do not pass strelka2 quality "PASS" filter -> post filter do detect potential false negatives
-		{
-			
 			//Common filter for low quality (depth, frequency, special chromosome)
 			if( in_array("lt-3-reads", $filter) || in_array("depth-tum", $filter) || in_array("depth-nor", $filter) || $tf < 0.045 || in_array("freq-nor", $filter) || in_array("special-chromosome", $filter) )
 			{
 				continue;
 			}
 			
-			$infos = explode(";", $variant[7]);
+			$infos = explode(";", $parts_new[7]);
 			
 			$keep_add_variant = true;
 			
@@ -279,21 +297,20 @@ for($i = 0; $i < $variants->rows(); ++$i)
 			}
 			if($keep_add_variant)
 			{
-				$variant[6] = implode(";", $filter);
-				$variants_filtered->addRow($variant);
+				$parts_new[6] = implode(";", $filter);
+				fputs($ho, implode("\t", $parts_new)."\n");
 			}
 		}
 		else //variants that pass strelka2 quality filter -> add immediatly
 		{
-			$variant[6] = implode(";", $filter);
-			$variants_filtered->addRow($variant);
+			$parts_new[6] = implode(";", $filter);
+			fputs($ho, implode("\t", $parts_new)."\n");
 		}
-		
 	}
 }
-$final = $parser->tempFile("_filtered.vcf");
-$variants_filtered->toTSV($final);
-
+fclose($h);
+fclose($ho);
+$final = $tmp_out_filtered;
 
 //flag off-target variants
 if (!empty($target))

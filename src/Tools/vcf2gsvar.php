@@ -14,7 +14,7 @@ $parser->addOutfile("out", "Output file in GSvar format.", false);
 $parser->addEnum("genotype_mode", "Genotype handling mode.", true, array("single", "multi", "skip"), "single");
 $parser->addFlag("updown", "Don't discard up- or downstream annotations (5000 bases around genes).");
 $parser->addFlag("wgs", "Enables WGS mode: MODIFIER variants with a AF>2% are skipped to reduce the number of variants to a manageable size.");
-$parser->addFlag("longread", "Add additional columns for long-read samples (e.g. pahsing information)");
+$parser->addFlag("longread", "Add additional columns for long-read samples (e.g. phasing information)");
 $parser->addString("custom", "Settings key name for custom column definitions.", true, "");
 $parser->addFlag("test", "Run in test mode. Skips replacing sample headers with NGSD information.");
 extract($parser->parse($argv));
@@ -731,17 +731,17 @@ while(!gzeof($handle))
 		$sample = array_combine(explode(":", $format), explode(":", $sample));
 	
 		//rename Dragen format values for targeted calls.
-		if (! isset($sample["DP"]) && isset($sample["JDP"])) $sample["DP"] = $sample["JDP"];
-		if (! isset($sample["AF"]) && isset($sample["JAF"])) $sample["AF"] = $sample["JAF"];
-		if (! isset($sample["AD"]) && isset($sample["JAD"])) $sample["AD"] = $sample["JAD"];
-		if (! isset($sample["PL"]) && isset($sample["JPL"])) $sample["PL"] = $sample["JPL"];
+		if (!isset($sample["DP"]) && isset($sample["JDP"])) $sample["DP"] = $sample["JDP"];
+		if (!isset($sample["AF"]) && isset($sample["JAF"])) $sample["AF"] = $sample["JAF"];
+		if (!isset($sample["AD"]) && isset($sample["JAD"])) $sample["AD"] = $sample["JAD"];
+		if (!isset($sample["PL"]) && isset($sample["JPL"])) $sample["PL"] = $sample["JPL"];
 	}
 	
 	if ($genotype_mode=="multi")
 	{
-		if($multisample_vcf)
+		if($multisample_vcf) //normal multi-sample VCF
 		{
-			$sample = array();
+			$sample = [];
 			//extract format info and arrange format values based on key
 			foreach ($sample_format_values as $format_values) 
 			{
@@ -753,35 +753,67 @@ while(!gzeof($handle))
 			}
 			
 			//rename Dragen format values for targeted calls.
-			if (! isset($sample["DP"]) && isset($sample["JDP"])) $sample["DP"] = $sample["JDP"];
-			if (! isset($sample["AF"]) && isset($sample["JAF"])) $sample["AF"] = $sample["JAF"];
-			if (! isset($sample["AD"]) && isset($sample["JAD"])) $sample["AD"] = $sample["JAD"];
-			if (! isset($sample["PL"]) && isset($sample["JPL"])) $sample["PL"] = $sample["JPL"];
+			if (!isset($sample["DP"]) && isset($sample["JDP"])) $sample["DP"] = $sample["JDP"];
+			if (!isset($sample["AF"]) && isset($sample["JAF"])) $sample["AF"] = $sample["JAF"];
+			if (!isset($sample["AD"]) && isset($sample["JAD"])) $sample["AD"] = $sample["JAD"];
+			if (!isset($sample["PL"]) && isset($sample["JPL"])) $sample["PL"] = $sample["JPL"];
 			
 			//determine human-readable genotype
-			$genotypes = array();
+			$genotypes = [];
 			for ($i=0; $i < count($sample["GT"]); $i++) 
 			{ 
 				$gt = vcfgeno2human($sample["GT"][$i]);
 				if ($sample["DP"][$i]<3) $gt = "n/a";
 				$genotypes[] = $gt;
+				
 				if ($longread)
 				{
 					$phasing_info = "";
-					if (strpos($sample["GT"][$i], "|") !== false) 
+					if(strpos($sample["GT"][$i], "|") !== false)
 					{
 						$phasing_info = $sample["GT"][$i]." (".$sample["PS"][$i].")";
 					}
+					$genotypes[] = $phasing_info;
 				}
-				$genotypes[] = $phasing_info;
 			}
 
+			//no AF, but DP and AD > calculate AF (DeepVariant for PacBio)
+			if (!isset($sample['AF']) && isset($sample['DP']) && isset($sample['AD']))
+			{
+				for ($i=0; $i<count($sample['DP']); ++$i)
+				{
+					$af = ".";
+					if ($sample['AD'][$i]!=".")
+					{
+						$ad_parts = explode(",", $sample['AD'][$i]);
+						if (count($ad_parts)<2)
+						{
+							print_r(explode("\t", $line));
+							die;
+						}
+						$var_count = $ad_parts[1]; //first element is the REF count, second element is the ALT count
+						
+						$dp = $sample['DP'][$i];
+						if ($dp>0)
+						{
+							$af = number_format($var_count/$dp, 2);
+							if (!is_numeric($var_count) || !is_numeric($dp))
+							{
+								print "AD: ".implode(",", $sample['AD'])."\n";
+								print "DP: ".implode(",", $sample['AD'])."\n";
+							}
+						}
+					}
+					$sample['AF'][] = $af;
+				}
+			}
+			
 			//combine certain values
 			$genotype = "\t".implode("\t", $genotypes);
 			$sample["DP"] = implode(",", $sample["DP"]);
 			$sample["AF"] = implode(",", $sample["AF"]);
 		}
-		else
+		else //special megSAP-style multi-sample VCF
 		{
 			if (!isset($sample["MULTI"])) 
 			{
