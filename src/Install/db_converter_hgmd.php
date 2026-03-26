@@ -4,7 +4,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 //Fixes several issues with the HGMD VCF format:
 //-missing 'chr' for chromosomes
-//-additionally copies the ID field to the INFO field (allows a more compact annotation with VEP --custom argument)
+//-additionally copies the ID field to the INFO field (allows a more compact annotation)
 //-removed MUT=REF variants
 //-makes the output IGV-compatible
 

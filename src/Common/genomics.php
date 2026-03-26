@@ -2382,12 +2382,10 @@ function update_gsvar_sample_header($file_name, $disease_status_map)
 //get bam read count
 function get_read_count($bam_file, $threads = 4, $samtools_params = [], $build = "GRCh38", $region = "")
 {
-	print "COMMAND: samtools view -@ {$threads} -c -T ".genome_fasta($build)." ".implode($samtools_params)." {$bam_file} {$region}\n";
 	list($stdout, $stderr, $exit_code) = execApptainer("samtools", "samtools view", "-@ {$threads} -c -T ".genome_fasta($build)." ".implode($samtools_params)." {$bam_file} {$region}", [$bam_file, genome_fasta($build)]);
 	if ($exit_code!=0) trigger_error("Error calculating read counts: \n".implode("\n", $stderr), E_USER_ERROR);
 	
 	$read_count = (int) $stdout[0];
-	print "COUNT ($bam_file $region): $read_count\n";
 	return $read_count;
 }
 
@@ -2528,7 +2526,7 @@ function vcf_sort_comments($comments)
 	{
 		//"other" contains fileformat and similar headers, which must not change order!
 		//"##SAMPLE" order must not change, otherwise the order of files shown in IGV from GSvar is random
-		//"##contig" should not be sorted. Some tools are confised by that e.g. XXX writes incomplete BAMs if they are in the wrong order //TODO Marc/Leon
+		//"##contig" should not be sorted. Some tools are confised by that e.g. longphase writes incomplete BAMs if they are in the wrong order
 		if ($group!="other" && $group!="##SAMPLE" && $group!="##contig") 
 		{
 			sort($comments, SORT_FLAG_CASE|SORT_STRING);
@@ -2643,5 +2641,35 @@ function vcf_add_missing_contigs($build, $filename)
 		vcf_replace_comments($filename, $comments);
 	}
 }
+
+
+//returns the AA range for a HGVS.p string like 'p.Gly105Arg'. Returns null if no position is contained.
+function get_aa_range($hgvs)
+{
+	$hgvs_orig = $hgvs;
+	$hgvs = trim($hgvs);
+
+    //remove transcript prefix
+    if (contains($hgvs, ':')) $hgvs = explode(':', $hgvs)[1];
+		
+    //remove 'p.' prefix
+    if (starts_with($hgvs, 'p.')) $hgvs = substr($hgvs, 2);
+	
+	if($hgvs=='' || $hgvs=='?' || $hgvs=='(?)') return null;
+	
+	if (contains($hgvs, '_')) //range
+	{
+		preg_match_all('/\d+/', $hgvs, $matches);
+		$nums = $matches[0];
+		return [$nums[0], $nums[1]];
+	}
+	else //single position
+	{
+		preg_match_all('/\d+/', $hgvs, $matches);
+		$nums = $matches[0];
+		return [$nums[0], $nums[0]];
+	}
+}
+
 
 ?>

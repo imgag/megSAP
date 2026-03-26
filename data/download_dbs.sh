@@ -63,6 +63,15 @@ wget https://ftp.ensembl.org/pub/release-115/regulation/homo_sapiens/GRCh38/anno
 php $src/Install/db_converter_ensembl_regulatory.php Homo_sapiens.GRCh38.115.gff3 Homo_sapiens.GRCh38.regulatory_features.v115.gff3.gz Homo_sapiens.GRCh38.motif_features.v115.gff3.gz > Ensembl_regulatory_115.bed
 BedSort -in Ensembl_regulatory_115.bed -out Ensembl_regulatory_115.bed
 
+#Download Ensembl domain data
+cd $dbs
+mkdir -p Ensembl
+cd Ensembl
+wget https://ftp.ensembl.org/pub/release-115/mysql/homo_sapiens_core_115_38/protein_feature.txt.gz
+wget https://ftp.ensembl.org/pub/release-115/mysql/homo_sapiens_core_115_38/translation.txt.gz
+wget https://ftp.ensembl.org/pub/release-115/mysql/homo_sapiens_core_115_38/transcript.txt.gz
+php $src/Install/db_converter_ensembl_domains.php protein_feature.txt.gz translation.txt.gz transcript.txt.gz > Ensembl_domains_115.tsv
+
 #Download RefSeq transcripts database
 cd $dbs
 mkdir -p RefSeq

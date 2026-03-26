@@ -43,7 +43,6 @@ The following tools are used for mapping and calling of small variants and annot
 | variant calling - decompose complex variants   | vcfallelicprimitives | Performed by Dragen if '-use_dragen' is used.    |
 | variant calling - break multi-allelic variants | VcfBreakMulti        |                                                  |
 | variant calling - left-normalization of InDels | VcfLeftNormalize     |                                                  |
-| annotation                                     | VEP                  |                                                  |
 
 CNV calling and annotation is performed using these tools:
 

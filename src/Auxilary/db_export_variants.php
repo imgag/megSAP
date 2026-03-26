@@ -134,7 +134,7 @@ if ($anno)
 {
 	print "\n";
 	print "annotating VCF file...\n";
-	$parser->execTool("Tools/an_vep.php", "-in {$out} -out {$vcf_anno} -threads 5");
+	$parser->execTool("Tools/an_vcf.php", "-in {$out} -out {$vcf_anno} -threads 5");
 }
 
 //convert to GSvar

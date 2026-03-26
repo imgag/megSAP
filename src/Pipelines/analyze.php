@@ -709,7 +709,7 @@ if (in_array("vc", $steps))
 		}
 		fclose($hw);
 		
-		//call low mappability variants
+		//call low mappability variants (in exonic/splice regions only)
 		if ($is_wgs || ($is_wes && $roi!="") || ($is_panel && $roi!=""))
 		{
 			//determine region

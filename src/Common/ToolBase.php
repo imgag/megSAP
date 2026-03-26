@@ -592,7 +592,6 @@ class ToolBase
 							"Processing chromosome chunk:", //ABRA2
 							"Clock time in Chromosome:", //ABRA2
 							"WARNING(freebayes): Could not find any mapped reads in target region", //freebayes
-							"Subroutine Bio::DB::IndexedBase::_strip_crnl redefined", //VEP
 							"No training configuration", //SpliceAI
 							"ms/step", //SpliceAI
 						   ];
