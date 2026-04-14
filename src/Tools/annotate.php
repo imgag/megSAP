@@ -18,7 +18,7 @@ $parser->addInfile("vcf", "Path to (bgzipped) VCF file (if different from {outpu
 $parser->addInfile("mosaic_vcf", "Path to (bgzipped) VCF file (if different from {output_folder}/{out_name}_mosaic.vcf.gz).", true, "");
 $parser->addFlag("no_fc", "No format check (vcf/tsv).");
 $parser->addFlag("multi", "Enable multi-sample mode.");
-$parser->addFlag("somatic", "Enable somatic mode (no variant QC and no GSvar file).");
+$parser->addFlag("somatic", "Enable somatic mode (cancer-sepific annotations, but no variant QC and no GSvar file).");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
 $parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated (this can be very slow).");
@@ -49,7 +49,6 @@ $varfile = $out_folder."/".$out_name.".GSvar";
 $statfile = $out_folder."/".$out_name."_stats_vc.qcML";
 $phasing_track = $out_folder."/".$out_name."_phasing_track.bed"; //(only for longreads)
 
-
 //get system
 $sys = load_system($system, $out_name);
 if ($sys['build']!="GRCh38")
@@ -57,6 +56,7 @@ if ($sys['build']!="GRCh38")
 	trigger_error("Unknown genome build ".$sys['build']." cannot be annotated!", E_USER_ERROR);
 }
 $genome = genome_fasta($sys['build']);
+$is_lrgs = $sys['type']=="lrGS";
 
 //annotate VCF
 $args = [];
@@ -69,26 +69,12 @@ if ($somatic) $args[] = "-somatic";
 if (get_path("annotate_refseq_consequences", false)) $args[] = "-annotate_refseq_consequences";
 $args[] = "-custom custom_columns";
 if ($no_splice) $args[] = "-no_splice";
-$parser->execTool("Tools/an_vep.php", implode(" ", $args));
-
-//annotate COSMIC
-$cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export_v102.vcf.gz";
-if($somatic && file_exists($cosmic_cmc))
-{
-	$temp_annfile = temp_file(".vcf","cosmic_cmc_an_");
-	$parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", "-in {$annfile} -source {$cosmic_cmc} -info_keys COSMIC_CMC -out {$temp_annfile} -threads {$threads}", [$cosmic_cmc]);
-	$parser->moveFile($temp_annfile, $annfile);
-}
-
-if($somatic && file_exists(get_path("data_folder")."/dbs/cancerhotspots/cancerhotspots_snv.tsv") )
-{
-	$temp_annfile = temp_file(".vcf","cosmic_cmc_an_");
-	$parser->execTool("Tools/an_somatic_cancerhotspots.php", "-in $annfile -out $temp_annfile");
-	$parser->moveFile($temp_annfile, $annfile);
-}
+if ($multi && !$is_lrgs) $args[] = "-low_mappabily_filter low_mappability";
+if ($is_lrgs) $args[] = "-low_mappabily_filter sr_low_mappability";
+$parser->execTool("Tools/an_vcf.php", implode(" ", $args));
 
 //annotate lrGS with short-read WGS sample
-if (($sys['type']=="lrGS") && !$multi && !$somatic && db_is_enabled("NGSD"))
+if ($is_lrgs && !$multi && !$somatic && db_is_enabled("NGSD"))
 {
 	$db = DB::getInstance("NGSD");
 	//check if out_name is valid ps_name
@@ -130,14 +116,6 @@ if (($sys['type']=="lrGS") && !$multi && !$somatic && db_is_enabled("NGSD"))
 	{
 		trigger_error("Invalid processed sample name provided, cannot get corresponding sr-WGS!", E_USER_WARNING);
 	}
-	
-}
-
-//mark variants in low-mappabilty regions
-if ($multi)
-{
-	$roi_low_mappabilty = repository_basedir()."data/misc/low_mappability_region/wgs_mapq_eq0.bed";
-	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $annfile -mark low_mappability -inv -reg $roi_low_mappabilty -out $annfile", [$roi_low_mappabilty]);
 }
 
 //zip annotated VCF file
@@ -147,8 +125,8 @@ $parser->execApptainer("htslib", "tabix", "-f -p vcf $annfile_zipped", [], [dirn
 //convert to GSvar file
 if (!$somatic) //germline only
 {
-	//calculate variant statistics (after annotation because it needs the ID and ANN fields)
-	if (!$multi) $parser->execApptainer("ngs-bits", "VariantQC", "-in $annfile -out $statfile".(($sys['type']=="lrGS")?" -long_read -phasing_bed {$phasing_track}": ""), [$out_folder]);
+	//calculate variant statistics (after annotation because it needs the rs-number and the CSQ data)
+	if (!$multi) $parser->execApptainer("ngs-bits", "VariantQC", "-in $annfile -out $statfile".($is_lrgs ? " -long_read -phasing_bed {$phasing_track}" : ""), [$out_folder]);
 	
 	$args = [];
 	$args[] = "-in ".$annfile;
@@ -156,7 +134,7 @@ if (!$somatic) //germline only
 	$args[] = "-updown";
 	if ($multi) $args[] = "-genotype_mode multi";
 	if ($sys['type']=="WGS") $args[] = "-wgs";
-	if ($sys['type']=="lrGS") $args[] = "-wgs -longread";
+	if ($is_lrgs) $args[] = "-wgs -longread";
 	$args[] = "-custom custom_columns";
 	$parser->execTool("Tools/vcf2gsvar.php", implode(" ", $args));
 	
@@ -236,10 +214,9 @@ if (!$somatic) //germline only
 			//add RNA annotation
 			$parser->execApptainer("ngs-bits", "NGSDAnnotateGeneExpression", "-in {$varfile} -out {$varfile} -rna_ps {$psample}", [$out_folder]);
 		}
-		
 	}
 	
-	//check output TSV file (not for somatic)
+	//check output TSV file
 	if(!$no_fc)
 	{
 		$parser->execTool("Tools/check_tsv.php", "-in $varfile -build ".$sys['build']);

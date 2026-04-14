@@ -20,7 +20,7 @@ function count_variants($gsvar_filtered, $roi)
 	global $parser;
 	$output = 0;
 	
-	list($stdout) = $parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in {$gsvar_filtered} -reg {$roi}  -mode gsvar", [$roi]);
+	list($stdout) = $parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in {$gsvar_filtered} -reg {$roi}  -mode gsvar", [$roi], [], false, false);
 	foreach($stdout as $line)
 	{
 		$line = nl_trim($line);
@@ -30,7 +30,8 @@ function count_variants($gsvar_filtered, $roi)
 		
 		//filter
 		if (contains($parts[7], "freq-tum")) continue;
-		//TODO add important filters for DeepSomatic
+		if (contains($parts[7], "GERMLINE")) continue;
+		if (contains($parts[7], "RefCall")) continue;
 		
 		++$output;
 	}

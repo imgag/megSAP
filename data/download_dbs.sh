@@ -53,6 +53,25 @@ gunzip Homo_sapiens.GRCh38.115_original.gtf.gz
 # create sorted & indexed file for methylartist
 (grep ^"#" Homo_sapiens.GRCh38.115_original.gtf; grep -v ^"#" Homo_sapiens.GRCh38.115_original.gtf | sort -k1,1 -k4,4n | sed -e 's/^/chr/') | singularity exec $htslib bgzip  > Homo_sapiens.GRCh38.115.gtf.gz
 singularity exec $htslib tabix -p gff Homo_sapiens.GRCh38.115.gtf.gz
+
+#Download Ensembl regulatory data
+cd $dbs
+mkdir -p Ensembl
+cd Ensembl
+wget https://ftp.ensembl.org/pub/release-115/regulation/homo_sapiens/GRCh38/annotation/Homo_sapiens.GRCh38.regulatory_features.v115.gff3.gz
+wget https://ftp.ensembl.org/pub/release-115/regulation/homo_sapiens/GRCh38/annotation/Homo_sapiens.GRCh38.motif_features.v115.gff3.gz
+php $src/Install/db_converter_ensembl_regulatory.php Homo_sapiens.GRCh38.115.gff3 Homo_sapiens.GRCh38.regulatory_features.v115.gff3.gz Homo_sapiens.GRCh38.motif_features.v115.gff3.gz > Ensembl_regulatory_115.bed
+BedSort -in Ensembl_regulatory_115.bed -out Ensembl_regulatory_115.bed
+
+#Download Ensembl domain data
+cd $dbs
+mkdir -p Ensembl
+cd Ensembl
+wget https://ftp.ensembl.org/pub/release-115/mysql/homo_sapiens_core_115_38/protein_feature.txt.gz
+wget https://ftp.ensembl.org/pub/release-115/mysql/homo_sapiens_core_115_38/translation.txt.gz
+wget https://ftp.ensembl.org/pub/release-115/mysql/homo_sapiens_core_115_38/transcript.txt.gz
+php $src/Install/db_converter_ensembl_domains.php protein_feature.txt.gz translation.txt.gz transcript.txt.gz > Ensembl_domains_115.tsv
+
 #Download RefSeq transcripts database
 cd $dbs
 mkdir -p RefSeq
@@ -231,6 +250,18 @@ wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/release/Ashkenazim
 zcat $dbs/GIAB/NA24385_CMRG/high_conf_variants.vcf.gz | singularity exec $ngsbits VcfBreakMulti | singularity exec -B $genome_dir $ngsbits VcfFilter -remove_invalid -ref $genome | singularity exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | singularity exec $ngsbits VcfStreamSort | singularity exec $htslib bgzip > $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalized.vcf.gz
 singularity exec $htslib tabix -p vcf $dbs/GIAB/NA24385_CMRG/high_conf_variants_normalized.vcf.gz
 
+#download and normalize HCC1395 reference data
+mkdir -p $dbs/GIAB/HCC1395/
+wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/seqc/Somatic_Mutation_WG/release/latest/high-confidence_sINDEL_in_HC_regions_v1.2.1.vcf.gz -O $dbs/GIAB/HCC1395/high_conf_variants_INDEL.vcf.gz
+wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/seqc/Somatic_Mutation_WG/release/latest/high-confidence_sSNV_in_HC_regions_v1.2.1.vcf.gz -O $dbs/GIAB/HCC1395/high_conf_variants_SNV.vcf.gz
+wget https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/seqc/Somatic_Mutation_WG/release/latest/High-Confidence_Regions_v1.2.bed -O $dbs/GIAB/HCC1395/high_conf_regions.bed
+singularity exec -B $dbs/GIAB/HCC1395/ $ngsbits VcfAdd -in $dbs/GIAB/HCC1395/high_conf_variants_INDEL.vcf.gz $dbs/GIAB/HCC1395/high_conf_variants_SNV.vcf.gz -out $dbs/GIAB/HCC1395/high_conf_variants.vcf
+singularity exec -B $dbs/GIAB/HCC1395/ $ngsbits VcfSort -in $dbs/GIAB/HCC1395/high_conf_variants.vcf -out $dbs/GIAB/HCC1395/high_conf_variants.vcf
+singularity exec -B $dbs/GIAB/HCC1395/ $htslib bgzip $dbs/GIAB/HCC1395/high_conf_variants.vcf
+singularity exec -B $dbs/GIAB/HCC1395/ $htslib tabix $dbs/GIAB/HCC1395/high_conf_variants.vcf.gz
+zcat $dbs/GIAB/HCC1395/high_conf_variants.vcf.gz | singularity exec $ngsbits VcfBreakMulti | singularity exec -B $genome_dir $ngsbits VcfFilter -remove_invalid -ref $genome | singularity exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | singularity exec $ngsbits VcfStreamSort | singularity exec $htslib bgzip > $dbs/GIAB/HCC1395/high_conf_variants_normalized.vcf.gz
+singularity exec -B $dbs/GIAB/HCC1395/ $htslib tabix $dbs/GIAB/HCC1395/high_conf_variants_normalized.vcf.gz
+
 #download reference genome for orad
 cd $dbs
 mkdir -p oradata
@@ -252,6 +283,16 @@ cd $dbs
 mkdir -p tandem-repeats
 cd tandem-repeats
 wget -O human_GRCh38_no_alt_analysis_set.trf.bed https://raw.githubusercontent.com/fritzsedlazeck/Sniffles/fdf6e6d334353a06872fe98f74fe68cc9a9a7d1f/annotations/human_GRCh38_no_alt_analysis_set.trf.bed
+
+#download illumina EPIC ids:
+cd $dbs
+mkdir -p illumina-epicids
+cd illumina-epicids
+wget -O InfiniumMethylationEPICv2.0ProductFiles.zip "https://support.illumina.com/content/dam/illumina-support/documents/downloads/productfiles/methylationepic/InfiniumMethylationEPICv2.0ProductFiles(ZIPFormat).zip"
+unzip -d . InfiniumMethylationEPICv2.0ProductFiles.zip
+cp "MethylationEPIC v2.0 Files/EPIC-8v2-0_A1.csv" .
+rm -r "MethylationEPIC v2.0 Files"
+rm InfiniumMethylationEPICv2.0ProductFiles.zip
 
 # # install OMIM (you might need a license; production NGSD has to be available and initialized)
 # cd $dbs
@@ -291,10 +332,15 @@ wget -O human_GRCh38_no_alt_analysis_set.trf.bed https://raw.githubusercontent.c
 # singularity exec <downloaded-ngs-bits-container> BedSort -with_name -in HGMD_CNVS_2025_2.bed -out HGMD_CNVS_2025_2.bed
 
 
-# # install COSMIC Cancer Mutation Census CMC (you need a license)
+# # install COSMIC
+# # for reasearch use, register at https://cancer.sanger.ac.uk/ and manually download data:
+# # - https://cancer.sanger.ac.uk/cosmic/download/cancer-mutation-census/v102/alldata-cmc
+# # - https://cancer.sanger.ac.uk/cosmic/download/cosmic/v102/genomescreensmutantvcf
+# # - https://cancer.sanger.ac.uk/cosmic/download/cosmic/v102/completetargetedscreensmutantvcf
+# # - https://cancer.sanger.ac.uk/cosmic/download/cosmic/v102/noncodingvariantsvcf
+# # for non-reasearch use, you need a license from Qiagen. Download from cmc-v102 and cosmic-v102.
 # cd $dbs
 # mkdir -p COSMIC
-# # manual download of CancerMutationCensus_AllData_Tsv_v102_GRCh37.tar, Cosmic_GenomeScreensMutant_Vcf_v102_GRCh38.tar, Cosmic_CompleteTargetedScreensMutant_Vcf_v102_GRCh38.tar and Cosmic_NonCodingVariants_Vcf_v102_GRCh38.tar from https://apps.ingenuity.com/ingsso/login
 # cd COSMIC
 # ls *.tar | xargs -l1 tar -xf 
 # gunzip -c CancerMutationCensus_AllData_v102_GRCh37.tsv.gz | php $src/Install/db_converter_cosmic.php -in_genome_vcf Cosmic_GenomeScreensMutant_v102_GRCh38.vcf.gz -in_non_coding_vcf Cosmic_NonCodingVariants_v102_GRCh38.vcf.gz -in_target_screens_vcf Cosmic_CompleteTargetedScreensMutant_v102_GRCh38.vcf.gz -out cmc_export_v102.vcf.gz

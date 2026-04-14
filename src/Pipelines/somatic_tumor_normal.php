@@ -37,6 +37,7 @@ $parser->addFlag("skip_signatures", "Skip calculation of mutational signatures."
 $parser->addFlag("skip_HRD", "Skip calculation HRD.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("use_dragen", "Use Illumina dragen for somatic variant calling.");
+$parser->addFlag("use_deepsomatic_test", "Use DeepSomatic for somatic variant calling. (normally set in settings.ini)");
 $parser->addFlag("validation", "Option used for analyzing validation samples. Ignores checks: flagging in NGSD, report config, correlation");
 //default cut-offs
 $parser->addFloat("min_correlation", "Minimum correlation for tumor/normal pair.", true, 0.8);
@@ -129,6 +130,9 @@ if (in_array("vc", $steps)  && $use_dragen)
 
 
 ###################################### SCRIPT START ######################################
+//check which caller to use
+$use_deepsomatic = $use_deepsomatic_test ?: get_path("use_deepsomatic");
+
 if($validation)
 {
 	$skip_correlation = true;
@@ -395,7 +399,7 @@ if (in_array("vc", $steps))
 		$args = array();
 		$args[] = "-t_bam ".$t_bam_dragen;
 		$args[] = "-out ".$dragen_output_vcf;
-		// $args[] = "-out_sv ".$dragen_output_svs;
+		$args[] = "-out_sv ".$dragen_output_svs;
 		$args[] = "-build ".$sys['build'];
 		$args[] = "--log ".$dragen_log_file;
 		
@@ -557,6 +561,30 @@ if (in_array("vc", $steps))
 			unlink($n_bam_dragen);
 		}
 		
+	}
+	elseif($use_deepsomatic)
+	{
+		$args = [];
+
+		if ($sys['type'] === "WGS")	$args[] = "-model_type WGS";
+		else $args[] = "-model_type WES";
+
+		$args[] = "-bam_tumor ".$t_bam;
+		$args[] = "-bam_normal ".$n_bam;
+		$args[] = "-out ".$variants;
+		$args[] = "-build ".$sys['build'];
+		$args[] = "-threads ".$threads;
+		$args[] = "-tumor_id {$t_id}";
+		$args[] = "-normal_id {$n_id}";
+		$args[] = "-default";
+
+		if (!empty($roi))
+		{
+			$args[] = "-target {$roi}";
+		}
+		#$args[] = "-allow_empty_examples";
+
+		$parser->execTool("Tools/vc_deepsomatic.php", implode(" ", $args));
 	}
 	else //Strelka calling
 	{
@@ -926,12 +954,10 @@ if (in_array("an", $steps))
 	$parser->execApptainer("ngs-bits", "SomaticQC", implode(" ", $args_somaticqc), $in_files, [dirname($somaticqc)]);
 
 	//add sample info to VCF header
-	$s = Matrix::fromTSV($tmp_vcf);
-	$comments = $s->getComments();
-	$comments[] = gsvar_sample_header($t_id, array("IsTumor" => "yes"), "#", "");
-	$comments[] = gsvar_sample_header($n_id, array("IsTumor" => "no"), "#", "");
-	$s->setComments(sort_vcf_comments($comments));
-	$s->toTSV($tmp_vcf);
+	list($comments) = vcf_load_header($tmp_vcf);
+	$comments[] = gsvar_sample_header($t_id, array("IsTumor" => "yes"));
+	$comments[] = gsvar_sample_header($n_id, array("IsTumor" => "no"));
+	vcf_replace_comments($tmp_vcf, $comments);
 
 	// zip and index vcf file
 	$parser->execApptainer("htslib", "bgzip", "-c $tmp_vcf > $variants_annotated", [], [dirname($variants_annotated)]);
@@ -956,6 +982,7 @@ if (in_array("an", $steps))
 	$params[] = "-r $ref_genome";
 	$params[] = "-n 65"; //number of variants to select
 	$params[] = "-i"; // ignore INDELS
+	$params[] = "-s $n_id";
 	$parser->execApptainer("umiVar", "select_monitoring_variants.py", implode(" ", $params), [$variants_gsvar, $ref_genome], [$out_folder]);
 }
 

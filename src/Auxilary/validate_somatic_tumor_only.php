@@ -16,10 +16,19 @@ $parser->addInfileArray("calls", "Somatic variant call files (VCF.GZ). Sorted in
 $parser->addString("tum_content", "Comma seperated list for tumor content percentages for 'calls', e.g. '5,10,20,40'. If not given tum_content will be approximated by somatic variant AF. This may underestimate the actual tumor content.", true);
 $parser->addOutfile("vars_details", "Output TSV file for variant details.", false);
 $parser->addOutfile("af_details", "Output TSV file for AF-specific output.", false);
+$parser->addEnum("caller", "The caller used to create the vcf files given in '-calls'", false, ["varscan", "deepsomatic"]);
 $parser->addFlag("ignore_filters", "If set, variants with filter column entries are used. The default is to ignore variants with filter column entries.");
 extract($parser->parse($argv));
 
-//returns if the variant is an InDels
+//checks if the variant type matches
+function type_matches($type, $tag)
+{	
+	if ($type=="SNVs" && is_indel($tag)) return false;
+	if ($type=="InDels" && !is_indel($tag)) return false;
+	
+	return true;
+}
+
 function is_indel($tag)
 {
 	list($chr, $pos, $ref, $alt) = explode(" ", strtr($tag, ":>", "  "));
@@ -29,11 +38,12 @@ function is_indel($tag)
 //load VCF variants. 'Caller' argument modifies information loaded for different callers (af and depth) and the reference files (genotype)
 function load_vcf($filename, $roi, $caller)
 {
+	global $parser;
 	global $ignore_filters;
 	$c_filtered = 0;
 	
 	$output = array();
-	list($lines) = exec2("tabix --regions {$roi} {$filename}");
+	list($lines) = $parser->execApptainer("htslib", "tabix", "--regions {$roi} {$filename}", [$roi], [dirname($filename)]);
 	foreach($lines as $line)
 	{
 		$line = trim($line);
@@ -60,6 +70,16 @@ function load_vcf($filename, $roi, $caller)
 			
 			$output[$tag] = array($af, $dp, $filter);
 		}
+		else if ($caller == "deepsomatic")
+		{
+			list($dp, $af) = vcf_deepvariant($format, $sample);
+			//clear filter column
+			$filter_replace = ["PASS"=>"", "freq-tum"=>"", ";"=>""];
+			$filter = trim(strtr($filter, $filter_replace));
+			if ($ignore_filters) $filter = "";
+			
+			$output[$tag] = array($af, $dp, $filter);
+		}
 		else if ($caller == "ref")
 		{
 			$gt = strtr(explode(":", $sample)[0], "/", "|");
@@ -79,15 +99,6 @@ function load_vcf($filename, $roi, $caller)
 		}
 	}
 	return [$output, $c_filtered];
-}
-
-//checks if the variant type matches
-function type_matches($type, $tag)
-{	
-	if ($type=="SNVs" && is_indel($tag)) return false;
-	if ($type=="InDels" && !is_indel($tag)) return false;
-	
-	return true;
 }
 
 //create a sorted list with all unique variants in the given lists
@@ -127,8 +138,6 @@ function create_unique_variants_list($parser, $details_all)
 	
 	return $output;
 }
-
-
 
 //***** MAIN SCRIPT *****\\
 
@@ -172,9 +181,8 @@ foreach($calls as $filename)
 {
 	//load calls
 	$name = basename($filename, ".vcf.gz");
-	list($vars, $filtered) = load_vcf($filename, $roi, "varscan");	
+	list($vars, $filtered) = load_vcf($filename, $roi, $caller);	
 	print "##Variant calls of '{$filename}': ".count($vars)." ({$filtered} with filter entry)\n";
-
 	//remove expected germline variants for calls
 	foreach($vars as $var => $gt)
 	{

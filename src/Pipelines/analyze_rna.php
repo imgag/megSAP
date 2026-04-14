@@ -35,22 +35,16 @@ function getCohortStrategy($ps_info)
 	return $cohort_strategy;
 }
 
-function getCohortSamples($db, $ps_name, $cohort_strategy)
+function getCohortSamples($db, $ps_name, $cohort_strategy, $ps_allowed_systems="")
 {
 	global $parser;
-	
-	$ps_sys = processingSystem($db, $ps_name);
-	
-	$ps_allowed_systems ="";
-	$rna_allowed_systems = get_path("rna_allowed_systems", false);
-	if(is_array($rna_allowed_systems) && array_key_exists($ps_sys, $rna_allowed_systems)) $ps_allowed_systems = $rna_allowed_systems[$ps_sys];
 	
 	$args = [];
 	$args[] = "-ps $ps_name";
 	$args[] = "-only_samples";
 	$args[] = "-cohort_strategy $cohort_strategy";
-	$args[] = "-allowed_systems $ps_allowed_systems";
-	list ($stdout, $stderr, $return) = $parser->exec("/mnt/storage2/users/ahott1a1/ngs-bits/bin/NGSDExtractRNACohort", implode(" ", $args));
+	if ($ps_allowed_systems != "") $args[] = "-allowed_systems $ps_allowed_systems";
+	list ($stdout, $stderr) = execApptainer("ngs-bits", "NGSDExtractRNACohort", implode(" ", $args));
 	
 	return $stdout;
 }
@@ -605,116 +599,129 @@ if (in_array("rc", $steps))
 	if(is_file($uncorrected_counts_genes_normalized)) exec("rm $uncorrected_counts_genes_normalized");
 	if(is_file($uncorrected_counts_exons_normalized)) exec("rm $uncorrected_counts_exons_normalized");
 	
-	//check if the settings for this processing system allows multiple processing systems in the cohort
-	$sys_short_name = $sys["name_short"];
-	$ps_allowed_systems ="";
-	$rna_allowed_systems = get_path("rna_allowed_systems", false);
-	if(is_array($rna_allowed_systems) && array_key_exists($sys_short_name, $rna_allowed_systems)) $ps_allowed_systems = $rna_allowed_systems[$sys_short_name];
-	
-	if (db_is_enabled("NGSD") && $ps_allowed_systems != "")
-	{
+	//BATCH EFFECT REMOVAL: only possible with NGSD data and the sample has to be known in NGSD
+	if (db_is_enabled("NGSD"))
+	{		
 		$db = DB::getInstance("NGSD");
 		$ps_info = get_processed_sample_info($db, $name, false);
 		
-		////check if cohort actally differing processing systems
-		$cohort_strategy = getCohortStrategy($ps_info);
-		$cohort_samples = getCohortSamples($db, $name, $cohort_strategy);
-		
-		if (! in_array($name, $cohort_samples))
+		if ($ps_info != null)
 		{
-			array_unshift($cohort_samples, $name);
-		}
-		
-		$processing_systems = processingSystems($db, $cohort_samples);
-		$processing_system_counts = array_count_values($processing_systems);
-		
-		//more than one processing system -> remove batch effects
-		if (count($processing_system_counts) > 1)
-		{
-			$add_ref_samples = False;
-			foreach(array_keys($processing_system_counts) as $system)
-			{
-				if ($processing_system_counts[$system] < 10)
-				{
-					$add_ref_samples = True;
-					break;
-				}
-			}
+			//check if the settings for this processing system allows multiple processing systems in the cohort
+			$sys_short_name = $sys["name_short"];
+			$ps_allowed_systems ="";
+			$rna_allowed_systems = get_path("rna_allowed_systems", false);
+			if(is_array($rna_allowed_systems) && array_key_exists($sys_short_name, $rna_allowed_systems)) $ps_allowed_systems = $rna_allowed_systems[$sys_short_name];
 			
-			foreach (["gene", "exon"] as $type)
+			//check how many samples are available for the cohort in the system of the current sample
+			$cohort_strategy = getCohortStrategy($ps_info);
+			$base_system_cohort = getCohortSamples($db, $name, $cohort_strategy);
+			
+			$parser->log("Number of base system cohort samples: ".count($base_system_cohort));
+			
+			//  only use other systems for cohort if neccessary i.e. there are less than 10 samples of the base system available  \\
+			if (count($base_system_cohort) < 10 && $ps_allowed_systems != "")
 			{
-				$raw_cohort_counts_file = $cohort_raw_counts_genes_file;
-				$corrected_cohort_counts_file = $cohort_counts_genes_file;
-				$cohort_counts_normalized = $cohort_counts_normalized_genes_file;
-				$base_counts_normalized = $counts_normalized;
-				$uncorrected = $uncorrected_counts_genes_normalized;
-				$raw_count_file = $counts_raw;
-				$exons = False;
+				////check if cohort actally contains differing processing systems
+				$cohort_samples = getCohortSamples($db, $name, $cohort_strategy, $ps_allowed_systems);
 				
-				if ($type == "exon")
+				if (! in_array($name, $cohort_samples))
 				{
-					$raw_cohort_counts_file = $cohort_raw_counts_exons_file;
-					$corrected_cohort_counts_file = $cohort_counts_exons_file;
-					$cohort_counts_normalized = $cohort_counts_normalized_exons_file;
-					$base_counts_normalized = $counts_exon_normalized;
-					$uncorrected = $uncorrected_counts_exons_normalized;
-					$raw_count_file = $counts_exon_raw;
-					$exons = True;
+					array_unshift($cohort_samples, $name);
 				}
 				
-				//generate necessary data
-				$batch_correct_samples = [];
-				if ($add_ref_samples)
+				$processing_systems = processingSystems($db, $cohort_samples);
+				$processing_system_counts = array_count_values($processing_systems);
+				
+				//more than one processing system -> remove batch effects
+				if (count($processing_system_counts) > 1)
 				{
-					//List of samples with keys: [[name, sys, covar], ...]
-					$batch_correct_samples = getBatchCorrectSamples(array_keys($processing_system_counts), $cohort_samples);
-					list($full_cohort, $full_batches, $full_covar) = generateBatchCorrectData($cohort_samples, $name, $processing_systems, $raw_cohort_counts_file, $exons, $batch_correct_samples);
-				}
-				else
-				{
-					list($full_cohort, $full_batches, $full_covar) = generateBatchCorrectData($cohort_samples, $name, $processing_systems, $raw_cohort_counts_file, $exons);
-				}
-				
-				//write tmp files:
-				$tmp_batch_file = $parser->tempFile("_batch.tsv");
-				$tmp_covar_file = $parser->tempFile("_covar.tsv");
-				
-				writeTSV($full_batches, $tmp_batch_file, ["SAMPLE", "BATCH"]);
-				writeTSV($full_covar, $tmp_covar_file, ["SAMPLE", "COVARIANT"]);
-				
-				//rename uncorrected counts:
-				exec("mv $base_counts_normalized $uncorrected");
-				
-				$files = [$tmp_batch_file, $tmp_covar_file, $raw_cohort_counts_file, $corrected_cohort_counts_file, repository_basedir()."/src/Tools/rc_batch_correct.py"];
-				
-				$args = [];
-				$args[] = "-i $raw_cohort_counts_file";
-				$args[] = "-b $tmp_batch_file";
-				if (! $exons) $args[] = "-c $tmp_covar_file";
-				$args[] = "-o $corrected_cohort_counts_file";
-				$parser->execApptainer("python", "python3", repository_basedir()."/src/Tools/rc_batch_correct.py ".implode(" ", $args), $files);
-				
-				//remove columns of samples added only to improve batch correction:
-				remove_helper_samples($corrected_cohort_counts_file, $batch_correct_samples);
-				
-				$args = [];
-				$args[] = "-ps_name $name";
-				$args[] = "-in_cohort $corrected_cohort_counts_file";
-				$args[] = "-uncorrected_counts $raw_count_file";				
-				$args[] = "-out_cohort $cohort_counts_normalized";
-				$args[] = "-out_sample $base_counts_normalized";
-				if ($exons)
-				{
-					$args[] = "-normalized_genes $counts_normalized";
-					$parser->execTool("Tools/rc_normalize_cohort_exons.php", implode(" ", $args));
-				}
-				else
-				{
-					$parser->execTool("Tools/rc_normalize_cohort_genes.php", implode(" ", $args));
+					$add_ref_samples = False;
+					foreach(array_keys($processing_system_counts) as $system)
+					{
+						if ($processing_system_counts[$system] < 10)
+						{
+							$add_ref_samples = True;
+							break;
+						}
+					}
+					
+					foreach (["gene", "exon"] as $type)
+					{
+						$raw_cohort_counts_file = $cohort_raw_counts_genes_file;
+						$corrected_cohort_counts_file = $cohort_counts_genes_file;
+						$cohort_counts_normalized = $cohort_counts_normalized_genes_file;
+						$base_counts_normalized = $counts_normalized;
+						$uncorrected = $uncorrected_counts_genes_normalized;
+						$raw_count_file = $counts_raw;
+						$exons = False;
+						
+						if ($type == "exon")
+						{
+							$raw_cohort_counts_file = $cohort_raw_counts_exons_file;
+							$corrected_cohort_counts_file = $cohort_counts_exons_file;
+							$cohort_counts_normalized = $cohort_counts_normalized_exons_file;
+							$base_counts_normalized = $counts_exon_normalized;
+							$uncorrected = $uncorrected_counts_exons_normalized;
+							$raw_count_file = $counts_exon_raw;
+							$exons = True;
+						}
+						
+						//generate necessary data
+						$batch_correct_samples = [];
+						if ($add_ref_samples)
+						{
+							//List of samples with keys: [[name, sys, covar], ...]
+							$batch_correct_samples = getBatchCorrectSamples(array_keys($processing_system_counts), $cohort_samples);
+							list($full_cohort, $full_batches, $full_covar) = generateBatchCorrectData($cohort_samples, $name, $processing_systems, $raw_cohort_counts_file, $exons, $batch_correct_samples);
+						}
+						else
+						{
+							list($full_cohort, $full_batches, $full_covar) = generateBatchCorrectData($cohort_samples, $name, $processing_systems, $raw_cohort_counts_file, $exons);
+						}
+						
+						//write tmp files:
+						$tmp_batch_file = $parser->tempFile("_batch.tsv");
+						$tmp_covar_file = $parser->tempFile("_covar.tsv");
+						
+						writeTSV($full_batches, $tmp_batch_file, ["SAMPLE", "BATCH"]);
+						writeTSV($full_covar, $tmp_covar_file, ["SAMPLE", "COVARIANT"]);
+						
+						//rename uncorrected counts:
+						exec("mv $base_counts_normalized $uncorrected");
+						
+						$files = [$tmp_batch_file, $tmp_covar_file, $raw_cohort_counts_file, $corrected_cohort_counts_file, repository_basedir()."/src/Tools/rc_batch_correct.py"];
+						
+						$args = [];
+						$args[] = "-i $raw_cohort_counts_file";
+						$args[] = "-b $tmp_batch_file";
+						if (! $exons) $args[] = "-c $tmp_covar_file";
+						$args[] = "-o $corrected_cohort_counts_file";
+						$parser->execApptainer("python", "python3", repository_basedir()."/src/Tools/rc_batch_correct.py ".implode(" ", $args), $files);
+						
+						//remove columns of samples added only to improve batch correction:
+						remove_helper_samples($corrected_cohort_counts_file, $batch_correct_samples);
+						
+						$args = [];
+						$args[] = "-ps_name $name";
+						$args[] = "-in_cohort $corrected_cohort_counts_file";
+						$args[] = "-uncorrected_counts $raw_count_file";				
+						$args[] = "-out_cohort $cohort_counts_normalized";
+						$args[] = "-out_sample $base_counts_normalized";
+						if ($exons)
+						{
+							$args[] = "-normalized_genes $counts_normalized";
+							$parser->execTool("Tools/rc_normalize_cohort_exons.php", implode(" ", $args));
+						}
+						else
+						{
+							$parser->execTool("Tools/rc_normalize_cohort_genes.php", implode(" ", $args));
+						}
+					}
 				}
 			}
 		}
-	}	
+	}
 }
 
 //annotate
@@ -764,7 +771,20 @@ if (in_array("an", $steps))
 				{
 					$rna_id = get_processed_sample_id($db, $name);
 					$s_id = $db->getValue("SELECT sample_id FROM processed_sample where id=$rna_id");
-					$reference_tissues = $db->getValues("SELECT DISTINCT sdi.disease_info FROM sample s LEFT JOIN sample_relations sr ON s.id=sr.sample1_id OR s.id=sr.sample2_id LEFT JOIN sample_disease_info sdi ON sdi.sample_id=sr.sample1_id OR sdi.sample_id=sr.sample2_id WHERE s.id=$s_id AND sdi.type='RNA reference tissue' AND (sr.relation='same sample' OR sr.relation IS NULL)");
+					$reference_tissues = $db->getValues("SELECT DISTINCT sdi.disease_info FROM sample s LEFT JOIN sample_disease_info sdi ON sdi.sample_id=s.id WHERE s.id=$s_id AND sdi.type='RNA reference tissue'");
+					
+					if (count($reference_tissues) == 0)
+					{
+						#also check other samples related by same sample if none was found:
+						$same_sample_ps = get_related_processed_samples($db, $name, "same sample", "", false);
+						foreach ($same_sample_ps as $ss_ps)
+						{
+							$ss_ps_id = get_processed_sample_id($db, $name);
+							$same_sample_s_id = $db->getValue("SELECT sample_id FROM processed_sample where id=$ss_ps_id");
+							
+							$reference_tissues = array_merge($reference_tissues, $db->getValues("SELECT DISTINCT sdi.disease_info FROM sample s LEFT JOIN sample_disease_info sdi ON sdi.sample_id=s.id WHERE s.id=$same_sample_s_id AND sdi.type='RNA reference tissue'"));
+						}
+					}
 					
 					if (count($reference_tissues) > 0)
 					{

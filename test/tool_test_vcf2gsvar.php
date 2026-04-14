@@ -5,7 +5,7 @@ require_once("framework.php");
 $name = "vcf2gsvar";
 start_test($name);
 
-//genotype_mode=single
+//genotype_mode=single (freebayes)
 $out_file1 = output_folder().$name."_out1.GSvar";
 check_exec("php ".src_folder()."/Tools/{$name}.php -in ".data_folder().$name."_in1.vcf -out $out_file1 --log ".output_folder().$name."_out1.log -test");
 remove_lines_containing($out_file1, "#CREATION_DATE=");
@@ -30,10 +30,10 @@ remove_lines_containing($out_file_empty, "#CREATION_DATE=");
 check_file($out_file_empty, data_folder().$name."_out_empty.GSvar", true);
 
 //genotype_mode=single, WGS mode
-$out_file1 = output_folder().$name."_out5.GSvar";
-check_exec("php ".src_folder()."/Tools/{$name}.php -in ".data_folder().$name."_in1.vcf -updown -wgs -out $out_file1 --log ".output_folder().$name."_out5.log -test");
-remove_lines_containing($out_file1, "#CREATION_DATE=");
-check_file($out_file1, data_folder().$name."_out5.GSvar", true);
+$out_file5 = output_folder().$name."_out5.GSvar";
+check_exec("php ".src_folder()."/Tools/{$name}.php -in ".data_folder().$name."_in1.vcf -updown -wgs -out $out_file5 --log ".output_folder().$name."_out5.log -test");
+remove_lines_containing($out_file5, "#CREATION_DATE=");
+check_file($out_file5, data_folder().$name."_out5.GSvar", true);
 
 //genotype_mode=multi
 $out_file_multi = output_folder().$name."_out_multi.GSvar";
@@ -57,17 +57,23 @@ if (is_array($custom_columns_test))
 	check_file($out_file_dragen2, data_folder().$name."_out_dragen2.GSvar", true);
 }
 
-//genotype_mode=single mosaic_mode
+//genotype_mode=single mosaic_mode (freebayes)
 $out_file3 = output_folder().$name."_out3.GSvar";
 check_exec("php ".src_folder()."/Tools/{$name}.php -in ".data_folder().$name."_in3.vcf -out $out_file3 --log ".output_folder().$name."_out3.log -test");
 remove_lines_containing($out_file3, "#CREATION_DATE=");
 check_file($out_file3, data_folder().$name."_out3.GSvar", true);
 
-//genotype_mode=single, long-read, WGS mode 
-$out_file1 = output_folder().$name."_out6.GSvar";
-check_exec("php ".src_folder()."/Tools/{$name}.php -in ".data_folder().$name."_in4.vcf -wgs -longread -out $out_file1 --log ".output_folder().$name."_out6.log -test");
-remove_lines_containing($out_file1, "#CREATION_DATE=");
-check_file($out_file1, data_folder().$name."_out6.GSvar", true);
+//genotype_mode=single, ONT long-read, WGS mode (Clair3)
+$out_file6 = output_folder().$name."_out6.GSvar";
+check_exec("php ".src_folder()."/Tools/{$name}.php -in ".data_folder().$name."_in4.vcf -wgs -longread -out $out_file6 --log ".output_folder().$name."_out6.log -test");
+remove_lines_containing($out_file6, "#CREATION_DATE=");
+check_file($out_file6, data_folder().$name."_out6.GSvar", true);
+
+//genotype_mode=multi, ONT long-read, WGS mode (DeepVariant)
+$out_file7 = output_folder().$name."_out7.GSvar";
+check_exec("php ".src_folder()."/Tools/{$name}.php -in ".data_folder().$name."_in2.vcf -wgs -longread -genotype_mode multi -out $out_file7 --log ".output_folder().$name."_out6.log -test");
+remove_lines_containing($out_file7, "#CREATION_DATE=");
+check_file($out_file7, data_folder().$name."_out7.GSvar", true);
 
 end_test();
 

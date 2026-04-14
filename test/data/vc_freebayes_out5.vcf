@@ -1,5 +1,5 @@
 ##fileformat=VCFv4.2
-##source=freeBayes v1.3.6
+##source=freeBayes v1.3.10
 ##phasing=none
 ##INFO=<ID=NS,Number=1,Type=Integer,Description="Number of samples with data">
 ##INFO=<ID=DP,Number=1,Type=Integer,Description="Total read depth at the locus">

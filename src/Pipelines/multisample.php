@@ -57,6 +57,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=varia
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
+$parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
 extract($parser->parse($argv));
 
 //init
@@ -269,20 +270,6 @@ if (in_array("vc", $steps))
 			$args[] = "-mode dragen";
 			$parser->execTool("Tools/merge_gvcf.php", implode(" ", $args));
 		}
-		elseif(get_path("use_freebayes")) //perform variant calling with freebayes if set in settings.ini 
-		{
-			$args = array();
-			$args[] = "-bam ".implode(" ", $local_bams);
-			$args[] = "-out {$vcf_all}";
-			$args[] = "-target ".$sys['target_file'];
-			$args[] = "-min_mq 20";
-			$args[] = "-min_af 0.1";
-			$args[] = "-target_extend 200";
-			$args[] = "-build ".$sys['build'];
-			$args[] = "-threads {$threads}";
-			$args[] = "--log ".$parser->getLogFile();
-			$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args), true);
-		}
 		else //calling with DeepVariant with gVCF file creation
 		{
 			$deepvar_gvcfs = array();
@@ -292,14 +279,9 @@ if (in_array("vc", $steps))
 				$deepvar_gvcf = $parser->tempFile("_deepvar.gvcf.gz");
 
 				$args = [];
-
-				if ($is_wes)	$args[] = "-model_type WES";
-				elseif ($is_wgs) $args[] = "-model_type WGS";
-				else
-				{
-					trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types for multisample analysis are: WES, WGS", E_USER_ERROR);
-				}
-
+				if ($is_wes) $args[] = "-model_type WES";
+				else if ($is_wgs) $args[] = "-model_type WGS";
+				else trigger_error("Unsupported system type '".$sys['type']."' detected in {$system}. Compatible system types for multi-sample analysis are: WES, WGS", E_USER_ERROR);
 				$args[] = "-bam ".$local_bam;
 				$args[] = "-out ".$deepvar_vcf;
 				$args[] = "-gvcf ".$deepvar_gvcf;
@@ -307,6 +289,7 @@ if (in_array("vc", $steps))
 				$args[] = "-threads ".$threads;
 				$args[] = "-target ".$sys['target_file'];
 				$args[] = "-target_extend 200";
+				$args[] = "-min_af 0.1";
 				$args[] = "-allow_empty_examples";
 
 				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
@@ -315,13 +298,15 @@ if (in_array("vc", $steps))
 			}
 			
 			//merge gVCFs with GLnexus
+			$wes_config = "{$repository_basedir}/data/misc/glnexus_configs/DeepVariantWES.yml";
 			$tmp_vcf_merged = $parser->tempFile(".vcf.gz");
 			$args = [];
 			$args[] = "--dir ".$parser->tempFolder()."/GLnexus.DB/";
-			$args[] = "--config DeepVariant".($is_wes ? "WES" : "WGS");
+			$args[] = "--config ".($is_wes ? $wes_config : "DeepVariantWGS");
+			$args[] = "--threads {$threads}";
 			$args[] = implode(" ", $deepvar_gvcfs);
 			$pipeline = [];
-			$pipeline[] = ["", $parser->execApptainer("glnexus", "glnexus_cli", implode(" ", $args), [], [], true)];
+			$pipeline[] = ["", $parser->execApptainer("glnexus", "glnexus_cli", implode(" ", $args), [$wes_config], [], true)];
 			$pipeline[] = ["", $parser->execApptainer("glnexus", "bcftools view", "", [], [], true)];
 			$pipeline[] = ["", $parser->execApptainer("htslib", "bgzip", "-@ -c > {$tmp_vcf_merged}", [], [], true)];
 			$parser->execPipeline($pipeline, "GLnexus gVCF merging");
@@ -462,7 +447,14 @@ if (in_array("vc", $steps))
 	$parser->execApptainer("htslib", "tabix", "-p vcf $vcf_zipped", [], [dirname($vcf_zipped)]);
 
 	//basic annotation
-	$parser->execTool("Tools/annotate.php", "-out_name {$prefix} -out_folder {$out_folder} -system {$system} -threads {$threads} -multi");
+	$args = [];
+	$args[] = "-out_name {$prefix}";
+	$args[] = "-out_folder {$out_folder}";
+	$args[] = "-system {$system}";
+	$args[] = "-threads {$threads}";
+	$args[] = "-multi";
+	if ($no_splice) $args[] = "-no_splice";
+	$parser->execTool("Tools/annotate.php", implode(" ", $args));
 
 	//check for truncated output
 	if ($is_wgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$out_folder}/{$prefix}_var_annotated.vcf.gz -max_missing_perc 5");

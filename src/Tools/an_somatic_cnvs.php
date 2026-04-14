@@ -104,14 +104,25 @@ if(isset($rna_counts))
 	$approved_gene_map = [];
 	if (db_is_enabled("NGSD"))
 	{
-		$tmp_file1 = temp_file(".txt");
-		exec2("cut -f6 $rna_counts | sort | uniq > $tmp_file1", false);
-		list($stdout) = $parser->execApptainer("ngs-bits", "GenesToApproved", "-in $tmp_file1");
-		foreach($stdout as $line)
+		//check header:
+		list($stdout, $stderr, $exit_code) = exec2("head -n1 $rna_counts");
+		var_dump(explode("\t", $stdout[0]));
+		$gene_name_idx = array_search("gene_name", explode("\t", $stdout[0]));
+		
+		if ($exit_code != 0 || $gene_name_idx === false)
+		{
+			trigger_error("Couldn't check the header of the RNA count file or index of 'gene_name' changed: $rna_counts", E_USER_ERROR);
+		}
+		
+		$gene_names_old = temp_file(".txt");
+		$gene_names_new = temp_file(".txt");
+		exec2("cut -f {$gene_name_idx} $rna_counts | sort | uniq > $gene_names_old", false);
+		list($stdout) = $parser->execApptainer("ngs-bits", "GenesToApproved", "-in $gene_names_old -out $gene_names_new");
+		foreach(file($gene_names_new) as $line)
 		{			
 			if($line=="") continue;
 			if(!contains($line, "REPLACED:")) continue;
-						
+			$parser->log("GenesToApproved: ".trim($line));
 			list($new_symbol, $message) = explode("\t", $line);
 			
 			//old gene symbol is contained as text in a sentence of the form "REPLACED: SYMBOL is a ..."
@@ -123,6 +134,17 @@ if(isset($rna_counts))
 	//Create result array of genes and tpm that occur in RNA_counts and CNV file
 	$results = array();
 	$handle = fopen2($rna_counts, "r");
+	
+	//check header is unchanged:
+	list($stdout, $stderr, $exit_code) = exec2("head -n1 $rna_counts");
+	$idx_gene = array_search("gene_name", explode("\t", $stdout[0]));
+	$idx_tpm  = array_search("tpm", explode("\t", $stdout[0]));
+	
+	if ($exit_code != 0 || $idx_gene === false || $idx_tpm === false)
+	{
+		trigger_error("Couldn't check the header of the RNA count file or header changed: $rna_counts", E_USER_ERROR);
+	}
+	
 	while(!feof($handle))
 	{
 		$line = fgets($handle);
@@ -130,9 +152,9 @@ if(isset($rna_counts))
 		if(starts_with($line,"#")) continue;
 		if(empty($line)) continue;
 		
-		//order of line: gene_id, raw count, cpm, fpkm, tpm, gene symbol
-		list(,,,,$tpm, $rna_gene) = explode("\t", $line);
-		$rna_gene = strtoupper($rna_gene);
+		$parts = explode("\t", $line);
+		$rna_gene = strtoupper($parts[$idx_gene]);
+		$tpm = $parts[$idx_tpm];
 		
 		//replace outdated gene symbols
 		if(array_key_exists($rna_gene, $approved_gene_map)) 

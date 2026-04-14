@@ -1,0 +1,129 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%post
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+	
+# Update and install system dependencies
+apt-get update --fix-missing && apt-get upgrade -y && \
+apt-get install -qq -y \
+	wget \
+	make \
+	git \
+	g++ \
+	build-essential \
+	gfortran \
+	libgomp1 \
+	libgfortran5 \
+	libreadline-dev \
+	libpcre2-dev \
+	libbz2-dev \
+	liblzma-dev \
+	libcurl4-openssl-dev \
+	libxml2-dev \
+	libx11-dev \
+	libxt-dev \
+	libjpeg-dev \
+	libpng-dev \
+	libtiff-dev \
+	libcairo2-dev \
+	libicu-dev \
+	autotools-dev \
+	automake \
+	libharfbuzz-dev \
+	libfribidi-dev \
+	libtool
+
+# Write install_deps_clincnv.R file
+echo '
+install.packages("optparse", repos="https://cran.rstudio.com")
+install.packages("robustbase", repos="https://cran.rstudio.com")
+install.packages("MASS", repos="https://cran.rstudio.com")
+install.packages("data.table", repos="https://cran.rstudio.com")
+install.packages("foreach", repos="https://cran.rstudio.com")
+install.packages("doParallel", repos="https://cran.rstudio.com")
+install.packages("mclust", repos="https://cran.rstudio.com")
+install.packages("R.utils", repos="https://cran.rstudio.com")
+install.packages("RColorBrewer", repos="https://cran.rstudio.com")
+install.packages("devtools", repos="https://cran.rstudio.com")
+install.packages("Rcpp", repos="https://cran.rstudio.com")
+install.packages("party", repos="https://cran.rstudio.com")
+install.packages("dbscan", repos="https://cran.rstudio.com")
+install.packages("umap", repos="https://cran.rstudio.com")
+' > install_deps_clincnv.R
+
+# Install and build curl
+mkdir -p /curl_tmp && cd /curl_tmp
+wget https://curl.haxx.se/download/curl-7.78.0.tar.gz
+tar -xvzf curl-7.78.0.tar.gz
+cd curl-7.78.0
+apt-get install -y pkg-config libssl-dev zlib1g-dev libc6-dev linux-libc-dev gcc-multilib
+./configure --with-ssl=/usr --disable-ipv6
+make
+make install
+ldconfig
+cd /
+rm -rf /curl_tmp/curl-7.78.0*
+
+# Download and build R
+cd /opt
+wget https://cran.r-project.org/src/base/R-4/R-4.1.0.tar.gz
+tar -xvzf R-4.1.0.tar.gz
+mv R-4.1.0 R-4.1.0-src
+cd R-4.1.0-src
+./configure --with-pcre1 --prefix /opt/R-4.1.0
+make all install
+cd ..
+rm -rf R-4.1.0.tar.gz R-4.1.0-src
+
+# Download ClinCNV 
+cd /
+cd /opt
+git clone https://github.com/imgag/ClinCNV.git
+cd ClinCNV/
+git checkout 1.19.1
+rm -rf samples/
+rm -rf doc/
+cd /
+
+# Add shebang to clinCNV.R and make it executable
+sed -i '1i#!/opt/R-4.1.0/bin/Rscript --vanilla' /opt/ClinCNV/clinCNV.R
+chmod +x /opt/ClinCNV/clinCNV.R
+
+# Install R dependencies
+/opt/R-4.1.0/bin/R -f install_deps_clincnv.R
+
+# Cleanup build dependencies
+cd /
+apt-get remove -y \
+	wget \
+	git \
+	build-essential \
+	libpcre2-dev \
+	libbz2-dev \
+	liblzma-dev \
+	libssl-dev \
+	libxml2-dev \
+	libx11-dev \
+	libxt-dev \
+	zlib1g-dev \
+	libjpeg-dev \
+	libpng-dev \
+	libtiff-dev \
+	libcairo2-dev \
+	autotools-dev \
+	automake \
+	libtool \
+	libharfbuzz-dev \
+	pkg-config \
+	libfribidi-dev
+apt-get autoremove -y && \
+apt-get clean && \
+rm -rf /var/lib/apt/lists/*
+
+%environment
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+export PATH=/opt/R-4.1.0/bin:$PATH
+export PATH=/opt/ClinCNV:$PATH

@@ -23,6 +23,7 @@ $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addString("ref_sample", "Reference sample to use for validation.", true, "NA12878");
 $parser->addFlag("matches", "Do not only show variants that were missed (-), are novel (+) or with genotype mismatch (g), but also show matches (=) in output.");
 $parser->addFlag("skip_depth_calculation", "Do not calculate depth of missed variants to speed up calculation.");
+$parser->addFlag("keep_mosaic", "Do not remove variants which are flagged as 'mosaic'.");
 extract($parser->parse($argv));
 
 //returns the variants of a VCF file in the given ROI
@@ -30,6 +31,7 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skippe
 {
 	global $parser;
 	global $genome;
+	global $keep_mosaic;
 		
 	//get variants
 	$tmp = $parser->tempFile(".vcf");
@@ -83,7 +85,7 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skippe
 		}
 		
 		//skip mosaic variants (megSAP)
-		if (contains($filter, "mosaic"))
+		if (!$keep_mosaic && contains($filter, "mosaic"))
 		{
 			@$skipped["mosaic"] += 1;
 			continue;
@@ -94,14 +96,18 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skippe
 		
 		//skip mosaic variants (DRAGEN)
 		$info = explode(";",$info);
-		foreach($info as $entry)
+		if (!$keep_mosaic)
 		{
-			if ($entry=="MOSAIC")
+			foreach($info as $entry)
 			{
-				@$skipped["mosaic"] += 1;
-				continue(2);
+				if ($entry=="MOSAIC")
+				{
+					@$skipped["mosaic"] += 1;
+					continue(2);
+				}
 			}
 		}
+		
 		
 		//compile output
 		$var = array();
@@ -416,6 +422,6 @@ $cov20x = get_qcml_value($qcml, "QC:2000027", "n/a");
 list($snv_exp, $snv_sens, $snv_ppv, $snv_geno, $snv_f1) = stats("SNVS", $expected, $var_diff);
 list($indel_exp, $indel_sens, $indel_ppv, $indel_geno, $indel_f1) = stats("INDELS", $expected, $var_diff);
 list($all_exp, $all_sens, $all_ppv, $all_geno, $all_f1) = stats(null, $expected, $var_diff);
-$output[] = implode("\t", [$name, $options, $date, $avg_depth, $cov20x, $snv_exp, $indel_exp, $snv_sens, $snv_ppv, $snv_f1, $snv_geno, $indel_sens, $indel_ppv, $indel_f1, $indel_geno, $all_sens, $all_f1, $all_ppv, $all_geno])."\n";
+$output[] = implode("\t", [$name, $options, $date, $avg_depth, $cov20x, $snv_exp, $indel_exp, $snv_sens, $snv_ppv, $snv_f1, $snv_geno, $indel_sens, $indel_ppv, $indel_f1, $indel_geno, $all_sens, $all_ppv, $all_f1, $all_geno])."\n";
 file_put_contents($stats, implode("\n", $output)."\n");
 ?>

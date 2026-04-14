@@ -88,7 +88,7 @@ if (! ends_with(".tar.gz", $file)) $filename .= ".tar.gz";
 $matched = preg_match_all('/[^A-Za-z0-9\_\.\-]/', $filename);
 if ($matched != 0)
 {
-	trigger_error("Filename \"{$filename}\" contains forbidden symbols only 'A-Z', 'a-z', '0-9', '_', '.' and "-" are allowed.", E_USER_ERROR);
+	trigger_error("Filename '{$filename}' contains forbidden symbols only 'A-Z', 'a-z', '0-9', '_', '.' and '-' are allowed.", E_USER_ERROR);
 }
 
 $file = "/mnt/SRV018/raw_data_archive/{$mode}/{$filename}";

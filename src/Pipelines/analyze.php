@@ -20,7 +20,6 @@ $parser->addFloat("min_bq", "Minimum base quality used for variant calling (free
 $parser->addFloat("min_mq", "Minimum mapping quality used for variant calling (freebayes 'min-mapping-quality' parameter).", true, 20);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.");
-$parser->addFlag("no_abra", "Skip realignment with ABRA.");
 $parser->addFlag("no_trim", "Skip adapter trimming with SeqPurge.");
 $parser->addFlag("no_gender_check", "Skip gender check (done between mapping and variant calling).");
 $parser->addFlag("correction_n", "Use Ns for errors by barcode correction.");
@@ -63,18 +62,9 @@ if ($roi!="")
 	if (!bed_is_sorted($roi)) trigger_error("Target region file not sorted: ".$roi, E_USER_ERROR);
 }
 
-//disable abra and soft-clipping if DeepVariant is used for calling
-$use_freebayes = get_path("use_freebayes");
-if (!$use_freebayes)
-{
-	$no_abra = true;
-	$clip_overlap = false;
-}
-
 //handle somatic flag
 if ($somatic)
 {
-	$no_abra = true;
 	$clip_overlap = true;
 	$correction_n = true;
 }
@@ -279,7 +269,6 @@ if (in_array("ma", $steps))
 	
 	$args = [];
 	if($clip_overlap) $args[] = "-clip_overlap";
-	if($no_abra) $args[] = "-no_abra";
 	if($no_trim) $args[] = "-no_trim";
 	if($correction_n) $args[] = "-correction_n";
 	if(!empty($files_index)) $args[] = "-in_index " . implode(" ", $files_index);
@@ -568,23 +557,6 @@ if (in_array("vc", $steps))
 				//index output file
 				$parser->execApptainer("htslib", "tabix", "-p vcf $vcffile", [], [dirname($vcffile)]);
 			}
-			elseif ($use_freebayes) //perform variant calling with freebayes if set in settings.ini
-			{
-				$args = [];
-				$args[] = "-bam ".$used_bam_or_cram;
-				$args[] = "-out ".$vcffile;
-				$args[] = "-build ".$build;
-				$args[] = "-threads ".$threads;
-				if ($roi!="")
-				{
-					$args[] = "-target {$roi}";
-					$args[] = "-target_extend 200";
-				}
-				$args[] = "-min_af ".$min_af;
-				$args[] = "-min_mq ".$min_mq;
-				$args[] = "-min_bq ".$min_bq;
-				$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args));
-			}
 			else //perform variant calling with DeepVariant
 			{
 				$args = [];
@@ -644,7 +616,7 @@ if (in_array("vc", $steps))
 				$args[] = "-max_gnomad_af 1.00";
 				$args[] = "-min_obs 2";
 				$args[] = "-min_mq 20";
-				$parser->execTool("Tools/vc_mosaic.php", implode(" ", $args));
+				$parser->execTool("Tools/vc_mosaic.php", implode(" ", $args)); //TODO Marc: maybe there are better mito callers, see https://pmc.ncbi.nlm.nih.gov/articles/PMC8957813 and newer papers
 			}
 		
 			if($only_mito_in_target_region) 
@@ -685,7 +657,7 @@ if (in_array("vc", $steps))
 		}
 		fclose($hw);
 		
-		//call low mappability variants
+		//call low mappability variants (in exonic/splice regions only)
 		if ($is_wgs || ($is_wes && $roi!="") || ($is_panel && $roi!=""))
 		{
 			//determine region
@@ -703,50 +675,21 @@ if (in_array("vc", $steps))
 			{
 				$tmp_low_mappability = $parser->tempFile("_low_mappability.vcf.gz");
 
-				if ($use_freebayes) //perform variant calling with freebayes if set in settings.ini
-				{
-					$args = [];
-					$args[] = "-bam ".$used_bam_or_cram;
-					$args[] = "-out ".$tmp_low_mappability;
-					$args[] = "-build ".$build;
-					$args[] = "-threads ".$threads;
-					$args[] = "-target ".$roi_low_mappabilty;
-					$args[] = "-min_af ".$min_af;
-					$args[] = "-min_mq 0";
-					$args[] = "-min_bq ".$min_bq;
-					$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args));
-				}
-				else
-				{
-					$args = [];
+				//DeepVariant misses many variant that are on MAPQ=0 reads, even when min_mq is set to 0 > use freebayes for low-mappability calling
+				$args = [];
+				$args[] = "-bam ".$used_bam_or_cram;
+				$args[] = "-out ".$tmp_low_mappability;
+				$args[] = "-build ".$build;
+				$args[] = "-threads ".$threads;
+				$args[] = "-target ".$roi_low_mappabilty;
+				$args[] = "-min_af ".$min_af;
+				$args[] = "-min_mq 0";
+				$args[] = "-min_bq ".$min_bq;
+				$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args));
 
-					if ($is_wes || $is_panel)	$args[] = "-model_type WES";
-					elseif ($is_wgs) $args[] = "-model_type WGS";
-					else
-					{
-						trigger_error("Unsupported system type '".$sys['type']."' detected in $system. Compatible system types are: WES, WGS, Panel, Panel Haloplex.", E_USER_ERROR);
-					}
-
-					$args[] = "-bam ".$used_bam_or_cram;
-					$args[] = "-out ".$tmp_low_mappability;
-					$args[] = "-build ".$build;
-					$args[] = "-threads ".$threads;
-					$args[] = "-target $roi_low_mappabilty";
-					$args[] = "-min_af ".$min_af;
-					$args[] = "-min_mq 0";
-					$args[] = "-min_bq ".$min_bq;
-					$args[] = "-allow_empty_examples";
-
-					$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
-				}
-
-				//unzip
-				$tmp_low_mappability2 = $parser->tempFile("_low_mappability.vcf");
-				$parser->exec("zcat", "$tmp_low_mappability > $tmp_low_mappability2", true);
-				
 				//add to main variant list
 				$tmp2 = $parser->tempFile("_merged_low_mappability.vcf");
-				$parser->execApptainer("ngs-bits", "VcfAdd", "-in $vcf $tmp_low_mappability2 -skip_duplicates -filter low_mappability -filter_desc Variants_in_reads_with_low_mapping_score. -out $tmp2");
+				$parser->execApptainer("ngs-bits", "VcfAdd", "-in $vcf $tmp_low_mappability -skip_duplicates -filter low_mappability -filter_desc Variants_in_reads_with_low_mapping_score. -out $tmp2");
 				$parser->moveFile($tmp2, $vcf);
 			}
 		}
@@ -1051,7 +994,7 @@ if (in_array("sv", $steps))
 			$vcf_inv_corrected = $parser->tempFile("_sv_inv_corrected.vcf");
 			$inv_script = repository_basedir()."/src/Tools/convertInversion.py";
 			$vc_manta_command = "python2 ".$inv_script;
-			$vc_manta_parameters = "/usr/bin/samtools {$genome} {$dragen_output_sv_vcf} dragen > {$vcf_inv_corrected}";
+			$vc_manta_parameters = "/usr/local/bin/samtools {$genome} {$dragen_output_sv_vcf} dragen > {$vcf_inv_corrected}";
 			$parser->execApptainer("manta", $vc_manta_command, $vc_manta_parameters, [$genome, $inv_script, $dragen_output_sv_vcf]);
 
 			// fix VCF file (remove variants with empty "REF" entry and duplicates)

@@ -34,7 +34,9 @@ apt-get install -y \
 	libdeflate-dev \
 	unzip \
 	ca-certificates \
-	libtool
+	libtool \
+	qt6-httpserver-dev \
+	qt6-websockets-dev
 	
 #install Microsoft driver for MSSQL needed for Qt ODBC library
 curl -o /etc/apt/sources.list.d/mssql-release.list https://packages.microsoft.com/config/ubuntu/24.04/prod.list

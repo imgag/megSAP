@@ -16,7 +16,7 @@ $parser->addInfileArray("calls", "Somatic variant call files (VCF.GZ). Sorted in
 $parser->addString("tum_content", "Tumor content in the samples used for the calls given as comma seperated string '5,10,20,40'. If not given tum_content will be approximated from variant af. This may underestimate actual content", true);
 $parser->addOutfile("vars_details", "Output TSV file for variant details.", false);
 $parser->addOutfile("af_details", "Output TSV file for AF-specific output.", false);
-$parser->addEnum("caller", "The caller used to create the vcf files given in '-calls'", false, ["strelka2", "dragen"]);
+$parser->addEnum("caller", "The caller used to create the vcf files given in '-calls'", false, ["strelka2", "dragen", "deepsomatic"]);
 $parser->addFlag("with_low_evs", "Ignores 'LowEVS' filter column entry for strelka2 callings");
 $parser->addFlag("ignore_filters", "Ignores filter column entries.");
 extract($parser->parse($argv));
@@ -42,7 +42,8 @@ function load_vcf($filename, $roi, $caller)
 		$line = trim($line);
 		if ($line=="") continue;
 		
-		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample_normal, $sample_tumor) = explode("\t", $line."\t");
+		if ($caller == "deepsomatic") list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample_tumor) = explode("\t", $line."\t");
+		else list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format, $sample_normal, $sample_tumor) = explode("\t", $line."\t");
 		//fix chr
 		if (!starts_with($chr, "chr")) $chr = "chr".$chr;
 		
@@ -57,7 +58,6 @@ function load_vcf($filename, $roi, $caller)
 			$filter_replace = ["PASS"=>"", "freq-tum"=>"", ";"=>""];
 			if ($with_low_evs) $filter_replace ["LowEVS"] = "";
 			$filter = trim(strtr($filter, $filter_replace));
-			
 			if ($ignore_filters) $filter = "";
 			
 			$output[$tag] = array($tumor_af, $tumor_dp, $filter);
@@ -68,6 +68,17 @@ function load_vcf($filename, $roi, $caller)
 			
 			//clear filter column
 			$filter_replace = ["PASS"=>"", "."=>"", "freq-tum"=>"", ";"=>""];
+			$filter = trim(strtr($filter, $filter_replace));
+			if ($ignore_filters) $filter = "";
+			
+			$output[$tag] = array($tumor_af, $tumor_dp, $filter);
+		}
+		else if ($caller == "deepsomatic")
+		{
+			list($tumor_dp, $tumor_af) = vcf_deepvariant($format, $sample_tumor);
+
+			//clear filter column
+			$filter_replace = ["PASS"=>"", "freq-tum"=>"", ";"=>""];
 			$filter = trim(strtr($filter, $filter_replace));
 			if ($ignore_filters) $filter = "";
 			

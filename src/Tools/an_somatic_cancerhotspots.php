@@ -39,9 +39,9 @@ while(!gzeof($h))
 }
 gzclose($h);
 
-//get annotation indices in CSQ2 field
-$i_csq2_hgvsp = -1;
-$i_csq2_feature = -1;
+//get annotation indices in CSQ field
+$i_csq_hgvsp = -1;
+$i_csq_feature = -1;
 $handle_in = fopen2($in, "r");
 while(!feof($handle_in))
 {
@@ -51,11 +51,11 @@ while(!feof($handle_in))
 	//headers
 	if(starts_with($line_in, "#"))
 	{
-		if (starts_with($line_in, "##INFO=<ID=CSQ2,"))
+		if (starts_with($line_in, "##INFO=<ID=CSQ,"))
 		{
 			$cols = explode("|", substr($line_in, 0, -2));
-			$i_csq2_hgvsp = index_of($cols, "HGVSp");
-			$i_csq2_feature = index_of($cols, "Feature");
+			$i_csq_hgvsp = index_of($cols, "HGVSp");
+			$i_csq_feature = index_of($cols, "Feature");
 		}
 		
 		continue;
@@ -64,7 +64,7 @@ while(!feof($handle_in))
 	break; //first content line
 }
 fclose($handle_in);
-if ($i_csq2_hgvsp==-1) trigger_error("VCF file does not contain variant consequence annotation in CSQ2 INFO entry!", E_USER_ERROR);
+if ($i_csq_hgvsp==-1) trigger_error("VCF file does not contain variant consequence annotation in CSQ INFO entry!", E_USER_ERROR);
 
 //perform annotation og intput file
 $handle_in = fopen2($in, "r");
@@ -78,7 +78,7 @@ while(!feof($handle_in))
 	if(starts_with($line_in, "#"))
 	{
 		//write INFO field for CANCERHOTSPOTS just before INFO field of CSQ annotation
-		if (starts_with($line_in, "##INFO=<ID=CSQ2,"))
+		if (starts_with($line_in, "##INFO=<ID=CSQ,"))
 		{
 			fwrite($handle_out,"##INFO=<ID=CANCERHOTSPOTS,Number=.,Type=String,Description=\"Cancerhotspots.org data. Format: GENE_SYMBOL|ENSEMBL_TRANSCRIPT|AA_POS|AA_REF|AA_ALT|TOTAL_COUNT|ALT_COUNT\">\n");
 		}
@@ -97,19 +97,19 @@ while(!feof($handle_in))
 	$aa_matches = [];
 	foreach(explode(";", $parts[7]) as $info_part)
 	{
-		if(!starts_with($info_part, "CSQ2=")) continue;
+		if(!starts_with($info_part, "CSQ=")) continue;
 		
 		foreach(explode(",", substr($info_part, 5)) as $csq_entry)
 		{
 			$csq_parts = explode("|", $csq_entry);
 			
 			//check if transcript is in cancerhotspots data
-			$transcript = explode(".", $csq_parts[$i_csq2_feature].".")[0]; //remove transcript version if appended
+			$transcript = explode(".", $csq_parts[$i_csq_feature].".")[0]; //remove transcript version if appended
 			if (!isset($chs_data[$transcript])) continue;
 			
 			//skip protein changes other than single AA substitutions
 			$matches = [];
-			if(!preg_match("/^p.([a-zA-Z]{3})(\d+)([a-zA-Z]{3})$/", $csq_parts[$i_csq2_hgvsp], $matches)) continue;
+			if(!preg_match("/^p.([a-zA-Z]{3})(\d+)([a-zA-Z]{3})$/", $csq_parts[$i_csq_hgvsp], $matches)) continue;
 			list(, $aa_ref, $aa_pos, $aa_alt) = $matches;
 			
 			//check if protein change is in cancerhotspots data

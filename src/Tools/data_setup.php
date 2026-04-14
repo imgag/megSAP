@@ -25,7 +25,7 @@ $local_data = get_path("local_data");
 $rsync  = "rsync --recursive --no-perms --no-acls --omit-dir-times --no-group --no-owner --chmod=ugo=rwX --copy-links --size-only";
 
 //determine DB files
-$db_files = array("/dbs/dbSNP/dbSNP_b157.vcf.gz", "/dbs/CADD/CADD_SNVs_1.7_GRCh38.vcf.gz", "/dbs/CADD/CADD_InDels_1.7_GRCh38.vcf.gz", "/dbs/REVEL/REVEL_1.3.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz", "/dbs/RepeatMasker/RepeatMasker_GRCh38.bed", "/dbs/ClinVar/clinvar_20250907_converted_GRCh38.vcf.gz", "/dbs/phyloP/hg38.phyloP100way.bw", "/dbs/SpliceAI/spliceai_scores_2024_08_26_GRCh38.vcf.gz");
+$db_files = array("/dbs/dbSNP/dbSNP_b157.vcf.gz", "/dbs/CADD/CADD_SNVs_1.7_GRCh38.vcf.gz", "/dbs/CADD/CADD_InDels_1.7_GRCh38.vcf.gz", "/dbs/REVEL/REVEL_1.3.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz", "/dbs/RepeatMasker/RepeatMasker_GRCh38.bed", "/dbs/ClinVar/clinvar_20250907_converted_GRCh38.vcf.gz", "/dbs/phyloP/hg38.phyloP100way.bw", "/dbs/SpliceAI/spliceai_scores_2024_08_26_GRCh38.vcf.gz", "/dbs/Ensembl/Ensembl_regulatory_115.bed", "/dbs/Ensembl/Ensembl_domains_115.tsv");
 //add optional DBs
 $omim =  "/dbs/OMIM/omim.bed";
 if (file_exists($data_folder.$omim)) $db_files[] = $omim;
@@ -102,7 +102,7 @@ if ($pid_mod!="0777")
 	chmod($pid_file, 0777);
 }
 
-//copy reference genome and index files
+######################### copy reference genome and index files #########################
 print "Copying genome files...\n";
 list($files) = exec2("ls {$genome_folder}/{$build}.*");
 foreach($files as $file)
@@ -126,7 +126,7 @@ foreach($files as $file)
 	}
 }
 
-//copy samtools ref_cache folder
+######################### copy samtools ref_cache folder #########################
 $ref_cache = "{$genome_folder}/samtools_ref_cache";
 if (file_exists($ref_cache))
 {
@@ -140,91 +140,12 @@ else
 	trigger_error("Ref cache folder in genome folder '{$genome_folder}' doesn't exists!", E_USER_WARNING);
 }
 
-######################### VEP cache #########################
-if ($build=="GRCh38")
-{
-	$annotation_folder = get_path("vep_data")."/cache/";
-	$local_annotation_folder = "{$local_data}/".basename(get_path("vep_data"))."/";
-
-	print "\n";
-	print "### VEP cache ###\n";
-	print "from: {$annotation_folder}\n";
-	print "to  : {$local_annotation_folder}\n";
-	print "\n";
-
-	//create local annotation folder if missing
-	if (!file_exists($local_annotation_folder))
-	{
-		if (!mkdir($local_annotation_folder))
-		{
-			trigger_error("Could not create local data annotation folder '{$local_annotation_folder}'!", E_USER_ERROR);
-		}
-		if (!chmod($local_annotation_folder, 0777))
-		{
-			trigger_error("Could not change privileges of local annotation data folder '{$local_annotation_folder}'!", E_USER_ERROR);
-		}
-	}
-	
-	//remove outdated annotation data
-	$update = false;
-	$info = "/homo_sapiens/112_GRCh38/info.txt"; //ensembl-vep-112
-	if (file_exists("{$local_annotation_folder}/{$info}"))
-	{
-		exec("diff {$local_annotation_folder}/{$info} {$annotation_folder}/{$info}", $output, $code);
-		if ($code==0)
-		{
-			print "Annotation infos in '$info' match.\n";
-		}
-		else
-		{
-			print "Annotation infos in '$info' differ. Deleting old data and performing update!\n";
-			exec2("rm -rf {$local_annotation_folder}/*");
-			$update = true;
-		}
-	}
-	else
-	{
-		// info.txt missing -> perform update
-		print "{$local_annotation_folder}/{$info} missing. Performing update!\n";
-		$update = true;
-	}
-	
-	//check that at least one rsync finished
-	$finished = "/rsync_done.txt";
-	if (!file_exists("{$local_annotation_folder}/{$finished}"))
-	{
-		print "No rsync finished. Performing update!\n";
-		$update = true;
-	}
-		
-	//perform update
-	if ($update)
-	{
-		print "rsync-ing annotation data...\n";
-		
-		list($stdout, $stderr) = exec2("{$rsync} {$annotation_folder} {$local_annotation_folder}");
-		foreach(array_merge($stdout, $stderr) as $line)
-		{
-			$line = trim($line);
-			if ($line=="") continue;
-			
-			print "  {$line}\n";
-		}
-		
-		touch("{$local_annotation_folder}/{$finished}");
-	}
-	else
-	{
-		print "No rsync necessary!\n";
-	}
-}
-
-######################### VEP annotation databases #########################
+######################### database flat files used for annotation #########################
 if ($build=="GRCh38")
 {
 	if (get_path("copy_dbs_to_local_data"))
 	{
-		$local_annotation_folder = "{$local_data}/ensembl-vep-dbs/";
+		$local_annotation_folder = "{$local_data}/dbs/";
 
 		//create local folder if missing
 		if (!file_exists($local_annotation_folder))
@@ -240,7 +161,7 @@ if ($build=="GRCh38")
 		}
 		
 		print "\n";
-		print "### VEP annotation databases ###\n";
+		print "### annotation databases ###\n";
 		print "to  : {$local_annotation_folder}\n";
 		print "\n";
 			

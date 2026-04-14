@@ -1,0 +1,36 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%post
+LANG=C.UTF-8
+LC_ALL=C.UTF-8
+PATH=/bin:$PATH
+
+# update ubuntu packages and install build dependencies
+apt-get update
+apt-get install -y \
+	wget \
+	build-essential \
+	unzip
+rm -rf /var/lib/apt/lists/*
+
+# download and build freebayes
+cd /opt
+mkdir freebayes-1.3.10
+cd freebayes-1.3.10
+wget -O - https://github.com/freebayes/freebayes/releases/download/v1.3.10/freebayes-1.3.10-linux-amd64-static.gz | gunzip > freebayes
+chmod 755 freebayes
+
+# cleanup build dependencies
+apt-get remove -y \
+	wget \
+	build-essential \
+	unzip
+apt-get autoremove -y && \
+apt-get clean && \
+rm -rf /var/lib/apt/lists/*
+
+%environment
+PATH=/opt/freebayes-1.3.10:$PATH
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8

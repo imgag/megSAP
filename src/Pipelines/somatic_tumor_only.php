@@ -32,6 +32,7 @@ $parser->addFlag("skip_contamination_check", "Skips check of female tumor sample
 $parser->addFlag("skip_correlation", "Skip sample correlation check.");
 $parser->addFlag("skip_low_cov", "Skip low coverage statistics.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
+$parser->addFlag("use_deepsomatic_test", "Use DeepSomatic for somatic variant calling. (normally set in settings.ini)");
 
 //default cut-offs
 $parser->addFloat("min_af", "Allele frequency detection limit (for small variant calling).", true, 0.01);
@@ -51,6 +52,9 @@ foreach($steps as $step)
 }
 
 ###################################### SCRIPT START ######################################
+//check which caller to use
+$use_deepsomatic = $use_deepsomatic_test ?: get_path("use_deepsomatic");
+
 if (!file_exists($out_folder))
 {
 	exec2("mkdir -p $out_folder");
@@ -123,8 +127,39 @@ if (in_array("vc", $steps))
 	$parser->execTool("Tools/hla_genotyper.php", "-bam {$t_bam} -name {$t_id} -out {$hla_file_tumor}");
 	
 	//small variant calling
-	$parser->execTool("Tools/vc_varscan2.php", "-bam {$t_bam} -out {$variants} -build {$build} -target {$roi} -name {$t_id} -min_af {$min_af}");
+	//DeepSomatic calling
+	if ($use_deepsomatic)
+	{
+		$args = [];
+		if ($sys['type'] !== "WGS") $args[] = "-model_type WES_TUMOR_ONLY";
+		else $args[] = "-model_type WGS_TUMOR_ONLY";
+		$args[] = "-bam_tumor ".$t_bam;
+		$args[] = "-out ".$variants;
+		$args[] = "-build {$build}";
+		$args[] = "-threads ".$threads;
+		$args[] = "-tumor_id {$t_id}";
+		$args[] = "-min_af_indels $min_af";
+		$args[] = "-min_af_snps $min_af";
+		$args[] = "-tumor_only";
+		$args[] = "-min_mq 15"; //taken from vc_varscan2.php
+		$args[] = "-min_bq 20"; //taken from vc_varscan2.php
+
+		if (!empty($roi))
+		{
+			$args[] = "-target {$roi}";
+		}
+		$args[] = "-allow_empty_examples";
+
+		$parser->execTool("Tools/vc_deepsomatic.php", implode(" ", $args));
+	}
+	//Varscan2 calling
+	else
+	{
+		$parser->execTool("Tools/vc_varscan2.php", "-bam {$t_bam} -out {$variants} -build {$build} -target {$roi} -name {$t_id} -min_af {$min_af}");
+	}
+	
 	$parser->execApptainer("htslib", "tabix", "-f -p vcf {$variants}", [], [dirname($variants)]);
+
 	
 	// structural variant calling
 	if (!$sys['shotgun'])
@@ -365,12 +400,10 @@ if (in_array("an", $steps))
 	$parser->execTool("Tools/annotate.php", "-out_name {$prefix} -out_folder {$tmp_folder1} -system {$system} -vcf {$variants} -somatic -threads {$threads}");
 	
 	//add sample info to VCF header
-	$s = Matrix::fromTSV($tmp_vcf);
-	$comments = $s->getComments();
-	$comments[] = gsvar_sample_header($t_id, array("IsTumor" => "yes"), "#", "");
-	$s->setComments(sort_vcf_comments($comments));
-	$s->toTSV($tmp_vcf);
-
+	list($comments) = vcf_load_header($tmp_vcf);
+	$comments[] = gsvar_sample_header($t_id, array("IsTumor" => "yes"));
+	vcf_replace_comments($tmp_vcf, $comments);
+	
 	//zip and index VCF
 	$parser->execApptainer("htslib", "bgzip", "-c {$tmp_vcf} > {$variants_annotated}", [], [dirname($variants_annotated)]);
 	$parser->execApptainer("htslib", "tabix", "-f -p vcf {$variants_annotated}", [], [dirname($variants_annotated)]);

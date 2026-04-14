@@ -410,13 +410,17 @@ else //bam output
 			if ($is_test_db) $out_dir = $run_dir."/TEST_Sample_".$sample."/";
 			
 			//create sample folder 
-			if (!file_exists($out_dir)) mkdir($out_dir, 0777, true);
+			if (!file_exists($out_dir)) 
+			{
+				mkdir($out_dir, 0777, true);
+				//apply file access permissions
+				$parser->exec("chmod", "-R 775 {$out_dir}");
+				$parser->exec("chgrp", "-R f_ad_bi_l_medgen_access_storages {$out_dir}", true, false);
+			}
 			$out_bam = "{$out_dir}{$sample}.unmapped.bam";
 			if ($modified_bases) $out_bam = "{$out_dir}{$sample}.mod.unmapped.bam";
 			if (file_exists($out_bam)) trigger_error("Output BAM file '{$out_bam}' already exists, aborting.", E_USER_ERROR);
-			//apply file access permissions
-			$parser->exec("chmod", "-R 775 {$out_dir}");
-			$parser->exec("chgrp", "-R f_ad_bi_l_medgen_access_storages {$out_dir}", true, false);
+			
 
 			if ($contains_skipped_bases && $queue_basecalling)
 			{
@@ -455,7 +459,7 @@ else //bam output
 				// concat bams
 				$pipeline = [];
 				$pipeline[] = ["find", "{$bam_paths_glob} -name '*.bam' -type f"];
-				$pipeline[] = ["", $parser->execApptainer("samtools", "samtools cat", "--threads {$threads} -o {$out_bam} -b -", [$run_dir], [$out_dir], true)]; //no reference required
+				$pipeline[] = ["", $parser->execApptainer("samtools", "samtools cat", "-o {$out_bam} -b -", [$run_dir], [$out_dir], true)]; //no reference required
 				$parser->execPipeline($pipeline, "merge unaligned BAM files");
 
 				//apply file access permissions
@@ -491,15 +495,18 @@ else //bam output
 			// copy to run folder during test:
 			if ($is_test_db) $out_dir = $run_dir."/TEST_Sample_".$sample."/";
 			//create sample folder 
-			if (!file_exists($out_dir)) mkdir($out_dir, 0777, true);
+			if (!file_exists($out_dir)) 
+			{
+				mkdir($out_dir, 0777, true);
+				//apply file access permissions
+				$parser->exec("chmod", "-R 775 {$out_dir}");
+				$parser->exec("chgrp", "-R f_ad_bi_l_medgen_access_storages {$out_dir}", true, false);
+			}
 			$out_bam = "{$out_dir}{$sample}.mod.unmapped.bam";
 			// $out_bam = "{$out_dir}{$sample}.unmapped.bam";
 			// if ($modified_bases) $out_bam = "{$out_dir}{$sample}.mod.unmapped.bam";
 			if (file_exists($out_bam)) trigger_error("Output BAM file '{$out_bam}' already exists, aborting.", E_USER_ERROR);
-			//apply file access permissions
-			$parser->exec("chmod", "-R 775 {$out_dir}");
-			$parser->exec("chgrp", "-R f_ad_bi_l_medgen_access_storages {$out_dir}", true, false);
-
+			
 
 			//queue full re-basecalling
 			$basecalling_cmd = create_basecall_command($run_dir, $out_bam, $basecall_model, $min_qscore, end($subdirs)."/bam_pass/", $queue_sample, false);
@@ -646,7 +653,7 @@ foreach ($result as $record)
 		}
 		else
 		{
-			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools cat", "--threads {$threads} -o {$out_bam} -b -", [$run_dir], [$out_dir], true)]; //no reference required
+			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools cat", "-o {$out_bam} -b -", [$run_dir], [$out_dir], true)]; //no reference required
 			$parser->execPipeline($pipeline, "merge unaligned BAM files");
 		}
 	}

@@ -1,0 +1,66 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%post
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+	
+# update ubuntu packages and install build dependencies
+apt-get update --fix-missing && \
+yes | apt-get upgrade && \
+apt-get install -y \
+	wget \
+	build-essential \
+	unzip \
+	autoconf \
+	automake \
+	make \
+	gcc \
+	perl \
+	zlib1g-dev \
+	libbz2-dev \
+	liblzma-dev \
+	libcurl4-gnutls-dev \
+	libssl-dev \
+	libncurses5-dev \
+	libdeflate-dev \
+	libdigest-perl-md5-perl
+
+# clone and build samtools
+mkdir -p /opt
+cd /opt
+wget -c https://github.com/samtools/samtools/releases/download/1.23/samtools-1.23.tar.bz2
+tar xjf samtools-1.23.tar.bz2
+rm samtools-1.23.tar.bz2
+cd samtools-1.23
+./configure
+make
+make install
+cd ..
+rm -rf samtools-1.23
+
+# cleanup build dependencies
+cd /
+apt-get remove -y \
+	wget \
+	build-essential \
+	unzip \
+	automake \
+	make \
+	zlib1g-dev \
+	libbz2-dev \
+	liblzma-dev \
+	libssl-dev \
+	libncurses5-dev \
+	libdeflate-dev \
+	autoconf \
+	gcc
+	
+apt-get autoremove -y && \
+apt-get clean && \
+rm -rf /var/lib/apt/lists/*
+
+%environment
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+export PATH=/usr/local/bin:$PATH	

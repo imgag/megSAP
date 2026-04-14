@@ -48,40 +48,12 @@ function json_metadata($cm_data, $tan_k, $rc_data_json, $se_data, $se_data_rep)
 	if (xml_str($cm_data->bc_signed)=="Ja")
 	{
 		//get BC meta data from SE RedCap
-		$consents_se = [];
-		foreach($se_data_rep->item as $item)
-		{		
-			$bc_date = xml_str($item->datum_einwillig_forsch);
-			$bc_ver = xml_str($item->vers_einwillig_forsch);
-			if ($bc_date=="" || $bc_ver=="") continue;
-			
-			$bc_retracted = xml_str($item->datum_einwillig_f_wid);
-			if ($bc_retracted!="") continue;
-
-			$consents_se[] = [$bc_ver, $item];
-		}
-		if (count($consents_se)>1) trigger_error("Several research consent forms found in SE RedCap!", E_USER_ERROR);
-		if (count($consents_se)==0) trigger_error("No research consent form found in SE RedCap!", E_USER_ERROR);
-		list($bc_type, $bc_item) = $consents_se[0];
+		list($bc_type, $bc_item) = get_bc_data_se($se_data_rep);
 		
 		$active_rcs = [];
 		if (starts_with($bc_type, "Kinder")) //generate consent JSON from SE RedCap
 		{
-			//store consent from SE RedCap as JSON
-			$form = [];
-			foreach(["psn", "redcap_repeat_instrument", "redcap_repeat_instance", "datum_einwillig_forsch", "vers_einwillig_forsch", "bc_sb_1",  "bc_sb_2",  "bc_sb_3",  "bc_sb_4",  "bc_sb_5",  "bc_sb_6",  "bc_sb_7",  "bc_sb_8",  "bc_sb_9", "datum_einwillig_f_wid", "umfang_einwillig_f_wid", "forschungseinwilligungen_complete"] as $key)
-			{
-				$form[] = "\"{$key}\": \"".xml_str($bc_item->$key)."\"";
-			}
-			$tmp = $parser->tempFile(".json");
-			file_put_contents($tmp, "[\n  {},\n    {\n    ".implode(",\n    ", $form)."\n  }\n]");
-			
-			//generate consent JSON
-			$tmp2 = $parser->tempFile(".json");
-			$birthdate = new DateTime($se_data->birthdate);
-			exec2("java -jar /mnt/storage2/MVH/tools/mii_broad_consent_mapper/build/libs/consent-mapper-all.jar --redcap_formular {$tmp} --output {$tmp2} --date_of_birth ".$birthdate->format("m.Y"));
-			
-			$active_rcs[] = json_decode(file_get_contents($tmp2), true);
+			$active_rcs[] = convert_se_kids_bc_to_fhir($bc_item, $se_data, $parser);
 		}
 		else //adult > search for consent data from SAP
 		{

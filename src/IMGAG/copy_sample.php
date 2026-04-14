@@ -34,6 +34,7 @@ $parser->addFlag("manual_demux", "Ignore NovaSeqX Analysis results and use mauna
 $parser->addFlag("no_queuing", "Do not include queuing commands in the default target of the Makefile.");
 
 $parser->addString("ignore_samples" ,"Comma-separated list of samples which should not be copied/analyzed",true, "");
+$parser->addInt("threads_genlab", "Number of threads used to do the GenLab import.", true, 6);
 
 extract($parser->parse($argv));
 
@@ -334,29 +335,31 @@ else if ($skip_run_merging) $merge_former_run = "n";
 if($is_novaseq_x) $sample_data = get_sample_data_from_db($db_conn, $run_name);
 else $sample_data = extract_sample_data($db_conn, $samplesheet);
 
+//import data from Genlab
+if (!$no_genlab)
+{
+	print "Importing information from GenLab...\n";
+	$import_jobs = [];
+	foreach($sample_data as $sample => $data)
+	{
+		$args = [];
+		$args[] = "-ps {$sample}";
+		if ($db=="NGSD_TEST") $args[] = "-test";
+		$import_jobs[] = ["GenLabImport_".$sample, $parser->execApptainer("ngs-bits", "NGSDImportGenlab", implode(" ", $args), [], [], true)];
+	}
+	$parser->execParallel($import_jobs, $threads_genlab);
+
+	//update sample data after importing sample relations
+	if($is_novaseq_x) $sample_data = get_sample_data_from_db($db_conn, $run_name);
+	else $sample_data = extract_sample_data($db_conn, $samplesheet);
+}
+
 //remove ignored samples
 foreach ($ignored_samples as $sample) 
 {
 	unset($sample_data[$sample]);
 }
 
-//import data from Genlab
-if (!$no_genlab)
-{
-	print "Importing information from GenLab...\n";
-
-	foreach($sample_data as $sample => $data)
-	{
-		$args = [];
-		$args[] = "-ps {$sample}";
-		if ($db=="NGSD_TEST") $args[] = "-test";
-		$parser->execApptainer("ngs-bits", "NGSDImportGenlab", implode(" ", $args));
-	}
-
-	//update sample data after importing sample relations
-	if($is_novaseq_x) $sample_data = get_sample_data_from_db($db_conn, $run_name);
-	else $sample_data = extract_sample_data($db_conn, $samplesheet);
-}
 //extract tumor-normal pair infos
 $normal2tumor = array();
 $tumor2normal = array();
@@ -371,9 +374,6 @@ foreach($sample_data as $sample => $sample_infos)
 	//check run name (the same for all samples)
 	if($run_name != $sample_infos['run_name']) trigger_error("Sequencing run doesn't match sample info ('".$sample_infos['run_name']."')", E_USER_ERROR);
 }
-$queued_normal_samples = [];
-
-
 
 //Check for former run that contains more than 50% same samples and offer merging to user
 $former_run_name = "";
@@ -603,7 +603,7 @@ foreach($sample_data as $sample => $sample_infos)
 				//check count
 				if(count($fastq_files) != count($sample_infos["ps_lanes"]) * 2) 
 				{
-					trigger_error("Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found: ".count($fastq_files).")", E_USER_ERROR);
+					trigger_error("Number of FastQ files for sample {$sample} doesn't match number of lanes in run info! (expected: ".(count($sample_infos["ps_lanes"]) * 2).", found: ".count($fastq_files).")", ((in_array($sample, $ignored_samples))?E_USER_WARNING:E_USER_ERROR));
 				}
 
 				//copy files
@@ -799,7 +799,7 @@ foreach($sample_data as $sample => $sample_infos)
 	//additional arguments for db_queue_analysis
 	$args = array();
 
-	if($project_analysis!="fastq" && !$is_normal_with_tumor) //if more than FASTQ creation should be done for samples's project
+	if($project_analysis!="fastq") //if more than FASTQ creation should be done for samples's project
 	{	
 		//queue analysis
 		if ($sample_is_tumor && $sys_type!="RNA")
@@ -818,24 +818,13 @@ foreach($sample_data as $sample => $sample_infos)
 				$outputline .= ($use_dragen ? " -use_dragen": "");
 			}
 			
-			
-			
-			
 			if (isset($tumor2normal[$sample]))
 			{
-				$normal = $tumor2normal[$sample];
-				//queue normal if on same run, with somatic specific options
-				if (!in_array($normal, $queued_normal_samples)  && array_key_exists($normal,$sample_data) && $sample_data[$normal]["run_name"] === $sample_infos["run_name"])
-				{
-					$queue_somatic[] = "\tphp {$repo_folder}/src/Tools/db_queue_analysis.php -type 'single sample' -samples {$normal} -args '-steps ".(!$nsx_analysis_done ? "ma,": "")."vc,cn,sv,db -somatic'";
-					//track that normal sample is queued
-					$queued_normal_samples[] = $normal;
-				}
-				
+				$normal = $tumor2normal[$sample];				
 				$normal_processed_info = get_processed_sample_info($db_conn,$normal);
 				$n_dir = $normal_processed_info["ps_folder"];
-				//queue somatic analysis: only if normal sample is included in this run or its folder exists
-				if(in_array($normal,$queued_normal_samples) || is_dir($n_dir))
+				//queue somatic analysis: only if normal sample is included in this run or its already folder exists
+				if(in_array($normal, array_keys($sample_data)) || is_dir($n_dir))
 				{
 					$queue_somatic[] = "\tphp {$repo_folder}/src/Tools/db_queue_analysis.php -type 'somatic' -samples {$sample} {$normal} -info tumor normal ".($use_dragen ? "-use_dragen": "");
 				}
@@ -881,6 +870,12 @@ foreach($sample_data as $sample => $sample_infos)
 					}
 				}
 				//other sample types > use all default steps
+			}
+			
+			//add somatic specific options if it is the normal to a tumor sample
+			if ($is_normal_with_tumor)
+			{
+				$args[] = "-somatic";
 			}
 			
 			//check if trio needs to be queued

@@ -77,6 +77,7 @@ while(!feof($handle))
 		if(contains($line, "varscan2") ) $var_caller = "varscan2";
 		if(contains($line, "umivar2") ) $var_caller = "umivar2";
 		if(contains($line, "dragen") ) $var_caller = "dragen";
+		if(contains($line, "deepsomatic")) $var_caller = "deepsomatic";
 		echo $line."\n";
 
 		//add umivar specific columns
@@ -116,7 +117,7 @@ while(!feof($handle))
 if($source_lines!=1) trigger_error("Found ".($source_lines==0 ? "no" : "several")." 'source' entries in VCF header (needed to identify the variant caller).", E_USER_ERROR);
 if($var_caller===false) trigger_error("Unknown variant caller from 'source' entry in VCF header.", E_USER_ERROR);
 if($tumor_idx===false) trigger_error("Could not identify tumor column '$t_col' in VCF header.", E_USER_ERROR);
-if(!$tumor_only && $normal_idx===false) trigger_error("Could not identify tumor column '$t_col' in VCF header.", E_USER_ERROR);
+if(!$tumor_only && $normal_idx===false && $var_caller !== "deepsomatic") trigger_error("Could not identify normal column '$n_col' in VCF header.", E_USER_ERROR);
 
 //process variants
 $r = -1;
@@ -232,6 +233,10 @@ while(!feof($handle))
 			$gsvar->set($r, $i_homopolymer, $homopolymer);
 		}
 	}
+	else if ($var_caller == "deepsomatic")
+	{
+		list($tumor_dp, $tumor_af) = vcf_deepvariant($format, $cols[$tumor_idx]);
+	}
 	
 	$gsvar->set($r, $i_tumor_dp, $tumor_dp);
 	$gsvar->set($r, $i_tumor_af, number_format($tumor_af, 4));
@@ -258,10 +263,13 @@ while(!feof($handle))
 		{
 			list($normal_dp, $normal_af) = vcf_dragen_var($format, $cols[$normal_idx]);
 		}
+		else if ($var_caller == "deepsomatic")
+		{
+			list($normal_dp, $normal_af) = vcf_deepsomatic($info, $n_col);
+		}
 		$gsvar->set($r, $i_normal_dp, $normal_dp);
 		$gsvar->set($r, $i_normal_af, number_format($normal_af, 4));
 	}
-	
 }
 gzclose($handle);
 
