@@ -479,6 +479,10 @@ while(!gzeof($handle))
 		{
 			fwrite($handle_out, "##SOURCE=".trim(substr($line,9))."\n");
 		}
+		if (starts_with($line, "##source=DeepSomatic"))
+		{
+			fwrite($handle_out, "##SOURCE=".trim(substr($line,9))."\n");
+		}
 		if (starts_with($line, "##source=strelka2"))
 		{
 			fwrite($handle_out, "##SOURCE=".trim(substr($line,9))."\n");
@@ -1504,7 +1508,7 @@ while(!gzeof($handle))
 			}
 			else
 			{
-				trigger_error("Wrong SpliceAI annotation in line: ${line} in SpliceAI annotation: ${spliceai_info}! Delimiter for several genes must be ','.", E_USER_WARNING);
+				trigger_error("Wrong SpliceAI annotation in line: {$line} in SpliceAI annotation: {$spliceai_info}! Delimiter for several genes must be ','.", E_USER_WARNING);
 			}
 		}
 		$tmp = array_unique($tmp);
