@@ -357,7 +357,9 @@ if (in_array("vc", $steps))
 		}
 		$parser->execTool("Tools/vc_manta.php", implode(" ", $args_manta));
 		
-		$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in $manta_sv -out $manta_sv_bedpe", [$manta_sv], [dirname($manta_sv_bedpe)]);
+		//skip normalization for now
+		//TODO: activate normalization
+		$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in $manta_sv -out $manta_sv_bedpe -no_normalize", [$manta_sv], [dirname($manta_sv_bedpe)]);
 
 		$parser->execTool("Tools/bedpe2somatic.php", "-in $manta_sv_bedpe -out $manta_sv_bedpe -tid $t_id -nid $n_id");
 		
@@ -540,7 +542,9 @@ if (in_array("vc", $steps))
 			$parser->copyFile($dragen_call_folder.basename($dragen_output_svs), $manta_sv);
 			$parser->copyFile($dragen_call_folder.basename($dragen_output_svs).".tbi", $manta_sv.".tbi");
 			
-			$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in $manta_sv -out $manta_sv_bedpe", [$manta_sv], [dirname($manta_sv_bedpe)]);
+			//skip normalization for now
+			//TODO: activate normalization
+			$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in $manta_sv -out $manta_sv_bedpe -no_normalize", [$manta_sv], [dirname($manta_sv_bedpe)]);
 			$parser->execTool("Tools/bedpe2somatic.php", "-in $manta_sv_bedpe -out $manta_sv_bedpe -tid $t_id -nid $n_id");
 			
 			if( db_is_enabled("NGSD") )

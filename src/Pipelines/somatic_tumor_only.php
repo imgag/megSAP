@@ -190,7 +190,9 @@ if (in_array("vc", $steps))
 		$parser->execTool("Tools/vc_manta.php", implode(" ", $args_manta));
 		
 		//convert VCF to BEDPE
-		$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in $manta_sv -out $manta_sv_bedpe", [$manta_sv], [dirname($manta_sv_bedpe)]);
+		//skip normalization for now
+		//TODO: activate normalization
+		$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in $manta_sv -out $manta_sv_bedpe -no_normalize", [$manta_sv], [dirname($manta_sv_bedpe)]);
 		
 		//add analysis type to BEDPE file
 		$tmp = $parser->tempFile(".bedpe");

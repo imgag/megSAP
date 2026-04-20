@@ -41,6 +41,8 @@ check_contains($output[0], "chr3, chr21");
 
 //max_missing_perc
 $output = check_exec("php ".src_folder()."/Tools/{$name}.php -in {$data_folder}/{$name}_in1.vcf -max_missing_perc 5", false);
+//remove notice if local ngs-bits is used
+$output = array_values(array_filter($output, function($x) {return !starts_with($x, "NOTICE: 'Using local ngs-bits installation specified in settings.ini.' in");}));
 check_true(count($output)==1);
 check_contains($output[0], "chr1=92.6%");
 

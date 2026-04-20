@@ -3,6 +3,9 @@ OMIM	CNV_OVERLAP
 602023 [GENE=CLCNKB PHENOS=Bartter syndrome, type 3, 607364 (3), Autosomal recessive; Bartter syndrome, type 4b, digenic, 613090 (3), Digenic recessive]	
 135940 [GENE=FLG PHENOS=Ichthyosis vulgaris, 146700 (3), Autosomal recessive, Autosomal dominant; {Dermatitis, atopic, susceptibility to, 2}, 605803 (3), Autosomal dominant]	0
 135940 [GENE=FLG PHENOS=Ichthyosis vulgaris, 146700 (3), Autosomal recessive, Autosomal dominant; {Dermatitis, atopic, susceptibility to, 2}, 605803 (3), Autosomal dominant]	0
+602113 [GENE=KMT2D PHENOS=Branchial arch abnormalities, choanal atresia, athelia, hearing loss, and hypothyroidism syndrome, 620186 (3), Autosomal dominant; Kabuki syndrome 1, 147920 (3), Autosomal dominant]	
+	
+102610 [GENE=ACTA1 PHENOS=Congenital myopathy 2B, severe infantile, autosomal recessive, 620265 (3), Autosomal recessive; ?Myopathy, scapulohumeroperoneal, 616852 (3), Autosomal dominant; Congenital myopathy 2C, severe infantile, autosomal dominant, 620278 (3), Autosomal dominant; Congenital myopathy 2A, typical, autosomal dominant, 161800 (3), Autosomal dominant]	
 113811 [GENE=COL17A1 PHENOS=Epithelial recurrent erosion dystrophy, 122400 (3), Autosomal dominant; Epidermolysis bullosa, junctional 4, intermediate, 619787 (3), Autosomal recessive]	
 605518 [GENE=LPIN1 PHENOS=Myoglobinuria, acute recurrent, autosomal recessive, 268200 (3), Autosomal recessive]	0
 	
@@ -27,6 +30,7 @@ OMIM	CNV_OVERLAP
 	
 170261 [GENE=TAP2 PHENOS=MHC class I deficiency 2, 620813 (3), Autosomal recessive]	0
 156225 [GENE=LAMA2 PHENOS=Muscular dystrophy, limb-girdle, autosomal recessive 23, 618138 (3), Autosomal recessive; Muscular dystrophy, congenital, merosin deficient or partially deficient, 607855 (3), Autosomal recessive]	0
+	
 611061 [GENE=FAM20C PHENOS=Raine syndrome, 259775 (3), Autosomal recessive]	0
 611061 [GENE=FAM20C PHENOS=Raine syndrome, 259775 (3), Autosomal recessive]	0
 	0
@@ -34,6 +38,7 @@ OMIM	CNV_OVERLAP
 	0
 	0
 	0
+188450 [GENE=TG PHENOS={Autoimmune thyroid disease, susceptibility to, 3}, 608175 (3); Thyroid dyshormonogenesis 3, 274700 (3), Autosomal recessive]	
 607340 [GENE=GABBR2 PHENOS={Nicotine dependence, protection against}, 188890 (3); {Nicotine dependence, susceptibility to}, 188890 (3); Developmental and epileptic encephalopathy 59, 617904 (3), Autosomal dominant; Neurodevelopmental disorder with poor language and loss of hand skills, 617903 (3), Autosomal dominant]	0
 	
 	
@@ -44,13 +49,10 @@ OMIM	CNV_OVERLAP
 	0
 	
 	
-602113 [GENE=KMT2D PHENOS=Branchial arch abnormalities, choanal atresia, athelia, hearing loss, and hypothyroidism syndrome, 620186 (3), Autosomal dominant; Kabuki syndrome 1, 147920 (3), Autosomal dominant]	
 608896 [GENE=SGCG PHENOS=Muscular dystrophy, limb-girdle, autosomal recessive 5, 253700 (3), Autosomal recessive]	
-	
 	0
 	0
 	0
-102610 [GENE=ACTA1 PHENOS=Congenital myopathy 2B, severe infantile, autosomal recessive, 620265 (3), Autosomal recessive; ?Myopathy, scapulohumeroperoneal, 616852 (3), Autosomal dominant; Congenital myopathy 2C, severe infantile, autosomal dominant, 620278 (3), Autosomal dominant; Congenital myopathy 2A, typical, autosomal dominant, 161800 (3), Autosomal dominant]	
 174763 [GENE=POLG PHENOS=Mitochondrial recessive ataxia syndrome (includes SANDO and SCAE), 607459 (3), Autosomal recessive; Mitochondrial DNA depletion syndrome 4B (MNGIE type), 613662 (3), Autosomal recessive; Mitochondrial DNA depletion syndrome 4A (Alpers type), 203700 (3), Autosomal recessive; Progressive external ophthalmoplegia, autosomal dominant 1, 157640 (3), Autosomal dominant; Progressive external ophthalmoplegia, autosomal recessive 1, 258450 (3), Autosomal recessive]	0
 611254 [GENE=KIF7 PHENOS=Joubert syndrome 12, 200990 (3), Autosomal recessive; Acrocallosal syndrome, 200990 (3), Autosomal recessive; ?Hydrolethalus syndrome 2, 614120 (3), Autosomal recessive; ?Al-Gazali-Bakalinova syndrome, 607131 (3), Autosomal recessive]	0
 601615 [GENE=ABCA3 PHENOS=Surfactant metabolism dysfunction, pulmonary, 3, 610921 (3), Autosomal recessive]	0
@@ -66,7 +68,6 @@ OMIM	CNV_OVERLAP
 609226 [GENE=WDR45B PHENOS=Neurodevelopmental disorder with spastic quadriplegia and brain abnormalities with or without seizures, 617977 (3), Autosomal recessive]	0
 601825 [GENE=NDUFS7 PHENOS=Mitochondrial complex I deficiency, nuclear type 3, 618224 (3), Autosomal recessive]	
 	0
-	
 	0
 	
 600065 [GENE=ITGB2 PHENOS=Leukocyte adhesion deficiency, 116920 (3), Autosomal recessive]	0
@@ -86,4 +87,3 @@ OMIM	CNV_OVERLAP
 	
 	
 	0
-188450 [GENE=TG PHENOS={Autoimmune thyroid disease, susceptibility to, 3}, 608175 (3); Thyroid dyshormonogenesis 3, 274700 (3), Autosomal recessive]	

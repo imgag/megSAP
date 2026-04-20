@@ -1117,14 +1117,14 @@ if (in_array("sv", $steps))
 			$parser->moveFile("$manta_evidence_dir/evidence_0.$name.bam.bai", "$manta_evidence_dir/{$name}_manta_evidence.bam.bai");
 		}
 		
-		//create BEDPE files
-		$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in $sv_manta_file -out $bedpe_out", [$folder]);
 	}
 	else
 	{
 		check_genome_build($sv_manta_file, $build);
 	}
 
+	//create BEDPE files
+	$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in $sv_manta_file -out $bedpe_out", [$folder]);
 
 	//add gene info annotation
 	if (db_is_enabled("NGSD"))
