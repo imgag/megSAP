@@ -10,7 +10,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 //parse command line arguments
 $parser = new ToolBase("db_download", "Downloads databases for various tools.");
 $parser->addString("data_folder", "Path to megSAP data folder", true, repository_basedir()."/data");
-$all_dbs = array("vep", "kraken2", "STAR", "Clair3");
+$all_dbs = array("kraken2", "STAR", "Clair3");
 $parser->addString("dbs", "Comma-separated list of dbs to download/install/build.", true, implode(",", $all_dbs));
 
 extract($parser->parse($argv));
@@ -20,42 +20,6 @@ $dbs = explode(",", $dbs);
 foreach($dbs as $db)
 {
 	if (!in_array($db, $all_dbs)) trigger_error("Unknown db '$db'!", E_USER_ERROR);
-}
-
-if (in_array("vep", $dbs))
-{	
-	print "### VEP ###\n";
-
-    $vep_data_dir = get_path("vep_data");
-	print "Downloading VEP data to {$vep_data_dir} ...\n";
-	
-    // create VEP cache data folder
-    if (!file_exists($vep_data_dir))
-    {
-        exec2("mkdir -p $vep_data_dir");
-    }
-
-    // ensure that ftp and cache subdirectories exist
-    if (!file_exists("$vep_data_dir/ftp"))
-    {
-        exec2("mkdir -p $vep_data_dir/ftp");
-    }
-	
-    if (!file_exists("$vep_data_dir/cache"))
-    {
-        exec2("mkdir -p $vep_data_dir/cache");
-    }
-
-    // download VEP cache data
-    $url = "https://ftp.ensembl.org/pub/release-112/variation/indexed_vep_cache/homo_sapiens_vep_112_GRCh38.tar.gz";
-    exec("wget --no-verbose -P {$vep_data_dir}/ftp/ ".$url);
-
-    // install ensembl-vep
-	print "Installing VEP cache to {$vep_data_dir}/cache/ ...\n";
-    $parser->execApptainer("vep", "INSTALL.pl", "--SPECIES homo_sapiens --ASSEMBLY GRCh38 --AUTO c --NO_UPDATE --NO_BIOPERL --CACHEDIR $vep_data_dir/cache --CACHEURL $vep_data_dir/ftp --NO_TEST --NO_HTSLIB", [$vep_data_dir]);
-	
-	//remove downloaded data
-	exec2("rm -rf $vep_data_dir/ftp/*");
 }
 
 if (in_array("kraken2", $dbs))

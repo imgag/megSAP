@@ -5,7 +5,23 @@ include("framework.php");
 //##################################################################################
 start_test("bed_is_sorted");
 
-check(bed_is_sorted(data_folder()."/an_vep_NGSD_gene_info.bed"), true);
+check(get_aa_range("p.?"), null);
+check(get_aa_range("p.(?)"), null);
+check(get_aa_range("p.Lys121Asn"), [121, 121]);
+check(get_aa_range("ENST00000401756.5:p.Lys121Asn"), [121, 121]);
+check(get_aa_range("p.Lys121_Arg122insAla"), [121, 122]);
+check(get_aa_range("p.Lys121_Arg123delinsMet"), [121, 123]);
+check(get_aa_range("p.Lys121fs"), [121, 121]);
+check(get_aa_range("p.Tyr200*"), [200, 200]);
+check(get_aa_range("p.123_125del"), [123, 125]);
+check(get_aa_range("p.Lys121Argfs*5"), [121, 121]);
+
+end_test();
+
+//##################################################################################
+start_test("bed_is_sorted");
+
+check(bed_is_sorted(data_folder()."/an_vcf_NGSD_gene_info.bed"), true);
 check(bed_is_sorted(data_folder()."/bed_unsorted.bed"), false);
 
 end_test();
@@ -425,13 +441,13 @@ end_test();
 //##################################################################################
 start_test("contains_mito");
 
-check(contains_mito(data_folder()."/an_vep_in1.vcf"), true);
-check(contains_mito(data_folder()."/an_vep_in2.vcf"), false);
+check(contains_mito(data_folder()."/an_vcf_in1.vcf"), true);
+check(contains_mito(data_folder()."/an_vcf_in2.vcf"), false);
 
 check(contains_mito(data_folder()."/vc_clair_out3.vcf.gz"), true);
 check(contains_mito(data_folder()."/vc_clair_out2.vcf.gz"), false);
 
-check(contains_mito(data_folder()."/an_vep_NGSD_gene_info.bed"), true);
+check(contains_mito(data_folder()."/an_vcf_NGSD_gene_info.bed"), true);
 check(contains_mito(data_folder()."/vc_clair_in_roi.bed"), false);
 
 end_test();

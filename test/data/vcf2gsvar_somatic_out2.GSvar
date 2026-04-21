@@ -1,5 +1,5 @@
 ##ANALYSISTYPE=SOMATIC_SINGLESAMPLE
-##PIPELINE=megSAP 2025_10-79-gaaed1599
+##PIPELINE=megSAP 2025_10-177-g89e8e378
 ##GENOME_BUILD=GRCh38
 ##CREATION_DATE=2024-09-04
 ##CALLING_DATE=2018-10-04
@@ -27,13 +27,12 @@
 ##DESCRIPTION=AlphaMissense=AlphaMissense pathogenicity score. Deleterious threshold > 0.564.
 ##DESCRIPTION=MaxEntScan=MaxEntScan reference score and alternate score for (1) native splice site, (2) acceptor gain and (3) donor gain. Comma-separated list if there are different predictions for several transcripts.
 ##DESCRIPTION=SpliceAI=SpliceAI prediction. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG), acceptor loss (AL), donor gain (DG), and donor loss (DL). Format: GENE|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL.
-##DESCRIPTION=PubMed=PubMed ids to publications on the given variant.
 ##FILTER=low_conf_region=Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.
 ##DESCRIPTION=tumor_af=Mutant allele frequency in tumor (Sample GS150344_01).
 ##DESCRIPTION=tumor_dp=Tumor Depth (Sample GS150344_01).
-#chr	start	end	ref	obs	tumor_af	tumor_dp	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	gnomAD	gnomAD_sub	gnomAD_hom_hemi	gnomAD_het	gnomAD_wt	phyloP	CADD	REVEL	AlphaMissense	MaxEntScan	SpliceAI	PubMed
-chr13	32337751	32337751	A	G	0.9933	149		QUAL=4875															0.2330	0.34					
-chr13	32338918	32338918	A	G	1.0000	169		QUAL=5583															0.0760	0.03					
-chr13	32340868	32340868	G	C	1.0000	102		QUAL=3321															-0.8640	0.45					
-chr13	32355250	32355250	T	C	1.0000	123		QUAL=4062															2.4910	0.86					
-chr17	43074519	43074519	G	T	0.4902	102		QUAL=1291															1.2230	5.76					
+#chr	start	end	ref	obs	tumor_af	tumor_dp	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	gnomAD	gnomAD_sub	gnomAD_hom_hemi	gnomAD_het	gnomAD_wt	phyloP	CADD	REVEL	AlphaMissense	MaxEntScan	SpliceAI
+chr13	32337751	32337751	A	G	0.9933	149		QUAL=4875	BRCA2	synonymous	BRCA2:ENST00000380152:synonymous_variant:LOW:exon11/27:ENST00000380152.3:c.3396A>G:ENSP00000369497.3:p.Lys1132=:,BRCA2:ENST00000544455:synonymous_variant:LOW:exon11/28:ENST00000544455.1:c.3396A>G:ENSP00000439902.1:p.Lys1132=:												0.2330	0.34				
+chr13	32338918	32338918	A	G	1.0000	169		QUAL=5583	BRCA2	synonymous	BRCA2:ENST00000380152:synonymous_variant:LOW:exon11/27:ENST00000380152.3:c.4563A>G:ENSP00000369497.3:p.Leu1521=:,BRCA2:ENST00000544455:synonymous_variant:LOW:exon11/28:ENST00000544455.1:c.4563A>G:ENSP00000439902.1:p.Leu1521=:												0.0760	0.03				
+chr13	32340868	32340868	G	C	1.0000	102		QUAL=3321	BRCA2	synonymous	BRCA2:ENST00000380152:synonymous_variant:LOW:exon11/27:ENST00000380152.3:c.6513G>C:ENSP00000369497.3:p.Val2171=:,BRCA2:ENST00000544455:synonymous_variant:LOW:exon11/28:ENST00000544455.1:c.6513G>C:ENSP00000439902.1:p.Val2171=:												-0.8640	0.45				
+chr13	32355250	32355250	T	C	1.0000	123		QUAL=4062	BRCA2	missense	BRCA2:ENST00000380152:missense_variant:MODERATE:exon14/27:ENST00000380152.3:c.7397T>C:ENSP00000369497.3:p.Val2466Ala:,BRCA2:ENST00000544455:missense_variant:MODERATE:exon14/28:ENST00000544455.1:c.7397T>C:ENSP00000439902.1:p.Val2466Ala:												2.4910	0.86				
+chr17	43074519	43074519	G	T	0.4902	102		QUAL=1291	BRCA1	stop_gained&splice_region,intron,splice_region&5'UTR	BRCA1:ENST00000309486:stop_gained&splice_region_variant:HIGH:exon13/22:ENST00000309486.4:c.3599C>A:ENSP00000310938.4:p.Ser1200Ter:,BRCA1:ENST00000346315:intron_variant:MODIFIER:intron12/18:ENST00000346315.3:c.4357+7885C>A::,BRCA1:ENST00000351666:stop_gained&splice_region_variant:HIGH:exon10/19:ENST00000351666.3:c.938C>A:ENSP00000338007.3:p.Ser313Ter:,BRCA1:ENST00000352993:stop_gained&splice_region_variant:HIGH:exon13/22:ENST00000352993.3:c.1061C>A:ENSP00000312236.5:p.Ser354Ter:,BRCA1:ENST00000354071:intron_variant:MODIFIER:intron12/17:ENST00000354071.3:c.4357+7885C>A::,BRCA1:ENST00000357654:stop_gained&splice_region_variant:HIGH:exon14/23:ENST00000357654.3:c.4487C>A:ENSP00000350283.3:p.Ser1496Ter:,BRCA1:ENST00000468300:stop_gained&splice_region_variant:HIGH:exon14/22:ENST00000468300.1:c.1175C>A:ENSP00000417148.1:p.Ser392Ter:,BRCA1:ENST00000471181:stop_gained&splice_region_variant:HIGH:exon15/24:ENST00000471181.2:c.4550C>A:ENSP00000418960.2:p.Ser1517Ter:,BRCA1:ENST00000491747:stop_gained&splice_region_variant:HIGH:exon14/23:ENST00000491747.2:c.1175C>A:ENSP00000420705.2:p.Ser392Ter:,BRCA1:ENST00000493795:stop_gained&splice_region_variant:HIGH:exon13/22:ENST00000493795.1:c.4346C>A:ENSP00000418775.1:p.Ser1449Ter:,BRCA1:ENST00000586385:intron_variant:MODIFIER:intron1/7:ENST00000586385.1:c.5-10568C>A::,BRCA1:ENST00000591534:splice_region_variant&5_prime_UTR_variant:LOW:exon2/11:ENST00000591534.1:c.-41C>A::,BRCA1:ENST00000591849:intron_variant:MODIFIER:intron1/4:ENST00000591849.1:c.-98-24329C>A::												1.2230	5.76				

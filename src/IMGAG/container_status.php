@@ -121,6 +121,7 @@ foreach($files as $file)
 {
 	if ($file=="backups") continue;
 	if (starts_with($file, "ngs-bits_")) continue; //we never use release version during development...
+	if (ends_with($file, "megSAP_container.def")) continue;
 	
 	if (!isset($used_files[$file])) print "Note: Extra file: ".realpath($container_recipes_folder."/".$file)."\n";
 }

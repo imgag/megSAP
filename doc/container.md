@@ -7,7 +7,6 @@ By default they are downloaded to `data/tools/apptainer_container/`. They can al
 
 | container name                        | tool                      | version           | command                                                                                           |
 |---------------------------------------|---------------------------|-------------------|---------------------------------------------------------------------------------------------------|
-| abra2_v2.23.sif	                    | abra2                     | 2.23	            | java -Xmx16G -jar /opt/abra2.jar                                                                  |
 | arriba_v2.5.1-20250904.sif            | arriba	                | 2.5.1	            | arriba                                                                                            |
 | blastn_v2.9.0+.sif                    | blastn                    | 2.9.0+	        | blastn                                                                                            |
 | bwa_v0.7.18.sif	                    | bwa                       | 0.7.18	        | bwa                                                                                               |

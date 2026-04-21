@@ -20,7 +20,6 @@ $parser->addInfile("system",  "Processing system INI file (automatically determi
 $parser->addOutfile("local_bam", "Filename the local BAM file is written to. It can be used to speed up variant calling etc. Not created if unset.", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("clip_overlap", "Soft-clip overlapping read pairs.");
-$parser->addFlag("no_abra", "Skip realignment with ABRA.");
 $parser->addFlag("no_trim", "Skip adapter trimming with SeqPurge.");
 $parser->addFlag("correction_n", "Use Ns for barcode correction.");
 $parser->addFlag("filter_bam", "Filter alignments prior to barcode correction.");
@@ -264,32 +263,6 @@ $parser->execTool("Tools/mapping_bwa.php", implode(" ", $args));
 // remove temporary FASTQs (they can be really large for WGS)
 $parser->deleteTempFile($trimmed1);
 $parser->deleteTempFile($trimmed2);
-
-//perform indel realignment
-if (!$no_abra && ($sys['target_file']!="" || $sys['type']=="WGS"))
-{
-	$tmp_bam = $parser->tempFile("_indel_realign.bam");
-
-	$args = array();
-	$args[] = "-in $bam_current";
-	$args[] = "-out $tmp_bam";
-	$args[] = "-build ".$build;
-	$args[] = "-threads ".$threads;
-	if ($sys['type']=="WGS") //for WGS use exome target region
-	{
-		$args[] = "-roi ".repository_basedir()."/data/gene_lists/gene_exons_pad20.bed";
-	}
-	else if ($sys['target_file']!="")
-	{
-		$args[] = "-roi ".$sys['target_file'];
-	}
-	$parser->execTool("Tools/indel_realign_abra.php", implode(" ", $args));
-	$parser->indexBam($tmp_bam, $threads);
-
-	// delete local bam file or DRAGEN bam file
-	$parser->deleteTempFile($bam_current);
-	$bam_current = $tmp_bam;
-}
 
 //UMIs - remove duplicates by molecular barcode
 if($barcode_correction)

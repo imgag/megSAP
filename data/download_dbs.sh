@@ -53,6 +53,25 @@ gunzip Homo_sapiens.GRCh38.115_original.gtf.gz
 # create sorted & indexed file for methylartist
 (grep ^"#" Homo_sapiens.GRCh38.115_original.gtf; grep -v ^"#" Homo_sapiens.GRCh38.115_original.gtf | sort -k1,1 -k4,4n | sed -e 's/^/chr/') | singularity exec $htslib bgzip  > Homo_sapiens.GRCh38.115.gtf.gz
 singularity exec $htslib tabix -p gff Homo_sapiens.GRCh38.115.gtf.gz
+
+#Download Ensembl regulatory data
+cd $dbs
+mkdir -p Ensembl
+cd Ensembl
+wget https://ftp.ensembl.org/pub/release-115/regulation/homo_sapiens/GRCh38/annotation/Homo_sapiens.GRCh38.regulatory_features.v115.gff3.gz
+wget https://ftp.ensembl.org/pub/release-115/regulation/homo_sapiens/GRCh38/annotation/Homo_sapiens.GRCh38.motif_features.v115.gff3.gz
+php $src/Install/db_converter_ensembl_regulatory.php Homo_sapiens.GRCh38.115.gff3 Homo_sapiens.GRCh38.regulatory_features.v115.gff3.gz Homo_sapiens.GRCh38.motif_features.v115.gff3.gz > Ensembl_regulatory_115.bed
+BedSort -in Ensembl_regulatory_115.bed -out Ensembl_regulatory_115.bed
+
+#Download Ensembl domain data
+cd $dbs
+mkdir -p Ensembl
+cd Ensembl
+wget https://ftp.ensembl.org/pub/release-115/mysql/homo_sapiens_core_115_38/protein_feature.txt.gz
+wget https://ftp.ensembl.org/pub/release-115/mysql/homo_sapiens_core_115_38/translation.txt.gz
+wget https://ftp.ensembl.org/pub/release-115/mysql/homo_sapiens_core_115_38/transcript.txt.gz
+php $src/Install/db_converter_ensembl_domains.php protein_feature.txt.gz translation.txt.gz transcript.txt.gz > Ensembl_domains_115.tsv
+
 #Download RefSeq transcripts database
 cd $dbs
 mkdir -p RefSeq
@@ -86,19 +105,19 @@ cat hg38.fa.out | php $src/Install/db_converter_repeatmasker.php | singularity e
 cd $dbs
 mkdir -p ClinVar 
 cd ClinVar
-wget -O - https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2025/clinvar_20250907.vcf.gz | gunzip | php $src/Install/db_converter_clinvar.php | singularity exec $ngsbits VcfStreamSort | singularity exec $htslib bgzip > clinvar_20250907_converted_GRCh38.vcf.gz
-singularity exec $htslib tabix -C -m 9 -p vcf clinvar_20250907_converted_GRCh38.vcf.gz
+wget -O - https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2026/clinvar_20260329.vcf.gz | gunzip | php $src/Install/db_converter_clinvar.php | singularity exec $ngsbits VcfStreamSort | singularity exec $htslib bgzip > clinvar_20260329_converted_GRCh38.vcf.gz
+singularity exec $htslib tabix -C -m 9 -p vcf clinvar_20260329_converted_GRCh38.vcf.gz
 #CNVs
-wget -O - https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2025-09.txt.gz | gunzip > variant_summary_2025-09.txt
-cat variant_summary_2025-09.txt | php $src/Install/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2025-09.bed
-singularity exec $ngsbits BedSort -with_name -in clinvar_cnvs_2025-09.bed -out clinvar_cnvs_2025-09.bed
+wget -O - https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2026-04.txt.gz | gunzip > variant_summary_2026-04.txt
+cat variant_summary_2026-04.txt | php $src/Install/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2026-04.bed
+singularity exec $ngsbits BedSort -with_name -in clinvar_cnvs_2026-04.bed -out clinvar_cnvs_2026-04.bed
 
 #Install HGNC - http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/
 cd $dbs
 mkdir -p HGNC
 cd HGNC
-wget -O - https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/hgnc_complete_set_2025-09-02.tsv > hgnc_complete_set_2025-09-02.tsv
-wget -O - https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/withdrawn_2025-09-02.tsv > hgnc_withdrawn_2025-09-02.tsv
+wget -O - https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/hgnc_complete_set_2026-04-07.tsv > hgnc_complete_set_2026-04-07.tsv
+wget -O - https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/withdrawn_2026-04-07.tsv > hgnc_withdrawn_2026-04-07.tsv
 
 #Install gnomAD (genome data) - 
 cd $dbs
@@ -293,36 +312,16 @@ rm InfiniumMethylationEPICv2.0ProductFiles.zip
 # # manual download of http://ftp.omim.org/OMIM/genemap2.txt
 # php $src/Install/db_converter_omim.php | singularity exec $ngsbits BedSort -with_name > omim.bed
  
-# # when using the containerized megSAP version:
-# cd <path-to-host-data-folder>/dbs/
-# mkdir -p OMIM
-# cd OMIM
-# # manual download of http://ftp.omim.org/OMIM/genemap2.txt
-# singularity exec -B <path-to-host-data-folder>:/megSAP/data/data_folder/,<path-to-settings.ini-with-NGSD-credentials>:/megSAP/settings.ini --pwd /megSAP/data/data_folder/dbs/OMIM megSAP_[version].sif php megSAP/src/Install/db_converter_omim.php | singularity exec <downloaded-ngs-bits-container> BedSort -with_name > omim.bed
-
-
 # # install HGMD (you need a license; production NGSD has to be available and initialized)
 # cd $dbs
 # mkdir -p HGMD
 # cd HGMD
-# # manual download of files HGMD_Pro_2025.2_hg38.vcf.gz and hgmd_pro-2025.2.dump.gz from https://apps.ingenuity.com/ingsso/login
-# zcat HGMD_Pro_2025.2_hg38.vcf.gz | php $src/Install/db_converter_hgmd.php | singularity exec $htslib bgzip > HGMD_PRO_2025_2_fixed.vcf.gz
-# singularity exec $htslib tabix -p vcf HGMD_PRO_2025_2_fixed.vcf.gz
+# # manual download of files HGMD_Pro_2026.1_hg38.vcf.gz and hgmd_pro-2026.1.dump.gz from https://apps.ingenuity.com/ingsso/login
+# zcat HGMD_Pro_2026.1_hg38.vcf.gz | php $src/Install/db_converter_hgmd.php | singularity exec $htslib bgzip > HGMD_PRO_2026_1_fixed.vcf.gz
+# singularity exec $htslib tabix -p vcf HGMD_PRO_2026_1_fixed.vcf.gz
 # #CNVs
-# zcat hgmd_pro-2025.2.dump.gz | php $src/Install/db_converter_hgmd_cnvs.php > HGMD_CNVS_2025_2.bed
-# singularity exec $ngsbits BedSort -with_name -in HGMD_CNVS_2025_2.bed -out HGMD_CNVS_2025_2.bed
-
-# # when using the containerized megSAP version:
-# cd <path-to-host-data-folder>/dbs/
-# mkdir -p HGMD
-# cd HGMD
-# # manual download of files HGMD_Pro_2025.2_hg38.vcf.gz and hgmd_pro-2025.2.dump.gz from https://apps.ingenuity.com/ingsso/login
-# singularity exec -B <path-to-host-data-folder>:/megSAP/data/data_folder/ --pwd /megSAP/data/data_folder/dbs/HGMD megSAP_[version].sif sh -c "zcat HGMD_Pro_2025.2_hg38.vcf.gz | php /megSAP/src/Install/db_converter_hgmd.php | singularity exec $htslib bgzip > HGMD_PRO_2025_2_fixed.vcf.gz"
-# singularity exec $htslib tabix -p vcf HGMD_PRO_2025_2_fixed.vcf.gz
-# #CNVs
-# singularity exec -B <path-to-host-data-folder>:/megSAP/data/data_folder/,<path-to-settings.ini-with-NGSD-credentials>:/megSAP/settings.ini --pwd /megSAP/data/data_folder/dbs/HGMD megSAP_[version].sif sh -c "zcat hgmd_pro-2025.2.dump.gz | php /megSAP/src/Install/db_converter_hgmd_cnvs.php > HGMD_CNVS_2025_2.bed"
-# singularity exec <downloaded-ngs-bits-container> BedSort -with_name -in HGMD_CNVS_2025_2.bed -out HGMD_CNVS_2025_2.bed
-
+# zcat hgmd_pro-2026.1.dump.gz | php $src/Install/db_converter_hgmd_cnvs.php > HGMD_CNVS_2026_1.bed
+# singularity exec $ngsbits BedSort -with_name -in HGMD_CNVS_2026_1.bed -out HGMD_CNVS_2026_1.bed
 
 # # install COSMIC
 # # for reasearch use, register at https://cancer.sanger.ac.uk/ and manually download data:
@@ -336,11 +335,3 @@ rm InfiniumMethylationEPICv2.0ProductFiles.zip
 # cd COSMIC
 # ls *.tar | xargs -l1 tar -xf 
 # gunzip -c CancerMutationCensus_AllData_v102_GRCh37.tsv.gz | php $src/Install/db_converter_cosmic.php -in_genome_vcf Cosmic_GenomeScreensMutant_v102_GRCh38.vcf.gz -in_non_coding_vcf Cosmic_NonCodingVariants_v102_GRCh38.vcf.gz -in_target_screens_vcf Cosmic_CompleteTargetedScreensMutant_v102_GRCh38.vcf.gz -out cmc_export_v102.vcf.gz
-
-# # when using the containerized megSAP version:
-# cd <path-to-host-data-folder>/dbs/
-# mkdir -p COSMIC
-# cd COSMIC
-# # manual download of CancerMutationCensus_AllData_Tsv_v102_GRCh37.tar, Cosmic_GenomeScreensMutant_Vcf_v102_GRCh38.tar, Cosmic_CompleteTargetedScreensMutant_Vcf_v102_GRCh38.tar and Cosmic_NonCodingVariants_Vcf_v102_GRCh38.tar from https://apps.ingenuity.com/ingsso/login
-# ls *.tar | xargs -l1 tar -xf 
-#singularity exec -B <path-to-host-data-folder>:/megSAP/data/data_folder/ --pwd /megSAP/data/data_folder/dbs/COSMIC megSAP_[version].sif sh -c "gunzip -c CancerMutationCensus_AllData_v102_GRCh37.tsv.gz | php /megSAP/src/Install/db_converter_cosmic.php -in_genome_vcf Cosmic_GenomeScreensMutant_v102_GRCh38.vcf.gz -in_non_coding_vcf Cosmic_NonCodingVariants_v102_GRCh38.vcf.gz -in_target_screens_vcf Cosmic_CompleteTargetedScreensMutant_v102_GRCh38.vcf.gz -out cmc_export_v102.vcf.gz"

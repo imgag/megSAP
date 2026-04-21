@@ -172,73 +172,13 @@ function write_header_line($handle, $column_desc, $filter_desc)
 	fwrite($handle, "\n");
 }
 
-//load replaced/removed Pfam IDs
-function load_pfam_replacements()
-{
-	$pfam_filepath = repository_basedir()."/data/misc/pfam_replacements.tsv";
-	if (!is_readable($pfam_filepath))
-	{
-		trigger_error("Pfam replacement file '$pfam_filepath' is not readable!", E_USER_ERROR);
-	}
-	$pfam_list = file($pfam_filepath);
-	$pfam_replacements = array();
-	foreach($pfam_list as $line)
-	{
-		// ignore comments
-		if (starts_with($line, '#'))
-		{
-			continue;
-		}
-
-		$split_line = explode("\t",$line);
-		if (count($split_line) < 2)
-		{
-			trigger_error("Error parsing Pfam file '$pfam_filepath'!", E_USER_ERROR);
-		}
-		$pfam_replacements[trim($split_line[0])] = trim($split_line[1]);
-	}
-	return $pfam_replacements;
-}
-$pfam_replacements = load_pfam_replacements();
-
-//load Pfam description
-function load_pfam_description()
-{
-	$pfam_filepath = repository_basedir()."/data/misc/pfam_description.tsv";
-	if (!is_readable($pfam_filepath))
-	{
-		trigger_error("Pfam description file '$pfam_filepath' is not readable!", E_USER_ERROR);
-	}
-	$pfam_list = file($pfam_filepath);
-	$pfam_description = array();
-	foreach($pfam_list as $line)
-	{
-		// ignore comments
-		if (starts_with($line, '#'))
-		{
-			continue;
-		}
-
-		$split_line = explode("\t",$line);
-		if (count($split_line) < 2)
-		{
-			trigger_error("Error parsing Pfam file '$pfam_filepath'!", E_USER_ERROR);
-		}
-		$description_string = trim($split_line[1]);
-		$description_string = strtr($description_string, array(":" => " ", "," => "", "[" => "(", "]" => ")"));
-		$pfam_description[trim($split_line[0])] = $description_string;
-	}
-	return $pfam_description;
-}
-$pfam_description = load_pfam_description();
-
 //load HGNC data
 function load_hgnc_db()
 {
-	$output = array();
+	$output = [];
 	
 	//parse approved genes
-	$filename = get_path("data_folder")."/dbs/HGNC/hgnc_complete_set_2025-09-02.tsv";
+	$filename = get_path("data_folder")."/dbs/HGNC/hgnc_complete_set_2026-04-07.tsv";
 	foreach (file($filename) as $line)
 	{
 		$line = trim($line);
@@ -255,8 +195,8 @@ function load_hgnc_db()
 	}
 	
 	//try to replace withdrawn symbols by current symbols
-	$withdrawn = array();
-	$filename = get_path("data_folder")."/dbs/HGNC/hgnc_withdrawn_2025-09-02.tsv";
+	$withdrawn = [];
+	$filename = get_path("data_folder")."/dbs/HGNC/hgnc_withdrawn_2026-04-07.tsv";
 	foreach (file($filename) as $line)
 	{
 		$line = nl_trim($line);
@@ -288,6 +228,29 @@ function load_hgnc_db()
 }
 $hgnc = load_hgnc_db();
 
+
+//load PFAM data
+function load_pfam_data()
+{
+	$output = [];
+	
+	//parse approved genes
+	$handle = fopen2(get_path("data_folder")."/dbs/Ensembl/Ensembl_domains_115.tsv", "r");
+	while(!feof($handle))
+	{
+		$line = nl_trim(fgets($handle));
+		if ($line=="" || $line[0]=='#') continue;
+		
+		list($enst, $start, $end, $pfam_id, $pfam_desc) = explode("\t", $line);
+		
+		$output[$enst][] = [$start, $end, $pfam_id, $pfam_desc];
+	}
+	fclose($handle);
+	
+	return $output;
+}
+$pfam = load_pfam_data();
+
 //write column descriptions
 $column_desc = array(
 	array("filter", "Annotations for filtering and ranking variants."),
@@ -312,7 +275,6 @@ $column_desc = array(
 	array("AlphaMissense", "AlphaMissense pathogenicity score. Deleterious threshold > 0.564."),
 	array("MaxEntScan", "MaxEntScan reference score and alternate score for (1) native splice site, (2) acceptor gain and (3) donor gain. Comma-separated list if there are different predictions for several transcripts."),
 	array("SpliceAI", "SpliceAI prediction. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG), acceptor loss (AL), donor gain (DG), and donor loss (DL). Format: GENE|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL."),
-	array("PubMed", "PubMed ids to publications on the given variant.")
 );
 
 // optional NGSD somatic header description if vcf contains NGSD somatic information
@@ -374,14 +336,14 @@ if ($genotype_mode=="single")
 }
 
 //write filter descriptions
-$filter_desc = array();
+$filter_desc = [];
 $filter_desc[] = array("low_conf_region", "Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.");
 
 //parse input
 $c_written = 0;
 $c_skipped_wgs = 0;
-$multi_cols = array();
-$hgnc_messages = array();
+$multi_cols = [];
+$hgnc_messages = [];
 $in_header = true;
 $handle = gzopen2($in, "r");
 $handle_out = fopen2($out, "w");
@@ -391,7 +353,6 @@ $skip_ngsd_som = true; // true as long as no NGSD somatic header is found
 $skip_cosmic_cmc = true; //true as long as no COSMIC Cancer Mutation Census (CMC) header is found.
 $skip_cancerhotspots = true; //true as long as no CANCERHOTSPOTS header is found.
 $skip_short_read_overlap_annotation = true; //true as long as no IN_SHORT_READ header is found.
-$missing_domains = [];
 $multisample_vcf = false; //determines if the input VCF is a standard multi-sample VCF or single-sample VCF/megSAP multi-sample VCF (no extra columns for each sample)
 $annotate_refseq_consequences = false;
 
@@ -541,32 +502,20 @@ while(!gzeof($handle))
 		{
 			fwrite($handle_out, trim($line)."\n");
 		}
-		
-		//get annotation indices in CSQ field from VEP
+
+		//get annotation indices in CSQ field from VcfAnnotateConsequence (also used for CSQ_REFSEQ)
 		if (starts_with($line, "##INFO=<ID=CSQ,"))
 		{
 			$cols = explode("|", substr($line, 0, -2));
-			$i_consequence = index_of($cols, "Consequence", "CSQ");
-			$i_feature = index_of($cols, "Feature", "CSQ");
-			$i_featuretype = index_of($cols, "Feature_type", "CSQ");
-			$i_biotype = index_of($cols, "BIOTYPE", "CSQ");
-			$i_domains = index_of($cols, "DOMAINS", "CSQ");
-			$i_pubmed = index_of($cols, "PUBMED", "CSQ"); 
-		}
-
-		//get annotation indices in CSQ field from VcfAnnotateConsequence (also used for CSQ_REFSEQ)
-		if (starts_with($line, "##INFO=<ID=CSQ2,"))
-		{
-			$cols = explode("|", substr($line, 0, -2));
-			$i_vac_consequence = index_of($cols, "Consequence", "CSQ2");
-			$i_vac_impact = index_of($cols, "IMPACT", "CSQ2");
-			$i_vac_symbol = index_of($cols, "SYMBOL", "CSQ2");
-			$i_vac_hgnc_id = index_of($cols, "HGNC_ID", "CSQ2");
-			$i_vac_feature = index_of($cols, "Feature", "CSQ2");
-			$i_vac_exon = index_of($cols, "EXON", "CSQ2");
-			$i_vac_intron = index_of($cols, "INTRON", "CSQ2");
-			$i_vac_hgvsc = index_of($cols, "HGVSc", "CSQ2");
-			$i_vac_hgvsp = index_of($cols, "HGVSp", "CSQ2");		
+			$i_vac_consequence = index_of($cols, "Consequence", "CSQ");
+			$i_vac_impact = index_of($cols, "IMPACT", "CSQ");
+			$i_vac_symbol = index_of($cols, "SYMBOL", "CSQ");
+			$i_vac_hgnc_id = index_of($cols, "HGNC_ID", "CSQ");
+			$i_vac_feature = index_of($cols, "Feature", "CSQ");
+			$i_vac_exon = index_of($cols, "EXON", "CSQ");
+			$i_vac_intron = index_of($cols, "INTRON", "CSQ");
+			$i_vac_hgvsc = index_of($cols, "HGVSc", "CSQ");
+			$i_vac_hgvsp = index_of($cols, "HGVSp", "CSQ");		
 		}
 		//determine if RefSeq annotation is present
 		if (starts_with($line, "##INFO=<ID=CSQ_REFSEQ,"))
@@ -677,7 +626,7 @@ while(!gzeof($handle))
 	$tag = "{$chr}:{$pos} {$ref}>{$alt}";
 	if ($filter=="" || $filter=="." || $filter=="PASS")
 	{
-		$filter = array();
+		$filter = [];
 	}
 	else
 	{
@@ -700,7 +649,7 @@ while(!gzeof($handle))
 	
 	//parse info from VCF
 	$info = explode(";", $info);
-	$tmp = array();
+	$tmp = [];
 	foreach($info as $entry)
 	{
 		if (!contains($entry, "="))
@@ -821,9 +770,9 @@ while(!gzeof($handle))
 			}
 			
 			//extract GT/DP/AO info
-			$tmp = array();
-			$tmp2 = array();
-			$tmp3 = array();
+			$tmp = [];
+			$tmp2 = [];
+			$tmp3 = [];
 			$parts = explode(",", $sample["MULTI"]);
 			foreach($parts as $part)
 			{
@@ -834,9 +783,9 @@ while(!gzeof($handle))
 			}
 			
 			//recombine GT/DP/AO in the correct order
-			$genotypes = array();
-			$depths = array();
-			$aos = array();
+			$genotypes = [];
+			$depths = [];
+			$aos = [];
 			foreach($multi_cols as $col)
 			{
 				$gt = $tmp[$col];
@@ -885,7 +834,7 @@ while(!gzeof($handle))
 	}
 
 	//quality
-	$quality = array();
+	$quality = [];
 	$qual = intval($qual);
 	$quality[] = "QUAL=".$qual;
 	if (isset($sample["DP"]))
@@ -910,7 +859,7 @@ while(!gzeof($handle))
 	if (isset($sample["AO"]) && isset($sample["DP"])) //freebayes
 	{
 		//comma-separated values in case of multi-sample data
-		$afs = array();
+		$afs = [];
 		$aos = explode(",", $sample["AO"]);
 		$dps = explode(",", $sample["DP"]);
 		for($i=0; $i<count($dps); ++$i)
@@ -962,13 +911,13 @@ while(!gzeof($handle))
 		$quality[] = "SAF=".intval($info["SAF"]);
 	}
 	
-	$phylop = array();
+	$phylop = [];
 	if (isset($info["PHYLOP"])) 
 	{
 		$phylop[] = $info["PHYLOP"];
 	}
 
-	$revel = array();
+	$revel = [];
 	if (isset($info["REVEL"])) 
 	{
 		$revel = explode("&", $info["REVEL"]);
@@ -985,119 +934,41 @@ while(!gzeof($handle))
 	}
 	
 	//variant details
-	$dbsnp = array();
-	$genes = array();
-	$variant_details = array();
-	$coding_and_splicing_details = array();
-	$coding_and_splicing_refseq = array();
-	$af_gnomad_genome = array();
-	$af_gnomad_afr = array();
-	$af_gnomad_amr = array();
-	$af_gnomad_eas = array();
-	$af_gnomad_nfe = array();
-	$af_gnomad_sas = array();
-	$hom_gnomad = array();
-	$hemi_gnomad = array();
-	$wt_gnomad = array();
-	$het_gnomad = array();
-	$clinvar = array();
-	$hgmd = array();
-	$maxentscan = array();
-	$regulatory = array();
-	$pubmed = array();
+	$dbsnp = [];
+	$genes = [];
+	$variant_details = [];
+	$coding_and_splicing_details = [];
+	$coding_and_splicing_refseq = [];
+	$af_gnomad_genome = [];
+	$af_gnomad_afr = [];
+	$af_gnomad_amr = [];
+	$af_gnomad_eas = [];
+	$af_gnomad_nfe = [];
+	$af_gnomad_sas = [];
+	$hom_gnomad = [];
+	$hemi_gnomad = [];
+	$wt_gnomad = [];
+	$het_gnomad = [];
+	$clinvar = [];
+	$hgmd = [];
+	$maxentscan = [];
+	$regulatory = [];
 	$custom_column_data = [];
 	
-	//variant details based on Ensembl (up/down-stream)
-	$variant_details_updown = array();
-	$genes_updown = array();
-	$coding_and_splicing_details_updown = array(); 
-	if (isset($info["CSQ"]) && isset($info["CSQ2"]))
+	//regulatory information
+	if (isset($info["REGULATORY"]))
 	{
-		//VEP - used for regulatory features, PubMed, Domains
-		$vep = []; //transcript name without version > domain
-		foreach(explode(",", $info["CSQ"]) as $entry)
-		{			
-			$parts = explode("|", $entry);
-			
-			//######################### general information (not transcript-specific) #########################
-			
-			//PubMed ids
-			if ($i_pubmed!==FALSE)
-			{
-				$pubmed = array_merge($pubmed, explode("&", $parts[$i_pubmed]));
-			}
-			
-			//######################### transcript-specific information #########################
-			$feature_type = trim($parts[$i_featuretype]);
-			if ($feature_type=="Transcript")
-			{
-				$transcript_id = trim($parts[$i_feature]);	
-
-				//domain
-				$domain = "";
-				$domains = explode("&", $parts[$i_domains]);
-				foreach($domains as $entry)
-				{
-					if(starts_with($entry, "Pfam:"))
-					{
-						$domain = explode(":", $entry, 2)[1];
-					}
-				}
-				
-				// extend domain ID by description
-				if ($domain != "")
-				{
-					$domain_description = "";
-					
-					// update Pfam ID 
-					if (array_key_exists($domain, $pfam_replacements))
-					{
-						if ($pfam_replacements[$domain] == "")
-						{
-							$domain_description = "removed";
-						}
-						else
-						{
-							$domain_description = "(new id of $domain) ";
-							$domain = $pfam_replacements[$domain];
-						}
-					}
-					// append description
-					if (array_key_exists($domain, $pfam_description))
-					{
-						$domain_description .= $pfam_description[$domain];
-					}
-
-					// throw error if Pfam id is neither found in replacement data nor in description data
-					if ($domain_description == "")
-					{
-						$missing_domains[$domain] = true;
-					}
-
-					// combine decription and id
-					$domain = "$domain [$domain_description]";
-				}
-				
-				$transcript_id_no_ver = explode('.', $transcript_id)[0];
-				
-				$vep[$transcript_id_no_ver] = $domain;			
-			}
-			else if ($feature_type=="RegulatoryFeature")
-			{
-				$regulatory[] = $parts[$i_consequence].":".$parts[$i_biotype];
-			}
-			else if ($feature_type=="MotifFeature")
-			{
-				$regulatory[] = $parts[$i_consequence];
-			}
-			else if ($feature_type!="") //feature type is empty for intergenic variants
-			{				
-				trigger_error("Unknown VEP feature type '{$feature_type}' for variant {$chr}:{$pos} {$ref}>{$alt}!", E_USER_ERROR);
-			}
-		}
-		
+		$regulatory = explode(",", $info["REGULATORY"]);
+	}
+	
+	//parse variant consequence annotation
+	$variant_details_updown = [];
+	$genes_updown = [];
+	$coding_and_splicing_details_updown = []; 
+	if (isset($info["CSQ"]))
+	{
 		//VcfAnnotateConsequence (Ensembl)
-		foreach(explode(",", $info["CSQ2"]) as $entry)
+		foreach(explode(",", $info["CSQ"]) as $entry)
 		{			
 			$entry = trim($entry);
 			if ($entry=="") continue;
@@ -1161,12 +1032,27 @@ while(!gzeof($handle))
 			$hgvs_p = trim($parts[$i_vac_hgvsp]);
 			$hgvs_p = str_replace("%3D", "=", $hgvs_p);
 			
-			//domain from VEP
+			//get domain based on protein position
 			$domain = "";
-			$transcript_id_no_ver = explode('.', $transcript_id)[0];
-			if (isset($vep[$transcript_id_no_ver]))
+			if ($hgvs_p!="")
 			{
-				$domain = $vep[$transcript_id_no_ver];
+				$aa_range = get_aa_range($hgvs_p);
+				if (!is_null($aa_range))
+				{
+					list($aa_start, $aa_end) = $aa_range;
+					$transcript_id_no_ver = explode('.', $transcript_id)[0];
+					if (isset($pfam[$transcript_id_no_ver]))
+					{
+						foreach($pfam[$transcript_id_no_ver] as list($pfam_start, $pfam_end, $pfam_id, $pfam_desc))
+						{
+							if (range_overlap($aa_start, $aa_end, $pfam_start, $pfam_end))
+							{
+								//there might be serveral overlapping domains, but we can return only one...
+								$domain = $pfam_id." [".$pfam_desc."]"; 
+							}
+						}
+					}
+				}
 			}
 
 			//add transcript information
@@ -1340,10 +1226,6 @@ while(!gzeof($handle))
 	$gnomad_het = collapse($tag, "gnomAD Het", $het_gnomad, "max");
 	$gnomad_wt = collapse($tag, "gnomAD Wt", $wt_gnomad, "max");
 
-	//PubMed
-	$pubmed = implode(",", collapse($tag, "PubMed", $pubmed, "unique"));	
-
-
 	if (!$skip_ngsd)
 	{
 		// extract NGSD somatic counts
@@ -1479,7 +1361,7 @@ while(!gzeof($handle))
 	{
 		$tmp = [];
 		$spliceai_info = trim($info["SpliceAI"]);
-		$spliceai_values = array();
+		$spliceai_values = [];
 
 		$entries = explode(",", strtr($spliceai_info, "&", ",")); //both & and , are used as separator, depending on the sources of the SpliceAI annotation (pre-calcualted or calculated on the fly)
 		foreach($entries as $entry)
@@ -1504,7 +1386,7 @@ while(!gzeof($handle))
 	}
 
 	// CADD
-	$cadd_scores = array();
+	$cadd_scores = [];
 	if (isset($info["CADD_SNV"]))
 	{
 		$cadd_scores = array_map(function($score){return number_format($score, 2, ".", "");}, explode("&", $info["CADD_SNV"]));
@@ -1533,11 +1415,11 @@ while(!gzeof($handle))
 	{
 		$anns = explode("&", $info["COSMIC_CMC"]);
 		
-		$cmc_gene = array();
-		$cmc_mut_id = array();
-		$cmc_disease = array();
-		$cmc_dnds_disease = array();
-		$cmc_mut_sign_tier = array();
+		$cmc_gene = [];
+		$cmc_mut_id = [];
+		$cmc_disease = [];
+		$cmc_dnds_disease = [];
+		$cmc_mut_sign_tier = [];
 		
 
 		foreach($anns as $entry)
@@ -1558,9 +1440,9 @@ while(!gzeof($handle))
 	{
 		$anns = explode(",", $info["CANCERHOTSPOTS"] );
 		
-		$cancerhotspots_protein_change = array();
-		$cancerhotspots_total_count = array();
-		$cancerhotspots_alt_count = array();
+		$cancerhotspots_protein_change = [];
+		$cancerhotspots_total_count = [];
+		$cancerhotspots_alt_count = [];
 		
 		foreach($anns as $entry)
 		{
@@ -1642,7 +1524,7 @@ while(!gzeof($handle))
 	{
 		fwrite($handle_out,"\t".$phasing_info);
 	}
-	fwrite($handle_out,"\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$cadd\t$revel\t$alphamissense\t$maxentscan\t$spliceai\t$pubmed");
+	fwrite($handle_out,"\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$cadd\t$revel\t$alphamissense\t$maxentscan\t$spliceai");
 	if ($annotate_refseq_consequences)
 	{
 		fwrite($handle_out, "\t".implode(",", $coding_and_splicing_refseq));
@@ -1701,11 +1583,6 @@ if ($in_header)
 
 gzclose($handle);
 fclose($handle_out);
-
-if (count($missing_domains)>0)
-{
-	trigger_error("No description found for the folling domains: ".implode(", ", array_keys($missing_domains)), E_USER_WARNING);
-}
 
 //print debug output
 print "Variants written: {$c_written}\n";
