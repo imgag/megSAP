@@ -19,8 +19,6 @@ By default they are downloaded to `data/tools/apptainer_container/`. They can al
 | deepvariant_1.9.0.sif	                | DeepVariant               | 1.9.0 	        | run_deepvariant                                                                                   |
 | expansionhunter_v5.0.0.sif            | expansionhunter	        | 5.0.0	            | ExpansionHunter                                                                                   |
 | freebayes_v1.3.6.sif	                | freebayes                 | 1.3.6	            | freebayes                                                                                         |
-| gatk_4.6.0.0.sif	                    | gatk                      | 4.6.0.0	        | gatk                                                                                              |
-| glnexus_v1.4.1.sif                    | GLnexus                   | 1.4.1 	        | glnexus-cli                                                                                       |
 | happy_v0.3.14.sif	                    | happy                     | 0.3.14	        | hap.py                                                                                            |
 | hla-genotyper_2025-04.sif	            | hla-genotyper             | 2025-04	        | genotyper.py                                                                                      |
 | htslib_1.16.sif                       | bgzip/tabix               | 1.16              | `bgzip` or `tabix`                                                                                |
@@ -52,7 +50,6 @@ By default they are downloaded to `data/tools/apptainer_container/`. They can al
 | varscan2_v2.4.6.sif	                | varscan2                  | 2.4.6	            | java -jar /opt/VarScan.jar                                                                        |
 | vcflib_v1.0.3.sif	                    | vcflib	                | 1.0.3	            | "tool_name" (e.g. vcfallelicprimitives)                                                           |
 | vep_release-112.0.sif                 | vep	                    | release-112.0	    | vep                                                                                               |
-| whatshap_v2.8-20251119.sif            | whatshap                  | 2.8               | whatshap                                                                                          |
 
 With Apptainer installed each container can be invoked with the following command:
 

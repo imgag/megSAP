@@ -1,32 +1,29 @@
 all: clean link vc cn sv an diff
 
 clean:
-	rm -rf *.fastq.gz *.log *.txt *.GSvar *.vcf.gz *.vcf.gz.tbi *.cram *.crai *.bam *.bai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe clair_temp repeat_expansions *_bafs.igv *_circos.png *_mosaic_cnvs.tsv *_rohs.tsv *_ancestry.tsv *.gvcf.gz *.gvcf.gz.tbi
+	rm -rf *.fastq.gz *.log *.txt *.GSvar *.vcf.gz *.vcf.gz.tbi *.cram *.crai *.bam *.bai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe clair_temp repeat_expansions *_bafs.igv *_circos.png *_mosaic_cnvs.tsv *_rohs.tsv *_ancestry.tsv *.gvcf.gz *.gvcf.gz.tbi test_multi_cnvs_clincnv_cut.tsv
 
 link:
-	php ../link_test_data.php 21073LRa013_01.cram
-	php ../link_test_data.php 21073LRa013_01.cram.crai
-	php ../link_test_data.php 21073LRa013_01_cnvs_clincnv.tsv
-	php ../link_test_data.php 21073LRa013_01_var.gvcf.gz
-	php ../link_test_data.php 21073LRa013_01_var.gvcf.gz.tbi
-	php ../link_test_data.php 21073LRa014_01.cram
-	php ../link_test_data.php 21073LRa014_01.cram.crai
-	php ../link_test_data.php 21073LRa014_01_cnvs_clincnv.tsv
-	php ../link_test_data.php 21073LRa014_01_var.gvcf.gz
-	php ../link_test_data.php 21073LRa014_01_var.gvcf.gz.tbi
-
+	php ../link_test_data.php 24067LRa008_01.cram
+	php ../link_test_data.php 24067LRa008_01.cram.crai
+	php ../link_test_data.php 24067LRa008_01_var.vcf.gz
+	php ../link_test_data.php 24067LRa008_01_cnvs_clincnv.tsv
+	php ../link_test_data.php 24067LRa026_01.cram
+	php ../link_test_data.php 24067LRa026_01.cram.crai
+	php ../link_test_data.php 24067LRa026_01_var.vcf.gz
+	php ../link_test_data.php 24067LRa026_01_cnvs_clincnv.tsv
 
 vc:
-	php ../../src/Pipelines/multisample_longread.php -bams 21073LRa013_01.cram 21073LRa014_01.cram -status affected control -prefix test_multi -out_folder . -system system.ini -steps vc 
+	php ../../src/Pipelines/multisample_longread.php -bams 24067LRa008_01.cram 24067LRa026_01.cram -status affected control -prefix test_multi -out_folder . -system system.ini -steps vc 
 	
 cn:
-	php ../../src/Pipelines/multisample_longread.php -bams 21073LRa013_01.cram 21073LRa014_01.cram -status affected control -prefix test_multi -out_folder . -system system.ini -steps cn 
+	php ../../src/Pipelines/multisample_longread.php -bams 24067LRa008_01.cram 24067LRa026_01.cram -status affected control -prefix test_multi -out_folder . -system system.ini -steps cn 
 
 sv:
-	php ../../src/Pipelines/multisample_longread.php -bams 21073LRa013_01.cram 21073LRa014_01.cram -status affected control -prefix test_multi -out_folder . -system system.ini -steps sv 
+	php ../../src/Pipelines/multisample_longread.php -bams 24067LRa008_01.cram 24067LRa026_01.cram -status affected control -prefix test_multi -out_folder . -system system.ini -steps sv 
 
 an:
-	php ../../src/Pipelines/multisample_longread.php -bams 21073LRa013_01.cram 21073LRa014_01.cram -status affected control -prefix test_multi -out_folder . -system system.ini -steps an 
+	php ../../src/Pipelines/multisample_longread.php -bams 24067LRa008_01.cram 24067LRa026_01.cram -status affected control -prefix test_multi -out_folder . -system system.ini -steps an 
 	# remove gene annotation
 	cut -f1-23 test_multi_var_structural_variants.bedpe > test_multi_var_structural_variants_cut.bedpe
 	# create file from OMIM annotation and CNV overlap
@@ -39,4 +36,3 @@ diff:
 	php ../compare_tsv.php -in1 test_multi_cnvs_clincnv.tsv.out -in2 test_multi_cnvs_clincnv.tsv -skip_cols ngsd_pathogenic_cnvs,genes,gene_info
 	diff test_multi_var_structural_variants.bedpe.out test_multi_var_structural_variants_cut.bedpe --ignore-matching-lines="^##"
 	diff test_multi_var_structural_variants.bedpe.out2 test_multi_var_structural_variants_cut2.bedpe --ignore-matching-lines="^##"
-

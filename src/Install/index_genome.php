@@ -37,9 +37,6 @@ else
 $parser->execApptainer("samtools", "samtools", "faidx {$in}", [$in]);
 exec2("md5sum -b {$in} > {$in}.md5");
 
-//GATK dict file
-$parser->execApptainer("gatk", "gatk", "CreateSequenceDictionary -R {$in}", [$in]);
-
 //create samtools ref_cache
 $parser->execApptainer("samtools", "seq_cache_populate.pl", "-root ".dirname($in)."/samtools_ref_cache {$in}", [$in]);
 

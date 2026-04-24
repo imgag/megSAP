@@ -90,7 +90,7 @@ test_all_status:
 	@egrep -a -i "WARNING" test_*.log | grep -v "command6_exit123" || :
 	@echo ""
 	@echo "### ERRORS ###"
-	@egrep -a -i "ERROR|FAILED" test_*.log | egrep -v "Mendelian error rate:|command6_exit123" || :
+	@egrep -a -i "ERROR|FAILED" test_*.log | egrep -v "Mendelian error rate |command6_exit123" || :
 
 test_clear:
 	@cd test/data_amplicon && make clean

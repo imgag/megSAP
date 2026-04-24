@@ -26,6 +26,7 @@ extract($parser->parse($argv));
 //init
 $genome = genome_fasta($build);
 $data_folder = get_path("data_folder");
+$local_data = get_path("local_data");
 
 //get local/global data file path - depending on what is available
 function annotation_file_path($rel_path, $is_optional=false)
@@ -48,7 +49,7 @@ function annotation_file_path($rel_path, $is_optional=false)
 	$copy = $local_data."/dbs/".basename($rel_path);
 	if (!file_exists($copy))
 	{
-		trigger_error("annotation DB file '$rel_path' not found in local data copy. Using (possibly slow) remote file '$orig'!", E_USER_NOTICE);
+		trigger_error("Annotation DB file '$copy' not found. Using (possibly slow) remote file '$orig'!", E_USER_WARNING);
 		return $orig;
 	}
 	

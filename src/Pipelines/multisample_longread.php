@@ -103,7 +103,8 @@ $genome = genome_fasta($sys['build']);
 $platform = $sys['platform'];
 trigger_error("Long-read platform: {$platform}", E_USER_NOTICE);
 if ($platform!="PacBio" && $platform!="ONT") trigger_error("Unsupported platform '{$platform}'! Only 'ONT' or 'PacBio' are supported!", E_USER_ERROR);
-if ($sys['target_file']=="") trigger_error("Unsupported processing system '".$sys2["name_short"]."' (has no target region)!", E_USER_ERROR);
+$target_file = realpath($sys['target_file']);
+if ($target_file=="") trigger_error("Unsupported processing system '".$sys2["name_short"]."' (has no target region)!", E_USER_ERROR);
 	
 //check genome build and processing systems of all samples
 foreach($bams as $bam)
@@ -115,103 +116,50 @@ foreach($bams as $bam)
 }
 
 //enable check if chromosomes are complete only if the ROI covers the whole genome (pipeline test are not)
-$check_chrs = bed_size(realpath($sys['target_file'])) > 3e9;
+$check_chrs = bed_size($target_file) > 3e9;
 
-//set up local NGS data copy (to reduce network traffic and speed up analysis)
+//set up local NGS data copy
 if (!$no_sync) $parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
 
 //variant calling (and phasing)
 if (in_array("vc", $steps))
 {
-	//determine gVCFs	
-	$gvcfs = [];
+	//determine VCFs
+	$vcfs = [];
 	foreach($bams as $bam)
 	{
-		$gvcf = dirname($bam)."/".basename2($bam)."_var.gvcf.gz";
-		if (!file_exists($gvcf)) trigger_error("gVCF file '{$gvcf}' not found! Please make sure the single-sample variant calling has run successfully.", E_USER_ERROR);
-		$gvcfs[] = $gvcf;
+		$vcf = dirname($bam)."/".basename2($bam)."_var.vcf.gz";
+		if (!file_exists($vcf)) trigger_error("VCF file does not exist: $vcf", E_USER_ERROR);
+		$vcfs[] = $vcf;
 	}
 	
-	// merge GVCFs
-	$analysis_type = ($prefix=="trio" ? "GERMLINE_TRIO" : "GERMLINE_MULTISAMPLE");
-	if($platform=="ONT")
+	//filter VCFs by (extended) target region
+	$target_extended = $parser->tempFile("_roi_extended.bed");
+	$parser->execApptainer("ngs-bits", "BedExtend", "-in $target_file -n 200 -out $target_extended -fai {$genome}.fai", [$target_file, $genome]);
+	$vcfs_filtered = [];
+	foreach($vcfs as $vcf)
 	{
-		$args = [];
-		$args[] = "-gvcfs ".implode(" ", $gvcfs);
-		$args[] = "-status ".implode(" ", $status);
-		$args[] = "-out {$vcf_file}";
-		$args[] = "-threads {$threads}";
-		$args[] = "-analysis_type {$analysis_type}";
-		$args[] = "-mode clair3";
-		$parser->execTool("Tools/merge_gvcf.php", implode(" ", $args));
+		$tmp = $parser->tempFile(".vcf");
+		$parser->execApptainer("ngs-bits", "VcfFilter", "-in $vcf -out $tmp -reg $target_extended -ref $genome", [$vcf, $genome]);
+		$vcfs_filtered[] = $tmp;
 	}
-	else //PacBio
-	{
-		//merge gVCFs with GLnexus
-		$tmp_vcf_merged = $parser->tempFile(".vcf.gz");
-		$args = [];
-		$args[] = "--dir ".$parser->tempFolder()."/GLnexus.DB/";
-		$args[] = "--config DeepVariantWGS";
-		$args[] = "--threads {$threads}";
-		$args[] = implode(" ", $gvcfs);
-		$pipeline = [];
-		$pipeline[] = ["", $parser->execApptainer("glnexus", "glnexus_cli", implode(" ", $args), $gvcfs, [], true)];
-		$pipeline[] = ["", $parser->execApptainer("glnexus", "bcftools view", "", [], [], true)];
-		$pipeline[] = ["", $parser->execApptainer("htslib", "bgzip", "-@ -c > {$tmp_vcf_merged}", [], [], true)];
-		$parser->execPipeline($pipeline, "GLnexus gVCF merging");
-		
-		//post-processing pipeline
-		$tmp_vcf_post = $parser->tempFile(".vcf");
-		$pipeline = [];
-		$pipeline[] = array("zcat", $tmp_vcf_merged);
-		//split complex variants to primitives - this step has to be performed before VcfBreakMulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
-		$pipeline[] = ["", $parser->execApptainer("vcflib", "vcfallelicprimitives", "-kg", [], [], true)];
-		//split multi-allelic variants
-		$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "-no_errors", [], [], true)];
-		//remove invalid variants
-		$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-remove_invalid -ref {$genome}", [$genome], [], true)];
-		//normalize all variants and align INDELs to the left
-		$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref {$genome}", [$genome], [], true)];
-		//sort variants by genomic position
-		$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "> {$tmp_vcf_post}", [], [], true)];
-		//execute post-processing pipeline
-		$parser->execPipeline($pipeline, "DeepVariant multi-sample post processing");
-		
-		//add pipeline, sample infos, etc. to VCF header
-		list($comments, $samples) = vcf_load_header($tmp_vcf_post);
-		$comments[] = "##reference={$genome}\n";
-		$comments[] = "##ANALYSISTYPE={$analysis_type}\n";
-		$comments[] = "##PIPELINE=".repository_revision(true)."\n";
-		for ($i=0; $i < count($gvcfs); $i++) 
-		{ 
-			$comments[] = gsvar_sample_header($samples[$i], array("DiseaseStatus"=>array_values($status)[$i]), "##", "");
-		}
-		vcf_replace_comments($tmp_vcf_post, $comments);
-		
-		//bgzip and index
-		$parser->execApptainer("htslib", "bgzip", "-@ {$threads} -c {$tmp_vcf_post} > {$vcf_file}", [], [dirname($vcf_file)]);
-		$parser->execApptainer("htslib", "tabix", "-f -p vcf {$vcf_file}", [], [dirname($vcf_file)]);
-	}
-
-	//phasing (WhatsHap)
-	$vcf_file_phased = $parser->tempFile("_phased.vcf");
+	
+	//merge VCFs
+	$vcf_merged = $parser->tempFile("_merged.vcf");
 	$args = [];
-	$args[] = "phase";
-	if ($ped != "")	$args[] = "--ped {$ped}";
-	$args[] = "--reference={$genome}";
-	$args[] = "-o {$vcf_file_phased}";
-	$args[] = "{$vcf_file}";
-	$args[] = implode(" ", $bams);
-	$out_files = [];
-	$out_files[] = dirname($vcf_file);
-	foreach($bams as $bam)
-	{
-		$out_files[] = dirname($bam);
-	}
-	$parser->execApptainer("whatshap", "whatshap", implode(" ", $args), [$ped, $genome], $out_files);
+	$args[] = "-in ".implode(" ", $vcfs_filtered);
+	$args[] = "-out $vcf_merged";
+	//$args[] = "-bam ".implode(" ", $bams); //too slow for LR > skip it
+	if($prefix=="trio") $args[] = "-trio";
+	$parser->execApptainer("ngs-bits", "VcfMerge", implode(" ", $args), $bams);
+	
+	//add pipeline to header to VCF file
+	list($comments) = vcf_load_header($vcf_merged);
+	$comments[] = "##PIPELINE=".repository_revision(true);
+	vcf_replace_comments($vcf_merged, $comments);
 
-	//create compressed file and index and replace original VCF
-	$parser->execApptainer("htslib", "bgzip", "-c {$vcf_file_phased} > {$vcf_file}", [], [dirname($vcf_file)]);
+	//bgzip and index
+	$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [], [dirname($vcf_file)]);
 	$parser->execApptainer("htslib", "tabix", "-f -p vcf $vcf_file", [], [dirname($vcf_file)]);
 }
 
@@ -330,6 +278,9 @@ if (in_array("an", $steps))
 		{
 			$parser->execApptainer("ngs-bits", "BedpeGeneAnnotation", "-in {$bedpe_out} -out {$bedpe_out} -add_simple_gene_names", [$bedpe_out]);
 		}
+		
+		//filter by target region
+		$parser->execApptainer("ngs-bits", "BedpeFilter", "-in $bedpe_out -out $bedpe_out -bed $target_file", [$out_folder, $target_file]);
 
 		//add NGSD counts from flat file
 		$ngsd_annotation_folder = get_path("data_folder")."/dbs/NGSD/";

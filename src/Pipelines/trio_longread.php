@@ -8,18 +8,6 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-function determine_index($name, $parts)
-{
-	$index = array_search($name, $parts);
-	
-	if ($index===FALSE || $index==-1)
-	{
-		trigger_error("Could not determine index of column '$name' in header line: ".implode(" ", $parts), E_USER_ERROR);
-	}
-	
-	return $index;
-}
-
 function fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data)
 {
 	global $parser;
@@ -96,7 +84,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=varia
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("no_check", "Skip gender check of parents and parent-child correlation check (otherwise done before variant calling)");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
-$parser->addFloat("min_corr", "Minimal correlation between child and parent.", true, 0.45); //TODO: validate for Longreads
+$parser->addFloat("min_corr", "Minimal correlation between child and parent.", true, 0.45);
 extract($parser->parse($argv));
 
 //init
@@ -125,8 +113,7 @@ $build = $sys['build'];
 $genome = genome_fasta($build);
 		
 // check for long read data
-if($sys['type'] != "lrGS") trigger_error("Index case has to be long-read data!", E_USER_ERROR);
-if(($sys_f['type'] != "lrGS") || ($sys_m['type'] != "lrGS")) trigger_error("Parents have to be long-read data!", E_USER_ERROR);
+if($sys['type']!="lrGS" || $sys_f['type']!="lrGS" || $sys_m['type']!="lrGS") trigger_error("Index/father/mother have to be long-read samples!", E_USER_ERROR);
 
 //check steps
 $steps = explode(",", $steps);
@@ -135,27 +122,23 @@ foreach($steps as $step)
 	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
 }
 
-//set up local NGS data copy (to reduce network traffic and speed up analysis)
-if (!$no_sync)
-{
-	$parser->execTool("Tools/data_setup.php", "-build ".$build);
-}
+//set up local NGS data copy
+if (!$no_sync) $parser->execTool("Tools/data_setup.php", "-build $build");
 
 //pre-analysis checks
 if (!$no_check)
 {
 	//check parent-child correlation
-	$min_cov = 15; 
 	$c_gsvar = dirname($c)."/".basename2($c).".GSvar";
 	$f_gsvar = dirname($f)."/".basename2($f).".GSvar";
 	$m_gsvar = dirname($m)."/".basename2($m).".GSvar";
-	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$f_gsvar} {$c_gsvar} -mode gsvar -min_cov {$min_cov} -max_snps 4000 -ref {$genome} -build ".ngsbits_build($build), [$f_gsvar, $c_gsvar, $genome]);
+	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$f_gsvar} {$c_gsvar} -mode gsvar -min_cov 15 -max_snps 4000 -ref {$genome} -build ".ngsbits_build($build), [$f_gsvar, $c_gsvar, $genome]);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)
 	{
 		trigger_error("The genotype correlation of father and child is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
 	}
-	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$m_gsvar} {$c_gsvar} -mode gsvar -max_snps 4000 -ref {$genome} -build ".ngsbits_build($build), [$m_gsvar, $c_gsvar, $genome]);
+	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$m_gsvar} {$c_gsvar} -mode gsvar  -min_cov 15 -max_snps 4000 -ref {$genome} -build ".ngsbits_build($build), [$m_gsvar, $c_gsvar, $genome]);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)
 	{
@@ -200,32 +183,26 @@ if (in_array("cn", $steps))
 	$parser->execTool("Pipelines/multisample_longread.php", implode(" ", $args_multisample)." -steps cn", true); 
 	
 	//UPD detection
-	$in_files = [
-		$vcf_file,
-	];
-	$args_upd = [
+	$in_files = [ $vcf_file ];
+	$args = [
 		"-in {$vcf_file}",
 		"-c {$sample_c}",
 		"-f {$sample_f}",
 		"-m {$sample_m}",
+		"-var_min_q 0", //with VcfMerge QUAL is undefined
 		"-out {$out_folder}/trio_upd.tsv",
 		];
-	$base = dirname($c)."/".basename2($c);
-	if (file_exists("{$base}_cnvs.tsv"))
+	$cnv_file = dirname($c)."/".basename2($c)."_cnvs_clincnv.tsv";
+	if (file_exists($cnv_file))
 	{
-		$args_upd[] = "-exclude {$base}_cnvs.tsv";
-		$in_files[] = "{$base}_cnvs.tsv";
-	}
-	else if (file_exists("{$base}_cnvs_clincnv.tsv"))
-	{
-		$args_upd[] = "-exclude {$base}_cnvs_clincnv.tsv";
-		$in_files[] = "{$base}_cnvs_clincnv.tsv";
+		$args[] = "-exclude $cnv_file";
+		$in_files[] = $cnv_file;
 	}
 	else
 	{
-		trigger_error("Child CNV file not found for UPD detection!", E_USER_WARNING);
+		trigger_error("CNV file of child not found for UPD detection!", E_USER_WARNING);
 	}
-	$parser->execApptainer("ngs-bits", "UpdHunter", implode(" ", $args_upd), $in_files, [$out_folder]);
+	$parser->execApptainer("ngs-bits", "UpdHunter", implode(" ", $args), $in_files, [$out_folder]);
 }
 
 //sv calling
@@ -248,7 +225,7 @@ if (in_array("an", $steps))
 		list($stdout) = $parser->execApptainer("ngs-bits", "TrioMendelianErrors", "-vcf {$vcf_file} -c {$sample_c} -f {$sample_f} -m {$sample_m}", [$vcf_file]);
 		foreach($stdout as $line)
 		{
-			if (starts_with($line, "Mendelian error rate:"))
+			if (starts_with($line, "Mendelian error rate "))
 			{
 				print trim($line)."\n";
 			}

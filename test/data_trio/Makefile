@@ -3,17 +3,20 @@ all:
 	make clear link call diff reanno
 	
 clear:
-	rm -rf *.cram *.crai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML trio_cnvs_clincnv.tsv  trio_upd.tsv *.bedpe manta_evid/ reanno
+	rm -rf *.cram *.crai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML *_clincnv.tsv  trio_upd.tsv *.bedpe manta_evid/ reanno
 
 link:
 	php ../link_test_data.php GS140127_01.cram
 	php ../link_test_data.php GS140127_01.cram.crai
+	php ../link_test_data.php GS140127_01_var.vcf.gz
 	php ../link_test_data.php GS140127_01_cnvs_clincnv.tsv
 	php ../link_test_data.php GS140549_01.cram
 	php ../link_test_data.php GS140549_01.cram.crai
+	php ../link_test_data.php GS140549_01_var.vcf.gz
 	php ../link_test_data.php GS140549_01_cnvs_clincnv.tsv
 	php ../link_test_data.php GS140550_01.cram
 	php ../link_test_data.php GS140550_01.cram.crai
+	php ../link_test_data.php GS140550_01_var.vcf.gz
 	php ../link_test_data.php GS140550_01_cnvs_clincnv.tsv
 
 call:
@@ -25,7 +28,7 @@ call:
 
 diff:
 	#variants
-	php ../compare_variants.php -in1 trio.GSvar.out -in2 trio.GSvar
+	php ../compare_variants.php -in1 trio.GSvar.out -in2 trio.GSvar -add GS140127_01,GS140549_01,GS140550_01
 	#CNVs
 	php ../compare_tsv.php -in1 trio_cnvs_clincnv.tsv.out -in2 trio_cnvs_clincnv.tsv -skip_cols ngsd_pathogenic_cnvs,genes,gene_info
 	#UPDs
@@ -37,8 +40,7 @@ diff:
 reanno:
 	mkdir -p reanno
 	# copy files
-	cp all.vcf.gz reanno/
-	cp all_mito.vcf.gz reanno/
+	cp trio_var.vcf.gz reanno/
 	cp trio_cnvs_clincnv.tsv reanno/
 	cp trio_var_structural_variants.bedpe reanno/
 	# run reannotation

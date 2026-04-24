@@ -27,7 +27,6 @@ if ($copy_file)
 else
 {
 	list($stdout, $stderr) = exec2("ln -fs ".get_path("test_data_folder")."{$from} {$to}");
-
 }
  
 ?>

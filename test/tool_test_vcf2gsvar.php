@@ -35,7 +35,7 @@ check_exec("php ".src_folder()."/Tools/{$name}.php -in ".data_folder().$name."_i
 remove_lines_containing($out_file5, "#CREATION_DATE=");
 check_file($out_file5, data_folder().$name."_out5.GSvar", true);
 
-//genotype_mode=multi
+//genotype_mode=multi (DeepVariant)
 $out_file_multi = output_folder().$name."_out_multi.GSvar";
 check_exec("php ".src_folder()."/Tools/{$name}.php -in ".data_folder().$name."_in_multi.vcf -out $out_file_multi -genotype_mode multi --log ".output_folder().$name."_out_multi.log -test");
 remove_lines_containing($out_file_multi, "#CREATION_DATE=");

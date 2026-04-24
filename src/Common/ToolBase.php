@@ -955,7 +955,7 @@ class ToolBase
 		
 		return array($stdout, $filtered_stderr_lines, $return);
 	}
-	//TODO Marc/Leon: the exit code seems to be 0 in case of error. See /mnt/storage2/users/ahsturm1/scripts/2025_06_18_missing_variants_in_trio/ and TARGETED workaround in merge_gvcf.php
+	//TODO Marc/Leon: the exit code seems to be 0 in case of error. See /mnt/storage2/users/ahsturm1/scripts/2025_06_18_missing_variants_in_trio/.
 	/**
 	 	@brief Executes a list of commands in parallel
 	*/

@@ -25,67 +25,6 @@
 ##contig=<ID=chrX,length=155270560>
 ##contig=<ID=chrY,length=59373566>
 ##contig=<ID=chrMT,length=16569>
-##contig=<ID=chrGL000207.1,length=4262>
-##contig=<ID=chrGL000226.1,length=15008>
-##contig=<ID=chrGL000229.1,length=19913>
-##contig=<ID=chrGL000231.1,length=27386>
-##contig=<ID=chrGL000210.1,length=27682>
-##contig=<ID=chrGL000239.1,length=33824>
-##contig=<ID=chrGL000235.1,length=34474>
-##contig=<ID=chrGL000201.1,length=36148>
-##contig=<ID=chrGL000247.1,length=36422>
-##contig=<ID=chrGL000245.1,length=36651>
-##contig=<ID=chrGL000197.1,length=37175>
-##contig=<ID=chrGL000203.1,length=37498>
-##contig=<ID=chrGL000246.1,length=38154>
-##contig=<ID=chrGL000249.1,length=38502>
-##contig=<ID=chrGL000196.1,length=38914>
-##contig=<ID=chrGL000248.1,length=39786>
-##contig=<ID=chrGL000244.1,length=39929>
-##contig=<ID=chrGL000238.1,length=39939>
-##contig=<ID=chrGL000202.1,length=40103>
-##contig=<ID=chrGL000234.1,length=40531>
-##contig=<ID=chrGL000232.1,length=40652>
-##contig=<ID=chrGL000206.1,length=41001>
-##contig=<ID=chrGL000240.1,length=41933>
-##contig=<ID=chrGL000236.1,length=41934>
-##contig=<ID=chrGL000241.1,length=42152>
-##contig=<ID=chrGL000243.1,length=43341>
-##contig=<ID=chrGL000242.1,length=43523>
-##contig=<ID=chrGL000230.1,length=43691>
-##contig=<ID=chrGL000237.1,length=45867>
-##contig=<ID=chrGL000233.1,length=45941>
-##contig=<ID=chrGL000204.1,length=81310>
-##contig=<ID=chrGL000198.1,length=90085>
-##contig=<ID=chrGL000208.1,length=92689>
-##contig=<ID=chrGL000191.1,length=106433>
-##contig=<ID=chrGL000227.1,length=128374>
-##contig=<ID=chrGL000228.1,length=129120>
-##contig=<ID=chrGL000214.1,length=137718>
-##contig=<ID=chrGL000221.1,length=155397>
-##contig=<ID=chrGL000209.1,length=159169>
-##contig=<ID=chrGL000218.1,length=161147>
-##contig=<ID=chrGL000220.1,length=161802>
-##contig=<ID=chrGL000213.1,length=164239>
-##contig=<ID=chrGL000211.1,length=166566>
-##contig=<ID=chrGL000199.1,length=169874>
-##contig=<ID=chrGL000217.1,length=172149>
-##contig=<ID=chrGL000216.1,length=172294>
-##contig=<ID=chrGL000215.1,length=172545>
-##contig=<ID=chrGL000205.1,length=174588>
-##contig=<ID=chrGL000219.1,length=179198>
-##contig=<ID=chrGL000224.1,length=179693>
-##contig=<ID=chrGL000223.1,length=180455>
-##contig=<ID=chrGL000195.1,length=182896>
-##contig=<ID=chrGL000212.1,length=186858>
-##contig=<ID=chrGL000222.1,length=186861>
-##contig=<ID=chrGL000200.1,length=187035>
-##contig=<ID=chrGL000193.1,length=189789>
-##contig=<ID=chrGL000194.1,length=191469>
-##contig=<ID=chrGL000225.1,length=211173>
-##contig=<ID=chrGL000192.1,length=547496>
-##contig=<ID=chrNC_007605,length=171823>
-##contig=<ID=chrhs37d5,length=35477943>
 ##reference=file:///staging/human/reference/GRCh37/GRCH37.fa.k_21.f_16.m_149/reference.bin
 ##INFO=<ID=AC,Number=A,Type=Integer,Description="Allele count in genotypes, for each ALT allele, in the same order as listed">
 ##INFO=<ID=AF,Number=A,Type=Float,Description="Allele Frequency, for each ALT allele, in the same order as listed">
@@ -160,6 +99,7 @@
 ##FORMAT=<ID=PP,Number=G,Type=Integer,Description="Phred-scaled posterior genotype probabilities">
 ##FORMAT=<ID=PRI,Number=G,Type=Float,Description="Phred-scaled prior probabilities for genotypes">
 ##FORMAT=<ID=SB,Number=4,Type=Integer,Description="Per-sample component statistics which comprise the Fisher's Exact Test to detect strand bias">
+##SAMPLE=<ID=SAMPLE,Gender=female,ExternalSampleName=77162048,IsTumor=no,IsFFPE=no,DiseaseGroup=Diseases of the nervous system,DiseaseStatus=control>
 #CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	SAMPLE
 chr1	1043223	.	CCT	C	50	PASS	AC=1;AF=0.500;AN=2;DP=133;FS=4.601;MQ=250.00;MQRankSum=9.759;QD=0.38;ReadPosRankSum=1.731;SOR=1.309;FractionInformativeReads=0.977;R2_5P_bias=1.614;CSQ=-|splice_region_variant&intron_variant|LOW|AGRN|HGNC:329|ENST00000379370.7|Transcript||7/35|c.1385-15_1385-14del|,-|splice_region_variant&intron_variant|LOW|AGRN|HGNC:329|ENST00000620552.4|Transcript||7/38|c.971-15_971-14del|;PHYLOP=-0.112;MES_SWA=0.0&0.0&-6.0&9.0&8.1&9.0&ENST00000379370|0.0&0.0&-6.0&9.0&8.1&9.0&ENST00000620552;gnomADg_AC=67234;gnomADg_AF=0.44317;gnomADg_Hom=18381;gnomADg_Hemi=.;gnomADg_Het=30472;gnomADg_Wt=84478;gnomADg_AFR_AF=0.10988;gnomADg_AMR_AF=0.62210;gnomADg_EAS_AF=0.78569;gnomADg_NFE_AF=0.54851;gnomADg_SAS_AF=0.55523;CLINVAR_ID=263160;CLINVAR_DETAILS=benign%20DISEASE%3Dnot_specified%2Cnot_provided%2CCongenital_myasthenic_syndrome_8%20GENE%3DAGRN;CADD_INDEL=4.425;SpliceAI=C|AGRN|0.11|0.04|0.00|0.00|48|16|21|2;NGSD_GENE_INFO=AGRN%20(inh%3DAR%20oe_syn%3D1.20%20oe_mis%3D0.98%20oe_lof%3D0.32);OMIM=103320_[GENE%3DAGRN_PHENOS%3DMyasthenic%20syndrome%2C%20congenital%2C%208%2C%20with%20pre-%20and%20postsynaptic%20defects%2C%20615120%20(3)%2C%20Autosomal%20recessive]	GT:AD:AF:DP:GQ:PL:GL:GP:PRI:SB:MB	0/1:57,73:0.562:130:48:81,0,49:-8.100,0.000,-4.871:5.000e+01,7.274e-05,5.171e+01:0.00,31.00,34.00:45,12,63,10:24,33,25,48
 chr1	1046551	.	A	G	377.83	PASS	AC=2;AF=1.000;AN=2;DP=116;FS=0.000;MQ=247.93;QD=3.26;SOR=0.822;FractionInformativeReads=0.974;CSQ=G|synonymous_variant|LOW|AGRN|HGNC:329|ENST00000379370.7|Transcript|18/36||c.3066A>G|p.Ser1022%3D,G|synonymous_variant|LOW|AGRN|HGNC:329|ENST00000620552.4|Transcript|18/39||c.2652A>G|p.Ser884%3D;PHYLOP=-1.032;MES_SWA=0.0&0.0&-19.3&0.0&0.0&-1.5&ENST00000379370|0.0&0.0&-19.3&0.0&0.0&-1.5&ENST00000620552;gnomADg_AC=121546;gnomADg_AF=0.80155;gnomADg_Hom=51078;gnomADg_Hemi=.;gnomADg_Het=19390;gnomADg_Wt=30092;gnomADg_AFR_AF=0.51414;gnomADg_AMR_AF=0.88107;gnomADg_EAS_AF=0.96182;gnomADg_NFE_AF=0.90993;gnomADg_SAS_AF=0.89182;CLINVAR_ID=128297;CLINVAR_DETAILS=benign%20DISEASE%3DCongenital_myasthenic_syndrome_8%2Cnot_specified%20GENE%3DAGRN;CADD_SNV=0.114;NGSD_GENE_INFO=AGRN%20(inh%3DAR%20oe_syn%3D1.20%20oe_mis%3D0.98%20oe_lof%3D0.32);OMIM=103320_[GENE%3DAGRN_PHENOS%3DMyasthenic%20syndrome%2C%20congenital%2C%208%2C%20with%20pre-%20and%20postsynaptic%20defects%2C%20615120%20(3)%2C%20Autosomal%20recessive]	GT:AD:AF:DP:GQ:PL:GL:GP:PRI:SB:MB	1/1:0,113:1.000:113:328:416,331,0:-41.560,-33.083,0.000:3.778e+02,3.278e+02,-0.000e+00:0.00,34.77,37.77:0,0,60,53:0,0,62,51
