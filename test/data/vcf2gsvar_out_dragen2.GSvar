@@ -7,7 +7,7 @@
 ##SAMPLE=<ID=SAMPLE,Gender=female,ExternalSampleName=77162048,IsTumor=no,IsFFPE=no,DiseaseGroup=Diseases of the nervous system,DiseaseStatus=control>
 ##DESCRIPTION=SAMPLE=Genotype of variant in sample.
 ##DESCRIPTION=filter=Annotations for filtering and ranking variants.
-##DESCRIPTION=quality=Quality parameters - variant quality (QUAL), depth (DP), allele frequency (AF)
+##DESCRIPTION=quality=Quality parameters. QUAL: variant quality, DP: depth, AF: allele frequency, CT: call type - MO is mosaic, LM is low-mappabilty, RC is re-calling of missing variants in multi-sample pipeline.
 ##DESCRIPTION=gene=Affected gene list (comma-separated).
 ##DESCRIPTION=variant_type=Variant type.
 ##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).
