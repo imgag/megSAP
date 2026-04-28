@@ -238,9 +238,6 @@ while(!feof($h))
 	$calls = [];
 	if ($type=="SNV" && $valid_alt)
 	{
-		print $format."\n";
-		print $tumor."\n";
-		print $normal."\n";
 		list($td, $tf) = vcf_strelka_snv($format, $tumor, $alt);
 		list($nd, $nf) = vcf_strelka_snv($format, $normal, $alt);
 		$calls[] = [ $alt, $td, $tf, $nd, $nf, $filter ];
@@ -254,9 +251,6 @@ while(!feof($h))
 	}
 	else if ($type=="INDEL")
 	{
-		print $format."\n";
-		print $tumor."\n";
-		print $normal."\n";
 		list($td, $tf) = vcf_strelka_indel($format, $tumor);
 		list($nd, $nf) = vcf_strelka_indel($format, $normal);
 		$calls[] = [ $alt, $td, $tf, $nd, $nf, $filter ];
