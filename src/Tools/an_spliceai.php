@@ -198,10 +198,14 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	$in_files = [genome_fasta($build), $vcf_filtered, $transcript_annotations];
 
 	//run spliceai container
-	$spliceai_command = $parser->execApptainer("spliceai", "spliceai", implode(" ", $args), $in_files, [], true);
-	$prefix = container_platform()=='apptainer' ? "APPTAINERENV" : "SINGULARITYENV";
-	$parser->exec("{$prefix}_OMP_NUM_THREADS={$threads} {$spliceai_command}", "");
-
+	$env = [
+		"OMP_NUM_THREADS" => $threads,
+		"TF_NUM_INTRAOP_THREADS" => $threads,
+		"TF_NUM_INTEROP_THREADS" => $threads
+	];
+	apptainerEnv($env);
+	$parser->execApptainer("spliceai", "spliceai", implode(" ", $args), $in_files);
+	
 	//no variants scored => copy input to output
 	$var_count = vcf_variant_count($tmp1, "SpliceAI=");
 	if($var_count==0)

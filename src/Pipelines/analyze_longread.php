@@ -28,6 +28,9 @@ $parser->addFlag("test", "Run pipeline in test mode (e.g. use hard-coded cohort 
 $parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
 extract($parser->parse($argv));
 
+//start time
+$start_time = microtime(true);
+
 // create logfile in output folder if no filepath is provided:
 if (!file_exists($folder))
 {
@@ -1235,6 +1238,13 @@ if (in_array("db", $steps))
 	{
 		$args[] = "-ps {$name}";
 		$parser->execApptainer("ngs-bits", "NGSDAddVariantsGermline", implode(" ", $args), [$folder]);
+	}
+	
+	//log analysis time
+	if (db_is_enabled("NGSD"))
+	{
+		$db = DB::getInstance("NGSD", false);
+		log_analysis_time($db, 'single', [$name], $threads, $steps, $steps_all, false, microtime(true)-$start_time);
 	}
 }
 

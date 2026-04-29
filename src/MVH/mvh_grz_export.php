@@ -48,7 +48,7 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 		$args[] = "--threads 10";
 		$args[] = "--by ".($roi!="" ? realpath($roi) : "{$qc_wf_folder}/assets/default_files/hg38_440_omim_genes.bed"); 
 		$args[] = "--fasta /tmp/local_ngs_data_GRCh38/GRCh38.fa";
-		$args[] = "--fast-mode -F 772"; //TODO remove on 31.03.2026
+		//$args[] = "--fast-mode -F 772"; //removed on 27.04.2026
 		exec2("/mnt/storage2/MVH/tools/mosdepth ".implode(" ", $args)." {$mosdepth_folder}/output_prefix {$bam}");
 	}
 	else
@@ -276,7 +276,7 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor, $info_germline=
 								"minimumQuality" => (float)($grz_qc["qualityThreshold"]),
 								"percent" => (float)($grz_qc["percentBasesAboveQualityThreshold"])
 							], 
-						"meanDepthOfCoverage" => (float)($grz_qc["meanDepthOfCoverage"])*1.05, //TODO remove?
+						"meanDepthOfCoverage" => (float)($grz_qc["meanDepthOfCoverage"])*1.05,
 						"minCoverage" => (float)($grz_qc["minCoverage"]),
 						"targetedRegionsAboveMinCoverage" => (float)(number_format($grz_qc["targetedRegionsAboveMinCoverage"],2)),
 						"nonCodingVariants" => "true",

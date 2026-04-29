@@ -70,7 +70,7 @@ if (db_is_enabled("NGSD"))
 	if($rc_id != -1) trigger_error("Report configuration for {$name} exists in NGSD! Cannot perform DRAGEN analysis!", E_USER_ERROR);
 }
 
-//remove mapping step:
+//remove mapping step
 if (in_array("ma", $steps))
 {
 	if (($key = array_search("ma", $steps)) !== false) unset($steps[$key]);

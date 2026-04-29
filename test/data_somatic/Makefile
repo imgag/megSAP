@@ -120,9 +120,7 @@ tn2_somatic:
 	rm ../data/manta_sv_normal_hla_genotyper.tsv ../data/manta_sv_tumor_hla_genotyper.tsv
 
 tn2_diff:
-	# remove gene annotation if present
-	cut -f1-27 out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural.bedpe > out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural_cut.bedpe
-	diff expected_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural.bedpe out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural_cut.bedpe --ignore-matching-lines="##cmdline" --ignore-matching-lines="##"
+	php ../compare_tsv.php -in1 expected_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural.bedpe -in2 out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural.bedpe -skip_comments_matching fileDate=,cmdline= -skip_cols GENES,GENES_BREAKPOINTS,GENE_INFO,NGSD_HOM,NGSD_HET,NGSD_AF,NGSD_group,NGSD_SV_BREAKPOINT_DENSITY,NGSD_SV_BREAKPOINT_DENSITY_SYS,NGSD_PATHOGENIC_SVS
 
 create_test_case1:
 	samtools view -bh /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX205723_01/DX205723_01.bam chr7:140723402-140929330 > test_case1_tmp.bam

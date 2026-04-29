@@ -87,6 +87,9 @@ $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to th
 $parser->addFloat("min_corr", "Minimal correlation between child and parent.", true, 0.45);
 extract($parser->parse($argv));
 
+//start time
+$start_time = microtime(true);
+
 //init
 $sample_c = basename2($c);
 $sample_f = basename2($f);
@@ -270,6 +273,13 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	
 	//add secondary analysis (if missing)
 	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'trio' -gsvar {$gsvar}");
+	
+	//log analysis time
+	if (db_is_enabled("NGSD"))
+	{
+		$db = DB::getInstance("NGSD", false);
+		log_analysis_time($db, 'trio', [$sample_c, $sample_f, $sample_m], $threads, $steps, $steps_all, false, microtime(true)-$start_time);
+	}
 }
 
 ?>

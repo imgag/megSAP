@@ -85,8 +85,10 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("no_check", "Skip gender check of parents and parent-child correlation check (otherwise done before variant calling)");
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
-
 extract($parser->parse($argv));
+
+//start time
+$start_time = microtime(true);
 
 //init
 $sample_c = basename2($c);
@@ -311,6 +313,13 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	
 	//add secondary analysis (if missing)
 	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'trio' -gsvar {$gsvar}");
+	
+	//log analysis time
+	if (db_is_enabled("NGSD"))
+	{
+		$db = DB::getInstance("NGSD", false);
+		log_analysis_time($db, 'trio', [$sample_c, $sample_f, $sample_m], $threads, $steps, $steps_all, false, microtime(true)-$start_time);
+	}
 }
 
 ?>

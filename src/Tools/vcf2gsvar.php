@@ -240,7 +240,7 @@ $pfam = load_pfam_data();
 //write column descriptions
 $column_desc = array(
 	array("filter", "Annotations for filtering and ranking variants."),
-	array("quality", "Quality parameters. QUAL: variant quality, DP: depth, AF: allele frequency, CT: call type - MO is mosaic, LM is low-mappabilty, RC is re-calling of missing variants in multi-sample pipeline."),
+	array("quality", "Quality parameters. QUAL: variant quality, DP: depth, AF: allele frequency, GQ: genotype quality, CT: call type - MO is mosaic, LM is low-mappabilty, RC is re-calling of missing variants in multi-sample pipeline."),
 	array("gene", "Affected gene list (comma-separated)."),
 	array("variant_type", "Variant type."),
 	array("coding_and_splicing", "Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain)."),
@@ -696,6 +696,7 @@ while(!gzeof($handle))
 		//combine value used for quality later
 		$sample["DP"] = implode(",", $sample["DP"]);
 		$sample["AF"] = implode(",", $sample["AF"]);
+		$sample["GQ"] = implode(",", $sample["GQ"]);
 		$sample["CT"] = implode(",", $sample["CT"]);
 		if (strtr($sample["CT"], ["."=>"", ","=>""])=="") unset($sample["CT"]);
 	}
@@ -760,10 +761,14 @@ while(!gzeof($handle))
 		$quality[] = "AF=".$sample["AF"];
 	}
 	
-	//call type
 	if (isset($sample["CT"]))
 	{
 		$quality[] = "CT=".$sample["CT"];
+	}
+	
+	if (isset($sample["GQ"]))
+	{
+		$quality[] = "GQ=".$sample["GQ"];
 	}
 	
 	$phylop = [];

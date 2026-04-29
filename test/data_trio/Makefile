@@ -21,10 +21,6 @@ link:
 
 call:
 	php ../../src/Pipelines/trio.php -c GS140127_01.cram -m GS140549_01.cram -f GS140550_01.cram -system system.ini -out_folder . -steps vc,cn,sv -no_check
-	# remove gene annotation
-	cut -f1-24 trio_var_structural_variants.bedpe > trio_var_structural_variants_cut.bedpe
-	# create file from OMIM annotation and CNV overlap
-	cat trio_var_structural_variants.bedpe | egrep -v "^##"| rev | cut -f 1,2| rev > trio_var_structural_variants_cut2.bedpe	
 
 diff:
 	#variants
@@ -34,8 +30,7 @@ diff:
 	#UPDs
 	diff -b trio_upd.tsv.out trio_upd.tsv
 	#SVs
-	diff trio_var_structural_variants_cut.bedpe trio_var_structural_variants_cut.bedpe.out --ignore-matching-lines="^##"
-	diff trio_var_structural_variants_cut2.bedpe trio_var_structural_variants_cut2.bedpe.out --ignore-matching-lines="^##"
+	php ../compare_tsv.php -in1 trio_var_structural_variants.bedpe.out -in2 trio_var_structural_variants.bedpe -skip_comments_matching cmdline=,fileDate= -skip_cols GENES,GENES_BREAKPOINTS,GENE_INFO,NGSD_HOM,NGSD_HET,NGSD_AF,NGSD_group,NGSD_SV_BREAKPOINT_DENSITY,NGSD_SV_BREAKPOINT_DENSITY_SYS,NGSD_PATHOGENIC_SVS
 
 reanno:
 	mkdir -p reanno

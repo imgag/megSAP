@@ -17,10 +17,6 @@ link:
 
 call:
 	php ../../src/Pipelines/multisample.php -bams GS140549_01.cram GS140550_01.cram -status affected affected -system system.ini -out_folder . -steps vc,cn,sv
-	# remove gene annotation
-	cut -f1-24 multi_var_structural_variants.bedpe > multi_var_structural_variants_cut.bedpe
-	# create file from OMIM annotation and CNV overlap
-	cat multi_var_structural_variants.bedpe | egrep -v "^##"| rev | cut -f 1,2| rev > multi_var_structural_variants_cut2.bedpe
 
 diff:
 	#variants
@@ -28,8 +24,7 @@ diff:
 	#CNVs
 	php ../compare_tsv.php -in1 multi_cnvs_clincnv.tsv.out -in2 multi_cnvs_clincnv.tsv -skip_cols ngsd_pathogenic_cnvs,genes,gene_info
 	#SVs
-	diff multi_var_structural_variants_cut.bedpe multi_var_structural_variants_cut.bedpe.out --ignore-matching-lines="^##"
-	diff multi_var_structural_variants_cut2.bedpe multi_var_structural_variants_cut2.bedpe.out --ignore-matching-lines="^##"
+	php ../compare_tsv.php -in1 multi_var_structural_variants.bedpe.out -in2 multi_var_structural_variants.bedpe -skip_comments_matching cmdline=,fileDate= -skip_cols GENES,GENES_BREAKPOINTS,GENE_INFO,NGSD_HOM,NGSD_HET,NGSD_AF,NGSD_group,NGSD_SV_BREAKPOINT_DENSITY,NGSD_SV_BREAKPOINT_DENSITY_SYS,NGSD_PATHOGENIC_SVS
 
 reanno:
 	mkdir -p reanno

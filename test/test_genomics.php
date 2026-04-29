@@ -3,6 +3,52 @@
 include("framework.php");
 
 //##################################################################################
+start_test("log_analysis_time");
+if (db_is_enabled("NGSD_TEST"))
+{
+	//init
+	$db = DB::getInstance("NGSD_TEST");
+	$sql_file = data_folder()."/log_analysis_time.sql";
+	execApptainer("ngs-bits", "NGSDInit", "-test -add $sql_file", [$sql_file]);
+	
+	//invalid sample
+	log_analysis_time($db, 'single', ['NA12878_02'], 4, ['ma','vc','cn','sv','db'], ['ma','vc','cn','sv','db'], false, 90.0);
+	$rows = $db->getValue("SELECT count(*) FROM analysis_time");
+	check($rows, 0);
+	
+	//not all steps
+	log_analysis_time($db, 'single', ['NA12878_02'], 4, ['ma','vc','cn','sv','db'], ['ma','vc','cn','sv'], false, 90.0);
+	$rows = $db->getValue("SELECT count(*) FROM analysis_time");
+	check($rows, 0);
+	
+	//not DRAGEN
+	log_analysis_time($db, 'single', ['NA12878_58'], 4, ['ma','vc','cn','sv','db'], ['ma','vc','cn','sv','db'], false, 90.0);
+	$rows = $db->getValue("SELECT count(*) FROM analysis_time");
+	check($rows, 1);
+	check($db->getValue("SELECT min FROM analysis_time"), 1.50);
+	check($db->getValue("SELECT samples FROM analysis_time"), "NA12878_58");
+	check($db->getValue("SELECT type FROM analysis_time"), "single");
+	check($db->getValue("SELECT threads FROM analysis_time"), 4);
+	check($db->getValue("SELECT datetime FROM analysis_time")!="", true);
+	check($db->getValue("SELECT server FROM analysis_time")!="", true);
+	check($db->getValue("SELECT dragen_used FROM analysis_time"), "0");
+	
+	//DRAGEN
+	$db->executeStmt("DELETE FROM analysis_time WHERE 1");
+	log_analysis_time($db, 'single', ['NA12878_58'], 2, ['ma','vc','cn','sv','db'], ['ma','vc','cn','sv','db'], true, 600.0);
+	$rows = $db->getValue("SELECT count(*) FROM analysis_time");
+	check($rows, 1);
+	check($db->getValue("SELECT min FROM analysis_time"), 10.00);
+	check($db->getValue("SELECT samples FROM analysis_time"), "NA12878_58");
+	check($db->getValue("SELECT type FROM analysis_time"), "single");
+	check($db->getValue("SELECT threads FROM analysis_time"), 2);
+	check($db->getValue("SELECT datetime FROM analysis_time")!="", true);
+	check($db->getValue("SELECT server FROM analysis_time")!="", true);
+	check($db->getValue("SELECT dragen_used FROM analysis_time"), "1");
+}
+end_test();
+
+//##################################################################################
 start_test("bed_is_sorted");
 
 check(get_aa_range("p.?"), null);

@@ -886,7 +886,6 @@ class ToolBase
 		//log call
 		if($log_output)
 		{
-			$version_command = "singularity exec $container_path $command";
 			$add_info = array();
 			foreach($in_files as $in_file)
 			{
@@ -900,15 +899,18 @@ class ToolBase
 			{
 				$add_info[] = "bind path           = ".$bind_path;
 			}
+			if (isset($GLOBALS['container_env']))
+			{
+				foreach($GLOBALS['container_env'] as $key=>$value)
+				{
+					$add_info[] = "environment         = $key=$value";
+				}
+			}
 			$add_info[] = "container path      = ".$container_path;
-			$add_info[] = "tool version        = ".$this->extractVersion($version_command);
+			$add_info[] = "tool version        = ".$this->extractVersion("singularity exec $container_path $command");
 			$add_info[] = "parameters          = $parameters";
 			$this->log("Calling external tool '$command' in container '".basename2($container_path)."'", $add_info);
 		}
-				
-/* 		$this->log("DEBUG: Apptainer version: ".$this->extractVersion("apptainer"));
-		$this->log("DEBUG: Apptainer command: ".$apptainer_command);  */
-		
 		
 		$pid = getmypid();
 		//execute call - pipe stdout/stderr to file
@@ -955,13 +957,13 @@ class ToolBase
 		
 		return array($stdout, $filtered_stderr_lines, $return);
 	}
+
 	//TODO Marc/Leon: the exit code seems to be 0 in case of error. See /mnt/storage2/users/ahsturm1/scripts/2025_06_18_missing_variants_in_trio/.
 	/**
 	 	@brief Executes a list of commands in parallel
 	*/
 	function execParallel($command_list, $threads, $log_output=true, $abort_on_error=true, $log_stdout=true, $log_summary=false)
 	{
-		
 		$running = array();
 
 		//create array with return values
