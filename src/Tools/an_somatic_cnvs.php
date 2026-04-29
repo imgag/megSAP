@@ -175,7 +175,7 @@ if(isset($rna_counts))
 		$rna_ref_tissue = str_replace("0", " ", $rna_ref_tissue);
 	
 		//annotate RNA reference counts: from HPA
-		$ref_file = get_path("data_folder") . "/dbs/gene_expression/rna_tissue_consensus_v24.tsv";
+		$ref_file = get_path("data_folder") . "/dbs/gene_expression/rna_tissue_consensus_v25.tsv";
 		$handle = fopen2($ref_file,"r");
 		$entry_count = 0;
 		while(!feof($handle))

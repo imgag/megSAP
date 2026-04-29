@@ -169,7 +169,7 @@ if(isset($rna_ref_tissue))
 	//Resubstitute zeroes by spaces (opposite happens in somatic_tumor_normal.php/somatic_tumor_only.php)
 	$rna_ref_tissue = str_replace("0", " ", $rna_ref_tissue);
 	
-	$ref_file = get_path("data_folder") . "/dbs/gene_expression/rna_tissue_consensus_v24.tsv";
+	$ref_file = get_path("data_folder") . "/dbs/gene_expression/rna_tissue_consensus_v25.tsv";
 	
 	if(!file_exists($ref_file))
 	{

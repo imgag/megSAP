@@ -60,10 +60,14 @@ if ($target != "")
 	file_put_contents($tmp_msi_ref_bed, implode("\n", $bed_lines));
 	file_put_contents("/mnt/storage2/users/ahott1a1/msi_ref_bed_test.bed", implode("\n", $bed_lines));
 	
+	//extend target to catch additional sites with enough depth 
+	$extended_target = $parser->tempFile("detect_msi_extended_target");
+	$parser->execApptainer("ngs-bits", "BedExtend", "-in {$target} -n 150 -fai {$ref}.fai -out {$extended_target}", [$tmp_msi_ref_bed, $target], [dirname($tmp_msi_ref_bed_filtered)]);
+	
 	//filter tmp bed by target:
-	$parser->execApptainer("ngs-bits", "BedIntersect", "-in {$tmp_msi_ref_bed} -in2 {$target} -out {$tmp_msi_ref_bed_filtered}", [$tmp_msi_ref_bed, $target], [dirname($tmp_msi_ref_bed_filtered)]);
+	$parser->execApptainer("ngs-bits", "BedIntersect", "-in {$tmp_msi_ref_bed} -in2 {$extended_target} -out {$tmp_msi_ref_bed_filtered}", [$tmp_msi_ref_bed, $target], [dirname($tmp_msi_ref_bed_filtered)]);
 	exec("cp $tmp_msi_ref_bed_filtered /mnt/storage2/users/ahott1a1/msi_ref_bed_filtered_test.bed");
-	$parser->log("msi ref exists? {$msi_ref} - ".file_exists($msi_ref));
+	
 	$handle_msi_ref = fopen2($msi_ref, "r");
 	$handle_msi_ref_bed_filtered = fopen2($tmp_msi_ref_bed_filtered, "r");
 	
