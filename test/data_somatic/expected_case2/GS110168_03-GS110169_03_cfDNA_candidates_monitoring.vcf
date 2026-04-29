@@ -1,8 +1,8 @@
 ##fileformat=VCFv4.1
-##fileDate=20260422
+##fileDate=20260429
 ##source=strelka2 2.9.10
-##startTime=Wed Apr 22 11:16:11 2026
-##cmdline=/opt/strelka2/bin/configureStrelkaSomaticWorkflow.py --tumor /mnt/storage2/users/ahsturm1/megSAP/test/data_somatic/Sample_GS110168_03/GS110168_03.cram --normal /mnt/storage2/users/ahsturm1/megSAP/test/data_somatic/Sample_GS110169_03/GS110169_03.cram --referenceFasta /tmp/local_ngs_data_GRCh38//GRCh38.fa --runDir /tmp/megSAP_user_ahsturm1/vc_strelka2_jitlOG/strelkaAnalysis --config /opt/strelka2/bin/configureStrelkaSomaticWorkflow.py.ini --exome --indelCandidates /mnt/storage2/users/ahsturm1/megSAP/test/data_somatic/out_case2/GS110168_03-GS110169_03_manta_var_smallIndels.vcf.gz
+##startTime=Wed Apr 29 12:11:33 2026
+##cmdline=/opt/strelka2/bin/configureStrelkaSomaticWorkflow.py --tumor /mnt/storage2/users/ahott1a1/megSAP/test/data_somatic/Sample_GS110168_03/GS110168_03.cram --normal /mnt/storage2/users/ahott1a1/megSAP/test/data_somatic/Sample_GS110169_03/GS110169_03.cram --referenceFasta /tmp/local_ngs_data_GRCh38//GRCh38.fa --runDir /tmp/megSAP_user_ahott1a1/vc_strelka2_oE5ZTK/strelkaAnalysis --config /opt/strelka2/bin/configureStrelkaSomaticWorkflow.py.ini --exome --indelCandidates /mnt/storage2/users/ahott1a1/megSAP/test/data_somatic/out_case2/GS110168_03-GS110169_03_manta_var_smallIndels.vcf.gz
 ##reference=file:///tmp/local_ngs_data_GRCh38/GRCh38.fa
 ##content=strelka somatic snv calls
 ##priorSomaticSnvRate=0.0001
