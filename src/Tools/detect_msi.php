@@ -58,7 +58,6 @@ if ($target != "")
 		$bed_lines[] = implode("\t", [$parts[0], $parts[1], intval($parts[1])+1]);
 	}
 	file_put_contents($tmp_msi_ref_bed, implode("\n", $bed_lines));
-	file_put_contents("/mnt/storage2/users/ahott1a1/msi_ref_bed_test.bed", implode("\n", $bed_lines));
 	
 	//extend target to catch additional sites with enough depth 
 	$extended_target = $parser->tempFile("detect_msi_extended_target");
@@ -66,7 +65,6 @@ if ($target != "")
 	
 	//filter tmp bed by target:
 	$parser->execApptainer("ngs-bits", "BedIntersect", "-in {$tmp_msi_ref_bed} -in2 {$extended_target} -out {$tmp_msi_ref_bed_filtered}", [$tmp_msi_ref_bed, $target], [dirname($tmp_msi_ref_bed_filtered)]);
-	exec("cp $tmp_msi_ref_bed_filtered /mnt/storage2/users/ahott1a1/msi_ref_bed_filtered_test.bed");
 	
 	$handle_msi_ref = fopen2($msi_ref, "r");
 	$handle_msi_ref_bed_filtered = fopen2($tmp_msi_ref_bed_filtered, "r");
@@ -113,7 +111,6 @@ if ($target != "")
 	if (count($sites_filtered) < 500) trigger_error("Very few microsatelite sites overlapping with sample target region! Count:".count($sites_filtered)-1, E_USER_WARNING);	
 	
 	file_put_contents($tmp_targeted_msi_ref, implode("", $sites_filtered));
-	file_put_contents("/mnt/storage2/users/ahott1a1/msi_targeted_test.site", implode("", $sites_filtered));
 	$parser->log("finished filtering msi ref file.");
 	
 	$msi_ref = $tmp_targeted_msi_ref;
