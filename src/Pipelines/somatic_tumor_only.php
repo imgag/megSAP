@@ -359,9 +359,9 @@ if(in_array("cn",$steps))
 	$data_folder = get_path("data_folder");
 	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$som_clincnv}", [$som_clincnv, "{$repository_basedir}/data/misc/cn_pathogenic.bed"]);
 	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$som_clincnv}", [$som_clincnv, "{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed"]);
-	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-09.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$som_clincnv}", [$som_clincnv, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-09.bed"]);
+	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-04.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$som_clincnv}", [$som_clincnv, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-04.bed"]);
 
-	$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2025_2.bed"; //optional because of license
+	$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2026_1.bed"; //optional because of license
 	if (file_exists($hgmd_file))
 	{
 		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$som_clincnv}", [$som_clincnv, $hgmd_file]);
@@ -400,12 +400,10 @@ if (in_array("an", $steps))
 	$parser->execTool("Tools/annotate.php", "-out_name {$prefix} -out_folder {$tmp_folder1} -system {$system} -vcf {$variants} -somatic -threads {$threads}");
 	
 	//add sample info to VCF header
-	$s = Matrix::fromTSV($tmp_vcf);
-	$comments = $s->getComments();
-	$comments[] = gsvar_sample_header($t_id, array("IsTumor" => "yes"), "#", "");
-	$s->setComments(sort_vcf_comments($comments));
-	$s->toTSV($tmp_vcf);
-
+	list($comments) = vcf_load_header($tmp_vcf);
+	$comments[] = gsvar_sample_header($t_id, array("IsTumor" => "yes"));
+	vcf_replace_comments($tmp_vcf, $comments);
+	
 	//zip and index VCF
 	$parser->execApptainer("htslib", "bgzip", "-c {$tmp_vcf} > {$variants_annotated}", [], [dirname($variants_annotated)]);
 	$parser->execApptainer("htslib", "tabix", "-f -p vcf {$variants_annotated}", [], [dirname($variants_annotated)]);

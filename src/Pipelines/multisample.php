@@ -57,12 +57,13 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=varia
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
+$parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
 extract($parser->parse($argv));
 
 //init
 $repository_basedir = repository_basedir();
 $data_folder = get_path("data_folder");
-$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2025_2.bed";
+$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2026_1.bed";
 $omim_file = "{$data_folder}/dbs/OMIM/omim.bed";
 $vcf_all = "{$out_folder}/all.vcf.gz";
 $vcf_all_mito = "{$out_folder}/all_mito.vcf.gz";
@@ -269,23 +270,8 @@ if (in_array("vc", $steps))
 			$args[] = "-mode dragen";
 			$parser->execTool("Tools/merge_gvcf.php", implode(" ", $args));
 		}
-		elseif(get_path("use_freebayes")) //perform variant calling with freebayes if set in settings.ini 
-		{
-			$args = array();
-			$args[] = "-bam ".implode(" ", $local_bams);
-			$args[] = "-out {$vcf_all}";
-			$args[] = "-target ".$sys['target_file'];
-			$args[] = "-min_mq 20";
-			$args[] = "-min_af 0.1";
-			$args[] = "-target_extend 200";
-			$args[] = "-build ".$sys['build'];
-			$args[] = "-threads {$threads}";
-			$args[] = "--log ".$parser->getLogFile();
-			$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args), true);
-		}
 		else //calling with DeepVariant with gVCF file creation
 		{
-			//TODO Marc perform gVCF calling in the single sample pipline (if not too slow) and only merge here if all samples already have a gVCF
 			$deepvar_gvcfs = array();
 			foreach($local_bams as $local_bam) // DeepVariant calling for each bam with gVCF output
 			{
@@ -317,6 +303,7 @@ if (in_array("vc", $steps))
 			$args = [];
 			$args[] = "--dir ".$parser->tempFolder()."/GLnexus.DB/";
 			$args[] = "--config ".($is_wes ? $wes_config : "DeepVariantWGS");
+			$args[] = "--threads {$threads}";
 			$args[] = implode(" ", $deepvar_gvcfs);
 			$pipeline = [];
 			$pipeline[] = ["", $parser->execApptainer("glnexus", "glnexus_cli", implode(" ", $args), [$wes_config], [], true)];
@@ -471,7 +458,14 @@ if (in_array("vc", $steps))
 	$parser->execApptainer("htslib", "tabix", "-p vcf $vcf_zipped", [], [dirname($vcf_zipped)]);
 
 	//basic annotation
-	$parser->execTool("Tools/annotate.php", "-out_name {$prefix} -out_folder {$out_folder} -system {$system} -threads {$threads} -multi");
+	$args = [];
+	$args[] = "-out_name {$prefix}";
+	$args[] = "-out_folder {$out_folder}";
+	$args[] = "-system {$system}";
+	$args[] = "-threads {$threads}";
+	$args[] = "-multi";
+	if ($no_splice) $args[] = "-no_splice";
+	$parser->execTool("Tools/annotate.php", implode(" ", $args));
 
 	//check for truncated output
 	if ($is_wgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$out_folder}/{$prefix}_var_annotated.vcf.gz -max_missing_perc 5");
@@ -740,7 +734,7 @@ if (in_array("cn", $steps))
 	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -out {$cnv_multi}", [$out_folder, "{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed"]);
 	
 	//pathogenic ClinVar CNVs
-	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-09.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", [$out_folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-09.bed"]);
+	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-04.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", [$out_folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-04.bed"]);
 	
 	//HGMD CNVs
 	if (file_exists($hgmd_file)) //optional because of license

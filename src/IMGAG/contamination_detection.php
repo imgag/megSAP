@@ -157,7 +157,7 @@ if (is_null($ann_vcf) || $ann_vcf=="")
 	$args[] = "-out ".$ann_vcf;
 	$args[] = "-threads ".$threads;
 	$args[] = "-ps_name ".$ps;
-	$parser->execTool("Tools/an_vep.php", implode(" ", $args));
+	$parser->execTool("Tools/an_vcf.php", implode(" ", $args));
 }
 else
 {

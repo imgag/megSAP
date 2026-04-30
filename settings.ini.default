@@ -10,7 +10,6 @@ dorado = /mnt/storage2/megSAP/tools/dorado-1.4.0-linux-x64/bin/dorado
 ngs-bits_local =
 
 [tools-data]
-vep_data = [path]/data/dbs/ensembl-vep-112/
 clincnv_cohorts = [path]/data/ClinCNV-cohorts/
 methylation_cohorts = [path]/data/methylation-cohorts/
 clair3_models = [path]/data/tools/Clair3-v1.0.10/models
@@ -19,7 +18,6 @@ dorado_model_path = [path]/data/dbs/dorado_basecall_models/
 sigprofilerextractor_data = [path]/data/dbs/SigProfilerExtractor/
 
 [apptainer-container]
-container_abra2 = v2.23
 container_arriba = v2.5.1-20250904
 container_bwa = v0.7.19-20260126
 container_bwa-mem2 = v2.3-20260126
@@ -43,7 +41,7 @@ container_methylartist = v1.5.2-20251105
 container_minimap2 = v2.30-20251119
 container_modkit = v0.5.0-20251105
 container_msisensor-pro = v1.3.0-20251125
-container_ngs-bits = master-2025-12-136-gb688a68a
+container_ngs-bits = master-2025-12-175-gc2187ef5
 container_orad = v2.6.1
 container_paraphase = v3.3.1-20251125
 container_python = v3.10.9-20250729
@@ -63,7 +61,6 @@ container_umi-tools = v1.1.6-20260108
 container_umiVar = 2025-12-20251212
 container_varscan2 = v2.4.6
 container_vcflib = v1.0.3
-container_vep = release-112.0
 container_whatshap = v2.8-20251119
 
 [folders]
@@ -83,14 +80,13 @@ delete_fastq_files = false
 cnv_bin_size_wgs = 1000
 cnv_bin_size_shallow_wgs = 5000
 cnv_bin_size_longread_wgs = 10000
-use_freebayes = false
 use_deepsomatic = false
 use_bwa1 = false
 bwa_mem2_suffix = 
 annotate_refseq_consequences = false
 location = ""
-custom_columns_test['ngsd_counts'] = "[path]/test/data/an_vep_custom.vcf.gz;COUNTS;NGSD counts"
-custom_columns_test['ngsd_nervous_system'] = "[path]/test/data/an_vep_custom.vcf.gz;GSC08;NGSD nervous system counts"
+custom_columns_test['ngsd_counts'] = "[path]/test/data/an_vcf_custom.vcf.gz;COUNTS;NGSD counts"
+custom_columns_test['ngsd_nervous_system'] = "[path]/test/data/an_vcf_custom.vcf.gz;GSC08;NGSD nervous system counts"
 
 [dragen]
 dragen_version = 

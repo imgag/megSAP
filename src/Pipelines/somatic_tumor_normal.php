@@ -954,12 +954,10 @@ if (in_array("an", $steps))
 	$parser->execApptainer("ngs-bits", "SomaticQC", implode(" ", $args_somaticqc), $in_files, [dirname($somaticqc)]);
 
 	//add sample info to VCF header
-	$s = Matrix::fromTSV($tmp_vcf);
-	$comments = $s->getComments();
-	$comments[] = gsvar_sample_header($t_id, array("IsTumor" => "yes"), "#", "");
-	$comments[] = gsvar_sample_header($n_id, array("IsTumor" => "no"), "#", "");
-	$s->setComments(sort_vcf_comments($comments));
-	$s->toTSV($tmp_vcf);
+	list($comments) = vcf_load_header($tmp_vcf);
+	$comments[] = gsvar_sample_header($t_id, array("IsTumor" => "yes"));
+	$comments[] = gsvar_sample_header($n_id, array("IsTumor" => "no"));
+	vcf_replace_comments($tmp_vcf, $comments);
 
 	// zip and index vcf file
 	$parser->execApptainer("htslib", "bgzip", "-c $tmp_vcf > $variants_annotated", [], [dirname($variants_annotated)]);
@@ -1000,7 +998,8 @@ if (in_array("msi", $steps))
 	if (!file_exists($msi_folder)) $parser->exec("mkdir", "-p {$msi_folder}");
 	
 	$msi_ref = $msi_folder."/msisensor_references_".$n_sys['build'].get_path("container_msisensor-pro").".site";
-	$parameters = "-n_bam $n_bam -t_bam $t_bam -msi_ref $msi_ref -ref $ref_genome -threads $threads -out " .$msi_tmp_file. " -build ".$n_sys['build'];
+	
+	$parameters = "-n_bam $n_bam -t_bam $t_bam -msi_ref $msi_ref -ref $ref_genome -threads $threads -out " .$msi_tmp_file. " -build ".$n_sys['build']. " -target ".$sys['target_file'];
 	
 	$parser->execTool("Tools/detect_msi.php", $parameters);
 	$parser->copyFile($msi_tmp_file, $msi_o_file);

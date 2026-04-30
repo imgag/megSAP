@@ -48,11 +48,9 @@ A complete list of all tools and databases used in megSAP and when they were las
 After the analysis, these files are created in the output folder:
 
 1. mapped reads in BAM format
-2. raw read counts, in [featureCounts](http://bioinf.wehi.edu.au/featureCounts/)
-   tabular output format
+2. raw read counts, in [featureCounts](http://bioinf.wehi.edu.au/featureCounts/) tabular output format
 3. normalized read counts, annotated with gene symbols
-4. QC data in [qcML format](https://www.ncbi.nlm.nih.gov/pubmed/24760958), which
-   can be opened with a web browser
+4. QC data in [qcML format](https://www.ncbi.nlm.nih.gov/pubmed/24760958), which can be opened with a web browser
 
 
 ### Using other genomes
@@ -61,11 +59,9 @@ To use the RNA expression pipeline with other genomes, you need to provide
 
 * the genome FASTA file, e.g. `megSAP/data/genomes/CustomGenome.fa`
 * the STAR genome index, e.g. `megSAP/data/genomes/STAR/CustomGenome/`
-* the gene annotation file in Ensembl-like GTF format, e.g.
-  `megSAP/data/dbs/gene_annotations/CustomGenome.gtf`
+* the gene annotation file in Ensembl-like GTF format, e.g. `megSAP/data/dbs/gene_annotations/CustomGenome.gtf`
 
-The genome can by specified in the [processing system INI
-file](processing_system_ini_file.md).
+The genome can by specified in the [processing system INI file](processing_system_ini_file.md).
 
 [back to the start page](../README.md)
 

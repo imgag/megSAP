@@ -9,6 +9,8 @@ Currently only Linux is supported!
 We are providing instructions for the latest Ubuntu LTS distibution (Ubuntu 24.04).  
 If you are using other Linux distributions, you have to adapt them yourself.
 
+Install base dependencies:
+
 	> sudo apt-get update
 	> sudo apt-get install -y rsync zlib1g bzip2 php8.3-cli php8.3-xml php8.3-mysql make unzip wget git gnumeric pigz ghostscript
 
@@ -20,9 +22,9 @@ Install Apptainer:
 
 ## Downloading
 
-Clone the last release of megSAP:
+Clone the last release of megSAP (there is usually a branch with fixes):
 
-	> git clone --branch 2025_10 https://github.com/imgag/megSAP.git
+	> git clone --branch 2025_10_fixes https://github.com/imgag/megSAP.git
 
 ### Resolving proxy issues with git
 

@@ -17,7 +17,9 @@ function cons2value($cons, $line)
 
 	if ($cons=="pathogenic") return 5;
 	if ($cons=="likely_pathogenic") return 4;
+	if ($cons=="vus-low") return 3;
 	if ($cons=="uncertain_significance") return 3;
+	if ($cons=="vus-high") return 3;
 	if ($cons=="likely_benign") return 2;
 	if ($cons=="benign") return 1;
 	if ($cons=="likely_risk_allele") return -1;

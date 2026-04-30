@@ -14,13 +14,10 @@ Install Apptainer:
 	> sudo apt update
 	> sudo apt install -y apptainer
 
-## Downloading
+## Building the container
 
-Download the megSAP Apptainer container (currently 2025_03):
-
-```sh
-wget --no-check-certificate -O megSAP_master.sif https://megsap.de/download/container/megSAP_master.sif
-```
+First, you have to create a container with megSAP inside.  
+A apptainer recipe to create a container with megSAP 2025_10 can be found [here](../data/tools/container_recipes/megSAP_container.def).  
 
 ## Initial Setup
 

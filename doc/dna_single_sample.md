@@ -38,12 +38,10 @@ The following tools are used for mapping and calling of small variants and annot
 | mapping - adapter and quality trimming         | SeqPurge             |                                                  |
 | mapping - mapping and alignment                | bwa-mem2             | Performed by Dragen if '-use_dragen' is used.    |
 | mapping - duplicate marking                    | samblaster           | Performed by Dragen if '-use_dragen' is used.    |
-| mapping - indel realignment                    | ABRA2                |                                                  |
 | variant calling - calling of SNVs and InDels   | freebayes            |                                                  |
 | variant calling - decompose complex variants   | vcfallelicprimitives | Performed by Dragen if '-use_dragen' is used.    |
 | variant calling - break multi-allelic variants | VcfBreakMulti        |                                                  |
 | variant calling - left-normalization of InDels | VcfLeftNormalize     |                                                  |
-| annotation                                     | VEP                  |                                                  |
 
 CNV calling and annotation is performed using these tools:
 

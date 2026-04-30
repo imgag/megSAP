@@ -8,12 +8,11 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("merge_gvcf", "Merge multiple gVCF files using GATK CombineGVCFs");
+$parser = new ToolBase("merge_gvcf", "Merge multiple gVCF files of for multi-sample small variant calling.");
 $parser->addInfileArray("gvcfs", "List of gVCF files which should be merged (bgzipped and sorted).", false);
 $parser->addStringArray("status", "List of affected status of the input samples (gVCFs) - can be 'affected' or 'control'.", false);
-$parser->addEnum("mode", "Mode.", false, ["clair3", "dragen", "mixed"]);
+$parser->addEnum("mode", "Mode.", false, ["clair3", "dragen"]);
 $parser->addOutfile("out", "Output VCF files containing calls of the merged gVCFs.", false);
-
 //optional
 $parser->addEnum("analysis_type", "Type of multisample analysis.", true, array("GERMLINE_MULTISAMPLE", "GERMLINE_TRIO"), "GERMLINE_MULTISAMPLE");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
@@ -28,18 +27,15 @@ if (count($gvcfs) != count($status)) trigger_error("List of gVCF files and statu
 $temp_folder = $parser->tempFolder("merge_gvcf_pid_".getmypid()."_split_");
 
 //check input status
+$valid = array("affected", "control");
 foreach($status as $stat)
 {
-	$valid = array("affected", "control");
-	if (!in_array($stat, $valid))
-	{
-		trigger_error("Invalid status '$stat' given. Valid are '".implode("', '", $valid)."'", E_USER_ERROR);
-	}
+	if (!in_array($stat, $valid)) trigger_error("Invalid status '$stat' given. Valid are '".implode("', '", $valid)."'", E_USER_ERROR);
 }
 
 //get chr regions and sample order
-$chr_regions = array();
-$sample_order = array();
+$chr_regions = [];
+$sample_order = [];
 $first_file = true;
 foreach($gvcfs as $gvcf)
 {
@@ -58,8 +54,10 @@ foreach($gvcfs as $gvcf)
 		{
 			$chr = trim(explode(",", explode("ID=", $line, 2)[1], 2)[0]);
 			$length = (int) explode(">", explode("length=", $line, 2)[1], 2)[0];
+			
+			//skip some chromosomes in certain cases
 			$skip_chr = false;
-			if (($mode=="dragen") || ($mode=="mixed"))
+			if ($mode=="dragen")
 			{
 				if (starts_with($chr, "chrUn")) $skip_chr = true;
 				if (ends_with($chr, "_random")) $skip_chr = true;
@@ -104,15 +102,13 @@ foreach($gvcfs as $gvcf)
 $parser->execParallel($jobs_split_gvcf, $threads, true, true, false);
 $parser->execParallel($jobs_index_gvcf, $threads);
 
-//create job list
-$jobs_combine_gvcf = array();
-//temp folder for output
-$temp_folder_out = $parser->tempFolder("merge_gvcf_pid_".getmypid()."_out_");
-
+//combine gVCFs for every chromosome separately
+$jobs_combine_gvcf = [];
+$temp_folder_out = $parser->tempFolder("merge_gvcf_pid_".getmypid()."_out_"); //temp folder for output
 foreach($chr_regions as list($chr, $length))
 {
 	$job_name = "CombineGVCFs_{$chr}";
-	$args = array();
+	$args = [];
 	$args[] = "CombineGVCFs";
 	$args[] = "-R {$genome}";
 	$args[] = "-O {$temp_folder_out}/{$chr}.gvcf.gz";
@@ -133,34 +129,30 @@ foreach($chr_regions as list($chr, $length))
 		$jobs_combine_gvcf[] = array($job_name, $command);
 	}
 }
-
-// run genotype calling for every chromosome separately
 $parser->execParallel($jobs_combine_gvcf, $threads);
 
-//GenotypeGVCFs
-$jobs_call_genotypes = array();
+// run genotype calling for every chromosome separately (gVCF to VCF)
+$jobs_call_genotypes = [];
 foreach($chr_regions as list($chr, $length))
 {
 	$job_name = "GenotypeGVCFs_{$chr}";
-	$args = array();
+	$args = [];
 	$args[] = "GenotypeGVCFs";
 	$args[] = "-R {$genome}";
 	$args[] = "-V {$temp_folder_out}/{$chr}.gvcf.gz";
 	$args[] = "-O {$temp_folder_out}/{$chr}.vcf.gz";
 	$args[] = "--call-genotypes";
 	$args[] = "--seconds-between-progress-updates 3600"; //only update progress once every hour to keep log-file smaller
-	if (($mode=="clair3") || ($mode=="mixed")) $args[] = "--standard-min-confidence-threshold-for-calling 5"; //decrease threshold in clair3-mode to improve de-novo calling 
+	if ($mode=="clair3") $args[] = "--standard-min-confidence-threshold-for-calling 5"; //decrease threshold in clair3-mode to improve de-novo calling 
 
 	$command = $parser->execApptainer("gatk", "gatk", implode(" ", $args), [$genome], [], true);
 	$jobs_call_genotypes[] = array($job_name, $command);
 }
-
-// run genotype calling for every chromosome separately
 $parser->execParallel($jobs_call_genotypes, $threads);
 
 //merge (g)vcfs to single file
-$chr_multisample_gvcfs = array();
-$chr_multisample_vcfs = array();
+$chr_multisample_gvcfs = [];
+$chr_multisample_vcfs = [];
 foreach($chr_regions as list($chr, $length))
 {
 	$chr_multisample_gvcfs[] = "{$temp_folder_out}/{$chr}.gvcf.gz";
@@ -170,7 +162,7 @@ foreach($chr_regions as list($chr, $length))
 //merge gVCFs
 if ($mode=="clair3")
 {
-	$pipeline = array();
+	$pipeline = [];
 	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfAdd", "-in ".implode(" ", $chr_multisample_gvcfs), [], [], true)];
 	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfExtractSamples", "-samples ".implode(",", $sample_order), [], [], true)];
 	$pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c > {$gvcf_out}", [], [dirname($gvcf_out)], true));
@@ -180,7 +172,7 @@ if ($mode=="clair3")
 
 //merge VCFs
 $tmp_vcf = $parser->tempFile(".vcf.gz");
-$pipeline = array();
+$pipeline = [];
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfAdd", "-in ".implode(" ", $chr_multisample_vcfs), [], [], true)];
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfExtractSamples", "-samples ".implode(",", $sample_order), [], [], true)];
 $pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c > {$tmp_vcf}", [], [], true));
@@ -188,42 +180,31 @@ $parser->execPipeline($pipeline, "Merge VCF");
 
 //post-processing 
 $pipeline = [];
-//stream vcf.gz
 $pipeline[] = ["zcat", $tmp_vcf];
-
 //filter variants according to variant quality>5
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-qual 5 -ref $genome", [$genome], [], true)];
-
-//split complex variants to primitives
-//this step has to be performed before VcfBreakMulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
+//split complex variants to primitives - this step has to be performed before VcfBreakMulti - otherwise mulitallelic variants that contain both 'hom' and 'het' genotypes fail - see NA12878 amplicon test chr2:215632236-215632276
 $pipeline[] = ["", $parser->execApptainer("vcflib", "vcfallelicprimitives", "-kg", [], [], true)];
-
 //split multi-allelic variants
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "-no_errors", [], [], true)];
 //remove invalid variants
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-remove_invalid -ref $genome", [$genome], [], true)];
-
 //normalize all variants and align INDELs to the left
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], true)];
-
 //sort variants by genomic position
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true)];
-
-//fix error in VCF file and strip unneeded information
-if ($mode=="mixed") $pipeline[] = array("php ".repository_basedir()."/src/Tools/vcf_fix.php", "--dragen_mode", false); // second run for mixed trios
-
+//fix
 $uncompressed_vcf = $parser->tempFile(".vcf");
 $args = [];
-if (($mode=="clair3") || ($mode=="mixed")) $args[] = "--clair3_mode";
+if ($mode=="clair3") $args[] = "--clair3_mode";
 if ($mode=="dragen") $args[] = "--dragen_mode";
 $args[] = "> {$uncompressed_vcf}";
 $pipeline[] = array("php ".repository_basedir()."/src/Tools/vcf_fix.php", implode(" ", $args), false);
-
 //execute post-processing pipeline
 $parser->execPipeline($pipeline, "merge_gvcf post processing");
 
 //add name/pipeline info to VCF header
-if (($mode=="clair3") || ($mode=="mixed"))
+if ($mode=="clair3")
 {
 	$vcf = Matrix::fromTSV($uncompressed_vcf);
 	$comments = $vcf->getComments();
@@ -239,10 +220,9 @@ if (($mode=="clair3") || ($mode=="mixed"))
 	$vcf->setComments($comments);
 	$vcf->toTSV($uncompressed_vcf);
 }
-
-//create zip + idx
+			
+//bgzip and index
 $parser->execApptainer("htslib", "bgzip", "-@ {$threads} -c $uncompressed_vcf > $out", [], [dirname($out)]);
-//index output file
 $parser->execApptainer("htslib", "tabix", "-f -p vcf $out", [], [dirname($out)]);
 
 ?>
