@@ -79,6 +79,8 @@ if (db_is_enabled("NGSD"))
 		trigger_error("Skipping step 're' - Report configuration with REs exists in NGSD!", E_USER_NOTICE);
 		if (($key = array_search("re", $steps)) !== false) unset($steps[$key]);
 	}
+
+	$sample_info = get_processed_sample_info($db, $name, false);
 }
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
@@ -203,18 +205,6 @@ if (in_array("ma", $steps))
 	
 	$parser->execTool("Tools/mapping_minimap.php", implode(" ", $mapping_minimap_options));
 
-	// create methylation track
-	if (contains_methylation($used_bam_or_cram, 100, $build))
-	{
-		$args = [];
-		$args[] = "-bam ".$used_bam_or_cram;
-		$args[] = "-bed ".$modkit_track;
-		$args[] = "-summary ".$modkit_summary;
-		$args[] = "-threads ".$threads;
-		$args[] = "-build ".$build;
-		$parser->execTool("Tools/vc_modkit.php", implode(" ", $args));
-	}
-
 	//low-coverage report
 	$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".realpath($sys['target_file'])." -bam {$used_bam_or_cram} -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", [$sys['target_file'], $genome, $used_bam_or_cram], [$folder]);
 	if (db_is_enabled("NGSD"))
@@ -270,10 +260,9 @@ if (in_array("ma", $steps))
 		if (db_is_enabled("NGSD"))
 		{
 			$db = DB::getInstance("NGSD", false);
-			$info = get_processed_sample_info($db, $name, false);
-			if (!is_null($info))
+			if (!is_null($sample_info))
 			{
-				$preserve_fastqs = $info['preserve_fastqs'];
+				$preserve_fastqs = $sample_info['preserve_fastqs'];
 			}
 		}
 		
@@ -971,6 +960,33 @@ if (in_array("me", $steps))
 	if (!contains_methylation($used_bam_or_cram)) trigger_error("BAM file doesn't contain methylation info! Skipping step 'me'", E_USER_WARNING);
 	else 
 	{
+		// create phased methylation track
+		$args = [];
+		$args[] = "-bam ".$used_bam_or_cram;
+		$args[] = "-bed ".$modkit_track;
+		$args[] = "-summary ".$modkit_summary;
+		$args[] = "-threads ".$threads;
+		$args[] = "-build ".$build;
+		$parser->execTool("Tools/vc_modkit.php", implode(" ", $args));
+
+		//copy to cohort folder
+		if (!isset($db)) trigger_error("NGSD is disabled! Skip copying/replacing of cohort methylation files.", E_USER_WARNING); //no NGSD
+		else if (realpath($folder) != realpath($sample_info["ps_folder"])) trigger_error("Sample is not in correct folder according to NGSD! Skip copying/replacing of cohort methylation files.", E_USER_WARNING); //not in correct sample folder
+		else
+		{
+			//copy methyl files to cohort folder 
+			$cohort_folder = get_path("methylation_cohorts")."/".$sample_info["sys_name_short"]."/";
+			$parser->copyFile($modkit_track, $cohort_folder);
+			$parser->copyFile($modkit_track.".tbi", $cohort_folder);
+			$modkit_track_hp1 = dirname($modkit_track)."/".basename($modkit_track, ".bed.gz")."_hp1.bed.gz";
+			$parser->copyFile($modkit_track_hp1, $cohort_folder);
+			$parser->copyFile($modkit_track_hp1.".tbi", $cohort_folder);
+			$modkit_track_hp2 = dirname($modkit_track)."/".basename($modkit_track, ".bed.gz")."_hp2.bed.gz";
+			$parser->copyFile($modkit_track_hp2, $cohort_folder);
+			$parser->copyFile($modkit_track_hp2.".tbi", $cohort_folder);
+		}
+
+		//create plots
 		$args = [];
 		$args[] = "-folder {$folder}";
 		$args[] = "-name {$name}";

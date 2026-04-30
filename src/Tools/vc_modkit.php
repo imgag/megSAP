@@ -22,13 +22,17 @@ extract($parser->parse($argv));
 //init
 $genome = genome_fasta($build);
 $log_file = $parser->tempFile("_modkit_pileup.log");
-$uncompressed_bed = $parser->tempFile("_modkit.bed");
+$tmp_folder = $parser->tempFolder("modkit");
 
 //run modkit
 $args = [];
 $args[] = "pileup";
 $args[] = $bam;
-$args[] = $uncompressed_bed;
+$args[] = $tmp_folder;
+$args[] = "--phased";
+$args[] = "--cpg";
+$args[] = "--modified-bases 5mC 5hmC";
+// $args[] = "--bgzf";
 $args[] = "--ref ".$genome;
 $args[] = "--log-filepath ".$log_file;
 $args[] = "--threads ".$threads;
@@ -40,12 +44,30 @@ $in_files[] = $genome;
 
 $parser->execApptainer("modkit", "modkit", implode(" ", $args), $in_files);
 
-//copy logfile 
-$parser->log("modkit pileup log file", file($log_file));
+//filter & copy logfile
+$log = array_filter(file($log_file), fn($line) => !strpos($line, "[DEBUG]"));
+$parser->log("modkit pileup log file", $log);
 
-//store compressed file
-$parser->execApptainer("htslib", "bgzip", "-c $uncompressed_bed > $bed", [], [dirname($bed)]);
-$parser->execApptainer("htslib", "tabix", "-f -p bed $bed", [], [dirname($bed)]);
+/*
+//copy bed.gz
+$parser->copyFile($tmp_folder."/combined.bed.gz", $bed);
+$bed_hp1 = dirname($bed)."/".basename($bed, ".bed.gz")."_hp1.bed.gz";
+$bed_hp2 = dirname($bed)."/".basename($bed, ".bed.gz")."_hp2.bed.gz";
+$parser->copyFile($tmp_folder."/hp1.bed.gz", $bed_hp1);
+$parser->copyFile($tmp_folder."/hp2.bed.gz", $bed_hp2);
+*/
+
+//compress BED files
+$bed_hp1 = dirname($bed)."/".basename($bed, ".bed.gz")."_hp1.bed.gz";
+$bed_hp2 = dirname($bed)."/".basename($bed, ".bed.gz")."_hp2.bed.gz";
+$parser->execApptainer("htslib", "bgzip", "-@ {$threads} -c -l 9 {$tmp_folder}/combined.bedmethyl > {$bed}", [], [dirname($bed)]);
+$parser->execApptainer("htslib", "bgzip", "-@ {$threads} -c -l 9 {$tmp_folder}/hp1.bedmethyl > {$bed_hp1}", [], [dirname($bed_hp1)]);
+$parser->execApptainer("htslib", "bgzip", "-@ {$threads} -c -l 9 {$tmp_folder}/hp2.bedmethyl > {$bed_hp2}", [], [dirname($bed_hp2)]);
+
+//create index
+$parser->execApptainer("htslib", "tabix", "-f -p bed {$bed}", [$bed], [dirname($bed)]);
+$parser->execApptainer("htslib", "tabix", "-f -p bed {$bed_hp1}", [$bed_hp1], [dirname($bed_hp1)]);
+$parser->execApptainer("htslib", "tabix", "-f -p bed {$bed_hp2}", [$bed_hp2], [dirname($bed_hp2)]);
 
 //run summary
 if (isset($summary))
@@ -62,7 +84,6 @@ if (isset($summary))
 	//copy logfile 
 	$parser->log("modkit summary log file", file($log_file2));
 }
-
 
 
 ?>
