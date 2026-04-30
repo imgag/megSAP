@@ -49,7 +49,7 @@ diff:
 	php ../compare_qcml_xml.php 23014LRa023L2_01_stats_vc.qcML.out 23014LRa023L2_01_stats_vc.qcML 1.01
 	php ../compare_qcml_xml.php 23014LRa023L2_01_stats_other.qcML.out 23014LRa023L2_01_stats_other.qcML
 	diff 23014LRa023L2_01_cnvs_clincnv.tsv.out 23014LRa023L2_01_cnvs_clincnv.tsv --ignore-matching-lines="#"
-	php ../compare_tsv.php -in1 23014LRa023L2_01_var_structural_variants.bedpe.out -in2 23014LRa023L2_01_var_structural_variants.bedpe -skip_comments_matching command=,commandline=,fileDate= -skip_cols GENES,GENES_BREAKPOINTS,GENE_INFO,NGSD_HOM,NGSD_HET,NGSD_AF,NGSD_group,NGSD_SV_BREAKPOINT_DENSITY,NGSD_SV_BREAKPOINT_DENSITY_SYS,NGSD_PATHOGENIC_SVS
+	php ../compare_tsv.php -in1 23014LRa023L2_01_var_structural_variants.bedpe.out -in2 23014LRa023L2_01_var_structural_variants.bedpe -skip_comments_matching command=,commandline=,fileDate=,PIPELINE= -skip_cols GENES,GENES_BREAKPOINTS,GENE_INFO,NGSD_HOM,NGSD_HET,NGSD_AF,NGSD_group,NGSD_SV_BREAKPOINT_DENSITY,NGSD_SV_BREAKPOINT_DENSITY_SYS,NGSD_PATHOGENIC_SVS
 	diff 23014LRa023L2_01_prs.tsv.out 23014LRa023L2_01_prs.tsv
 	diff 23014LRa023L2_01_phasing_track.bed.out 23014LRa023L2_01_phasing_track.bed
 	diff 23014LRa023L2_01_bafs.igv.out 23014LRa023L2_01_bafs.igv
@@ -80,7 +80,7 @@ diff2:
 	php ../compare_qcml_xml.php 23014LRa023_01_stats_vc.qcML.out 23014LRa023_01_stats_vc.qcML 1.01
 	php ../compare_qcml_xml.php 23014LRa023_01_stats_other.qcML.out 23014LRa023_01_stats_other.qcML
 	diff 23014LRa023_01_cnvs_clincnv.tsv.out 23014LRa023_01_cnvs_clincnv.tsv --ignore-matching-lines="#"
-	php ../compare_tsv.php -in1 23014LRa023_01_var_structural_variants.bedpe.out -in2 23014LRa023_01_var_structural_variants.bedpe -skip_comments_matching command=,commandline=,fileDate= -skip_cols GENES,GENES_BREAKPOINTS,GENE_INFO,NGSD_HOM,NGSD_HET,NGSD_AF,NGSD_group,NGSD_SV_BREAKPOINT_DENSITY,NGSD_SV_BREAKPOINT_DENSITY_SYS,NGSD_PATHOGENIC_SVS
+	php ../compare_tsv.php -in1 23014LRa023_01_var_structural_variants.bedpe.out -in2 23014LRa023_01_var_structural_variants.bedpe -skip_comments_matching command=,commandline=,fileDate=,PIPELINE= -skip_cols GENES,GENES_BREAKPOINTS,GENE_INFO,NGSD_HOM,NGSD_HET,NGSD_AF,NGSD_group,NGSD_SV_BREAKPOINT_DENSITY,NGSD_SV_BREAKPOINT_DENSITY_SYS,NGSD_PATHOGENIC_SVS
 	diff 23014LRa023_01_prs.tsv.out 23014LRa023_01_prs.tsv
 	diff 23014LRa023_01_phasing_track.bed.out 23014LRa023_01_phasing_track.bed
 	diff 23014LRa023_01_bafs.igv.out 23014LRa023_01_bafs.igv

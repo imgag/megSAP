@@ -23,5 +23,5 @@ call:
 diff:
 	php ../compare_variants.php -in1 trio.GSvar.out -in2 trio.GSvar -add 24067LRa008_01,24067LRa026_01,24067LRa024_01
 	php ../compare_tsv.php -in1 trio_cnvs_clincnv.tsv.out -in2 trio_cnvs_clincnv.tsv -skip_cols ngsd_pathogenic_cnvs,genes,gene_info
-	php ../compare_tsv.php -in1 trio_var_structural_variants.bedpe.out -in2 trio_var_structural_variants.bedpe -skip_comments_matching command=,fileDate= -skip_cols GENES,GENES_BREAKPOINTS,GENE_INFO,NGSD_HOM,NGSD_HET,NGSD_AF,NGSD_group,NGSD_SV_BREAKPOINT_DENSITY,NGSD_SV_BREAKPOINT_DENSITY_SYS,NGSD_PATHOGENIC_SVS
+	php ../compare_tsv.php -in1 trio_var_structural_variants.bedpe.out -in2 trio_var_structural_variants.bedpe -skip_comments_matching command=,fileDate=,PIPELINE= -skip_cols GENES,GENES_BREAKPOINTS,GENE_INFO,NGSD_HOM,NGSD_HET,NGSD_AF,NGSD_group,NGSD_SV_BREAKPOINT_DENSITY,NGSD_SV_BREAKPOINT_DENSITY_SYS,NGSD_PATHOGENIC_SVS
 
