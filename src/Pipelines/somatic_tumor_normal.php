@@ -998,7 +998,8 @@ if (in_array("msi", $steps))
 	if (!file_exists($msi_folder)) $parser->exec("mkdir", "-p {$msi_folder}");
 	
 	$msi_ref = $msi_folder."/msisensor_references_".$n_sys['build'].get_path("container_msisensor-pro").".site";
-	$parameters = "-n_bam $n_bam -t_bam $t_bam -msi_ref $msi_ref -ref $ref_genome -threads $threads -out " .$msi_tmp_file. " -build ".$n_sys['build'];
+	
+	$parameters = "-n_bam $n_bam -t_bam $t_bam -msi_ref $msi_ref -ref $ref_genome -threads $threads -out " .$msi_tmp_file. " -build ".$n_sys['build']. " -target ".$sys['target_file'];
 	
 	$parser->execTool("Tools/detect_msi.php", $parameters);
 	$parser->copyFile($msi_tmp_file, $msi_o_file);

@@ -87,7 +87,7 @@ wget -O ClinGen_gene_curation_list_GRCh38.tsv http://ftp.clinicalgenome.org/Clin
 cat ClinGen_gene_curation_list_GRCh38.tsv | php $src/Install/db_converter_clingen_dosage.php > dosage_sensitive_disease_genes_GRCh38.bed
 singularity exec $ngsbits BedSort -in dosage_sensitive_disease_genes_GRCh38.bed -out dosage_sensitive_disease_genes_GRCh38.bed
 
-#Install NCG7.1 - information about oncogenes and tumor suppressor genes
+#Install NCG7.2 - information about oncogenes and tumor suppressor genes
 cd $dbs
 mkdir -p NCG7.2
 cd NCG7.2
@@ -214,7 +214,7 @@ cd $dbs
 mkdir -p gene_expression
 cd gene_expression
 #change version number on update
-wget -O - https://www.proteinatlas.org/download/tsv/rna_tissue_consensus.tsv.zip | gunzip > rna_tissue_consensus_v24.tsv
+wget -O - https://www.proteinatlas.org/download/tsv/rna_tissue_consensus.tsv.zip | gunzip > rna_tissue_consensus_v25.tsv
 
 #download Ensembl data in GTF format - KEEP AT ENSEMBL VERSION 107, DB import for RNA works on Transcript base and will break if the transcripts change.
 cd $dbs
