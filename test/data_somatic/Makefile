@@ -2,10 +2,15 @@ SHELL=/bin/bash
 all: clear link tumor_only tumor_normal tumor_normal_with_fusion
 
 clear:
+	#clear
+	date +"%D %T" 
 	rm -rf Sample_GS110168_03 Sample_GS110169_03 Sample_DX000001_01 Sample_RX000001_01
 	rm -rf out_case1 out_case2 out_case3
+	date +"%D %T" 
 
 link:
+	#link
+	date +"%D %T" 
 	mkdir -p Sample_GS110168_03 Sample_GS110169_03 Sample_DX000001_01 Sample_RX000001_01
 	mkdir -p out_case1 out_case2 out_case3
 	# input files for case 1
@@ -20,6 +25,7 @@ link:
 	cp ../data/somatic_pipeline_rna_counts.tsv Sample_RX000001_01/RX000001_01_counts.tsv
 	cp ../data/somatic_pipeline_tumor_rna.bam Sample_RX000001_01/RX000001_01.bam
 	cp ../data/somatic_pipeline_tumor_rna.bam.bai Sample_RX000001_01/RX000001_01.bam.bai
+	date +"%D %T" 
 
 # tumor-only (varscan) - without CNVs
 tumor_only: to_analyze to_somatic to_diff
@@ -44,6 +50,8 @@ to_somatic:
 		--log out_case1/DX000001_01.log
 
 to_diff:
+	#to_diff
+	date +"%D %T" 
 	# low coverage bed
 	php ../compare_bed.php expected_case1/DX000001_01_stat_lowcov.bed out_case1/DX000001_01_stat_lowcov.bed
 	# small variants
@@ -52,6 +60,7 @@ to_diff:
 	diff expected_case1/DX000001_01_viral.tsv Sample_DX000001_01/DX000001_01_viral.tsv
 	# qcML files
 	php ../compare_qcml_xml.php expected_case1/DX000001_01_stats_other.qcML out_case1/DX000001_01_stats_other.qcML
+	date +"%D %T" 
 
 # tumor-normal (strelka) - without CNVs (GC content too low in input files reduced to one chr)
 tumor_normal: tn_analyze tn_somatic tn_diff
@@ -88,6 +97,8 @@ tn_somatic:
 		--log out_case2/GS110168_03-GS110169_03.log
 
 tn_diff:
+	#tn_diff:
+	date +"%D %T" 
 	# small variants
 	php ../compare_variants.php -in1 expected_case2/GS110168_03-GS110169_03.GSvar -in2 out_case2/GS110168_03-GS110169_03.GSvar -add tumor_af,tumor_dp,normal_af,normal_dp,rna_ref_tpm
 	# low coverge file
@@ -102,6 +113,7 @@ tn_diff:
 	# cfDNA candidates
 	diff --ignore-matching-lines '^##' expected_case2/GS110168_03-GS110169_03_cfDNA_candidates_monitoring.vcf out_case2/GS110168_03-GS110169_03_cfDNA_candidates/monitoring.vcf
 	diff expected_case2/GS110168_03-GS110169_03_cfDNA_candidates_monitoring.tsv out_case2/GS110168_03-GS110169_03_cfDNA_candidates/monitoring.tsv
+	date +"%D %T" 
 
 #Test MANTA SV calls with positive fusion control
 tumor_normal_with_fusion: tn2_somatic tn2_diff
@@ -120,9 +132,12 @@ tn2_somatic:
 	rm ../data/manta_sv_normal_hla_genotyper.tsv ../data/manta_sv_tumor_hla_genotyper.tsv
 
 tn2_diff:
+	#tn2_diff
+	date +"%D %T" 
 	# remove gene annotation if present
 	cut -f1-27 out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural.bedpe > out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural_cut.bedpe
 	diff expected_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural.bedpe out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural_cut.bedpe --ignore-matching-lines="##cmdline" --ignore-matching-lines="##"
+	date +"%D %T" 
 
 create_test_case1:
 	samtools view -bh /mnt/storage2/projects/diagnostic/SomaticAndTreatment/Sample_DX205723_01/DX205723_01.bam chr7:140723402-140929330 > test_case1_tmp.bam
