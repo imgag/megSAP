@@ -150,6 +150,7 @@ if (in_array("vc", $steps))
 	$args[] = "-in ".implode(" ", $vcfs_filtered);
 	$args[] = "-out $vcf_merged";
 	//$args[] = "-bam ".implode(" ", $bams); //too slow for LR > skip it
+	$args[] = "-threads $threads";
 	if($prefix=="trio") $args[] = "-trio";
 	$parser->execApptainer("ngs-bits", "VcfMerge", implode(" ", $args), $bams);
 	

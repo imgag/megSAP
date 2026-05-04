@@ -85,6 +85,7 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("no_check", "Skip gender check of parents and parent-child correlation check (otherwise done before variant calling)");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFloat("min_corr", "Minimal correlation between child and parent.", true, 0.45);
+$parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
 extract($parser->parse($argv));
 
 //start time
@@ -170,7 +171,7 @@ $args_multisample[] = "-system $system";
 $args_multisample[] = "-threads $threads";
 $args_multisample[] = "-no_sync"; //already done if needed
 $args_multisample[] = "-ped {$ped_file}";
-
+if ($no_splice) $args_multisample[] = "-no_splice";
 
 //variant calling (and annotation)
 if (in_array("vc", $steps))

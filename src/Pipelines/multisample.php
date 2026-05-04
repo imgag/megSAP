@@ -230,7 +230,9 @@ if (in_array("vc", $steps))
 		$args = [];
 		$args[] = "-in ".implode(" ", $vcfs_filtered);
 		$args[] = "-out $vcf_merged";
-		//TODO test $args[] = "-bam ".implode(" ", $bams);
+		$args[] = "-bam ".implode(" ", $bams);
+		$args[] = "-threads $threads";
+		$args[] = "-no_genotype_correction"; //just calculate DP/AF (needed e.g. for UPD), but do not update GT
 		if($prefix=="trio") $args[] = "-trio";
 		$parser->execApptainer("ngs-bits", "VcfMerge", implode(" ", $args), $bams);
 		

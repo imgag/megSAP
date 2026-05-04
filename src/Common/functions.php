@@ -434,6 +434,30 @@ function time_readable($duration)
     return implode(" ", $output);
 }
 
+//Converts a human-readable time string produced by time_readable() to minutes
+function time_readable_to_min($time_readable)
+{
+	$min = 0.0;
+	foreach(explode(" ", trim($time_readable)) as $part)
+	{
+		$part = trim($part);
+		if (ends_with($part, "s"))
+		{
+			$min += substr($part, 0, -1) / 60.0;
+		}
+		else if (ends_with($part, "m"))
+		{
+			$min += substr($part, 0, -1);
+		}
+		else if (ends_with($part, "h"))
+		{
+			$min += substr($part, 0, -1) * 60.0;
+		}
+	}
+	
+	return number_format($min, 2);
+}
+
 /*
 	@brief Returns a human-readable traceback string.
 */

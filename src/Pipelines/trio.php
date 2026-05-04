@@ -85,6 +85,7 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("no_check", "Skip gender check of parents and parent-child correlation check (otherwise done before variant calling)");
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
+$parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
 extract($parser->parse($argv));
 
 //start time
@@ -152,8 +153,8 @@ $args_multisample = [
 	"-no_sync", //already done if needed
 	"-threads $threads"
 	];
-	
 if ($annotation_only) $args_multisample[] = "-annotation_only";
+if ($no_splice) $args_multisample[] = "-no_splice";
 
 //check steps
 $is_wgs_shallow = $sys['type']=="WGS (shallow)";
