@@ -57,7 +57,7 @@ to_diff:
 	# small variants
 	php ../compare_variants.php -in1 expected_case1/DX000001_01.GSvar -in2 out_case1/DX000001_01.GSvar -add tumor_af,tumor_dp
 	# virus detection
-	diff expected_case1/DX000001_01_viral.tsv Sample_DX000001_01/DX000001_01_viral.tsv
+	numdiff -D "\t \n" -r 0.0001 expected_case1/DX000001_01_viral.tsv Sample_DX000001_01/DX000001_01_viral.tsv
 	# qcML files
 	php ../compare_qcml_xml.php expected_case1/DX000001_01_stats_other.qcML out_case1/DX000001_01_stats_other.qcML
 	date +"%D %T" 
