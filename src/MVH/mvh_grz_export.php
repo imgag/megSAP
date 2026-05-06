@@ -48,7 +48,6 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 		$args[] = "--threads 10";
 		$args[] = "--by ".($roi!="" ? realpath($roi) : "{$qc_wf_folder}/assets/default_files/hg38_440_omim_genes.bed"); 
 		$args[] = "--fasta /tmp/local_ngs_data_GRCh38/GRCh38.fa";
-		//$args[] = "--fast-mode -F 772"; //removed on 27.04.2026
 		exec2("/mnt/storage2/MVH/tools/mosdepth ".implode(" ", $args)." {$mosdepth_folder}/output_prefix {$bam}");
 	}
 	else
