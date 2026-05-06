@@ -18,7 +18,7 @@ link:
 	php ../link_test_data.php 24067LRa024_01_cnvs_clincnv.tsv
 
 call:
-	php ../../src/Pipelines/trio_longread.php -c 24067LRa024_01.cram -f 24067LRa008_01.cram -m 24067LRa026_01.cram -out_folder . -no_check -system system.ini -steps vc,cn,sv,an
+	php ../../src/Pipelines/trio_longread.php -c 24067LRa008_01.cram -f 24067LRa024_01.cram -m 24067LRa026_01.cram -out_folder . -no_check -system system.ini -steps vc,cn,sv,an
 
 diff:
 	php ../compare_variants.php -in1 trio.GSvar.out -in2 trio.GSvar -add 24067LRa008_01,24067LRa026_01,24067LRa024_01

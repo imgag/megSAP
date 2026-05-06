@@ -149,9 +149,10 @@ if (in_array("vc", $steps))
 	$args = [];
 	$args[] = "-in ".implode(" ", $vcfs_filtered);
 	$args[] = "-out $vcf_merged";
-	//$args[] = "-bam ".implode(" ", $bams); //too slow for LR > skip it
+	$args[] = "-bam ".implode(" ", $bams);
 	$args[] = "-threads $threads";
-	if($prefix=="trio") $args[] = "-trio";
+	$args[] = "-no_genotype_correction"; //just calculate DP/AF (needed e.g. for UPD), but do not update GT
+	$args[] = "-long_read";
 	$parser->execApptainer("ngs-bits", "VcfMerge", implode(" ", $args), $bams);
 	
 	//add pipeline to header to VCF file
