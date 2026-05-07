@@ -512,4 +512,135 @@ function convert_se_kids_bc_to_fhir($bc_item, $se_data, $parser)
 	return json_decode(file_get_contents($tmp2), true);
 }	
 
+
+############################# QC Pipeline ###################################
+
+function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
+{
+	global $parser;
+	global $seq_mode;
+	global $is_somatic;
+	global $qc_folder;
+	global $is_lrgs;
+	global $patient_id;
+	$qc_wf_folder = "/mnt/storage2/MVH/tools/GRZ_QC_Workflow/";
+	
+	//run mosdepth if necessary
+	$mosdepth_folder = "{$qc_folder}/mosdepth_".($is_tumor ? "tumor" : "germline")."/";
+	$mosdepth_summary = "{$mosdepth_folder}/output_prefix.mosdepth.summary.txt";
+	$mosdepth_regions = "{$mosdepth_folder}/output_prefix.regions.bed.gz";
+	if (!file_exists($mosdepth_summary) || !file_exists($mosdepth_regions))
+	{
+		print "  running mosdepth for {$ps} in folder {$mosdepth_folder} ...\n";
+		
+		//make sure output folder exits
+		exec2("mkdir -p {$mosdepth_folder}");
+		
+		//run
+		$args = [];
+		$args[] = "--threads 10";
+		$args[] = "--by ".($roi!="" ? realpath($roi) : "{$qc_wf_folder}/assets/default_files/hg38_440_omim_genes.bed"); 
+		$args[] = "--fasta /tmp/local_ngs_data_GRCh38/GRCh38.fa";
+		exec2("/mnt/storage2/MVH/tools/mosdepth ".implode(" ", $args)." {$mosdepth_folder}/output_prefix {$bam}");
+	}
+	else
+	{
+		print "  note: mosdepth results already exist in folder {$mosdepth_folder} - using them\n";
+	}
+	
+	//run fastp if necessary
+	$fastp_folder = "{$qc_folder}/fastp_".($is_tumor ? "tumor" : "germline")."/";
+	$fastp_json = "{$fastp_folder}/{$ps}.json";
+	if (!file_exists($fastp_json))
+	{
+		print "  running fastp for {$ps} in folder {$fastp_folder} ...\n";
+		
+		//make sure output folder exits
+		exec2("mkdir -p {$fastp_folder}");
+		
+		//run fastp
+		$args = [];
+		$args[] = "--thread 10";
+		if ($is_lrgs)
+		{
+			$args[] = "--in ".realpath($fq1);
+			$args[] = "--out {$fastp_folder}/R1.fastq.gz";
+		}
+		else
+		{
+			$args[] = "--in1 ".realpath($fq1);
+			$args[] = "--in2 ".realpath($fq2);
+			$args[] = "--out1 {$fastp_folder}/R1.fastq.gz";
+			$args[] = "--out2 {$fastp_folder}/R2.fastq.gz";
+			$args[] = "--detect_adapter_for_pe";
+		}
+		$args[] = "--json {$fastp_json}";
+		$args[] = "--html {$fastp_folder}/{$ps}.html";
+		exec2("/mnt/storage2/MVH/tools/fastp".($is_lrgs ? "long" : "")." ".implode(" ", $args));
+	}
+	else
+	{
+		print "  note: fastp results already exist in folder {$fastp_folder} - using them\n";
+	}
+	
+	//determine QC thresholds
+	$lib_type = ($is_lrgs ? "wgs_lr" : strtolower($seq_mode));
+	$seq_subtype = ($is_tumor ? "somatic" : "germline");
+	$study_subtype = ($is_somatic ? "tumor+germline" : "germline-only");
+	$qc_data = json_decode(file_get_contents("/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/lib/python3.12/site-packages/grz_pydantic_models/resources/thresholds.json"), true);
+	$thresholds = NULL;
+	foreach($qc_data as $entry)
+	{
+		if ($entry['libraryType']!=$lib_type) continue;
+		if ($entry['sequenceSubtype']!=$seq_subtype) continue;
+		if ($entry['genomicStudySubtype']!=$study_subtype) continue;
+		
+		$thresholds = $entry['thresholds'];
+	}
+	if (is_null($thresholds)) trigger_error("Could not determine thresholds for {$lib_type}/{$seq_subtype}/{$study_subtype}!", E_USER_ERROR);
+	
+	//generate report
+	$report = "{$qc_folder}/{$ps}_report.csv";
+	$args = [];
+	$args[] = "--donorPseudonym '{$patient_id}'";
+	$args[] = "--sample_id '{$ps}'";
+	$args[] = "--labDataName 'blood DNA'";
+	$args[] = "--libraryType {$lib_type}";
+	$args[] = "--sequenceSubtype {$seq_subtype}";
+	$args[] = "--genomicStudySubtype {$study_subtype}";
+	$args[] = "--fastp_json {$fastp_json}";
+	$args[] = "--mosdepth_global_summary {$mosdepth_summary}";
+	$args[] = "--mosdepth_target_regions_bed {$mosdepth_regions}";
+	$args[] = "--output {$report}";
+	$args[] = "--meanDepthOfCoverage 1"; //dummy value, not used on our case
+	$args[] = "--targetedRegionsAboveMinCoverage 1"; //dummy value, not used on our case
+	$args[] = "--percentBasesAboveQualityThreshold 1"; //dummy value, not used on our case
+	$args[] = "--meanDepthOfCoverageRequired ".$thresholds['meanDepthOfCoverage']; 
+	$args[] = "--qualityThreshold ".$thresholds['percentBasesAboveQualityThreshold']['qualityThreshold'];
+	$args[] = "--percentBasesAboveQualityThresholdRequired ".$thresholds['percentBasesAboveQualityThreshold']['percentBasesAbove'];
+	$args[] = "--minCoverage ".$thresholds['targetedRegionsAboveMinCoverage']['minCoverage'];
+	$args[] = "--targetedRegionsAboveMinCoverageRequired ".$thresholds['targetedRegionsAboveMinCoverage']['fractionAbove'];
+	exec2("/mnt/storage2/MVH/tools/python3/bin/python3 {$qc_wf_folder}/bin/compare_threshold.py ".implode(" ", $args));
+
+	//parse QC report
+	$file = file($report);
+	$headers = explode(",", trim($file[0]));
+	$metrics = explode(",", trim($file[1]));
+	return array_combine($headers, $metrics);
+}
+
+function print_grz_qc($grz_qc)
+{
+	$minQual  = $grz_qc["qualityThreshold"];
+	$percQual = $grz_qc["percentBasesAboveQualityThreshold"];
+	$meanDepth = (float)($grz_qc["meanDepthOfCoverage"]);
+	$minCov = $grz_qc["minCoverage"];
+	$regionsAboveMin = number_format($grz_qc["targetedRegionsAboveMinCoverage"],2);
+	
+	print "\tQuality Threshold: {$minQual}\tpercentBasesAboveQualityThreshold: {$percQual}\n";
+	print "\tMean Depth of Coverage: {$meanDepth}\t- with 5%: ".number_format($meanDepth*1.05,2)."\n";
+	print "\tminCoverage: {$minCov}\ttarget regions above min coverage: {$regionsAboveMin}\n";
+}
+
+
 ?>
