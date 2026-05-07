@@ -22,121 +22,6 @@ function megsap_version($gsvar)
 	trigger_error("Could not determine megSAP version from '{$gsvar}'!", E_USER_ERROR);
 }
 
-function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
-{
-	global $parser;
-	global $seq_mode;
-	global $is_somatic;
-	global $qc_folder;
-	global $is_lrgs;
-	global $patient_id;
-	$qc_wf_folder = "/mnt/storage2/MVH/tools/GRZ_QC_Workflow/";
-	
-	//run mosdepth if necessary
-	$mosdepth_folder = "{$qc_folder}/mosdepth_".($is_tumor ? "tumor" : "germline")."/";
-	$mosdepth_summary = "{$mosdepth_folder}/output_prefix.mosdepth.summary.txt";
-	$mosdepth_regions = "{$mosdepth_folder}/output_prefix.regions.bed.gz";
-	if (!file_exists($mosdepth_summary) || !file_exists($mosdepth_regions))
-	{
-		print "  running mosdepth for {$ps} in folder {$mosdepth_folder} ...\n";
-		
-		//make sure output folder exits
-		exec2("mkdir -p {$mosdepth_folder}");
-		
-		//run
-		$args = [];
-		$args[] = "--threads 10";
-		$args[] = "--by ".($roi!="" ? realpath($roi) : "{$qc_wf_folder}/assets/default_files/hg38_440_omim_genes.bed"); 
-		$args[] = "--fasta /tmp/local_ngs_data_GRCh38/GRCh38.fa";
-		$args[] = "--fast-mode -F 772"; //TODO remove on 31.03.2026
-		exec2("/mnt/storage2/MVH/tools/mosdepth ".implode(" ", $args)." {$mosdepth_folder}/output_prefix {$bam}");
-	}
-	else
-	{
-		print "  note: mosdepth results already exist in folder {$mosdepth_folder} - using them\n";
-	}
-	
-	//run fastp if necessary
-	$fastp_folder = "{$qc_folder}/fastp_".($is_tumor ? "tumor" : "germline")."/";
-	$fastp_json = "{$fastp_folder}/{$ps}.json";
-	if (!file_exists($fastp_json))
-	{
-		print "  running fastp for {$ps} in folder {$fastp_folder} ...\n";
-		
-		//make sure output folder exits
-		exec2("mkdir -p {$fastp_folder}");
-		
-		//run fastp
-		$args = [];
-		$args[] = "--thread 10";
-		if ($is_lrgs)
-		{
-			$args[] = "--in ".realpath($fq1);
-			$args[] = "--out {$fastp_folder}/R1.fastq.gz";
-		}
-		else
-		{
-			$args[] = "--in1 ".realpath($fq1);
-			$args[] = "--in2 ".realpath($fq2);
-			$args[] = "--out1 {$fastp_folder}/R1.fastq.gz";
-			$args[] = "--out2 {$fastp_folder}/R2.fastq.gz";
-			$args[] = "--detect_adapter_for_pe";
-		}
-		$args[] = "--json {$fastp_json}";
-		$args[] = "--html {$fastp_folder}/{$ps}.html";
-		exec2("/mnt/storage2/MVH/tools/fastp".($is_lrgs ? "long" : "")." ".implode(" ", $args));
-	}
-	else
-	{
-		print "  note: fastp results already exist in folder {$fastp_folder} - using them\n";
-	}
-	
-	//determine QC thresholds
-	$lib_type = ($is_lrgs ? "wgs_lr" : strtolower($seq_mode));
-	$seq_subtype = ($is_tumor ? "somatic" : "germline");
-	$study_subtype = ($is_somatic ? "tumor+germline" : "germline-only");
-	$qc_data = json_decode(file_get_contents("/mnt/storage2/MVH/tools/miniforge3/envs/grz-tools/lib/python3.12/site-packages/grz_pydantic_models/resources/thresholds.json"), true);
-	$thresholds = NULL;
-	foreach($qc_data as $entry)
-	{
-		if ($entry['libraryType']!=$lib_type) continue;
-		if ($entry['sequenceSubtype']!=$seq_subtype) continue;
-		if ($entry['genomicStudySubtype']!=$study_subtype) continue;
-		
-		$thresholds = $entry['thresholds'];
-	}
-	if (is_null($thresholds)) trigger_error("Could not determine thresholds for {$lib_type}/{$seq_subtype}/{$$study_subtype}!", E_USER_ERROR);
-	
-	//generate report
-	$report = "{$qc_folder}/{$ps}_report.csv";
-	$args = [];
-	$args[] = "--donorPseudonym '{$patient_id}'";
-	$args[] = "--sample_id '{$ps}'";
-	$args[] = "--labDataName 'blood DNA'";
-	$args[] = "--libraryType {$lib_type}";
-	$args[] = "--sequenceSubtype {$seq_subtype}";
-	$args[] = "--genomicStudySubtype {$study_subtype}";
-	$args[] = "--fastp_json {$fastp_json}";
-	$args[] = "--mosdepth_global_summary {$mosdepth_summary}";
-	$args[] = "--mosdepth_target_regions_bed {$mosdepth_regions}";
-	$args[] = "--output {$report}";
-	$args[] = "--meanDepthOfCoverage 1"; //dummy value, not used on our case
-	$args[] = "--targetedRegionsAboveMinCoverage 1"; //dummy value, not used on our case
-	$args[] = "--percentBasesAboveQualityThreshold 1"; //dummy value, not used on our case
-	$args[] = "--meanDepthOfCoverageRequired ".$thresholds['meanDepthOfCoverage']; 
-	$args[] = "--qualityThreshold ".$thresholds['percentBasesAboveQualityThreshold']['qualityThreshold'];
-	$args[] = "--percentBasesAboveQualityThresholdRequired ".$thresholds['percentBasesAboveQualityThreshold']['percentBasesAbove'];
-	$args[] = "--minCoverage ".$thresholds['targetedRegionsAboveMinCoverage']['minCoverage'];
-	$args[] = "--targetedRegionsAboveMinCoverageRequired ".$thresholds['targetedRegionsAboveMinCoverage']['fractionAbove'];
-	exec2("/mnt/storage2/MVH/tools/python3/bin/python3 {$qc_wf_folder}/bin/compare_threshold.py ".implode(" ", $args));
-
-	//parse QC report
-	$file = file($report);
-	$headers = explode(",", trim($file[0]));
-	$metrics = explode(",", trim($file[1]));
-	return array_combine($headers, $metrics);
-}
-
 function get_read_length($ps, $sys_type)
 {
 	global $db_ngsd;
@@ -326,6 +211,7 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor, $info_germline=
 $parser = new ToolBase("mvh_grz_export", "GRZ export for Modellvorhaben.");
 $parser->addInt("cm_id", "ID in case management RedCap database.", false);
 $parser->addFlag("clear", "Clear export and QC folder before running this script.");
+$parser->addFlag("qc_only", "Calculate only the MVH QC and stop.");
 $parser->addFlag("test", "Test mode.");
 extract($parser->parse($argv));
 
@@ -413,16 +299,18 @@ $roi = "";
 if ($sys=="twistCustomExomeV2" || $sys=="twistCustomExomeV2Covaris") $roi = "{$mvh_folder}/rois/twist_exome_core_plus_refseq.bed";
 if ($seq_mode!="WGS" && $seq_mode!="lrGS" && $roi=="") trigger_error("Could not determine target region for sample '{$ps}' with processing system '{$sys}'!", E_USER_ERROR);
 
-//determine tanG==VNg
-$sub_ids = $db_mvh->getValues("SELECT id FROM `submission_grz` WHERE status='pending' AND case_id='{$id}'");
-if (count($sub_ids)!=1)  trigger_error(count($sub_ids)." pending GRZ submissions for case {$cm_id}. Must be one!", E_USER_ERROR);
-$sub_id = $sub_ids[0];
-print "ID in submission_grz table: {$sub_id}\n";
-$tan_g = $db_mvh->getValue("SELECT tang FROM submission_grz WHERE id='{$sub_id}'");
-print "TAN: {$tan_g}\n";
-$patient_id = $db_mvh->getValue("SELECT pseudog FROM submission_grz WHERE id='{$sub_id}'");
-print "patient pseudonym: {$patient_id}\n";
-
+if (! $qc_only)
+{
+	//determine tanG==VNg
+	$sub_ids = $db_mvh->getValues("SELECT id FROM `submission_grz` WHERE status='pending' AND case_id='{$id}'");
+	if (count($sub_ids)!=1)  trigger_error(count($sub_ids)." pending GRZ submissions for case {$cm_id}. Must be one!", E_USER_ERROR);
+	$sub_id = $sub_ids[0];
+	print "ID in submission_grz table: {$sub_id}\n";
+	$tan_g = $db_mvh->getValue("SELECT tang FROM submission_grz WHERE id='{$sub_id}'");
+	print "TAN: {$tan_g}\n";
+	$patient_id = $db_mvh->getValue("SELECT pseudog FROM submission_grz WHERE id='{$sub_id}'");
+	print "patient pseudonym: {$patient_id}\n";
+}
 //determine megSAP version from germline GSvar file
 $megsap_ver = megsap_version($info['ps_folder']."/{$ps}.GSvar");
 
@@ -572,6 +460,21 @@ if ($is_somatic)
 }
 
 print "running QC pipeline took ".time_readable(microtime(true)-$time_start)."\n";
+
+if ($qc_only)
+{	
+	print "QC {$ps}:\n";
+	print_grz_qc($grz_qc);
+	
+	if ($is_somatic)
+	{
+		print "QC {$ps_t}:\n";
+		print_grz_qc($grz_qc_t);
+	}
+	exit(0);
+}
+
+
 $time_start = microtime(true);
 
 //prepare file info for meta data JSON
