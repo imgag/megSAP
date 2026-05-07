@@ -30,6 +30,7 @@ $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to th
 $parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
 $parser->addFlag("no_circos", "Skip Circos plot generation.");
 $parser->addFlag("no_qc", "Skip calculation of QC metrics.");
+$parser->addFlag("force_qc", "Calculate fastq and mapping QC metrics even if they are already available.");
 $parser->addFlag("no_lowcov", "Skip generation of low-coverage report");
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
 extract($parser->parse($argv));
@@ -63,6 +64,11 @@ if ($roi!="")
 {
 	$roi = realpath($roi);
 	if (!bed_is_sorted($roi)) trigger_error("Target region file not sorted: ".$roi, E_USER_ERROR);
+}
+
+if ($no_qc && $force_qc)
+{
+	trigger_error("Flags 'no_qc' and 'force_qc' cannot be used at the same time.", E_USER_ERROR);
 }
 
 //handle somatic flag
@@ -364,7 +370,7 @@ else if ($bam_or_cram_exists)
 	check_genome_build($used_bam_or_cram, $build);
 
 	//QC for samples mapped/called on NovaSeq X
-	if(!file_exists($qc_map) && !$no_qc)
+	if( (!file_exists($qc_map) && !$no_qc) || $force_qc)
 	{
 		//QC
 		$in_files = array();
@@ -389,7 +395,7 @@ else if ($bam_or_cram_exists)
 			$params[] = "-somatic_custom_bed $somatic_custom_panel";
 			$in_files[] = $somatic_custom_panel;
 		}
-		if (!file_exists($qc_fastq))
+		if (!file_exists($qc_fastq) || $force_qc)
 		{
 			$params[] = "-read_qc $qc_fastq";
 		}
@@ -397,7 +403,7 @@ else if ($bam_or_cram_exists)
 	}
 
 	//low-coverage regions for samples mapped/called on NovaSeq X / DRAGEN server
-	if(!file_exists($lowcov_file) && !$no_lowcov)
+	if( (!file_exists($lowcov_file) && !$no_lowcov) || $force_qc)
 	{
 		if ($roi!="" && !$is_wgs_shallow)
 		{	
@@ -1237,7 +1243,7 @@ if ((in_array("vc", $steps) || in_array("cn", $steps) || in_array("sv", $steps))
 }
 
 // collect other QC terms
-if ((in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps)) && !$no_qc)
+if (( (in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps)) && !$no_qc) || $force_qc)
 {
 	$terms = [];
 	$sources = [];

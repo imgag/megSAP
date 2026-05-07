@@ -362,6 +362,7 @@ $parser->exec("rm", "-rf $working_dir");
 
 //parse megSAP parameter
 $megSAP_args = array();
+$megSAP_args[] = "-force_qc";
 if (!$system_created_from_ngsd) $megSAP_args[] = "-system {$system}";
 $megSAP_args[] = "-steps ".implode(",", $steps);
 $megSAP_args[] = "-threads {$threads}";
@@ -370,7 +371,6 @@ if ($rna_sample != "") $megSAP_args[] = "-rna_sample {$rna_sample}";
 $high_priority_str = ($high_priority)? "-high_priority " : ""; 
 
 //queue analysis
-
 if ($user == "") $user = "unknown";
 $queuing_params = "-user {$user} -type 'single sample' -samples {$name} -ignore_running_jobs {$high_priority_str} -args '".implode(" ", $megSAP_args)."'";
 
