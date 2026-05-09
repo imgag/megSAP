@@ -226,7 +226,7 @@ if (in_array("an", $steps))
 	if (file_exists($vcf_file))
 	{
 		//determine mendelian error rate
-		list($stdout) = $parser->execApptainer("ngs-bits", "TrioMendelianErrors", "-vcf {$vcf_file} -c {$sample_c} -f {$sample_f} -m {$sample_m}", [$vcf_file]);
+		list($stdout) = $parser->execApptainer("ngs-bits", "TrioMendelianErrors", "-vcf {$vcf_file} -c {$sample_c} -f {$sample_f} -m {$sample_m} -min_dp 10", [$vcf_file]);
 		foreach($stdout as $line)
 		{
 			if (starts_with($line, "Mendelian error rate "))

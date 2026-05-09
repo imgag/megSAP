@@ -200,7 +200,7 @@ if (in_array("vc", $steps))
 	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps vc", true); 
 
 	//determine mendelian error rate
-	list($stdout) = $parser->execApptainer("ngs-bits", "TrioMendelianErrors", "-vcf {$vcf_multi} -c {$sample_c} -f {$sample_f} -m {$sample_m}", [$vcf_multi]);
+	list($stdout) = $parser->execApptainer("ngs-bits", "TrioMendelianErrors", "-vcf {$vcf_multi} -c {$sample_c} -f {$sample_f} -m {$sample_m} -min_dp 10", [$vcf_multi]);
 	foreach($stdout as $line)
 	{
 		if (starts_with($line, "Mendelian error rate "))
