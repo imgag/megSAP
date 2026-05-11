@@ -232,7 +232,6 @@ if (in_array("vc", $steps))
 		$args[] = "-out $vcf_merged";
 		$args[] = "-bam ".implode(" ", $bams);
 		$args[] = "-threads $threads";
-		$args[] = "-no_genotype_correction"; //just calculate DP/AF (needed e.g. for UPD), but do not update GT
 		$parser->execApptainer("ngs-bits", "VcfMerge", implode(" ", $args), $bams);
 		
 		//add pipeline to header to VCF file

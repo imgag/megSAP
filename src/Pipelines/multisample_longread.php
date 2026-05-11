@@ -151,7 +151,6 @@ if (in_array("vc", $steps))
 	$args[] = "-out $vcf_merged";
 	$args[] = "-bam ".implode(" ", $bams);
 	$args[] = "-threads $threads";
-	$args[] = "-no_genotype_correction"; //just calculate DP/AF (needed e.g. for UPD), but do not update GT
 	$args[] = "-long_read";
 	$parser->execApptainer("ngs-bits", "VcfMerge", implode(" ", $args), $bams);
 	
