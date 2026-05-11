@@ -24,6 +24,7 @@ $parser->addString("ref_sample", "Reference sample to use for validation.", true
 $parser->addFlag("matches", "Do not only show variants that were missed (-), are novel (+) or with genotype mismatch (g), but also show matches (=) in output.");
 $parser->addFlag("skip_depth_calculation", "Do not calculate depth of missed variants to speed up calculation.");
 $parser->addFlag("keep_mosaic", "Do not remove variants which are flagged as 'mosaic'.");
+$parser->addFlag("keep_targeted", "Do not remove variants which are flagged as 'targeted'.");
 $parser->addOutfile("final_roi", "Optional output BED file containing the final target region after filtering", true);
 $parser->addInfile("exclude_region", "Region to exclude e.g. low-mappability regions (BED format).", true);
 extract($parser->parse($argv));
@@ -34,6 +35,7 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skippe
 	global $parser;
 	global $genome;
 	global $keep_mosaic;
+	global $keep_targeted;
 		
 	//get variants
 	$tmp = $parser->tempFile(".vcf");
@@ -95,6 +97,26 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skippe
 				if ($entry=="MOSAIC")
 				{
 					@$skipped["mosaic"] += 1;
+					continue(2);
+				}
+			}
+		}
+
+		//skip targeted variants (megSAP)
+		if (!$keep_mosaic && contains($filter, "targeted"))
+		{
+			@$skipped["targeted"] += 1;
+			continue;
+		}
+
+		//skip targeted variants (DRAGEN)
+		if (!$keep_targeted)
+		{
+			foreach($info as $entry)
+			{
+				if ($entry=="TARGETED")
+				{
+					@$skipped["targeted"] += 1;
 					continue(2);
 				}
 			}
@@ -407,6 +429,8 @@ $options = array();
 if ($min_dp>0) $options[] = "min_dp={$min_dp}";
 if ($max_indel>0) $options[] = "max_indel={$max_indel}";
 if ($min_qual>0) $options[] = "min_qual={$min_qual}";
+if ($keep_mosaic) $options[] = "keep_mosaic";
+if ($keep_targeted) $options[] = "keep_targeted";
 $options = implode(" ", $options);
 $date = strtr(date("Y-m-d H:i:s", filemtime($vcf)), "T", " ");
 $output = array();
