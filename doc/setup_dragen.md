@@ -23,7 +23,7 @@ To use the DRAGEN server in the megSAP pipeline some additional software has to 
 
 After the required software is installed, some parameters in the megSAP `settings.ini` have to be adapted: 
 
-* `dragen_version` - Version of DRAGEN to use, e.g. `4.3.17`.
+* `dragen_version` - Version of DRAGEN to use, e.g. `4.4.6`.
 
 * `dragen_in`/`dragen_out` - Transfer folders which have to be accessible from both the server which performs the main analysis and the DRAGEN server. These two folders are used to transfer data to the DRAGEN server, i.e. FASTQ files, and transfer data from the DRAGEN server to the analysis server, i.e. BAM files.
 
@@ -31,9 +31,9 @@ After the required software is installed, some parameters in the megSAP `setting
 
 * `dragen_genome` - Path to the DRAGEN genome reference hash tables to use for the analysis. Should also be located on `/staging/`.
 
-To create the hash tables in the folder `/staging/genomes/GRCh38/dragen/`, copy the GRCh38 reference genome to `/staging/genomes/GRCh38/GRCh38.fa` and run the following command:
+To create the hash tables in the folder `/staging/genomes/GRCh38/dragen/`, copy the GRCh38 reference genome to `/staging/genomes/GRCh38/GRCh38.fa` and run the following command (adjust DRAGEN version as needed):
 ```
-dragen --build-hash-table true --ht-reference /staging/genomes/GRCh38/GRCh38.fa --output-dir /staging/genomes/GRCh38/dragen/ --enable-cnv true --ht-num-threads 40
+/opt/dragen/4.4.6/bin/dragen --build-hash-table true --ht-reference /staging/genomes/GRCh38/GRCh38.fa --output-dir /staging/genomes/GRCh38/dragen/ --enable-cnv true --ht-num-threads 40 --ht-build-hla-hashtable true
 ```
 
 * `dragen_log` - Folder to store STDOUT and STDERR of the queued DRAGEN mapping jobs to determine if a finished job has ended successfully.

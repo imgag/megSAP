@@ -540,6 +540,7 @@ if (in_array("vc", $steps))
 				$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $vcffile -mark off-target -reg {$roi} -out $tmp", [$folder, $roi]);
 				
 				//remove variants with less than 3 alternative observations
+				//(still required in DRAGEN 4.4.6: removes ~50k variants)
 				$tmp2 = $parser->tempFile("_ad.vcf");
 				$hr = gzopen2($tmp, "r");
 				$hw = fopen2($tmp2, "w");
@@ -563,13 +564,27 @@ if (in_array("vc", $steps))
 						if($sample['DP'] * $sample['AF']<2.9) continue; //not 3 because of rounding errors
 					}
 					
-					fwrite($hw, $line."\n");
+					fwrite($hw, "{$line}\n");
 				}
 				fclose($hr);
 				fclose($hw);
 				
-				//bgzip
-				$parser->execApptainer("htslib", "bgzip", "-c $tmp2 > $vcffile", [], [dirname($vcffile)]);
+
+				//split up VCF in targeted/mosaic and merge again to remove duplicates
+				$tmp_mosaic = $parser->tempFile("_mosaic.vcf");
+				$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp2} -out {$tmp_mosaic} -info_flags MOSAIC");
+				$tmp_targeted = $parser->tempFile("_targeted.vcf");
+				$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp2} -out {$tmp_targeted} -info_flags TARGETED");
+				$tmp_normal = $parser->tempFile("_normal.vcf");
+				$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp2} -out {$tmp_normal} -info_flags_exclude MOSAIC,TARGETED");
+
+				$tmp3 = $parser->tempFile("_with_mosaic.vcf");
+				$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$tmp_normal} {$tmp_mosaic} -out {$tmp3} -filter mosaic -filter_desc Variant_is_called_by_mosaic_caller -skip_duplicates");
+				$tmp4 = $parser->tempFile("_with_mosaic+targeted.vcf");
+				$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$tmp3} {$tmp_targeted} -out {$tmp4} -filter targeted -filter_desc Variant_is_called_by_targeted_caller -skip_duplicates");
+
+				//sort and convert to VCF.GZ
+				$parser->execApptainer("ngs-bits", "VcfSort", "-in {$tmp4} -compression_level 7 -out {$vcffile}", [], [dirname($vcffile)]);
 
 				//index output file
 				$parser->execApptainer("htslib", "tabix", "-p vcf $vcffile", [], [dirname($vcffile)]);
@@ -686,64 +701,70 @@ if (in_array("vc", $steps))
 			fclose($hr);
 		}
 		fclose($hw);
-		
-		//call low mappability variants (in exonic/splice regions only)
-		if ($is_wgs || ($is_wes && $roi!="") || ($is_panel && $roi!=""))
-		{
-			//determine region
-			if ($is_wgs)
-			{
-				$roi_low_mappabilty = repository_basedir()."data/misc/low_mappability_region/wes_mapq_eq0.bed";
-			}
-			else
-			{
-				$roi_low_mappabilty = $parser->tempFile("_mapq0.bed");
-				$parser->execApptainer("ngs-bits", "BedIntersect", "-in {$roi} -in2 ".repository_basedir()."data/misc/low_mappability_region/wes_mapq_eq0.bed -out $roi_low_mappabilty", [$roi, repository_basedir()."data/misc/low_mappability_region/wes_mapq_eq0.bed"]);
-			}
-			
-			if (bed_size($roi_low_mappabilty)>0)
-			{
-				$tmp_low_mappability = $parser->tempFile("_low_mappability.vcf.gz");
 
-				//DeepVariant misses many variant that are on MAPQ=0 reads, even when min_mq is set to 0 > use freebayes for low-mappability calling
-				$args = [];
-				$args[] = "-bam ".$used_bam_or_cram;
-				$args[] = "-out ".$tmp_low_mappability;
-				$args[] = "-build ".$build;
-				$args[] = "-threads ".$threads;
-				$args[] = "-target ".$roi_low_mappabilty;
-				$args[] = "-min_af ".$min_af;
-				$args[] = "-min_mq 0";
-				$args[] = "-min_bq ".$min_bq;
-				$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args));
-
-				//add to main variant list
-				$tmp2 = $parser->tempFile("_merged_low_mappability.vcf");
-				$parser->execApptainer("ngs-bits", "VcfAdd", "-in $vcf $tmp_low_mappability -skip_duplicates -filter low_mappability -filter_desc Variants_in_reads_with_low_mapping_score. -out $tmp2");
-				$parser->moveFile($tmp2, $vcf);
-			}
-		}
-			
-		//call mosaic variants on target region (WES or Panel) or exonic/splicing region (WGS)
-		if (ngsbits_build($build)!="non_human" && ($is_wgs || ($is_wes && $roi!="") || ($is_panel && $roi!="")))
+		//additional calling steps for megSAP VC calling:
+		if ($no_dragen || !file_exists($dragen_output_vcf))
 		{
-			$tmp_mosaic = $parser->tempFile("_mosaic.vcf");
-			$args = [];
-			$args[] = "-in {$used_bam_or_cram}";
-			$args[] = "-out {$tmp_mosaic}";
-			$args[] = "-no_zip";
-			$args[] = "-target ".(($is_panel || $is_wes) ? $roi : repository_basedir()."data/gene_lists/gene_exons_pad20.bed");
-			$args[] = "-threads ".$threads;
-			$args[] = "-build ".$build;
-			$args[] = "-min_af 0.03";
-			$args[] = "-min_obs ".($is_wgs ?  "1" : "2");	
-			$parser->execTool("Tools/vc_mosaic.php", implode(" ", $args));
-			
-			//add to main variant list
-			$tmp2 = $parser->tempFile("_merged_mosaic.vcf");
-			$parser->execApptainer("ngs-bits", "VcfAdd", "-in $vcf $tmp_mosaic -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out $tmp2");
-			$parser->moveFile($tmp2, $vcf);
+			//call low mappability variants (in exonic/splice regions only)
+			if ($is_wgs || ($is_wes && $roi!="") || ($is_panel && $roi!=""))
+			{
+				//determine region
+				if ($is_wgs)
+				{
+					$roi_low_mappabilty = repository_basedir()."data/misc/low_mappability_region/wes_mapq_eq0.bed";
+				}
+				else
+				{
+					$roi_low_mappabilty = $parser->tempFile("_mapq0.bed");
+					$parser->execApptainer("ngs-bits", "BedIntersect", "-in {$roi} -in2 ".repository_basedir()."data/misc/low_mappability_region/wes_mapq_eq0.bed -out $roi_low_mappabilty", [$roi, repository_basedir()."data/misc/low_mappability_region/wes_mapq_eq0.bed"]);
+				}
+				
+				if (bed_size($roi_low_mappabilty)>0)
+				{
+					$tmp_low_mappability = $parser->tempFile("_low_mappability.vcf.gz");
+
+					//DeepVariant misses many variant that are on MAPQ=0 reads, even when min_mq is set to 0 > use freebayes for low-mappability calling
+					$args = [];
+					$args[] = "-bam ".$used_bam_or_cram;
+					$args[] = "-out ".$tmp_low_mappability;
+					$args[] = "-build ".$build;
+					$args[] = "-threads ".$threads;
+					$args[] = "-target ".$roi_low_mappabilty;
+					$args[] = "-min_af ".$min_af;
+					$args[] = "-min_mq 0";
+					$args[] = "-min_bq ".$min_bq;
+					$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args));
+
+					//add to main variant list
+					$tmp2 = $parser->tempFile("_merged_low_mappability.vcf");
+					$parser->execApptainer("ngs-bits", "VcfAdd", "-in $vcf $tmp_low_mappability -skip_duplicates -filter low_mappability -filter_desc Variants_in_reads_with_low_mapping_score. -out $tmp2");
+					$parser->moveFile($tmp2, $vcf);
+				}
+
+				//call mosaic variants on target region (WES or Panel) or exonic/splicing region (WGS) (not for DRAGEN VCFs)
+				if (ngsbits_build($build)!="non_human")
+				{
+					$tmp_mosaic = $parser->tempFile("_mosaic.vcf");
+					$args = [];
+					$args[] = "-in {$used_bam_or_cram}";
+					$args[] = "-out {$tmp_mosaic}";
+					$args[] = "-no_zip";
+					$args[] = "-target ".(($is_panel || $is_wes) ? $roi : repository_basedir()."data/gene_lists/gene_exons_pad20.bed");
+					$args[] = "-threads ".$threads;
+					$args[] = "-build ".$build;
+					$args[] = "-min_af 0.03";
+					$args[] = "-min_obs ".($is_wgs ?  "1" : "2");	
+					$parser->execTool("Tools/vc_mosaic.php", implode(" ", $args));
+					
+					//add to main variant list
+					$tmp2 = $parser->tempFile("_merged_mosaic.vcf");
+					$parser->execApptainer("ngs-bits", "VcfAdd", "-in $vcf $tmp_mosaic -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out $tmp2");
+					$parser->moveFile($tmp2, $vcf);
+				}
+			}
+							
 		}
+
 				
 		//sort and remove unused contig lines
 		$parser->execApptainer("ngs-bits", "VcfSort", "-in $vcf -remove_unused_contigs -out $vcf");

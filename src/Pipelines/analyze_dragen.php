@@ -45,6 +45,9 @@ foreach($steps as $step)
 	if (!in_array($step, $steps_all)) trigger_error("Unknown processing step '$step'!", E_USER_ERROR);
 }
 
+//only support Dragen 4.4
+if (!starts_with(get_path("dragen_version"), "4.4.")) trigger_error("megSAP only supports DRAGEN version 4.4!", E_USER_ERROR); 
+
 //determine processing system
 $system_created_from_ngsd = (is_null($system) || $system=="");
 $sys = load_system($system, $name);
@@ -269,6 +272,7 @@ if ($trim)
 
 //parameters
 $dragen_parameter[] = "-r ".get_path("dragen_genome");
+$dragen_parameter[] = "--validate-pangenome-reference=false"; // required since DRAGEN 4.4 to use a linear genome
 $dragen_parameter[] = "--ora-reference ".get_path("data_folder")."/dbs/oradata/";
 $dragen_parameter[] = "--output-directory $working_dir";
 $dragen_parameter[] = "--output-file-prefix {$name}";
@@ -293,15 +297,27 @@ if (!$mapping_only)
 {
 	//small variant calling
 	$dragen_parameter[] = "--enable-variant-caller true";
-	$dragen_parameter[] = "--vc-min-base-qual 15"; //TODO remove when switching to DRAGEN 4.4
+
+	//enable mosaic caller
+	$dragen_parameter[] = "--vc-enable-mosaic-detect true";
+	
+	//enable targeted caller
+	$dragen_parameter[] = "--enable-targeted true";
+	$dragen_parameter[] = "--targeted-merge-vc true";
+
+	//enable hla caller 
+	$dragen_parameter[] = "--enable-hla true";
+	
 	//add gVCF output
 	$dragen_parameter[] = "--vc-emit-ref-confidence GVCF";
 	$dragen_parameter[] = "--vc-enable-vcf-output true";
-	//disabled ML model because it leads to a sensitivity drop for Twist Exome V2 (see /mnt/storage2/users/ahsturm1/scripts/2025_03_21_megSAP_release_performance)
-	if ($is_wes_or_panel)
-	{
-		$dragen_parameter[] = "--vc-ml-enable-recalibration false";
-	}
+
+	//enable also for WES to allow mosaic calling:
+		// //disabled ML model because it leads to a sensitivity drop for Twist Exome V2 (see /mnt/storage2/users/ahsturm1/scripts/2025_03_21_megSAP_release_performance)
+		// if ($is_wes_or_panel)
+		// {
+		// 	$dragen_parameter[] = "--vc-ml-enable-recalibration false";
+		// }
 	
 	//CNVs
 	if ($is_wgs)
@@ -312,7 +328,12 @@ if (!$mapping_only)
 	
 	//SVs
 	$dragen_parameter[] = "--enable-sv true";
-	$dragen_parameter[] = "--sv-use-overlap-pair-evidence true"; //TODO remove when switching to DRAGEN 4.4
+
+	//REs
+	$dragen_parameter[] = "--repeat-genotype-enable true";
+	//TODO: activate when switching to pan genome 
+	// $dragen_parameter[] = "--repeat-genotype-use-catalog expanded";
+	
 }
 
 //high memory
