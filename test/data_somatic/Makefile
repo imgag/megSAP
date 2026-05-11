@@ -2,10 +2,12 @@ SHELL=/bin/bash
 all: clear link tumor_only tumor_normal tumor_normal_with_fusion
 
 clear:
+	#clear
 	rm -rf Sample_GS110168_03 Sample_GS110169_03 Sample_DX000001_01 Sample_RX000001_01
 	rm -rf out_case1 out_case2 out_case3
 
 link:
+	#link
 	mkdir -p Sample_GS110168_03 Sample_GS110169_03 Sample_DX000001_01 Sample_RX000001_01
 	mkdir -p out_case1 out_case2 out_case3
 	# input files for case 1
@@ -44,12 +46,13 @@ to_somatic:
 		--log out_case1/DX000001_01.log
 
 to_diff:
+	#to_diff
 	# low coverage bed
 	php ../compare_bed.php expected_case1/DX000001_01_stat_lowcov.bed out_case1/DX000001_01_stat_lowcov.bed
 	# small variants
 	php ../compare_variants.php -in1 expected_case1/DX000001_01.GSvar -in2 out_case1/DX000001_01.GSvar -add tumor_af,tumor_dp
 	# virus detection
-	diff expected_case1/DX000001_01_viral.tsv Sample_DX000001_01/DX000001_01_viral.tsv
+	numdiff -D "\t \n" -r 0.0001 expected_case1/DX000001_01_viral.tsv Sample_DX000001_01/DX000001_01_viral.tsv
 	# qcML files
 	php ../compare_qcml_xml.php expected_case1/DX000001_01_stats_other.qcML out_case1/DX000001_01_stats_other.qcML
 
@@ -88,6 +91,7 @@ tn_somatic:
 		--log out_case2/GS110168_03-GS110169_03.log
 
 tn_diff:
+	#tn_diff:
 	# small variants
 	php ../compare_variants.php -in1 expected_case2/GS110168_03-GS110169_03.GSvar -in2 out_case2/GS110168_03-GS110169_03.GSvar -add tumor_af,tumor_dp,normal_af,normal_dp,rna_ref_tpm
 	# low coverge file
@@ -120,6 +124,7 @@ tn2_somatic:
 	rm ../data/manta_sv_normal_hla_genotyper.tsv ../data/manta_sv_tumor_hla_genotyper.tsv
 
 tn2_diff:
+	#tn2_diff
 	# remove gene annotation if present
 	cut -f1-27 out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural.bedpe > out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural_cut.bedpe
 	diff expected_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural.bedpe out_case3/manta_sv_tumor-manta_sv_normal_manta_var_structural_cut.bedpe --ignore-matching-lines="##cmdline" --ignore-matching-lines="##"

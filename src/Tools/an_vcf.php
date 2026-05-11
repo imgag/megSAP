@@ -295,7 +295,7 @@ if ($low_mappabily_filter!="")
 }
 
 //annotate COSMIC
-$cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export_v102.vcf.gz";
+$cosmic_cmc = get_path("data_folder") . "/dbs/COSMIC/cmc_export_v103.vcf.gz";
 if($somatic && file_exists($cosmic_cmc))
 {
 	$temp_annfile = temp_file(".vcf","cosmic_cmc_an_");
