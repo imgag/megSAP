@@ -24,6 +24,7 @@ $parser->addString("ref_sample", "Reference sample to use for validation.", true
 $parser->addFlag("matches", "Do not only show variants that were missed (-), are novel (+) or with genotype mismatch (g), but also show matches (=) in output.");
 $parser->addFlag("skip_depth_calculation", "Do not calculate depth of missed variants to speed up calculation.");
 $parser->addFlag("keep_mosaic", "Do not remove variants which are flagged as 'mosaic'.");
+$parser->addFlag("keep_special", "Do not remove variants which are are flagged as special call (CT FORMAT entry produced by VcfMerge).");
 extract($parser->parse($argv));
 
 //returns the variants of a VCF file in the given ROI
@@ -32,6 +33,7 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skippe
 	global $parser;
 	global $genome;
 	global $keep_mosaic;
+	global $keep_special;
 		
 	//get variants
 	$tmp = $parser->tempFile(".vcf");
@@ -91,9 +93,6 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skippe
 			continue;
 		}
 		
-		//skip low mappabilty variants (DRAGEN)
-		//TODO
-		
 		//skip mosaic variants (DRAGEN)
 		$info = explode(";",$info);
 		if (!$keep_mosaic)
@@ -139,6 +138,21 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skippe
 		{
 			@$skipped["genotype invalid: ".$sample[0]] += 1;
 			continue;
+		}
+		
+		//keep special calls
+		if (!$keep_special)
+		{
+			$idx = array_search("CT", $format);
+			if ($idx!==FALSE)
+			{
+				$call_type = $sample[$idx];
+				if ($call_type!="" && $call_type!=".")
+				{
+					@$skipped["special call: $call_type"] += 1;
+					continue;
+				}
+			}
 		}
 		
 		//get rest from FORMAT
