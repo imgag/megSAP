@@ -196,16 +196,12 @@ if (in_array("cn", $steps))
 		"-var_min_q 0", //with VcfMerge QUAL is undefined
 		"-out {$out_folder}/trio_upd.tsv",
 		];
+	$exclude_files = [repository_basedir()."/data/misc/nobase_regions.bed"];
 	$cnv_file = dirname($c)."/".basename2($c)."_cnvs_clincnv.tsv";
-	if (file_exists($cnv_file))
-	{
-		$args[] = "-exclude $cnv_file";
-		$in_files[] = $cnv_file;
-	}
-	else
-	{
-		trigger_error("CNV file of child not found for UPD detection!", E_USER_WARNING);
-	}
+	if (file_exists($cnv_file)) $exclude_files[] = $cnv_file;
+	else trigger_error("Child CNV file not found for UPD detection!", E_USER_WARNING);
+	$args[] = "-exclude ".implode(" ", $exclude_files);
+	$in_files = array_merge($in_files, $exclude_files);
 	$parser->execApptainer("ngs-bits", "UpdHunter", implode(" ", $args), $in_files, [$out_folder]);
 }
 
