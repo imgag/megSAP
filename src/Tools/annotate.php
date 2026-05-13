@@ -15,7 +15,7 @@ $parser->addInfile("out_folder", "Output folder.", false);
 //optional
 $parser->addInfile("system", "Processing system INI file (automatically determined from NGSD if 'out_name' is a valid processed sample name).", true);
 $parser->addInfile("vcf", "Path to (bgzipped) VCF file (if different from {output_folder}/{out_name}_var.vcf.gz).", true, "");
-$parser->addInfile("mosaic_vcf", "Path to (bgzipped) VCF file (if different from {output_folder}/{out_name}_mosaic.vcf.gz).", true, "");
+// $parser->addInfile("mosaic_vcf", "Path to (bgzipped) VCF file (if different from {output_folder}/{out_name}_mosaic.vcf.gz).", true, "");
 $parser->addFlag("no_fc", "No format check (vcf/tsv).");
 $parser->addFlag("multi", "Enable multi-sample mode.");
 $parser->addFlag("somatic", "Enable somatic mode (cancer-sepific annotations, but no variant QC and no GSvar file).");

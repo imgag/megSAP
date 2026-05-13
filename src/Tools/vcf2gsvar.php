@@ -137,6 +137,9 @@ function write_header_line($handle, $column_desc, $filter_desc)
 	global $skip_short_read_overlap_annotation;
 	global $column_desc_short_read_overlap_annotation;
 	if(!$skip_short_read_overlap_annotation) $column_desc = array_merge($column_desc, $column_desc_short_read_overlap_annotation);
+	global $skip_dragen_cols;
+	global $column_desc_dragen_cols;
+	if(!$skip_dragen_cols) $column_desc = array_merge($column_desc, $column_desc_dragen_cols);
 	global $column_desc_custom;
 	$column_desc = array_merge($column_desc, $column_desc_custom);
 	
@@ -306,6 +309,11 @@ $column_desc_short_read_overlap_annotation = array(
 	array("in_short-read", "Variant was also found in corresponding short-read WGS sample.")
 );
 
+//optional DRAGEN columns
+$column_desc_dragen_cols = array(
+	array("targeted_alt_pos", "Alternative positions of calls associated with a joint genotype call in duplicated regions.")
+);
+
 $column_desc_custom = [];
 foreach($custom_columns as $key => $tmp)
 {
@@ -338,6 +346,7 @@ $skip_ngsd_som = true; // true as long as no NGSD somatic header is found
 $skip_cosmic_cmc = true; //true as long as no COSMIC Cancer Mutation Census (CMC) header is found.
 $skip_cancerhotspots = true; //true as long as no CANCERHOTSPOTS header is found.
 $skip_short_read_overlap_annotation = true; //true as long as no IN_SHORT_READ header is found.
+$skip_dragen_cols = true; //true as long as variants are not called by DRAGEN;
 $annotate_refseq_consequences = false;
 $sample_names = []; //sample names for '#SAMPLE=' comment lines
 $sample_count = -1; //number of samples in VCF header
@@ -403,6 +412,7 @@ while(!gzeof($handle))
 				}
 			}		
 			fwrite($handle_out, "##SOURCE=DRAGEN {$dragen_ver}\n");
+			$skip_dragen_cols = false;
 		}
 		if (starts_with($line, "##source=Clair3"))
 		{
@@ -635,7 +645,9 @@ while(!gzeof($handle))
 		}
 	}
 	$info = $tmp;
-		
+	
+	//TODO: remove (now already done in VCF)
+	/*
 	//special handling for DRAGEN calling
 	if (isset($info["TARGETED"]))
 	{
@@ -645,7 +657,8 @@ while(!gzeof($handle))
 	{
 		$filter[] = "mosaic";
 	}
-	
+	*/
+
 	//convert genotype information to TSV format
 	if($sample_count==1)
 	{
@@ -713,7 +726,34 @@ while(!gzeof($handle))
 				$phasing_info = $sample["GT"]." (".$sample["PS"].")";
 			}
 		}
-		$genotype = vcfgeno2human($sample["GT"]);
+
+		//special handling of DRAGEN targeted calls (can have multiple alleles)
+		if (isset($info["TARGETED"]))
+		{
+			$affected_alleles = array_sum(explode("|", strtr($sample["GT"], array("."=>"0", "/"=>"|"))));
+			if ($affected_alleles == 0)
+			{
+				$genotype = "wt";
+			} 
+			else if ($affected_alleles == 1)
+			{
+				$genotype = "het";
+			}
+			else if ($affected_alleles == 2)
+			{
+				$genotype = "hom";
+			}
+			else 
+			{
+				trigger_error("VCF contains invalid genotype '".$sample["GT"]."'!", E_USER_ERROR);	
+			}
+
+		}
+		else
+		{
+			$genotype = vcfgeno2human($sample["GT"]);
+		}
+		
 		
 		//skip wildtype
 		if ($genotype=="wt") continue;
@@ -1375,6 +1415,13 @@ while(!gzeof($handle))
 		$in_short_read_sample = "";
 		if (isset($info["IN_SHORTREAD_SAMPLE"])) $in_short_read_sample = "1";
 	}
+
+	//DRAGEN specific columns
+	if (!$skip_dragen_cols)
+	{
+		$targeted_alt_pos = "";
+		if (isset($info["JIDS"])) $targeted_alt_pos = $info["JIDS"];
+	}
 	
 	//write data
 	++$c_written;
@@ -1419,6 +1466,11 @@ while(!gzeof($handle))
 	if (!$skip_short_read_overlap_annotation)
 	{
 		fwrite($handle_out, "\t".$in_short_read_sample);
+	}
+
+	if (!$skip_dragen_cols)
+	{
+		fwrite($handle_out, "\t".$targeted_alt_pos);
 	}
 	
 	foreach($custom_columns as $key => $tmp)

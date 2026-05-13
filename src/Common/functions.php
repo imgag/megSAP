@@ -854,6 +854,7 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 	//determine bind paths from input and output files
 	if (!get_path("megSAP_container_used"))
 	{
+		//TODO: make input read-only
 		foreach($in_files as $file)
 		{
 			if (is_dir($file)) 
