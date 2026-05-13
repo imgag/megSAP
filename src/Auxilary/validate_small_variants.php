@@ -37,6 +37,7 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skippe
 	global $genome;
 	global $keep_mosaic;
 	global $keep_special;
+	global $keep_targeted;
 		
 	//get variants
 	$tmp = $parser->tempFile(".vcf");
