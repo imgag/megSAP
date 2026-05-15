@@ -324,6 +324,7 @@ if (!$mapping_only)
 	{
 		$dragen_parameter[] = "--enable-cnv true";
 		$dragen_parameter[] = "--cnv-enable-self-normalization true";
+		$dragen_parameter[] = "--cnv-enable-mosaic-calling true";
 	}
 	
 	//SVs
