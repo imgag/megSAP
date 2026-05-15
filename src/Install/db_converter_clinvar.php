@@ -202,4 +202,22 @@ while(!feof($in))
 	}
 }
 
+//ping
+$url = "https://megsap.de/stats/megsap.php?version=".substr(repository_revision(false), 0, 7);
+$ch = curl_init($url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+$response = curl_exec($ch);
+if ($response === false)
+{
+	//echo "cURL error: " . curl_error($ch);
+}
+else
+{
+	//echo "response code: ".curl_getinfo($ch, CURLINFO_HTTP_CODE)."\n";
+    //echo "response text: ".$response."\n";
+}
+curl_close($ch);
+
 ?>
