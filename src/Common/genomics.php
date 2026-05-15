@@ -2671,5 +2671,28 @@ function get_aa_range($hgvs)
 	}
 }
 
+//logs the analysis time of complete analyses
+function log_analysis_time($db, $type, $samples, $threads, $steps, $steps_all, $dragen_used, $sec)
+{
+	//check that all steps were performed
+	sort($steps);
+	sort($steps_all);
+	if ($steps!==$steps_all) return;
+	
+	//check that all samples have the same processing system
+	$sys_id = -1;
+	foreach($samples as $sample)
+	{
+		$info = get_processed_sample_info($db, $sample, false, true);
+		if (is_null($info)) return;
+		if ($sys_id==-1) $sys_id = $info['sys_id'];
+		if ($sys_id!=$info['sys_id']) return;
+	}
+	
+	//insert into NGSD
+	$server = strtolower(trim(implode(" ", exec2("hostname -f")[0])));
+	$min = number_format($sec/60.0, 2);
+	$db->executeStmt("INSERT INTO `analysis_time`(`type`, `samples`, `processing_system_id`, `dragen_used`, `server`, `threads`, `min`) VALUES ('$type','".implode(" ", $samples)."',$sys_id,'".($dragen_used ? "1" : "0")."','$server',$threads,$min)");
+}
 
 ?>

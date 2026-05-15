@@ -161,7 +161,7 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor, $info_germline=
 								"minimumQuality" => (float)($grz_qc["qualityThreshold"]),
 								"percent" => (float)($grz_qc["percentBasesAboveQualityThreshold"])
 							], 
-						"meanDepthOfCoverage" => (float)($grz_qc["meanDepthOfCoverage"])*1.05, //TODO remove?
+						"meanDepthOfCoverage" => (float)($grz_qc["meanDepthOfCoverage"])*1.05,
 						"minCoverage" => (float)($grz_qc["minCoverage"]),
 						"targetedRegionsAboveMinCoverage" => (float)(number_format($grz_qc["targetedRegionsAboveMinCoverage"],2)),
 						"nonCodingVariants" => "true",

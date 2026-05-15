@@ -35,6 +35,9 @@ $parser->addFlag("no_lowcov", "Skip generation of low-coverage report");
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
 extract($parser->parse($argv));
 
+//start time
+$start_time = microtime(true);
+
 // create logfile in output folder if no filepath is provided:
 if (!file_exists($folder))
 {
@@ -1419,6 +1422,15 @@ if (in_array("db", $steps))
 	{
 		$args[] = "-ps {$name}";
 		$parser->execApptainer("ngs-bits", "NGSDAddVariantsGermline", implode(" ", $args), [$folder]);
+	}
+	
+	//log analysis time
+	if (db_is_enabled("NGSD"))
+	{
+		$db = DB::getInstance("NGSD", false);
+		$dragen_used = !$no_dragen && file_exists($dragen_folder);
+		if ($dragen_used) $steps[] = "ma";
+		log_analysis_time($db, 'single', [$name], $threads, $steps, $steps_all, $dragen_used, microtime(true)-$start_time);
 	}
 }
 

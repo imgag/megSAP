@@ -3,42 +3,39 @@ all:
 	make clear link call diff reanno
 	
 clear:
-	rm -rf *.cram *.crai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML trio_cnvs_clincnv.tsv  trio_upd.tsv *.bedpe manta_evid/ reanno
+	rm -rf *.cram *.crai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML *_clincnv.tsv  trio_upd.tsv *.bedpe manta_evid/ reanno
 
 link:
 	php ../link_test_data.php GS140127_01.cram
 	php ../link_test_data.php GS140127_01.cram.crai
+	php ../link_test_data.php GS140127_01_var.vcf.gz
 	php ../link_test_data.php GS140127_01_cnvs_clincnv.tsv
 	php ../link_test_data.php GS140549_01.cram
 	php ../link_test_data.php GS140549_01.cram.crai
+	php ../link_test_data.php GS140549_01_var.vcf.gz
 	php ../link_test_data.php GS140549_01_cnvs_clincnv.tsv
 	php ../link_test_data.php GS140550_01.cram
 	php ../link_test_data.php GS140550_01.cram.crai
+	php ../link_test_data.php GS140550_01_var.vcf.gz
 	php ../link_test_data.php GS140550_01_cnvs_clincnv.tsv
 
 call:
 	php ../../src/Pipelines/trio.php -c GS140127_01.cram -m GS140549_01.cram -f GS140550_01.cram -system system.ini -out_folder . -steps vc,cn,sv -no_check
-	# remove gene annotation
-	cut -f1-24 trio_var_structural_variants.bedpe > trio_var_structural_variants_cut.bedpe
-	# create file from OMIM annotation and CNV overlap
-	cat trio_var_structural_variants.bedpe | egrep -v "^##"| rev | cut -f 1,2| rev > trio_var_structural_variants_cut2.bedpe	
 
 diff:
 	#variants
-	php ../compare_variants.php -in1 trio.GSvar.out -in2 trio.GSvar
+	php ../compare_variants.php -in1 trio.GSvar.out -in2 trio.GSvar -add GS140127_01,GS140549_01,GS140550_01
 	#CNVs
 	php ../compare_tsv.php -in1 trio_cnvs_clincnv.tsv.out -in2 trio_cnvs_clincnv.tsv -skip_cols ngsd_pathogenic_cnvs,genes,gene_info
 	#UPDs
 	diff -b trio_upd.tsv.out trio_upd.tsv
 	#SVs
-	diff trio_var_structural_variants_cut.bedpe trio_var_structural_variants_cut.bedpe.out --ignore-matching-lines="^##"
-	diff trio_var_structural_variants_cut2.bedpe trio_var_structural_variants_cut2.bedpe.out --ignore-matching-lines="^##"
+	php ../compare_tsv.php -in1 trio_var_structural_variants.bedpe.out -in2 trio_var_structural_variants.bedpe -skip_comments_matching cmdline=,fileDate=,PIPELINE= -skip_cols GENES,GENES_BREAKPOINTS,GENE_INFO,NGSD_HOM,NGSD_HET,NGSD_AF,NGSD_group,NGSD_SV_BREAKPOINT_DENSITY,NGSD_SV_BREAKPOINT_DENSITY_SYS,NGSD_PATHOGENIC_SVS
 
 reanno:
 	mkdir -p reanno
 	# copy files
-	cp all.vcf.gz reanno/
-	cp all_mito.vcf.gz reanno/
+	cp trio_var.vcf.gz reanno/
 	cp trio_cnvs_clincnv.tsv reanno/
 	cp trio_var_structural_variants.bedpe reanno/
 	# run reannotation

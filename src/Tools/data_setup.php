@@ -130,9 +130,10 @@ foreach($files as $file)
 $ref_cache = "{$genome_folder}/samtools_ref_cache";
 if (file_exists($ref_cache))
 {
-	print "Copying samtools ref cache...\n";
-	print "  source: {$ref_cache}\n";
-	print "  taget: {$local_data}/samtools_ref_cache/\n";
+	print "\n";
+	print "### copying samtools ref cache ###\n";
+	print "from: {$ref_cache}\n";
+	print "to  : {$local_data}/samtools_ref_cache/\n";
 	exec2("{$rsync} {$ref_cache} {$local_data}/");
 }
 else
@@ -162,6 +163,7 @@ if ($build=="GRCh38")
 		
 		print "\n";
 		print "### annotation databases ###\n";
+		print "from: {$data_folder}/dbs/\n";
 		print "to  : {$local_annotation_folder}\n";
 		print "\n";
 			

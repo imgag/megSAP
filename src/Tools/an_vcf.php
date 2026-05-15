@@ -26,6 +26,7 @@ extract($parser->parse($argv));
 //init
 $genome = genome_fasta($build);
 $data_folder = get_path("data_folder");
+$local_data = get_path("local_data");
 
 //get local/global data file path - depending on what is available
 function annotation_file_path($rel_path, $is_optional=false)
@@ -48,7 +49,7 @@ function annotation_file_path($rel_path, $is_optional=false)
 	$copy = $local_data."/dbs/".basename($rel_path);
 	if (!file_exists($copy))
 	{
-		trigger_error("annotation DB file '$rel_path' not found in local data copy. Using (possibly slow) remote file '$orig'!", E_USER_NOTICE);
+		trigger_error("Annotation DB file '$copy' not found. Using (possibly slow) remote file '$orig'!", E_USER_WARNING);
 		return $orig;
 	}
 	
@@ -82,7 +83,7 @@ $parser->execApptainer("ngs-bits", "VcfAnnotateMaxEntScan", "-gff {$gff} -in {$v
 //create config file for VcfAnnotateFromVcf
 $config_file_path = $parser->tempFile(".config");
 $config_file = fopen2($config_file_path, 'w');
-$in_files = array();
+$in_files = [];
 
 //custom annotation using VcfAnnotateFromVcf
 if ($custom!="")
@@ -243,7 +244,7 @@ $gene_file = $test ? repository_basedir()."/test/data/an_vcf_NGSD_gene_info.bed"
 if (file_exists($gene_file))
 {
 	$tmp = $parser->tempFile(".vcf");
-	$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", $in_files = [$gene_file]);
+	$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed ".$gene_file." -name NGSD_GENE_INFO -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", [$gene_file]);
 	$parser->moveFile($tmp, $vcf_annotate_output);
 }
 else
@@ -261,12 +262,12 @@ if (!$no_splice)
 
 //annotate regluatory data
 $tmp = $parser->tempFile("_regulatory.vcf");
-$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/Ensembl/Ensembl_regulatory_115.bed")." -name REGULATORY -sep ',' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", $in_files=[annotation_file_path("/dbs/Ensembl/Ensembl_regulatory_115.bed")]);
+$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/Ensembl/Ensembl_regulatory_115.bed")." -name REGULATORY -sep ',' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", [annotation_file_path("/dbs/Ensembl/Ensembl_regulatory_115.bed")]);
 $parser->moveFile($tmp, $vcf_annotate_output);
 
 //annotate RepeatMasker
 $tmp = $parser->tempFile("_repeatmasker.vcf");
-$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/RepeatMasker/RepeatMasker_GRCh38.bed")." -name REPEATMASKER -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", $in_files=[annotation_file_path("/dbs/RepeatMasker/RepeatMasker_GRCh38.bed")]);
+$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/RepeatMasker/RepeatMasker_GRCh38.bed")." -name REPEATMASKER -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", [annotation_file_path("/dbs/RepeatMasker/RepeatMasker_GRCh38.bed")]);
 $parser->moveFile($tmp, $vcf_annotate_output);
 
 //annotate OMIM (optional because of license)
@@ -274,14 +275,14 @@ $omim_file = annotation_file_path("/dbs/OMIM/omim.bed", true);
 if(file_exists($omim_file) && !$test)
 {
 	$tmp = $parser->tempFile("_omim.vcf");
-	$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed {$omim_file} -name OMIM -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", $in_files = [$omim_file]);
+	$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed {$omim_file} -name OMIM -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", [$omim_file]);
 	$parser->moveFile($tmp, $vcf_annotate_output);
 }
 
 //mark variants in low-confidence regions
 $low_conf_bed = repository_basedir()."/data/misc/low_conf_regions.bed";
 $tmp_low_conf_ann = $parser->tempFile("_low_conf_ann.vcf");
-$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $vcf_annotate_output -mark low_conf_region -inv -reg $low_conf_bed -out $tmp_low_conf_ann", $in_files=[$low_conf_bed]);
+$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $vcf_annotate_output -mark low_conf_region -inv -reg $low_conf_bed -out $tmp_low_conf_ann", [$low_conf_bed]);
 
 //mark variants in low-mappabilty regions
 if ($low_mappabily_filter!="")

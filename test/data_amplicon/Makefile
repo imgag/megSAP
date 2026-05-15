@@ -1,5 +1,5 @@
 
-all: clean link map vc cn diff reanno
+all: clean link map call diff reanno
 
 clean:
 	rm -rf *.fastq.gz *.log *.txt *.GSvar *.vcf.gz *.vcf.gz.tbi *.cram *.crai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe manta_evid *_ancestry.tsv *_bafs.igv
@@ -13,11 +13,8 @@ link:
 map:
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_03 -system system.ini -steps ma -threads 1
 
-vc:
-	php ../../src/Pipelines/analyze.php -folder . -name NA12878_03 -system system.ini -steps vc
-
-cn:
-	php ../../src/Pipelines/analyze.php -folder . -name NA12878_03 -system system.ini -steps cn
+call:
+	php ../../src/Pipelines/analyze.php -folder . -name NA12878_03 -system system.ini -steps vc,cn
 
 diff:
 	php ../compare_variants.php -in1 NA12878_03.GSvar.out -in2 NA12878_03.GSvar -add NA12878_03

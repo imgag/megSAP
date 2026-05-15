@@ -11,7 +11,7 @@ $parser = new ToolBase("vcf2gsvar", "Converts an annotated VCF file from freebay
 $parser->addInfile("in",  "Input file in VCF or VCF.GZ format.", false);
 $parser->addOutfile("out", "Output file in GSvar format.", false);
 //optional
-$parser->addEnum("genotype_mode", "Genotype handling mode.", true, array("single", "multi", "skip"), "single");
+$parser->addEnum("genotype_mode", "Genotype handling mode.", true, array("single", "multi", "skip"), "single"); //"skip" is used for vcf2gsvar_somatic.php where we do not have germline genotypes.
 $parser->addFlag("updown", "Don't discard up- or downstream annotations (5000 bases around genes).");
 $parser->addFlag("wgs", "Enables WGS mode: MODIFIER variants with a AF>2% are skipped to reduce the number of variants to a manageable size.");
 $parser->addFlag("longread", "Add additional columns for long-read samples (e.g. phasing information)");
@@ -57,19 +57,6 @@ function index_of($cols, $name, $label, $optonal = true)
 		trigger_error("Could not find column '$name' in annotation field '{$label}'. Valid column names are: ".implode(", ", array_values($cols)), E_USER_ERROR);
 	}
 	return $index;
-}
-
-//translate value (and throw error if not valid)
-function translate($error_name, $value, $dict)
-{
-	$value = trim($value);
-	
-	if (!isset($dict[$value]))
-	{
-		trigger_error("Cannot translate value '{$value}' for '{$error_name}'. Valid terms are: '".implode("','", array_keys($dict)), E_USER_ERROR);
-	}
-	
-	return $dict[$value];
 }
 
 //collapse several values to a single value
@@ -231,7 +218,6 @@ function load_hgnc_db()
 }
 $hgnc = load_hgnc_db();
 
-
 //load PFAM data
 function load_pfam_data()
 {
@@ -257,7 +243,7 @@ $pfam = load_pfam_data();
 //write column descriptions
 $column_desc = array(
 	array("filter", "Annotations for filtering and ranking variants."),
-	array("quality", "Quality parameters - variant quality (QUAL), depth (DP), quality divided by depth (QD), allele frequency (AF), mean mapping quality of alternate allele (MQM), probability of strand bias for alternate bases as phred score (SAP), probability of allele ballance as phred score (ABP)"),
+	array("quality", "Quality parameters. QUAL: variant quality, DP: depth, AF: allele frequency, GQ: genotype quality, CT: call type - MO is mosaic, LM is low-mappabilty, RC is re-calling of missing variants in multi-sample pipeline."),
 	array("gene", "Affected gene list (comma-separated)."),
 	array("variant_type", "Variant type."),
 	array("coding_and_splicing", "Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain)."),
@@ -350,7 +336,6 @@ $filter_desc[] = array("low_conf_region", "Low confidence region for small varia
 //parse input
 $c_written = 0;
 $c_skipped_wgs = 0;
-$multi_cols = [];
 $hgnc_messages = [];
 $in_header = true;
 $handle = gzopen2($in, "r");
@@ -362,8 +347,9 @@ $skip_cosmic_cmc = true; //true as long as no COSMIC Cancer Mutation Census (CMC
 $skip_cancerhotspots = true; //true as long as no CANCERHOTSPOTS header is found.
 $skip_short_read_overlap_annotation = true; //true as long as no IN_SHORT_READ header is found.
 $skip_dragen_cols = true; //true as long as variants are not called by DRAGEN;
-$multisample_vcf = false; //determines if the input VCF is a standard multi-sample VCF or single-sample VCF/megSAP multi-sample VCF (no extra columns for each sample)
 $annotate_refseq_consequences = false;
+$sample_names = []; //sample names for '#SAMPLE=' comment lines
+$sample_count = -1; //number of samples in VCF header
 
 //write date (of input file)
 fwrite($handle_out, "##CREATION_DATE=".date("Y-m-d", filemtime($in))."\n");
@@ -448,10 +434,6 @@ while(!gzeof($handle))
 		{
 			fwrite($handle_out, "##SOURCE=".trim(substr($line,9))."\n");
 		}
-		if (starts_with($line, "##GLnexusConfigName=")) //after gVCF merging of DeepVariant we need to reconstruct the DeepVariant version (GLnexus removes it...)
-		{
-			fwrite($handle_out, "##SOURCE=DeepVariant ".get_path("container_deepvariant")."\n");
-		}
 		if (starts_with($line, "##source=strelka2"))
 		{
 			fwrite($handle_out, "##SOURCE=".trim(substr($line,9))."\n");
@@ -473,29 +455,26 @@ while(!gzeof($handle))
 		{
 			$line = trim($line);
 			list($name) = explode(",", substr($line, 13, -1));
+			$sample_names[] = $name;
 
 			if ($genotype_mode=="single")
 			{
-				// replace sample header with NGSD enry:
+				// replace sample header with NGSD enry
 				if (db_is_enabled("NGSD") && !$test) $line = gsvar_sample_header($name, array("DiseaseStatus"=>"Affected"), "##", "");
-				if ($column_desc[0][0]!="genotype")
-				{
-					trigger_error("Several sample header lines in 'single' mode!", E_USER_ERROR);
-				}
+				if ($column_desc[0][0]!="genotype") trigger_error("Several sample header lines in 'single' mode!", E_USER_ERROR);
 				$column_desc[0][0] = $name;
 			}
 			else if ($genotype_mode=="multi")
 			{
-				$multi_cols[] = $name;
 				if ($longread)
 				{
 					// add 2 columns per sample (genotype + phasing info)
-					array_splice($column_desc, (2*count($multi_cols))-2, 0, array(array($name, "genotype of sample $name")));
-					array_splice($column_desc, (2*count($multi_cols))-1, 0, array(array($name."_phased", "phasing information of sample $name")));
+					array_splice($column_desc, (2*count($sample_names))-2, 0, array(array($name, "genotype of sample $name")));
+					array_splice($column_desc, (2*count($sample_names))-1, 0, array(array($name."_phased", "phasing information of sample $name")));
 				}
 				else
 				{
-					array_splice($column_desc, count($multi_cols)-1, 0, array(array($name, "genotype of sample $name")));
+					array_splice($column_desc, count($sample_names)-1, 0, array(array($name, "genotype of sample $name")));
 				}	
 			}
 			fwrite($handle_out, $line."\n");
@@ -592,24 +571,18 @@ while(!gzeof($handle))
 		//check VCF header
 		if (starts_with($line, "#CHROM\t"))
 		{
-			if ($genotype_mode=="multi")
-			{
-				//determine multi-sample format according to VCF header
-				$cols = explode("\t", trim($line, " \n\r\0\x0B"));
-				$n_cols = count($cols);
-				$multisample_vcf = ($n_cols > 10);
-				if ($multisample_vcf)
-				{
-					if($n_cols-9 != count($multi_cols))
-					{
-						trigger_error("VCF column count doesn't match sample count in header!", E_USER_ERROR);
-					}
-					//verify that VCF header entries match sample entries in the comment section
-					$vcf_sample_names =  array_slice($cols, 9);
-					if ($vcf_sample_names != $multi_cols) trigger_error("VCF header entries doesn't match sample entries in the comment section!", E_USER_ERROR);
-				}
-
-			}
+			//determine multi-sample format according to VCF header line
+			$cols = explode("\t", nl_trim($line));
+			$sample_count = count($cols)-9;
+			if ($sample_count==1 && $genotype_mode=="multi") trigger_error("Genotype mode 'multi' called on VCF with one sample!", E_USER_ERROR);
+			if ($sample_count>1 && $genotype_mode=="single") trigger_error("Genotype mode 'single' called on VCF with $sample_count samples!", E_USER_ERROR);
+			
+			//check if '##SAMPLE' header and sample column count match
+			if($sample_count!=count($sample_names)) trigger_error("VCF sample count doesn't match '##SAMPLE' count in header! It is $sample_count vs ".count($sample_names).".", E_USER_ERROR);
+			
+			//verify that VCF header entries match sample entries in the comment section
+			$vcf_sample_names =  array_slice($cols, 9);
+			if (array_count_values($vcf_sample_names)!= array_count_values($sample_names)) trigger_error("VCF sample headers don't match '##SAMPLE' entries! It is '".implode(",",$vcf_sample_names)."' vs '".implode(",",$sample_names)."'.", E_USER_ERROR);
 		}
 		continue;
 	}
@@ -623,11 +596,10 @@ while(!gzeof($handle))
 	//write content lines
 	$cols = explode("\t", $line);
 	if (count($cols)<10) trigger_error("VCF file line contains less than 10 columns: '$line'", E_USER_ERROR);
-	if ($multisample_vcf)
+	if ($sample_count>1) //each sample has its own FORMAT column
 	{
-		//each sample has its own FORMAT column
 		list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format) = $cols;
-		$sample_format_values = array_slice($cols, 9, count($multi_cols));
+		$sample_format_values = array_slice($cols, 9, count($sample_names));
 	}
 	else
 	{
@@ -688,7 +660,7 @@ while(!gzeof($handle))
 	*/
 
 	//convert genotype information to TSV format
-	if(!$multisample_vcf)
+	if($sample_count==1)
 	{
 		$sample = array_combine(explode(":", $format), explode(":", $sample));
 	
@@ -699,127 +671,51 @@ while(!gzeof($handle))
 		if (!isset($sample["PL"]) && isset($sample["JPL"])) $sample["PL"] = $sample["JPL"];
 	}
 	
+	//determine genotype columns
+	$genotype = "";
 	if ($genotype_mode=="multi")
 	{
-		if($multisample_vcf) //normal multi-sample VCF
+		//arrange FORMAT values dictionary: key > array of values
+		$sample = [];
+		foreach ($sample_format_values as $format_values) 
 		{
-			$sample = [];
-			//extract format info and arrange format values based on key
-			foreach ($sample_format_values as $format_values) 
+			$tmp = array_combine(explode(":", $format), explode(":", $format_values));
+			foreach ($tmp as $key => $value) 
 			{
-				$tmp = array_combine(explode(":", $format), explode(":", $format_values));
-				foreach ($tmp as $key => $value) 
-				{
-					$sample[$key][] = $value;	
-				}
+				$sample[$key][] = $value;	
 			}
-			
-			//rename Dragen format values for targeted calls.
-			if (!isset($sample["DP"]) && isset($sample["JDP"])) $sample["DP"] = $sample["JDP"];
-			if (!isset($sample["AF"]) && isset($sample["JAF"])) $sample["AF"] = $sample["JAF"];
-			if (!isset($sample["AD"]) && isset($sample["JAD"])) $sample["AD"] = $sample["JAD"];
-			if (!isset($sample["PL"]) && isset($sample["JPL"])) $sample["PL"] = $sample["JPL"];
-			
-			//determine human-readable genotype
-			$genotypes = [];
-			for ($i=0; $i < count($sample["GT"]); $i++) 
-			{ 
-				$gt = vcfgeno2human($sample["GT"][$i]);
-				if ($sample["DP"][$i]<3) $gt = "n/a";
-				$genotypes[] = $gt;
-				
-				if ($longread)
-				{
-					$phasing_info = "";
-					if(strpos($sample["GT"][$i], "|") !== false)
-					{
-						$phasing_info = $sample["GT"][$i]." (".$sample["PS"][$i].")";
-					}
-					$genotypes[] = $phasing_info;
-				}
-			}
+		}
 
-			//no AF, but DP and AD > calculate AF (DeepVariant for PacBio)
-			if (!isset($sample['AF']) && isset($sample['DP']) && isset($sample['AD']))
+		//determine human-readable genotype
+		$genotypes = [];
+		for ($i=0; $i < count($sample["GT"]); $i++)
+		{ 
+			$gt = vcfgeno2human($sample["GT"][$i]);
+			if ($sample["DP"][$i]<3 && $gt=="wt") $gt = "n/a";
+			$genotypes[] = $gt;
+			
+			if ($longread)
 			{
-				for ($i=0; $i<count($sample['DP']); ++$i)
+				$phasing_info = "";
+				if(strpos($sample["GT"][$i], "|") !== false)
 				{
-					$af = ".";
-					if ($sample['AD'][$i]!=".")
-					{
-						$ad_parts = explode(",", $sample['AD'][$i]);
-						if (count($ad_parts)<2)
-						{
-							print_r(explode("\t", $line));
-							die;
-						}
-						$var_count = $ad_parts[1]; //first element is the REF count, second element is the ALT count
-						
-						$dp = $sample['DP'][$i];
-						if ($dp>0)
-						{
-							$af = number_format($var_count/$dp, 2);
-							if (!is_numeric($var_count) || !is_numeric($dp))
-							{
-								print "AD: ".implode(",", $sample['AD'])."\n";
-								print "DP: ".implode(",", $sample['AD'])."\n";
-							}
-						}
-					}
-					$sample['AF'][] = $af;
+					$phasing_info = $sample["GT"][$i]." (".$sample["PS"][$i].")";
 				}
+				$genotypes[] = $phasing_info;
 			}
-			
-			//combine certain values
-			$genotype = "\t".implode("\t", $genotypes);
-			$sample["DP"] = implode(",", $sample["DP"]);
-			$sample["AF"] = implode(",", $sample["AF"]);
 		}
-		else //special megSAP-style multi-sample VCF
-		{
-			if (!isset($sample["MULTI"])) 
-			{
-				trigger_error("VCF sample column does not contain MULTI value!", E_USER_ERROR);
-			}
-			
-			//extract GT/DP/AO info
-			$tmp = [];
-			$tmp2 = [];
-			$tmp3 = [];
-			$parts = explode(",", $sample["MULTI"]);
-			foreach($parts as $part)
-			{
-				list($name, $gt, $dp, $ao) = explode("=", strtr($part, "|", "=")."=");
-				$tmp[$name] = $gt;
-				$tmp2[$name] = $dp;
-				$tmp3[$name] = $ao;
-			}
-			
-			//recombine GT/DP/AO in the correct order
-			$genotypes = [];
-			$depths = [];
-			$aos = [];
-			foreach($multi_cols as $col)
-			{
-				$gt = $tmp[$col];
-				$dp = $tmp2[$col];
-				$ao = $tmp3[$col];
-				if ($dp<3) $gt = "n/a";
-				$genotypes[] = $gt;
-				$depths[] = $dp;
-				$aos[] = $ao;
-			}
-			$genotype = "\t".implode("\t", $genotypes);
-			$sample["DP"] = implode(",", $depths);
-			$sample["AO"] = implode(",", $aos);
-		}
+		$genotype = "\t".implode("\t", $genotypes);
+		
+		//combine value used for quality later
+		$sample["DP"] = implode(",", $sample["DP"]);
+		$sample["AF"] = implode(",", $sample["AF"]);
+		$sample["GQ"] = implode(",", $sample["GQ"]);
+		$sample["CT"] = implode(",", $sample["CT"]);
+		if (strtr($sample["CT"], ["."=>"", ","=>""])=="") unset($sample["CT"]);
 	}
 	else if ($genotype_mode=="single")
 	{
-		if (!isset($sample["GT"])) 
-		{
-			trigger_error("VCF sample column does not contain GT value!", E_USER_ERROR);
-		}
+		if (!isset($sample["GT"])) trigger_error("VCF sample column does not contain GT value!", E_USER_ERROR);
 
 		// get phasing info for long-reads
 		if ($longread)
@@ -864,35 +760,17 @@ while(!gzeof($handle))
 		
 		$genotype = "\t".$genotype;
 	}
-	else if ($genotype_mode=="skip")
-	{
-		$genotype = "";
-	}
-	else
+	else if ($genotype_mode!="skip")
 	{
 		trigger_error("Invalid mode '{$genotype_mode}'!", E_USER_ERROR);
 	}
 
 	//quality
 	$quality = [];
-	$qual = intval($qual);
-	$quality[] = "QUAL=".$qual;
+	if (is_numeric($qual)) $quality[] = "QUAL=".$qual;
 	if (isset($sample["DP"]))
 	{
 		$quality[] = "DP=".$sample["DP"];
-	}
-	
-	//QD
-	if (isset($sample["DP"])) //freebayes
-	{
-		if (is_numeric($sample["DP"]) && floatval($sample["DP"]) != 0)
-		{
-			$quality[] = "QD=".number_format($qual/$sample["DP"], 2);
-		}
-	}
-	if (isset($sample["QD"])) //Dragen
-	{
-		$quality[] = "QD=".$sample["QD"];
 	}
 	
 	//AF
@@ -918,37 +796,19 @@ while(!gzeof($handle))
 			$quality[] = "AF=".implode(",", $afs);
 		}
 	}
-	if (isset($sample["AF"])) //Dragen
+	else if (isset($sample["AF"]))
 	{
 		$quality[] = "AF=".$sample["AF"];
 	}
 	
-	//MQM
-	if (isset($info["MQM"])) //freebayes
+	if (isset($sample["CT"]))
 	{
-		$quality[] = "MQM=".intval($info["MQM"]);
-	}
-	if (isset($info["MQ"])) //Dragen
-	{
-		$quality[] = "MQM=".intval($info["MQ"]);
+		$quality[] = "CT=".$sample["CT"];
 	}
 	
-	//other quality fields specific to freebayes
-	if (isset($info["SAP"])) 
+	if (isset($sample["GQ"]))
 	{
-		$quality[] = "SAP=".intval($info["SAP"]);
-	}
-	if (isset($info["ABP"])) 
-	{
-		$quality[] = "ABP=".intval($info["ABP"]);
-	}
-	if (isset($info["SAR"]))
-	{
-		$quality[] = "SAR=".intval($info["SAR"]);
-	}
-	if (isset($info["SAF"]))
-	{
-		$quality[] = "SAF=".intval($info["SAF"]);
+		$quality[] = "GQ=".$sample["GQ"];
 	}
 	
 	$phylop = [];

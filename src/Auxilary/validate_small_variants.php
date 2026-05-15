@@ -24,6 +24,7 @@ $parser->addString("ref_sample", "Reference sample to use for validation.", true
 $parser->addFlag("matches", "Do not only show variants that were missed (-), are novel (+) or with genotype mismatch (g), but also show matches (=) in output.");
 $parser->addFlag("skip_depth_calculation", "Do not calculate depth of missed variants to speed up calculation.");
 $parser->addFlag("keep_mosaic", "Do not remove variants which are flagged as 'mosaic'.");
+$parser->addFlag("keep_special", "Do not remove variants which are are flagged as special call (CT FORMAT entry produced by VcfMerge).");
 $parser->addFlag("keep_targeted", "Do not remove variants which are flagged as 'targeted'.");
 $parser->addOutfile("final_roi", "Optional output BED file containing the final target region after filtering", true);
 $parser->addInfile("exclude_region", "Region to exclude e.g. low-mappability regions (BED format).", true);
@@ -35,6 +36,7 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skippe
 	global $parser;
 	global $genome;
 	global $keep_mosaic;
+	global $keep_special;
 	global $keep_targeted;
 		
 	//get variants
@@ -154,15 +156,28 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skippe
 			continue;
 		}
 		
+		//keep special calls
+		if (!$keep_special)
+		{
+			$idx = array_search("CT", $format);
+			if ($idx!==FALSE)
+			{
+				$call_type = $sample[$idx];
+				if ($call_type!="" && $call_type!=".")
+				{
+					@$skipped["special call: $call_type"] += 1;
+					continue;
+				}
+			}
+		}
+		
 		//get rest from FORMAT
 		$idx = array_search("DP", $format);
-		if ($idx!==FALSE) $var['DP'] = $sample[$idx];
+		if ($idx!==FALSE) $var["DP"] = $sample[$idx];
+		$idx = array_search("AF", $format);
+		if ($idx!==FALSE) $var["AF"] = $sample[$idx];
 		$idx = array_search("AO", $format);
-		if ($idx!==FALSE) $var['AO'] = $sample[$idx];
-		$idx = array_search("RO", $format);
-		if ($idx!==FALSE) $var['RO'] = $sample[$idx];
-		$idx = array_search("GQ", $format);
-		if ($idx!==FALSE) $var['GQ'] = $sample[$idx];
+		if ($idx!==FALSE) $var["AO"] = $sample[$idx];
 		if (strlen($ref)>1 || strlen($alt)>1)
 		{
 			$var["TYPE"] = "INDELS";
@@ -213,7 +228,7 @@ function get_depth($pos, $bam)
 function get_prop($var, $name, $digits = null)
 {
 	if (!isset($var[$name])) return "";
-	if (!is_null($digits)) number_format($var[$name], $digits);
+	if (!is_null($digits)) return number_format($var[$name], $digits);
 	return $var[$name];
 }
 
@@ -299,13 +314,12 @@ foreach($expected as $pos => $var)
 		$exp = array();
 		if($skip_depth_calculation)
 		{
-			$exp["DP"] = "N/A";
+			$exp["DP"] = "";
 		}
 		else
 		{
 			$exp["DP"] = get_depth($pos, $bam);
 		}
-		
 		
 		$var_diff[$pos] = array("-", $var, $exp);
 	}
@@ -345,7 +359,7 @@ function pos_gt($a, $b)
 uksort($var_diff, "pos_gt");
 
 //print TSV output
-print "#sample\tstatus\tpos\tvariant\tvariant_type\tref_GT\tobs_GT\tobs_DP\tobs_QUAL\tobs_MQM\tobs_AO\tobs_AF\tobs_QUAL_per_DP\n";
+print "#sample\tstatus\tpos\tvariant\tvariant_type\tref_GT\tobs_GT\tobs_QUAL\tobs_DP\tobs_AF\n";
 foreach($var_diff as $pos => list($status, $ref, $obs))
 {
 	if($status=="=" && !$matches) continue;
@@ -353,17 +367,16 @@ foreach($var_diff as $pos => list($status, $ref, $obs))
 	$exchange = explode(" ", $pos)[1];
 	$variant_type = strlen($exchange)==3 ? "SNV" : "INDEL";
 
-	$ao = get_prop($obs, "AO");
+	$qual = get_prop($obs, "QUAL");
 	$dp = get_prop($obs, "DP");
-	$gq = get_prop($obs, "GQ");
-	$af = "n/a";
-	if ($ao!="" && $dp!="" && $dp>0) $af = number_format($ao/$dp,2);
+	$af = get_prop($obs, "AF");
+	if ($af=="") //fallback to AO for freebayes
+	{
+		$ao = get_prop($obs, "AO");
+		if ($ao!="" && $dp!="" && $dp>0) $af = number_format($ao/$dp,2);			
+	}
 	
-	$qual = get_prop($obs, "QUAL", 2);
-	$qpd = "n/a";
-	if ($qual!="" && $dp!="" && $dp>0) $qpd = number_format($qual/$dp, 2);
-	
-	print "$name\t$status\t".strtr($pos, " ", "\t")."\t".$variant_type."\t".get_prop($ref, "GT")."\t".get_prop($obs, "GT")."\t".$dp."\t".$qual."\t".get_prop($obs, "MQM", 2)."\t".$ao."\t".$af."\t".$qpd."\n";
+	print "$name\t$status\t".strtr($pos, " ", "\t")."\t".$variant_type."\t".get_prop($ref, "GT")."\t".get_prop($obs, "GT")."\t".$qual."\t".$dp."\t".$af."\n";
 }
 print "\n";
 

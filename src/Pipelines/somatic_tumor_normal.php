@@ -639,7 +639,7 @@ if (in_array("vc", $steps))
 		$snv_signatures_out = $out_folder."/snv_signatures/";
 		$tmp_variants = $parser->tempFile(".vcf", "snv_signatures_");
 		$parser->execApptainer("htslib", "bgzip", "-c -d -@ {$threads} $variants > {$tmp_variants}", [$variants]);
-		$parser->exec("php ".repository_basedir()."/src/Tools/extract_signatures.php", "-in {$tmp_variants} -mode snv -out {$snv_signatures_out} -reference GRCh38 -threads {$threads}", true);
+		$parser->exec("php ".repository_basedir()."/src/Tools/extract_signatures.php", "-in {$tmp_variants} -mode snv -out {$snv_signatures_out} -threads {$threads}", true);
 	}
 }
 
@@ -898,7 +898,7 @@ if(in_array("cn",$steps))
 		if(!$skip_signatures)
 		{
 			$cnv_signatures_out = $out_folder."/cnv_signatures/";
-			$parser->exec("php ".repository_basedir()."/src/Tools/extract_signatures.php", "-in {$som_clincnv} -mode cnv -out {$cnv_signatures_out} -reference GRCh38 -threads {$threads}", true);
+			$parser->exec("php ".repository_basedir()."/src/Tools/extract_signatures.php", "-in {$som_clincnv} -mode cnv -out {$cnv_signatures_out} -threads {$threads}", true);
 		}
 	}
 }

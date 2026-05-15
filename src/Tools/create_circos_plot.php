@@ -53,31 +53,17 @@ if (!file_exists($telomere_file))
     trigger_error("No telomere file found at \"$telomere_file\"!", E_USER_ERROR);
 }
 
-
-// preprocess data
-// parse CN file and generate temp file for circos plot
-
 // create temporary working folder
 $temp_folder = $parser->tempFolder("circos");
 
-// clinCNV seg file:
+// preprocess data
+// parse CN file and generate temp file for circos plot
 $seg_file = "$folder/${name}_cnvs_clincnv.seg";
-if (!file_exists($seg_file)) 
-{
-    // CnvHunter seg file:
-    $seg_file = "$folder/${name}_cnvs.seg";
-    if (!file_exists($seg_file)) 
-    {
-        trigger_error("No SEG file found!", E_USER_ERROR);
-    }
-}
-
-$cn_temp_file = $temp_folder."/cn.seg";
-
+if (!file_exists($seg_file)) trigger_error("CNV SEG file found: $seg_file", E_USER_ERROR); 
 $input_fh = fopen2($seg_file, "r");
+$cn_temp_file = $temp_folder."/cn.seg";
 $output_fh = fopen2($cn_temp_file, "w");
 $n_copy_numbers = 0;
-
 if ($input_fh) 
 {
     while (($buffer = fgets($input_fh)) !== FALSE) 
@@ -108,22 +94,8 @@ else
 }
 
 // parse CNVs file and generate temp file for circos plot
-
-
-// clinCNV CNV file:
-$cnv_hunter = false;
 $cnv_file = "$folder/${name}_cnvs_clincnv.tsv";
-if (!file_exists($cnv_file)) 
-{
-    // CnvHunter CNV file:
-    $cnv_file = "$folder/${name}_cnvs.tsv";
-    $cnv_hunter = true;
-    if (!file_exists($cnv_file)) 
-    {
-        trigger_error("No CNV file found!", E_USER_ERROR);
-    }
-}
-
+if (!file_exists($cnv_file)) trigger_error("CNV file missing: $cnv_file", E_USER_ERROR);
 $cnv_temp_file_del = $temp_folder."/cnv_del.tsv";
 $cnv_temp_file_dup = $temp_folder."/cnv_dup.tsv";
 $n_cnvs = 0;
@@ -134,20 +106,11 @@ $cnv_matrix = Matrix::fromTSV($cnv_file);
 $chr_idx = $cnv_matrix->getColumnIndex("chr");
 $start_idx = $cnv_matrix->getColumnIndex("start");
 $end_idx = $cnv_matrix->getColumnIndex("end");
-if ($cnv_hunter)
-{
-    $cn_idx = $cnv_matrix->getColumnIndex("region_copy_numbers");
-    $nor_idx = $cnv_matrix->getColumnIndex("region_count");
-    $length_idx = $cnv_matrix->getColumnIndex("size");
-}
-else
-{
-    $cn_idx = $cnv_matrix->getColumnIndex("CN_change");
-    $ll_idx = $cnv_matrix->getColumnIndex("loglikelihood");
-    $nor_idx = $cnv_matrix->getColumnIndex("no_of_regions");
-    $overlap_af_idx = $cnv_matrix->getColumnIndex("overlap af_genomes_imgag");
-    $length_idx = $cnv_matrix->getColumnIndex("length_KB");
-}
+$cn_idx = $cnv_matrix->getColumnIndex("CN_change");
+$ll_idx = $cnv_matrix->getColumnIndex("loglikelihood");
+$nor_idx = $cnv_matrix->getColumnIndex("no_of_regions");
+$overlap_af_idx = $cnv_matrix->getColumnIndex("overlap af_genomes_imgag");
+$length_idx = $cnv_matrix->getColumnIndex("length_KB");
 
 $output_fh_del = fopen2($cnv_temp_file_del, "w");
 $output_fh_dup = fopen2($cnv_temp_file_dup, "w");
@@ -156,25 +119,13 @@ for ($row_idx=0; $row_idx < $cnv_matrix->rows(); $row_idx++)
     // filter CNV
     // no_of_regions
     if ((int) $cnv_matrix->get($row_idx, $nor_idx) < $cnv_min_nor) continue;
-    // CnvHunter:
-    if ($cnv_hunter)
-    {
-        // CNV size
-        if (((float) $cnv_matrix->get($row_idx, $length_idx) / 1000.0) < $cnv_min_length) continue;
-    }
-    else
-    // ClinCNV
-    {
-        // loglikelihood
-        if ((int) $cnv_matrix->get($row_idx, $ll_idx) < $cnv_min_ll) continue;
-        // overlap with CNPs
-        if ((float) $cnv_matrix->get($row_idx, $overlap_af_idx) > $cnv_max_af) continue;
-        // CNV size
-        if ((float) $cnv_matrix->get($row_idx, $length_idx) < $cnv_min_length) continue;
-    }
+	// loglikelihood
+	if ((int) $cnv_matrix->get($row_idx, $ll_idx) < $cnv_min_ll) continue;
+	// overlap with CNPs
+	if ((float) $cnv_matrix->get($row_idx, $overlap_af_idx) > $cnv_max_af) continue;
+	// CNV size
+	if ((float) $cnv_matrix->get($row_idx, $length_idx) < $cnv_min_length) continue;
     
-
-
     // write modified cnv files to temp
     if ((int) $cnv_matrix->get($row_idx, $cn_idx) < 2) 
     {
