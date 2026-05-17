@@ -24,7 +24,7 @@ diff:
 	#CNVs
 	php ../compare_tsv.php -in1 multi_cnvs_clincnv.tsv.out -in2 multi_cnvs_clincnv.tsv -skip_cols ngsd_pathogenic_cnvs,genes,gene_info
 	#SVs
-	php ../compare_tsv.php -in1 multi_var_structural_variants.bedpe.out -in2 multi_var_structural_variants.bedpe -skip_comments_matching cmdline=,fileDate=,PIPELINE= -skip_cols GENES,GENES_BREAKPOINTS,GENE_INFO,NGSD_HOM,NGSD_HET,NGSD_AF,NGSD_group,NGSD_SV_BREAKPOINT_DENSITY,NGSD_SV_BREAKPOINT_DENSITY_SYS,NGSD_PATHOGENIC_SVS
+	php ../compare_tsv.php -in1 multi_var_structural_variants.bedpe.out -in2 multi_var_structural_variants.bedpe -skip_comments_matching cmdline=,fileDate=,PIPELINE=,SAMPLE= -skip_cols GENES,GENES_BREAKPOINTS,GENE_INFO,NGSD_HOM,NGSD_HET,NGSD_AF,NGSD_group,NGSD_SV_BREAKPOINT_DENSITY,NGSD_SV_BREAKPOINT_DENSITY_SYS,NGSD_PATHOGENIC_SVS
 
 reanno:
 	mkdir -p reanno
