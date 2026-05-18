@@ -329,12 +329,21 @@ if (!$mapping_only)
 	
 	//SVs
 	$dragen_parameter[] = "--enable-sv true";
+	$dragen_parameter[] = "--enable-vntr true";
+	$dragen_parameter[] = "--sv-vntr-merge false";
+
 
 	//REs
 	$dragen_parameter[] = "--repeat-genotype-enable true";
 	//TODO: activate when switching to pan genome 
 	// $dragen_parameter[] = "--repeat-genotype-use-catalog expanded";
-	
+
+	//other
+	$dragen_parameter[] = "--enable-mrjd true";
+	$dragen_parameter[] = "--mrjd-enable-high-sensitivity-mode true";
+	$dragen_parameter[] = "--enable-pgx true";
+	$dragen_parameter[] = "--enable-star-allele true";
+
 }
 
 //high memory
