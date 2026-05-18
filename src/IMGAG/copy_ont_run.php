@@ -356,6 +356,7 @@ else //bam output
 		{
 			//get BAM files
 			$bam_files = glob("{$subdir}/bam_pass/*.bam");
+			if (isset($info["barcode"]) && ($info["barcode"] != "")) $bam_files = glob("{$subdir}/bam_pass/".$info["barcode"]."/*.bam");
 			if (count($bam_files) !== 0)
 			{
 				//check each subfolder
