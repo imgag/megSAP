@@ -508,7 +508,7 @@ while(!gzeof($handle))
 			fwrite($handle_out, trim($line)."\n");
 		}
 
-		//get annotation indices in CSQ field from VcfAnnotateConsequence (also used for CSQ_REFSEQ and CSQ2_SOURCE)
+		//get annotation indices in CSQ field from VcfAnnotateConsequence (also used for CSQ_REFSEQ and CSQ_SOURCE)
 		if (starts_with($line, "##INFO=<ID=CSQ,"))
 		{
 			$cols = explode("|", substr($line, 0, -2));
@@ -537,7 +537,7 @@ while(!gzeof($handle))
 		}
 
 		//determine if Source Variant consequence annotation is present
-		if (starts_with($line, "##INFO=<ID=CSQ2_SOURCE"))
+		if (starts_with($line, "##INFO=<ID=CSQ_SOURCE"))
 		{
 			$source_var_csq = true;
 			$column_desc[] = ["variant_type_source", "Variant type of source variant"];
@@ -1089,9 +1089,9 @@ while(!gzeof($handle))
 	}
 
 	//VcfAnnotateConsequence Source Variant (Ensembl)
-	if (isset($info["CSQ2_SOURCE"]))
+	if (isset($info["CSQ_SOURCE"]))
 	{
-		foreach(explode(",", $info["CSQ2_SOURCE"]) as $entry)
+		foreach(explode(",", $info["CSQ_SOURCE"]) as $entry)
 		{			
 			$entry = trim($entry);
 			if ($entry=="") continue;

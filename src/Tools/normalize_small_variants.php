@@ -14,7 +14,7 @@ $parser->addOutfile("out", "Output file in VCF.", false);
 
 //optional
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
-$parser->addString("mode", "Set mode for vcf_fix.php (deepvariant, mosaic, clair3, dragen, mixed)", true, "freebayes");
+$parser->addString("mode", "Set mode for vcf_fix.php (deepvariant, mosaic, clair3, dragen)", true, "freebayes");
 $parser->addFlag("primitives", "Enables vcfallelicprimitives");
 $parser->addFlag("fix", "Enables vcf_fix.php step");
 $parser->addFlag("remove_invalid", "Adds an extra filter step to remove invalid variants after VcfBreakMulti");
@@ -49,9 +49,7 @@ $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [
 //fix errors and merge variants
 $mode_arg = "";
 if ($mode != "freebayes") $mode_arg = "--{$mode}_mode";
-if ($mode == "mixed") $mode_arg = "--dragen_mode";
 if ($fix) $pipeline[] = ["php ".repository_basedir()."/src/Tools/vcf_fix.php", "{$mode_arg}", false];
-if ($fix && $mode == "mixed") $pipeline[] = ["php ".repository_basedir()."/src/Tools/vcf_fix.php", "--clair3_mode", false];
 
 //Prune unchanged source variant annotation
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfPruneSourceVariant", "-ref $genome -out $out", [$genome], [$out], true)];
