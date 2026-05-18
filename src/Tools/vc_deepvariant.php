@@ -75,26 +75,28 @@ if (!empty($gvcf))
 }
 $args[] = "--intermediate_results_dir=".$parser->tempFolder(); //if not set, examples are written to /tmp/, even if tmp folder is overwritten in environment variables, e.g. in SGE
 
-// run deepvariant
-$pipeline = array();
-$prefix = container_platform()=='apptainer' ? "APPTAINERENV" : "SINGULARITYENV";
+//run deepvariant
+$vcf_deepvar_out = $parser->tempFile(".vcf.gz");
+$env = [
+	"OMP_NUM_THREADS" => $threads,
+	"TF_NUM_INTRAOP_THREADS" => $threads,
+	"TF_NUM_INTEROP_THREADS" => $threads
+];
+apptainerEnv($env);
+$parser->execApptainer("deepvariant", "run_deepvariant", implode(" ", $args)." --output_vcf={$vcf_deepvar_out}", [$genome, $bam], [dirname($out)], false, true, true, true, $gpu);
+
+//raw output > no post-processing
 if ($raw_output)
 {
-	$command = $parser->execApptainer("deepvariant", "run_deepvariant" ,implode(" ", $args)." --output_vcf={$out}", [$genome, $bam], [dirname($out)], true, true, true, true, $gpu);
-	$parser->exec("{$prefix}_OMP_NUM_THREADS={$threads} {$prefix}_TF_NUM_INTRAOP_THREADS={$threads} {$prefix}_TF_NUM_INTEROP_THREADS={$threads} {$command}", "");
+	$parser->moveFile($vcf_deepvar_out, $out);
 	return;
 }
 
-$vcf_deepvar_out = $parser->tempFile(".vcf.gz");
-$command = $parser->execApptainer("deepvariant", "run_deepvariant", implode(" ", $args)." --output_vcf={$vcf_deepvar_out}", [$genome, $bam], [dirname($out)], true, true, true, true, $gpu);
-$parser->exec("{$prefix}_OMP_NUM_THREADS={$threads} {$prefix}_TF_NUM_INTRAOP_THREADS={$threads} {$prefix}_TF_NUM_INTEROP_THREADS={$threads} {$command}", "");
-
-//normalize variants
+//post-processing
 $tmp_vcf_filtered = $parser->tempFile(".vcf");
 $tmp_vcf_norm = $parser->tempFile(".vcf");
 exec2("zcat {$vcf_deepvar_out} | ".$parser->execApptainer("ngs-bits", "VcfFilter", "-out {$tmp_vcf_filtered} -qual 5 -remove_invalid -ref $genome", [$genome], [], true));
 $parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_vcf_filtered} -out {$tmp_vcf_norm} -build {$build} -mode deepvariant -primitives -fix");
-
 //Add header to VCF file
 $vcf = Matrix::fromTSV($tmp_vcf_norm);
 $comments = $vcf->getComments();

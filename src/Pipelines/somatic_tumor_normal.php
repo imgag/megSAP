@@ -639,7 +639,7 @@ if (in_array("vc", $steps))
 		$snv_signatures_out = $out_folder."/snv_signatures/";
 		$tmp_variants = $parser->tempFile(".vcf", "snv_signatures_");
 		$parser->execApptainer("htslib", "bgzip", "-c -d -@ {$threads} $variants > {$tmp_variants}", [$variants]);
-		$parser->exec("php ".repository_basedir()."/src/Tools/extract_signatures.php", "-in {$tmp_variants} -mode snv -out {$snv_signatures_out} -reference GRCh38 -threads {$threads}", true);
+		$parser->exec("php ".repository_basedir()."/src/Tools/extract_signatures.php", "-in {$tmp_variants} -mode snv -out {$snv_signatures_out} -threads {$threads}", true);
 	}
 }
 
@@ -898,7 +898,7 @@ if(in_array("cn",$steps))
 		if(!$skip_signatures)
 		{
 			$cnv_signatures_out = $out_folder."/cnv_signatures/";
-			$parser->exec("php ".repository_basedir()."/src/Tools/extract_signatures.php", "-in {$som_clincnv} -mode cnv -out {$cnv_signatures_out} -reference GRCh38 -threads {$threads}", true);
+			$parser->exec("php ".repository_basedir()."/src/Tools/extract_signatures.php", "-in {$som_clincnv} -mode cnv -out {$cnv_signatures_out} -threads {$threads}", true);
 		}
 	}
 }
@@ -998,7 +998,8 @@ if (in_array("msi", $steps))
 	if (!file_exists($msi_folder)) $parser->exec("mkdir", "-p {$msi_folder}");
 	
 	$msi_ref = $msi_folder."/msisensor_references_".$n_sys['build'].get_path("container_msisensor-pro").".site";
-	$parameters = "-n_bam $n_bam -t_bam $t_bam -msi_ref $msi_ref -ref $ref_genome -threads $threads -out " .$msi_tmp_file. " -build ".$n_sys['build'];
+	
+	$parameters = "-n_bam $n_bam -t_bam $t_bam -msi_ref $msi_ref -ref $ref_genome -threads $threads -out " .$msi_tmp_file. " -build ".$n_sys['build']. " -target ".$sys['target_file'];
 	
 	$parser->execTool("Tools/detect_msi.php", $parameters);
 	$parser->copyFile($msi_tmp_file, $msi_o_file);

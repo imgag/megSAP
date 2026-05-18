@@ -25,11 +25,11 @@ $local_data = get_path("local_data");
 $rsync  = "rsync --recursive --no-perms --no-acls --omit-dir-times --no-group --no-owner --chmod=ugo=rwX --copy-links --size-only";
 
 //determine DB files
-$db_files = array("/dbs/dbSNP/dbSNP_b157.vcf.gz", "/dbs/CADD/CADD_SNVs_1.7_GRCh38.vcf.gz", "/dbs/CADD/CADD_InDels_1.7_GRCh38.vcf.gz", "/dbs/REVEL/REVEL_1.3.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz", "/dbs/RepeatMasker/RepeatMasker_GRCh38.bed", "/dbs/ClinVar/clinvar_20250907_converted_GRCh38.vcf.gz", "/dbs/phyloP/hg38.phyloP100way.bw", "/dbs/SpliceAI/spliceai_scores_2024_08_26_GRCh38.vcf.gz", "/dbs/Ensembl/Ensembl_regulatory_115.bed", "/dbs/Ensembl/Ensembl_domains_115.tsv");
+$db_files = array("/dbs/dbSNP/dbSNP_b157.vcf.gz", "/dbs/CADD/CADD_SNVs_1.7_GRCh38.vcf.gz", "/dbs/CADD/CADD_InDels_1.7_GRCh38.vcf.gz", "/dbs/REVEL/REVEL_1.3.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz", "/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz", "/dbs/RepeatMasker/RepeatMasker_GRCh38.bed", "/dbs/ClinVar/clinvar_20260329_converted_GRCh38.vcf.gz", "/dbs/phyloP/hg38.phyloP100way.bw", "/dbs/SpliceAI/spliceai_scores_2024_08_26_GRCh38.vcf.gz", "/dbs/Ensembl/Ensembl_regulatory_115.bed", "/dbs/Ensembl/Ensembl_domains_115.tsv");
 //add optional DBs
 $omim =  "/dbs/OMIM/omim.bed";
 if (file_exists($data_folder.$omim)) $db_files[] = $omim;
-$hgmd =  "/dbs/HGMD/HGMD_PRO_2025_2_fixed.vcf.gz";
+$hgmd =  "/dbs/HGMD/HGMD_PRO_2026_1_fixed.vcf.gz";
 if (file_exists($data_folder.$hgmd)) $db_files[] = $hgmd;
 $am_main =  "/dbs/AlphaMissense/AlphaMissense_hg38.vcf.gz";
 if (file_exists($data_folder.$am_main)) $db_files[] = $am_main;
@@ -130,9 +130,10 @@ foreach($files as $file)
 $ref_cache = "{$genome_folder}/samtools_ref_cache";
 if (file_exists($ref_cache))
 {
-	print "Copying samtools ref cache...\n";
-	print "  source: {$ref_cache}\n";
-	print "  taget: {$local_data}/samtools_ref_cache/\n";
+	print "\n";
+	print "### copying samtools ref cache ###\n";
+	print "from: {$ref_cache}\n";
+	print "to  : {$local_data}/samtools_ref_cache/\n";
 	exec2("{$rsync} {$ref_cache} {$local_data}/");
 }
 else
@@ -162,6 +163,7 @@ if ($build=="GRCh38")
 		
 		print "\n";
 		print "### annotation databases ###\n";
+		print "from: {$data_folder}/dbs/\n";
 		print "to  : {$local_annotation_folder}\n";
 		print "\n";
 			

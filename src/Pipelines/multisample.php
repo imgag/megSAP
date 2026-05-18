@@ -8,42 +8,6 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-function extract_info($format, $data)
-{
-	if ($data==".")
-	{
-		return array('NONE', 0, 0);
-	}
-	
-	$data = explode(":", $data);
-	$data = array_combine($format, $data);
-	$dp = trim($data['DP']);
-	$depth = $dp=="." ? 0 : array_sum(explode(",", $data['DP']));
-	$genotype = vcfgeno2human($data['GT']);
-	if (isset($data['AO'])) //freebayes: AO
-	{
-		$ao = array_sum(explode(",", $data['AO']));
-	}
-	elseif (isset($data['AF'])) //Dragen: AF converted to AO
-	{
-		$af = $data['AF'];
-		if ($af=="." || $af=="") $af = 0.0;
-		$ao = round($depth * $af);
-	}
-	else //GLnexus: AD converted to AO
-	{
-		$ad = $data['AD'];
-		if ($ad=="." || $ad=="") 
-		{
-			$ao = 0;
-			return array($genotype, $depth, $ao);
-		}
-		$ao = explode(",", $ad)[1];
-	}
-	return array($genotype, $depth, $ao);
-}
-
-
 //parse command line arguments
 $parser = new ToolBase("multisample", "Multi-sample analysis pipeline.");
 $parser->addInfileArray("bams", "Input BAM files.", false);
@@ -63,14 +27,13 @@ extract($parser->parse($argv));
 //init
 $repository_basedir = repository_basedir();
 $data_folder = get_path("data_folder");
-$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2025_2.bed";
+$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2026_1.bed";
 $omim_file = "{$data_folder}/dbs/OMIM/omim.bed";
-$vcf_all = "{$out_folder}/all.vcf.gz";
-$vcf_all_mito = "{$out_folder}/all_mito.vcf.gz";
+$vcf_multi = "{$out_folder}/{$prefix}_var.vcf.gz";
 $cnv_multi = "{$out_folder}/{$prefix}_cnvs_clincnv.tsv";
 $gsvar = "{$out_folder}/{$prefix}.GSvar";
 $sv_manta_file = "{$out_folder}/{$prefix}_var_structural_variants.vcf.gz";
-$bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
+$bedpe_out = "{$out_folder}/{$prefix}_var_structural_variants.bedpe";
 
 //create log file in output folder if none is provided
 if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/multi_".date("YmdHis").".log");
@@ -88,7 +51,7 @@ foreach($steps as $step)
 if ($annotation_only)
 {
 	// check if required VC files for annotation is available and print warning otherwise
-	if (in_array("vc", $steps) && !file_exists($vcf_all))
+	if (in_array("vc", $steps) && !file_exists($vcf_multi))
 	{
 		trigger_error("VCF for reannotation is missing. Skipping 'vc' step!", E_USER_WARNING);
 		if (($key = array_search("vc", $steps)) !== false) unset($steps[$key]);
@@ -163,6 +126,7 @@ foreach($bams as $bam)
 	if ($sys["name_short"]!=$sys_ps["name_short"]) $sys_matching = false;
 }
 $genome = genome_fasta($sys['build']);
+$target_file = realpath($sys['target_file']);
 
 //check genome build of BAMs
 foreach($bams as $bam)
@@ -188,11 +152,8 @@ if ($is_wgs_shallow)
 	}
 }
 
-//set up local NGS data copy (to reduce network traffic and speed up analysis)
-if (!$no_sync)
-{
-	$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
-}
+//set up local NGS data copy
+if (!$no_sync) $parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
 
 //create output folder if missing
 $out_folder .= "/";
@@ -208,245 +169,81 @@ if (!file_exists($out_folder))
 	}
 }
 
-
-//check if Dragen gVCFs exist
-$gvcfs = [];
-foreach($bams as $bam)
-{
-	$folder = dirname($bam);
-	$ps = basename2($bam);
-	$gvcf = "{$folder}/dragen/{$ps}.hard-filtered.gvcf.gz";
-	if (file_exists($gvcf)) $gvcfs[] = $gvcf;
-}
-$dragen_gvcfs_exist = count($gvcfs)==count($bams);
-
 //copy BAM files to local tmp for variant calling
-if (!$annotation_only)
+$local_bams = [];
+if (!$annotation_only && in_array("sv", $steps)) //manta is slow with CRAMs > create local BAM copy
 {
-	if ((in_array("vc", $steps) && !$dragen_gvcfs_exist) || in_array("sv", $steps))
+	$tmp_bam_folder = $parser->tempFolder("local_copy_of_bams_");
+	
+	foreach($bams as $bam)
 	{
-		$tmp_bam_folder = $parser->tempFolder("local_copy_of_bams_");
-		$local_bams = array();
-		foreach($bams as $bam)
+		//convert to BAM if CRAM
+		$bam = convert_to_bam_if_cram($bam, $parser, $sys['build'], $threads, $tmp_bam_folder);
+		
+		//check BAM/BAI exist
+		if (!file_exists($bam)) trigger_error("BAM file '{$bam}' does not exist!", E_USER_ERROR);
+		if (!file_exists($bam.".bai")) trigger_error("BAM index file '{$bam}.bai' does not exist!", E_USER_ERROR);
+		
+		//create local copy if not already local file
+		if (starts_with($bam, $tmp_bam_folder))
 		{
-			//convert to BAM if CRAM
-			$bam = convert_to_bam_if_cram($bam, $parser, $sys['build'], $threads, $tmp_bam_folder);
-			
-			//check BAM/BAI exist
-			if (!file_exists($bam)) trigger_error("BAM file '{$bam}' does not exist!", E_USER_ERROR);
-			if (!file_exists($bam.".bai")) trigger_error("BAM index file '{$bam}.bai' does not exist!", E_USER_ERROR);
-			
-			//create local copy if not already local file
-			if (starts_with($bam, $tmp_bam_folder))
-			{
-				$local_bams[] = $bam;
-			}
-			else
-			{
-				$local_bam = $tmp_bam_folder."/".basename($bam);
-				$parser->copyFile($bam, $local_bam);
-				$parser->copyFile($bam.".bai", $local_bam.".bai");
-				$local_bams[] = $local_bam;
-			}
+			$local_bams[] = $bam;
+		}
+		else
+		{
+			$local_bam = $tmp_bam_folder."/".basename($bam);
+			$parser->copyFile($bam, $local_bam);
+			$parser->copyFile($bam.".bai", $local_bam.".bai");
+			$local_bams[] = $local_bam;
 		}
 	}
 }
 
-//(1) variant calling of all samples together
+//(1) small variant calling
 $mito = enable_special_mito_vc($sys);
 if (in_array("vc", $steps))
 {
 	if (!$annotation_only)
-	{		
-		//main variant calling for autosomes and gonosomes
-		if ($dragen_gvcfs_exist) //gVCFs exist > merge them
+	{	
+		//determine VCFs
+		$vcfs = [];
+		foreach($bams as $bam)
 		{
-			$args = array();
-			$args[] = "-gvcfs ".implode(" ", $gvcfs);
-			$args[] = "-status ".implode(" ", $status);
-			$args[] = "-out {$vcf_all}";
-			$args[] = "-threads {$threads}";
-			$args[] = "-analysis_type ".($prefix=="trio" ? "GERMLINE_TRIO" : "GERMLINE_MULTISAMPLE");
-			$args[] = "-mode dragen";
-			$parser->execTool("Tools/merge_gvcf.php", implode(" ", $args));
+			$vcf = dirname($bam)."/".basename2($bam)."_var.vcf.gz";
+			if (!file_exists($vcf)) trigger_error("VCF file does not exist: $vcf", E_USER_ERROR);
+			$vcfs[] = $vcf;
 		}
-		else //calling with DeepVariant with gVCF file creation
-		{
-			$deepvar_gvcfs = array();
-			foreach($local_bams as $local_bam) // DeepVariant calling for each bam with gVCF output
-			{
-				$deepvar_vcf = $parser->tempFile("_deepvar.vcf.gz");
-				$deepvar_gvcf = $parser->tempFile("_deepvar.gvcf.gz");
-
-				$args = [];
-				if ($is_wes) $args[] = "-model_type WES";
-				else if ($is_wgs) $args[] = "-model_type WGS";
-				else trigger_error("Unsupported system type '".$sys['type']."' detected in {$system}. Compatible system types for multi-sample analysis are: WES, WGS", E_USER_ERROR);
-				$args[] = "-bam ".$local_bam;
-				$args[] = "-out ".$deepvar_vcf;
-				$args[] = "-gvcf ".$deepvar_gvcf;
-				$args[] = "-build ".$sys['build'];
-				$args[] = "-threads ".$threads;
-				$args[] = "-target ".$sys['target_file'];
-				$args[] = "-target_extend 200";
-				$args[] = "-min_af 0.1";
-				$args[] = "-allow_empty_examples";
-
-				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
-				
-				$deepvar_gvcfs[] = $deepvar_gvcf;
-			}
-			
-			//merge gVCFs with GLnexus
-			$wes_config = "{$repository_basedir}/data/misc/glnexus_configs/DeepVariantWES.yml";
-			$tmp_vcf_merged = $parser->tempFile(".vcf.gz");
-			$args = [];
-			$args[] = "--dir ".$parser->tempFolder()."/GLnexus.DB/";
-			$args[] = "--config ".($is_wes ? $wes_config : "DeepVariantWGS");
-			$args[] = "--threads {$threads}";
-			$args[] = implode(" ", $deepvar_gvcfs);
-			$pipeline = [];
-			$pipeline[] = ["", $parser->execApptainer("glnexus", "glnexus_cli", implode(" ", $args), [$wes_config], [], true)];
-			$pipeline[] = ["", $parser->execApptainer("glnexus", "bcftools view", "", [], [], true)];
-			$pipeline[] = ["", $parser->execApptainer("htslib", "bgzip", "-@ -c > {$tmp_vcf_merged}", [], [], true)];
-			$parser->execPipeline($pipeline, "GLnexus gVCF merging");
-			
-			//post-processing
-			$tmp_vcf_filtered = $parser->tempFile(".vcf");
-			$tmp_vcf_norm = $parser->tempFile(".vcf");
-			exec2("zcat {$tmp_vcf_merged} | ".$parser->execApptainer("ngs-bits", "VcfFilter", "-out {$tmp_vcf_filtered} -remove_invalid -ref $genome", [$genome], [], true));
-			$parser->execTool("Tools/normalize_small_variants.php", "-in {$tmp_vcf_filtered} -out {$tmp_vcf_norm} -build ".$sys['build']." -primitives");
-			
-			//bgzip and index
-			$parser->execApptainer("htslib", "bgzip", "-@ {$threads} -c {$tmp_vcf_norm} > {$vcf_all}", [], [dirname($vcf_all)]);
-			$parser->execApptainer("htslib", "tabix", "-f -p vcf {$vcf_all}", [], [dirname($vcf_all)]);
-		}
-
-		//variant calling for mito with special parameters
-		if ($mito)
-		{
-			$target_mito = $parser->tempFile("_mito.bed");
-			file_put_contents($target_mito, "chrMT\t0\t16569");
-			
-			$args = array();
-			$args[] = "-bam ".implode(" ", $bams);
-			$args[] = "-out $vcf_all_mito";
-			$args[] = "-no_ploidy";
-			$args[] = "-no_bias";
-			$args[] = "-min_af 0.01";
-			$args[] = "-target $target_mito";
-			$args[] = "-build ".$sys['build'];
-			$args[] = "--log ".$parser->getLogFile();
-			$parser->execTool("Tools/vc_freebayes.php", implode(" ", $args), true);
-		}
-	}
-	
-	//TODO: no longer convert it !!!!!
-	//(2) annotation
-	//Convert VCF to single-sample format
-	$indices = array();
-	$h1 = gzopen2($vcf_all, "r");
-	$vcf = $parser->tempFile("_unzipped.vcf");
-	$h2 = fopen2($vcf, "w");
-	while(!gzeof($h1))
-	{
-		$line = trim(gzgets($h1));
-		if (strlen($line)==0) continue;
 		
-		if ($line[0]=="#" && $line[1]=="#") //comments
+		//filter VCFs by (extended) target region
+		$target_extended = $parser->tempFile("_roi_extended.bed");
+		$parser->execApptainer("ngs-bits", "BedExtend", "-in $target_file -n 200 -out $target_extended -fai {$genome}.fai", [$target_file, $genome]);
+		$vcfs_filtered = [];
+		foreach($vcfs as $vcf)
 		{
-			fwrite($h2, $line."\n");
-		}
-		else if ($line[0]=="#") //header
-		{
-			//add multi-sample comments
-			fwrite($h2, "##FORMAT=<ID=MULTI,Number=.,Type=String,Description=\"Multi-sample genotype information (genotype, depth, alternate base observations).\">\n");		
-			fwrite($h2, "##ANALYSISTYPE=GERMLINE_MULTISAMPLE\n");
-			fwrite($h2, "##PIPELINE=".repository_revision(true)."\n");
-			foreach($bams as $bam)
-			{
-				fwrite($h2, gsvar_sample_header($names[$bam], array("DiseaseStatus"=>$status[$bam])));
-			}
-			
-			//determine indices for each sample	
-			$parts = explode("\t", $line);
-			foreach($bams as $bam)
-			{
-				$indices[$bam] = vcf_column_index($names[$bam], $parts); 
-			}
-			
-			//write main header
-			fwrite($h2, implode("\t", array_slice($parts, 0, 9))."\t{$prefix}\n");
-		}
-		else //content
-		{
-			$parts = explode("\t", $line);
-			$format = explode(":", $parts[8]);
-			$muti_info = array();
-			foreach($bams as $bam)
-			{
-				$index = $indices[$bam];
-				list($gt, $dp, $ao) = extract_info($format, $parts[$index]);
-				$muti_info[] = $names[$bam]."=$gt|$dp|$ao";
-			}
-			
-			//update format field
-			$parts[8] = "MULTI";
-			fwrite($h2, implode("\t", array_slice($parts, 0, 9))."\t".implode(",", $muti_info)."\n");
-		}
+			$tmp = $parser->tempFile(".vcf");
+			$parser->execApptainer("ngs-bits", "VcfFilter", "-in $vcf -out $tmp -reg $target_extended -ref $genome", [$vcf, $genome]);
+			$vcfs_filtered[] = $tmp;		}
+		
+		//merge VCFs
+		$vcf_merged = $parser->tempFile("_merged.vcf");
+		$args = [];
+		$args[] = "-in ".implode(" ", $vcfs_filtered);
+		$args[] = "-out $vcf_merged";
+		$args[] = "-bam ".implode(" ", $bams);
+		$args[] = "-threads $threads";
+		$parser->execApptainer("ngs-bits", "VcfMerge", implode(" ", $args), $bams);
+		
+		//add pipeline to header to VCF file
+		list($comments) = vcf_load_header($vcf_merged);
+		$comments[] = "##PIPELINE=".repository_revision(true);
+		vcf_replace_comments($vcf_merged, $comments);
+		
+		//bgzip and index
+		$parser->execApptainer("htslib", "bgzip", "-c $vcf_merged > $vcf_multi", [], [dirname($vcf_multi)]);
+		$parser->execApptainer("htslib", "tabix", "-p vcf $vcf_multi", [], [dirname($vcf_multi)]);
 	}
-	if ($mito && file_exists($vcf_all_mito)) //check if file exists for downward compatibility with old analyses that did not include mito
-	{
-		//clean up
-		fclose($h1);
-		$indices = array();
-		$h1 = gzopen2($vcf_all_mito, "r");
-		while(!gzeof($h1))
-		{
-			$line = trim(gzgets($h1));
-			if (strlen($line)==0) continue;
-			
-			if ($line[0]=="#") //header > determine indices
-			{
-				if ($line[1]=="#") continue; //comments
-				
-				$parts = explode("\t", $line);
-				foreach($bams as $bam)
-				{
-					$indices[$bam] = vcf_column_index($names[$bam], $parts); 
-				}
-			}
-			else //content > append
-			{
-				$parts = explode("\t", $line);
-				$format = explode(":", $parts[8]);
-				$muti_info = array();
-				foreach($bams as $bam)
-				{
-					$index = $indices[$bam];
-					list($gt, $dp, $ao) = extract_info($format, $parts[$index]);
-					$muti_info[] = $names[$bam]."=$gt|$dp|$ao";
-				}
-				
-				//update format field
-				$parts[8] = "MULTI";
-				fwrite($h2, implode("\t", array_slice($parts, 0, 9))."\t".implode(",", $muti_info)."\n");
-			}
-		}
-	}
-	fclose($h1);
-	fclose($h2);
 
-	//Sort variant list (neccessary for tabix)
-	$vcf_sorted = $parser->tempFile("_unsorted.vcf");
-	$parser->execApptainer("ngs-bits", "VcfStreamSort", "-in $vcf -out $vcf_sorted");
-	
-	//zip variant list
-	$vcf_zipped = "{$out_folder}{$prefix}_var.vcf.gz";
-	$parser->execApptainer("htslib", "bgzip", "-c $vcf_sorted > $vcf_zipped", [], [dirname($vcf_zipped)]);
-	$parser->execApptainer("htslib", "tabix", "-p vcf $vcf_zipped", [], [dirname($vcf_zipped)]);
-
-	//basic annotation
+	//annotation
 	$args = [];
 	$args[] = "-out_name {$prefix}";
 	$args[] = "-out_folder {$out_folder}";
@@ -458,7 +255,7 @@ if (in_array("vc", $steps))
 
 	//check for truncated output
 	if ($is_wgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$out_folder}/{$prefix}_var_annotated.vcf.gz -max_missing_perc 5");
-
+	
 	//update sample entry 
 	$status_map = array();
 	foreach ($status as $bam => $disease_status) 
@@ -478,7 +275,7 @@ if (in_array("cn", $steps))
 		$roi = [];
 		if (!$is_wgs && !$is_wgs_shallow && $sys_matching)
 		{
-			foreach(file($sys['target_file']) as $line)
+			foreach(file($target_file) as $line)
 			{
 				$line = trim($line);
 				if ($line=="" || $line[0]=="#") continue;
@@ -600,22 +397,35 @@ if (in_array("cn", $steps))
 			$regions = $tmp;
 		}
 		
+		//create output file
 		$output[] = "#".implode("\t", ["chr", "start", "end", "sample", "size", "CN_change", "loglikelihood", "no_of_regions", "qvalue", "potential_AF"]);
 		foreach($regions as $reg)
 		{
 			$chr = $reg["chr"];
 			$start = $reg["start"];
 			$end = $reg["end"];
+			
+			//filter by target region (mainly to keep test file sizes managable)
+			$in_roi = false;
+			if (isset($roi[$chr]))
+			{
+				foreach($roi[$chr] as list($start2, $end2))
+				{
+					if (range_overlap($start, $end, $start2, $end2))
+					{
+						$in_roi = true;
+						break;
+					}
+				}
+			}
+			if (!$in_roi) continue;
+			
 			$size = intval($end)-intval($start);
-			$line = array(
-				$chr,
-				$start,
-				$end,
-				$prefix,
-				$size,
-				$reg["cn"],
-				$reg["loglike"]
-				);
+			
+			//create line with base infos
+			$line = [$chr, $start, $end, $prefix, $size, $reg["cn"], $reg["loglike"] ];
+			
+			//add number of regions
 			if($is_wgs)
 			{
 				$bin_size = get_path("cnv_bin_size_wgs");
@@ -643,11 +453,12 @@ if (in_array("cn", $steps))
 				$line[] = "n/a"; 
 			}
 			
+			//add rest of the fields
 			$line[] = $reg["qvalue"];
 			$line[] = number_format(max(explode(",", $reg["pot_af"])), 3);
 			
 			$output[] = implode("\t",$line);
-		}
+		}	
 	
 		//write output file
 		file_put_contents($cnv_multi, implode("\n", $output));
@@ -723,7 +534,7 @@ if (in_array("cn", $steps))
 	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -out {$cnv_multi}", [$out_folder, "{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed"]);
 	
 	//pathogenic ClinVar CNVs
-	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-09.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", [$out_folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2025-09.bed"]);
+	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-04.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", [$out_folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-04.bed"]);
 	
 	//HGMD CNVs
 	if (file_exists($hgmd_file)) //optional because of license
@@ -748,21 +559,20 @@ if (in_array("sv", $steps))
 		$manta_evidence_dir = "{$out_folder}/manta_evid";
 		create_directory($manta_evidence_dir);
 
-
 		$manta_args = [
 			"-bam ".implode(" ", $local_bams),
 			"-evid_dir ".$manta_evidence_dir,
 			"-out ".$sv_manta_file,
 			"-threads ".$threads,
 			"-build ".$sys['build'],
-			"--log ".$parser->getLogFile()
+			"--log ".$parser->getLogFile(),
+			"-target ".$target_file
 		];
-		$manta_args[] = "-target ".$sys['target_file'];
 		if(!$is_wgs) $manta_args[] = "-exome";
 		
 		$parser->execTool("Tools/vc_manta.php", implode(" ", $manta_args));
 
-		// Rename Manta evidence file
+		//rename Manta evidence file
 		$evidence_bam_files = glob("$manta_evidence_dir/evidence_*.bam");
 		foreach($evidence_bam_files as $old_bam_filename)
 		{
@@ -773,6 +583,9 @@ if (in_array("sv", $steps))
 		
 		//create BEDPE files
 		$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in $sv_manta_file -out $bedpe_out", [$out_folder]);
+
+		//filter by target region
+		$parser->execApptainer("ngs-bits", "BedpeFilter", "-in $bedpe_out -out $bedpe_out -bed $target_file", [$out_folder, $target_file]);
 
 		// correct filetype and add sample headers
 		$bedpe_table = Matrix::fromTSV($bedpe_out);

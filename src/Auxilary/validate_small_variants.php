@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("validate_NA12878", "Validates the performance of a sequencing experiment on the GiaB reference sample NA12878.");
+$parser = new ToolBase("validate_small_variants", "Validates the performance of a sequencing experiment on the GiaB reference sample NA12878.");
 $parser->addInfile("vcf", "Variant list (VCF or VCF.GZ).", false);
 $parser->addInfile("bam", "Mapped reads (BAM format).", false);
 $parser->addInfile("roi", "Target region of the processing system (BED format).", false);
@@ -20,10 +20,14 @@ $parser->addInt("min_dp", "If set, only regions in the 'roi' with at least the g
 $parser->addInt("min_qual", "If set, only input variants with QUAL greater or equal to the given value are evaluated.", true, 5);
 $parser->addInt("max_indel", "Maximum indel size (larger indels are ignored). Disabled if set to 0.", true, 50);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
-$parser->addString("ref_sample", "Reference sample to use for validation.", true, "NA12878");
+$parser->addString("ref_sample", "Reference sample to use for validation.", true, "NA24385_v5.0q");
 $parser->addFlag("matches", "Do not only show variants that were missed (-), are novel (+) or with genotype mismatch (g), but also show matches (=) in output.");
 $parser->addFlag("skip_depth_calculation", "Do not calculate depth of missed variants to speed up calculation.");
 $parser->addFlag("keep_mosaic", "Do not remove variants which are flagged as 'mosaic'.");
+$parser->addFlag("keep_special", "Do not remove variants which are are flagged as special call (CT FORMAT entry produced by VcfMerge).");
+$parser->addFlag("keep_targeted", "Do not remove variants which are flagged as 'targeted'.");
+$parser->addOutfile("final_roi", "Optional output BED file containing the final target region after filtering", true);
+$parser->addInfile("exclude_region", "Region to exclude e.g. low-mappability regions (BED format).", true);
 extract($parser->parse($argv));
 
 //returns the variants of a VCF file in the given ROI
@@ -32,6 +36,8 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skippe
 	global $parser;
 	global $genome;
 	global $keep_mosaic;
+	global $keep_special;
+	global $keep_targeted;
 		
 	//get variants
 	$tmp = $parser->tempFile(".vcf");
@@ -76,23 +82,13 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skippe
 		
 		//multi-allelic > abort
 		if (contains($alt, ",")) trigger_error("This tool cannot handle multi-allelic variants. Break and normalize variants using VcfBreakMulti, VcfLeftNormalize and VcfStreamSort before running this tool!", E_USER_ERROR);
-		
-		//skip low mappabilty variants (megSAP)
-		if (contains($filter, "low_mappability"))
-		{
-			@$skipped["low_mappability"] += 1;
-			continue;
-		}
-		
+				
 		//skip mosaic variants (megSAP)
 		if (!$keep_mosaic && contains($filter, "mosaic"))
 		{
 			@$skipped["mosaic"] += 1;
 			continue;
 		}
-		
-		//skip low mappabilty variants (DRAGEN)
-		//TODO
 		
 		//skip mosaic variants (DRAGEN)
 		$info = explode(";",$info);
@@ -107,7 +103,26 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skippe
 				}
 			}
 		}
-		
+
+		//skip targeted variants (megSAP)
+		if (!$keep_mosaic && contains($filter, "targeted"))
+		{
+			@$skipped["targeted"] += 1;
+			continue;
+		}
+
+		//skip targeted variants (DRAGEN)
+		if (!$keep_targeted)
+		{
+			foreach($info as $entry)
+			{
+				if ($entry=="TARGETED")
+				{
+					@$skipped["targeted"] += 1;
+					continue(2);
+				}
+			}
+		}
 		
 		//compile output
 		$var = array();
@@ -141,15 +156,28 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skippe
 			continue;
 		}
 		
+		//keep special calls
+		if (!$keep_special)
+		{
+			$idx = array_search("CT", $format);
+			if ($idx!==FALSE)
+			{
+				$call_type = $sample[$idx];
+				if ($call_type!="" && $call_type!=".")
+				{
+					@$skipped["special call: $call_type"] += 1;
+					continue;
+				}
+			}
+		}
+		
 		//get rest from FORMAT
 		$idx = array_search("DP", $format);
-		if ($idx!==FALSE) $var['DP'] = $sample[$idx];
+		if ($idx!==FALSE) $var["DP"] = $sample[$idx];
+		$idx = array_search("AF", $format);
+		if ($idx!==FALSE) $var["AF"] = $sample[$idx];
 		$idx = array_search("AO", $format);
-		if ($idx!==FALSE) $var['AO'] = $sample[$idx];
-		$idx = array_search("RO", $format);
-		if ($idx!==FALSE) $var['RO'] = $sample[$idx];
-		$idx = array_search("GQ", $format);
-		if ($idx!==FALSE) $var['GQ'] = $sample[$idx];
+		if ($idx!==FALSE) $var["AO"] = $sample[$idx];
 		if (strlen($ref)>1 || strlen($alt)>1)
 		{
 			$var["TYPE"] = "INDELS";
@@ -200,7 +228,7 @@ function get_depth($pos, $bam)
 function get_prop($var, $name, $digits = null)
 {
 	if (!isset($var[$name])) return "";
-	if (!is_null($digits)) number_format($var[$name], $digits);
+	if (!is_null($digits)) return number_format($var[$name], $digits);
 	return $var[$name];
 }
 
@@ -239,8 +267,24 @@ if ($min_dp>0)
 	$roi_used = $roi_high_dp;
 	$bases_used = $bases_high_dp;
 }
+
+if ($exclude_region != "")
+{
+	$roi_filtered = $parser->tempFile(".bed");
+	$parser->execApptainer("ngs-bits", "BedSubtract", "-in {$roi_used} -in2 {$exclude_region} -out {$roi_filtered}", [$exclude_region]);
+	$bases_filtered = bed_size($roi_filtered);
+	print "##Bases post filter : $bases_filtered (".number_format(100*$bases_filtered/$bases, 2)."%)\n";
+
+	$roi_used = $roi_filtered;
+	$bases_used = $bases_filtered;
+}
 print "##Notice: Reference variants in the above region are evaluated!\n";
 print "##\n";
+
+if ($final_roi != "")
+{
+	$parser->copyFile($roi_used, $final_roi);
+}
 
 //get reference variants in ROI
 print "##Variant list      : $vcf\n";
@@ -270,13 +314,12 @@ foreach($expected as $pos => $var)
 		$exp = array();
 		if($skip_depth_calculation)
 		{
-			$exp["DP"] = "N/A";
+			$exp["DP"] = "";
 		}
 		else
 		{
 			$exp["DP"] = get_depth($pos, $bam);
 		}
-		
 		
 		$var_diff[$pos] = array("-", $var, $exp);
 	}
@@ -316,7 +359,7 @@ function pos_gt($a, $b)
 uksort($var_diff, "pos_gt");
 
 //print TSV output
-print "#sample\tstatus\tpos\tvariant\tvariant_type\tref_GT\tobs_GT\tobs_DP\tobs_QUAL\tobs_MQM\tobs_AO\tobs_AF\tobs_QUAL_per_DP\n";
+print "#sample\tstatus\tpos\tvariant\tvariant_type\tref_GT\tobs_GT\tobs_QUAL\tobs_DP\tobs_AF\n";
 foreach($var_diff as $pos => list($status, $ref, $obs))
 {
 	if($status=="=" && !$matches) continue;
@@ -324,17 +367,16 @@ foreach($var_diff as $pos => list($status, $ref, $obs))
 	$exchange = explode(" ", $pos)[1];
 	$variant_type = strlen($exchange)==3 ? "SNV" : "INDEL";
 
-	$ao = get_prop($obs, "AO");
+	$qual = get_prop($obs, "QUAL");
 	$dp = get_prop($obs, "DP");
-	$gq = get_prop($obs, "GQ");
-	$af = "n/a";
-	if ($ao!="" && $dp!="" && $dp>0) $af = number_format($ao/$dp,2);
+	$af = get_prop($obs, "AF");
+	if ($af=="") //fallback to AO for freebayes
+	{
+		$ao = get_prop($obs, "AO");
+		if ($ao!="" && $dp!="" && $dp>0) $af = number_format($ao/$dp,2);			
+	}
 	
-	$qual = get_prop($obs, "QUAL", 2);
-	$qpd = "n/a";
-	if ($qual!="" && $dp!="" && $dp>0) $qpd = number_format($qual/$dp, 2);
-	
-	print "$name\t$status\t".strtr($pos, " ", "\t")."\t".$variant_type."\t".get_prop($ref, "GT")."\t".get_prop($obs, "GT")."\t".$dp."\t".$qual."\t".get_prop($obs, "MQM", 2)."\t".$ao."\t".$af."\t".$qpd."\n";
+	print "$name\t$status\t".strtr($pos, " ", "\t")."\t".$variant_type."\t".get_prop($ref, "GT")."\t".get_prop($obs, "GT")."\t".$qual."\t".$dp."\t".$af."\n";
 }
 print "\n";
 
@@ -400,6 +442,8 @@ $options = array();
 if ($min_dp>0) $options[] = "min_dp={$min_dp}";
 if ($max_indel>0) $options[] = "max_indel={$max_indel}";
 if ($min_qual>0) $options[] = "min_qual={$min_qual}";
+if ($keep_mosaic) $options[] = "keep_mosaic";
+if ($keep_targeted) $options[] = "keep_targeted";
 $options = implode(" ", $options);
 $date = strtr(date("Y-m-d H:i:s", filemtime($vcf)), "T", " ");
 $output = array();

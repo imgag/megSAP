@@ -434,6 +434,30 @@ function time_readable($duration)
     return implode(" ", $output);
 }
 
+//Converts a human-readable time string produced by time_readable() to minutes
+function time_readable_to_min($time_readable)
+{
+	$min = 0.0;
+	foreach(explode(" ", trim($time_readable)) as $part)
+	{
+		$part = trim($part);
+		if (ends_with($part, "s"))
+		{
+			$min += substr($part, 0, -1) / 60.0;
+		}
+		else if (ends_with($part, "m"))
+		{
+			$min += substr($part, 0, -1);
+		}
+		else if (ends_with($part, "h"))
+		{
+			$min += substr($part, 0, -1) * 60.0;
+		}
+	}
+	
+	return number_format($min, 2);
+}
+
 /*
 	@brief Returns a human-readable traceback string.
 */
@@ -659,6 +683,28 @@ function resolve_symlink($filename)
 	
 	return realpath($filename);
 }
+
+//Sets environment variables to be added to the container environment for the next execApptainer call. Prefixes environment variables with APPTAINERENV_ or SINGULARITYENV_ prefix depending on the container platform.
+function apptainerEnv($key_value_pairs)
+{
+	//check it is a array
+	if (!is_array($key_value_pairs))
+	{
+		print_r($key_value_pairs);
+		trigger_error("Cannot call 'apptainerEnv' with non-array argument!", E_USER_ERROR);
+	}
+	
+	//determine prefix
+	$prefix = container_platform()=='apptainer' ? "APPTAINERENV" : "SINGULARITYENV";
+	
+	//set global variable to be used in next call of 'execApptainer'
+	$GLOBALS['container_env'] = [];
+	foreach($key_value_pairs as $key=>$value)
+	{
+		$GLOBALS['container_env'][$prefix."_".$key] = $value;
+	}
+}
+
 /**
 	@brief Executes a command inside a given Apptainer container and returns an array with STDOUT, STDERR and exit code.
 */
@@ -808,6 +854,7 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 	//determine bind paths from input and output files
 	if (!get_path("megSAP_container_used"))
 	{
+		//TODO: make input read-only
 		foreach($in_files as $file)
 		{
 			if (is_dir($file)) 
@@ -881,19 +928,26 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 	}
 
 	//compose Apptainer command
-	$apptainer_command = "singularity exec ".implode(" ", $apptainer_args)." {$container_path} {$command} {$parameters}";
+	$apptainer_command = "singularity -q exec ".implode(" ", $apptainer_args)." {$container_path} {$command} {$parameters}";
 
 	if ($container=="deepvariant")
 	{
-		$apptainer_command = "TF_CPP_MIN_LOG_LEVEL=2 $apptainer_command";
+		$apptainer_command = "TF_CPP_MIN_LOG_LEVEL=2 ".$apptainer_command;
+	}
+	
+	//add environment variables from last 'apptainerEnv' call
+	if (isset($GLOBALS['container_env']))
+	{
+		foreach($GLOBALS['container_env'] as $key=>$value)
+		{
+			$apptainer_command = "$key=$value ".$apptainer_command;
+		}
+		
+		$GLOBALS['container_env'] = [];
 	}
 	
 	//if command only option is true, only the apptainer command is being returned, without execution
-	if($command_only) 
-	{
-		$apptainer_command = "singularity -q exec ".implode(" ", $apptainer_args)." {$container_path} {$command} {$parameters}";
-		return $apptainer_command;
-	}
+	if($command_only) return $apptainer_command;
 
 	//return apptainer command, bind paths and the container path for the execApptainer function in ToolBase.php
 	if($return_for_toolbase)

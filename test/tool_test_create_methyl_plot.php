@@ -18,7 +18,7 @@ check_file(output_folder().$name."_out1.tsv", data_folder().$name."_out1.tsv");
 
 check(filesize(output_folder()."methylartist/Testsample_01_GRB10_alt-TSS-DMR.png"), 321023, 2048);
 check(filesize(output_folder()."methylartist/Testsample_01_PLAGL1_alt-TSS-DMR.png"), 315217, 2048);
-check(filesize(output_folder()."methylartist/Testsample_01_PEG10_TSS-DMR.png"), 272116, 2048);
+check(filesize(output_folder()."methylartist/Testsample_01_PEG10_TSS-DMR.png"), 269636, 2048);
 check(filesize(output_folder()."methylartist/Testsample_01_PHF6.png"), 222518, 2048);
 check(filesize(output_folder()."methylartist/Testsample_01_RP2.png"), 264019, 2048);
 

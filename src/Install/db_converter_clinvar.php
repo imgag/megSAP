@@ -17,7 +17,9 @@ function cons2value($cons, $line)
 
 	if ($cons=="pathogenic") return 5;
 	if ($cons=="likely_pathogenic") return 4;
+	if ($cons=="vus-low") return 3;
 	if ($cons=="uncertain_significance") return 3;
+	if ($cons=="vus-high") return 3;
 	if ($cons=="likely_benign") return 2;
 	if ($cons=="benign") return 1;
 	if ($cons=="likely_risk_allele") return -1;
@@ -199,5 +201,23 @@ while(!feof($in))
 		print implode("\t", [$chr, $pos, $accs[$i], $ref, $alt, ".", ".", $info])."\n";
 	}
 }
+
+//ping
+$url = "https://megsap.de/stats/megsap.php?version=".substr(repository_revision(false), 0, 7);
+$ch = curl_init($url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+$response = curl_exec($ch);
+if ($response === false)
+{
+	//echo "cURL error: " . curl_error($ch);
+}
+else
+{
+	//echo "response code: ".curl_getinfo($ch, CURLINFO_HTTP_CODE)."\n";
+    //echo "response text: ".$response."\n";
+}
+curl_close($ch);
 
 ?>

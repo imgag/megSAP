@@ -25,9 +25,10 @@ extract($parser->parse($argv));
 if(!isset($pid)) $pid = basename($in);
 
 //init
-$out_prefix = dirname($out)."/".basename($out, ".vcf");
+$out_dir = realpath(dirname($out));
+$out_prefix = $out_dir."/".basename($out, ".vcf");
 $genome = genome_fasta($build);
-
+$variant_catalog =  realpath($variant_catalog);
 
 //### perform RE calling ###
 
@@ -53,7 +54,7 @@ if (db_is_enabled("NGSD"))
 $tool_version = get_path("container_expansionhunter");
 
 // run Expansion Hunter
-$parser->execApptainer("expansionhunter", "ExpansionHunter", implode(" ", $args), [$in, $genome , $variant_catalog], [dirname($out)]);
+$parser->execApptainer("expansionhunter", "ExpansionHunter", implode(" ", $args), [$in, $genome , $variant_catalog], [$out_dir]);
 
 // add comments to VCF
 $vcf_file_content = file($out);
