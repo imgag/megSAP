@@ -197,6 +197,7 @@ if ($sys["name_short"] != $n_sys["name_short"] && in_array("cn", $steps))
 //Check whether both samples have same processing system
 if($roi != $n_sys["target_file"])
 {
+	echo "Tumor roi : ${roi}\nNormal roi: ".$n_sys["target_file"]."\n";
 	#test that tumor target is a subset of normal target
 	exec($parser->execApptainer("ngs-bits", "BedSubtract", "-in ".realpath($roi)." -in2 ".realpath($n_sys["target_file"]), [$roi, $n_sys["target_file"]], [], true), $output, $return_var);
 	
@@ -327,47 +328,98 @@ if (in_array("vc", $steps))
 	$parser->execTool("Tools/hla_genotyper.php", "-bam $t_bam -name $t_id -out ".$hla_file_tumor);
 	$parser->execTool("Tools/hla_genotyper.php", "-bam $n_bam -name $n_id -out " . $hla_file_normal);
 	
-	// structural variant calling
-	if (!$sys['shotgun'])
-	{
-		trigger_error("Structural variant calling deactivated for amplicon samples.", E_USER_NOTICE);
-	}
-	else if ($sys['umi_type'] === "ThruPLEX")
-	{
-		trigger_error("Structural variant calling deactivated for ThruPLEX samples.", E_USER_NOTICE);
-	}
-	else
-	{
-		$args_manta = [
-			"-t_bam {$t_bam}",
-			"-out {$manta_sv}",
-			"-build ".$sys['build'],
-			"-smallIndels {$manta_indels}",
-			"-threads {$threads}"
-		];
-		$args_manta[] = "-bam $n_bam";
-
-		if ($sys['type'] !== "WGS") //use exome flag for non targeted / exome samples (i.e. non WGS samples)
-		{
-			$args_manta[] = "-exome";
-		}
-		if (!empty($roi))
-		{
-			$args_manta[] = "-target {$roi}";
-		}
-		$parser->execTool("Tools/vc_manta.php", implode(" ", $args_manta));
-		
-		$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in $manta_sv -out $manta_sv_bedpe", [$manta_sv], [dirname($manta_sv_bedpe)]);
-
-		$parser->execTool("Tools/bedpe2somatic.php", "-in $manta_sv_bedpe -out $manta_sv_bedpe -tid $t_id -nid $n_id");
-		
-		if( db_is_enabled("NGSD") )
-		{
-			$parser->execApptainer("ngs-bits", "BedpeGeneAnnotation", "-in $manta_sv_bedpe -out $manta_sv_bedpe -add_simple_gene_names", [$manta_sv_bedpe]);
-		}
-	}
 	
-	if ($use_dragen)
+	if (! $use_dragen)
+	{
+		// structural variant calling
+		if (!$sys['shotgun'])
+		{
+			trigger_error("Structural variant calling deactivated for amplicon samples.", E_USER_NOTICE);
+		}
+		else if ($sys['umi_type'] === "ThruPLEX")
+		{
+			trigger_error("Structural variant calling deactivated for ThruPLEX samples.", E_USER_NOTICE);
+		}
+		else
+		{
+			$args_manta = [
+				"-t_bam {$t_bam}",
+				"-out {$manta_sv}",
+				"-build ".$sys['build'],
+				"-smallIndels {$manta_indels}",
+				"-threads {$threads}"
+			];
+			$args_manta[] = "-bam $n_bam";
+
+			if ($sys['type'] !== "WGS") //use exome flag for non targeted / exome samples (i.e. non WGS samples)
+			{
+				$args_manta[] = "-exome";
+			}
+			if (!empty($roi))
+			{
+				$args_manta[] = "-target {$roi}";
+			}
+			$parser->execTool("Tools/vc_manta.php", implode(" ", $args_manta));
+			
+			$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in $manta_sv -out $manta_sv_bedpe", [$manta_sv], [dirname($manta_sv_bedpe)]);
+
+			$parser->execTool("Tools/bedpe2somatic.php", "-in $manta_sv_bedpe -out $manta_sv_bedpe -tid $t_id -nid $n_id");
+			
+			if( db_is_enabled("NGSD") )
+			{
+				$parser->execApptainer("ngs-bits", "BedpeGeneAnnotation", "-in $manta_sv_bedpe -out $manta_sv_bedpe -add_simple_gene_names", [$manta_sv_bedpe]);
+			}
+		}
+		
+		if($use_deepsomatic)
+		{
+			$args = [];
+
+			if ($sys['type'] === "WGS")	$args[] = "-model_type WGS";
+			else $args[] = "-model_type WES";
+
+			$args[] = "-bam_tumor ".$t_bam;
+			$args[] = "-bam_normal ".$n_bam;
+			$args[] = "-out ".$variants;
+			$args[] = "-build ".$sys['build'];
+			$args[] = "-threads ".$threads;
+			$args[] = "-tumor_id {$t_id}";
+			$args[] = "-normal_id {$n_id}";
+			$args[] = "-default";
+
+			if (!empty($roi))
+			{
+				$args[] = "-target {$roi}";
+			}
+			#$args[] = "-allow_empty_examples";
+
+			$parser->execTool("Tools/vc_deepsomatic.php", implode(" ", $args));
+		}
+		else //Strelka calling
+		{
+			$args_strelka = [
+				"-t_bam {$t_bam}",
+				"-n_bam {$n_bam}",
+				"-out {$variants}",
+				"-build ".$sys['build'],
+				"-threads {$threads}"
+			];
+			if (!empty($roi))
+			{
+				$args_strelka[] = "-target {$roi}";
+			}
+			if ($sys['type'] === "WGS")
+			{
+				$args_strelka[] = "-wgs";
+			}
+			if (is_file($manta_indels))
+			{
+				$args_strelka[] = "-smallIndels {$manta_indels}";
+			}
+			$parser->execTool("Tools/vc_strelka2.php", implode(" ", $args_strelka));
+		}
+	}
+	else # dragen calling for SNVs and SVs 
 	{
 		list($server) = exec2("hostname -f");
 		//DRAGEN OUTFILES
@@ -561,53 +613,6 @@ if (in_array("vc", $steps))
 			unlink($n_bam_dragen);
 		}
 		
-	}
-	elseif($use_deepsomatic)
-	{
-		$args = [];
-
-		if ($sys['type'] === "WGS")	$args[] = "-model_type WGS";
-		else $args[] = "-model_type WES";
-
-		$args[] = "-bam_tumor ".$t_bam;
-		$args[] = "-bam_normal ".$n_bam;
-		$args[] = "-out ".$variants;
-		$args[] = "-build ".$sys['build'];
-		$args[] = "-threads ".$threads;
-		$args[] = "-tumor_id {$t_id}";
-		$args[] = "-normal_id {$n_id}";
-		$args[] = "-default";
-
-		if (!empty($roi))
-		{
-			$args[] = "-target {$roi}";
-		}
-		#$args[] = "-allow_empty_examples";
-
-		$parser->execTool("Tools/vc_deepsomatic.php", implode(" ", $args));
-	}
-	else //Strelka calling
-	{
-		$args_strelka = [
-			"-t_bam {$t_bam}",
-			"-n_bam {$n_bam}",
-			"-out {$variants}",
-			"-build ".$sys['build'],
-			"-threads {$threads}"
-		];
-		if (!empty($roi))
-		{
-			$args_strelka[] = "-target {$roi}";
-		}
-		if ($sys['type'] === "WGS")
-		{
-			$args_strelka[] = "-wgs";
-		}
-		if (is_file($manta_indels))
-		{
-			$args_strelka[] = "-smallIndels {$manta_indels}";
-		}
-		$parser->execTool("Tools/vc_strelka2.php", implode(" ", $args_strelka));
 	}
 
 	//add somatic BAF file
