@@ -11,7 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("export_raw_data", "Exports RAW data.");
 $parser->addStringArray("samples", "Processed sample names (or file with one sample per line).", false);
 $parser->addString("out", "Output folder (folder name is also used for created ZIP file).", false);
-$parser->addEnum("mode", "Export mode (FASTQ only, BAM only, whole analysis folder).", true, ["fastq", "bam", "vcf", "folder"], "fastq");
+$parser->addEnum("mode", "Export mode (FASTQ only, BAM only, whole analysis folder).", true, ["fastq", "bam", "vcf", "bam_vcf", "folder"], "fastq");
 $parser->addFlag("internal", "Use internal webserver and do not use password for zip file.");
 $parser->addFlag("allow_bad_quality", "Allow export of samples with bad quality.");
 extract($parser->parse($argv));
@@ -53,28 +53,19 @@ foreach($samples as $ps)
 	if ($mode=="folder")
 	{
 		$folder = $info['ps_folder'];
-		if (!file_exists($folder))
-		{
-			trigger_error("Sample folder '$folder' is missing!", E_USER_ERROR);
-		}
+		if (!file_exists($folder)) trigger_error("Sample folder '$folder' is missing!", E_USER_ERROR);
 	}
-	else if ($mode=="bam")
+	if ($mode=="bam" || $mode=="bam_vcf")
 	{
 		$bam = $info['ps_bam'];
-		if (!file_exists($bam))
-		{
-			trigger_error("Sample '$ps': BAM file is missing!", E_USER_ERROR);
-		}
+		if (!file_exists($bam)) trigger_error("Sample '$ps': BAM file is missing!", E_USER_ERROR);
 	}
-	else if ($mode=="vcf")
+	if ($mode=="vcf" || $mode=="bam_vcf")
 	{
 		$vcf = $info['ps_folder']."/".$ps."_var.vcf.gz";
-		if (!file_exists($vcf))
-		{
-			trigger_error("Sample '$ps': VCF file is missing!", E_USER_ERROR);
-		}
+		if (!file_exists($vcf)) trigger_error("Sample '$ps': VCF file is missing!", E_USER_ERROR);
 	}
-	else
+	if ($mode=="fastq")
 	{
 		$bam = $info['ps_bam'];
 		$fastqs = glob($info['ps_folder']."/*.fastq.gz");
@@ -105,7 +96,7 @@ foreach($samples as $ps)
 		$folder = $info['ps_folder'];
 		exec2("ln -s {$folder} {$out}/Sample_{$ps}");
 	}
-	else if ($mode=="bam")
+	if ($mode=="bam" || $mode=="bam_vcf")
 	{
 		$bam = $info['ps_bam'];
 		if (ends_with($bam, ".bam"))
@@ -119,13 +110,13 @@ foreach($samples as $ps)
 			$parser->execTool("Tools/cram_to_bam.php", "-cram {$bam} -bam {$out_abs}/".basename2($bam).".bam -threads 8");
 		}
 	}
-	else if ($mode=="vcf")
+	if ($mode=="vcf" || $mode=="bam_vcf")
 	{
 		print "  Copying VCF file ...\n";
 		$vcf = $info['ps_folder']."/".$ps."_var.vcf.gz";
 		exec2("ln -s {$vcf} {$out}/".basename($vcf));
 	}
-	else
+	if ($mode=="fastq")
 	{		
 		$bam = $info['ps_bam'];
 		$fastqs = glob($info['ps_folder']."/*.fastq.gz");
