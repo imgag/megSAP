@@ -192,7 +192,7 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	$args[] = "-R ".genome_fasta($build);
 	$args[] = "-A ".$transcript_annotations;
 	$args[] = "-M 1"; //enable masked scores
-	$args[] = "-D 50";//TODO
+	$args[] = "-D 500";
 
 	//set bind paths for container execution
 	$in_files = [genome_fasta($build), $vcf_filtered, $transcript_annotations];
@@ -238,7 +238,7 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 //filter for private variants (low AF and not annotated in the step before)
 $tmp1 = $parser->tempFile("_spliceai_filtered_annotations.vcf");
 $var_count = filter_by_annotation($in, $tmp1, $max_af);
-$parser->log("Variants after annotation filtering (AF too high or already annotated): $var_count");
+$parser->log("Variants after annotation filtering (AF low and not already annotated): $var_count");
 
 //abort if no variants must be scored
 if($var_count==0)
@@ -248,7 +248,7 @@ if($var_count==0)
 }
 
 //create SpliceAI transcript regions BED file
-$transcript_annotations = repository_basedir()."/data/misc/spliceai_gene_annotations/{$build}_original.txt";//TODO use new and extend by parameter -D bases
+$transcript_annotations = repository_basedir()."/data/misc/spliceai_gene_annotations/GRCh38_20260519.txt";
 $spliceai_regions = $parser->tempFile("spliceai_scoring_regions.bed");
 $pipeline = [];
 $pipeline[] = array("cut", "-f 2,4,5 -d'\t' {$transcript_annotations}");
@@ -262,6 +262,7 @@ $var_count = vcf_variant_count($tmp2);
 $parser->log("Variants after SpliceAI transcript regions filter: {$var_count}");
 
 //abort if no variants or too many variants must be scored
+$out = realpath2($out);
 if($var_count==0 || $var_count > $max_vars)
 {
 	if ($var_count > $max_vars) trigger_error("SpliceAI annotation skipped: Number of private variants ({$var_count}) is zero or above max_vars ({$max_vars})!", E_USER_NOTICE);

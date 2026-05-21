@@ -1083,4 +1083,36 @@ function url_exists($url, &$content = null)
 	
 	return true;
 }
+
+//returns an absolute and normalized path for a path. Also works for non-existing relative files.
+function realpath2(string $path)
+{
+	$path = trim($path);
+	
+    //use native realpath if possible
+    $real = realpath($path);
+    if ($real!==false) return $real;
+    
+    //make absolute if relative
+    if ($path[0]!=='/') $path = getcwd().'/'.$path;
+
+    //normalize
+    $parts = [];
+    foreach (explode('/', $path) as $part)
+    {
+        if ($part=='' || $part=='.') continue;
+
+        if ($part=='..')
+        {
+            array_pop($parts);
+        }
+        else
+        {
+			$parts[] = $part;
+        }
+    }
+
+    return '/'.implode('/', $parts);
+}
+
 ?>
