@@ -44,12 +44,14 @@ $colidx_normal = array_search($normal_name, $colnames);
 
 //quality cutoffs (taken from Strelka)
 $min_td = 20;
-$min_taf = 0.05;
-$min_tsupp = 3;
 $min_nd = 15;
 $max_naf_rel = 1/6;
 $min_call_sq = 5;
-$min_filter_sq = 17.5;
+
+//now as base filters in dragen:
+#$min_taf = 0.05; 			min tumor allel frequency 5%
+#$min_tsupp = 3; 			min number of supporting reads = 3
+#$min_filter_sq = 17.5; 	min somatic quality 17.5
 
 //set comments and column names
 $filter_format = '#FILTER=<ID=%s,Description="%s">';
@@ -57,11 +59,8 @@ $comments = [
 	sprintf($filter_format, "all-unknown", "Allele unknown"),
 	sprintf($filter_format, "special-chromosome", "Special chromosome"),
 	sprintf($filter_format, "depth-tum", "Sequencing depth in tumor is too low (< {$min_td})"),
-	sprintf($filter_format, "freq-tum", "Allele frequency in tumor < {$min_taf}"),
 	sprintf($filter_format, "depth-nor", "Sequencing depth in normal is too low (< {$min_nd})"),
 	sprintf($filter_format, "freq-nor", "Allele frequency in normal > ".number_format($max_naf_rel, 2)." * allele frequency in tumor"),
-	sprintf($filter_format, "lt-3-reads", "Less than {$min_tsupp} supporting tumor reads"),
-	sprintf($filter_format, "weak-evidence", "Somatic Quality lower than {$min_filter_sq}")
 	];
 
 $variants_filtered->setComments(array_merge($variants->getComments(), $comments));
@@ -96,6 +95,9 @@ for($i = 0; $i < $variants->rows(); ++$i)
 	$f_parts = explode(":", $format);
 	$i_sq_value = array_search("SQ", $f_parts);
 	
+	trigger_error("index SQ:". $i_sq_value, E_USER_NOTICE);
+	trigger_error("tumor format:". $tumor, E_USER_NOTICE);
+	
 	$parts = explode(":", $tumor);
 	if($i_sq_value !== false)
 	{
@@ -107,8 +109,6 @@ for($i = 0; $i < $variants->rows(); ++$i)
 	}
 	
 	if ($snp_q < $min_call_sq) continue;
-	
-	if ($snp_q < $min_filter_sq) $filter[] = "weak-evidence";
 
 	list($td, $tf) = vcf_dragen_var($format, $tumor, $alt);
 	list($nd, $nf) = vcf_dragen_var($format, $normal, $alt);
@@ -119,11 +119,9 @@ for($i = 0; $i < $variants->rows(); ++$i)
 		$variant = $row;
 		list($alt, $td, $tf, $nd, $nf, $filter) = $call;
 		$variant[4] = $alt;
-
-		if ($td * $tf < $min_tsupp) $filter[] = "lt-3-reads";
+		
 		if ($td < $min_td) $filter[] = "depth-tum";
 		if ($nd < $min_nd) $filter[] = "depth-nor";
-		if ($tf < $min_taf) $filter[] = "freq-tum";
 		if ($nf > $max_naf_rel * $tf && $nd*$nf >= 2) $filter[] = "freq-nor";
 
 		if (empty($filter))

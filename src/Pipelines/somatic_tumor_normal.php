@@ -113,21 +113,6 @@ foreach($steps as $step)
 	}
 }
 
-//check dragen requirements
-if (in_array("vc", $steps)  && $use_dragen)
-{
-	$dragen_input_folder = get_path("dragen_in");
-	$dragen_output_folder = get_path("dragen_out");
-	if (!file_exists($dragen_input_folder))	
-	{
-		trigger_error("DRAGEN input folder \"".$dragen_input_folder."\" does not exist!", E_USER_ERROR);
-	}
-	if (!file_exists($dragen_output_folder))
-	{
-		trigger_error("DRAGEN input folder \"".$dragen_output_folder."\" does not exist!", E_USER_ERROR);
-	}
-}
-
 
 ###################################### SCRIPT START ######################################
 //check which caller to use
@@ -186,6 +171,7 @@ $ref_folder_n = get_path("data_folder")."/coverage/".$n_sys['name_short'];
 check_genome_build($t_bam, $sys['build']);
 check_genome_build($n_bam, $n_sys['build']);
 
+//Check whether both samples have same processing system
 if ($sys["name_short"] != $n_sys["name_short"] && in_array("cn", $steps))
 {
 	trigger_error("Tumor and normal sample were sequenced with different processing systems - CNVs cannot be calculated. Removing 'cn' step!",E_USER_WARNING);
@@ -194,8 +180,7 @@ if ($sys["name_short"] != $n_sys["name_short"] && in_array("cn", $steps))
 	unset($steps[$key]);
 }
 
-//Check whether both samples have same processing system
-if($roi != $n_sys["target_file"])
+if(realpath($roi) != realpath($n_sys["target_file"]))
 {
 	echo "Tumor roi : ${roi}\nNormal roi: ".$n_sys["target_file"]."\n";
 	#test that tumor target is a subset of normal target
@@ -423,53 +408,42 @@ if (in_array("vc", $steps))
 	{
 		list($server) = exec2("hostname -f");
 		//DRAGEN OUTFILES
-		$dragen_output_vcf = "$dragen_output_folder/{$prefix}_dragen.vcf.gz";
-		$dragen_output_msi = "$dragen_output_folder/{$prefix}_dragen_msi.json";
-		$dragen_output_svs = "$dragen_output_folder/{$prefix}_dragen_svs.vcf.gz";
-		$dragen_output_cnvs = "$dragen_output_folder/{$prefix}_dragen_cnvs.vcf.gz";
+		$dragen_output_folder = $out_folder."/dragen/";
 		$dragen_log_file = "$dragen_output_folder/{$prefix}_dragen.log";
 		$sge_logfile = date("YmdHis")."_".implode("_", $server)."_".getmypid();
 		$sge_update_interval = 300; //5min
 		
-		$t_bam_dragen = $t_bam;
-		$n_bam_dragen = $n_bam;
-		if (contains($t_bam, "/tmp/"))
+		//create or clear out folder:
+		/*
+		if (is_dir($dragen_output_folder))
 		{
-			#running based on a local bam file -> copy it to be reachable from dragen:
-			$t_bam_dragen = $dragen_input_folder.basename($t_bam);
-			$parser->copyFile($t_bam, $t_bam_dragen);
+			$parser->exec("rm", " -rf {$dragen_output_folder}");
 		}
-		
-		if (contains($n_bam, "/tmp/"))
-		{
-			#running based on a local bam file -> copy it to be reachable from dragen:
-			$n_bam_dragen = $dragen_input_folder.basename($n_bam);
-			$parser->copyFile($n_bam, $n_bam_dragen);
-		}
+		$parser->exec("mkdir", " -p {$dragen_output_folder}");
+		*/
 		
 		// create cmd for vc_dragen_somatic.php
 		$args = array();
-		$args[] = "-t_bam ".$t_bam_dragen;
-		$args[] = "-out ".$dragen_output_vcf;
-		$args[] = "-out_sv ".$dragen_output_svs;
+		$args[] = "-t_bam ".$t_bam;
+		$args[] = "-n_bam ".$n_bam;
+		$args[] = "-prefix ".$prefix;
+		$args[] = "-dragen_out_folder ".$dragen_output_folder;
 		$args[] = "-build ".$sys['build'];
 		$args[] = "--log ".$dragen_log_file;
+		
+		if ($sys['type'] != "WGS" && $sys['type'] != "WGS (shallow)")
+		{
+			$args[] = "-is_targeted";
+		}
 		
 		//TODO again in Dragen 4.4 - Test sample: DNA2506018A1_01-DNA2504724A1_01 or DNA2505658A1_01-DNA2504802A1_01
 		// $dragen_normal_vcf = $n_folder."/dragen_variant_calls/{$n_id}_dragen.vcf.gz";
 		// if ($sys['type'] == "WGS" && is_file($dragen_normal_vcf))
 		// {
 			//calc dragen CNVs for WGS samples to compare results to clincnv
-			// $args[] = "-out_cnv ".$dragen_output_cnvs;
 			// $args[] = "-normal_snvs ".$dragen_normal_vcf;
 		// }
 		
-		$args[] = "-n_bam ".$n_bam_dragen;
-		
-		if ($sys['type'] != "WGS" && $sys['type'] != "WGS (shallow)")
-		{
-			$args[] = "-is_targeted";
-		}
 		
 		$cmd = "php ".realpath(repository_basedir())."/src/Tools/vc_dragen_somatic.php ".implode(" ", $args);
 		
@@ -490,6 +464,7 @@ if (in_array("vc", $steps))
 		$parser->log("SGE command:\tqsub {$qsub_command_args}");
 
 		// run qsub as user bioinf
+		/*
 		list($stdout, $stderr) = $parser->exec("qsub", $qsub_command_args);
 		$sge_id = explode(" ", $stdout[0])[2];
 
@@ -520,6 +495,7 @@ if (in_array("vc", $steps))
 		
 		trigger_error("SGE job $sge_id finished.", E_USER_NOTICE);
 		
+		
 		//parse SGE stdout file to determine if mapping was successful
 		if (!(file_exists(get_path("dragen_log")."/$sge_logfile.out") && (get_path("dragen_log")."/$sge_logfile.err")))
 		{
@@ -527,14 +503,6 @@ if (in_array("vc", $steps))
 		}
 		$sge_stdout = file(get_path("dragen_log")."/$sge_logfile.out", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
 		$sge_stderr = file(get_path("dragen_log")."/$sge_logfile.err", FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-
-		//copy DRAGEN log to current mapping log and delete it
-		if (!file_exists($dragen_log_file))
-		{
-			trigger_error("Cannot find DRAGEN log file '$dragen_log_file'!", E_USER_ERROR);
-		}
-		$parser->log("DRAGEN somatic calling log: ", file($dragen_log_file));
-		unlink($dragen_log_file);
 
 		if (end($sge_stdout)=="DRAGEN successfully finished!")
 		{
@@ -548,33 +516,14 @@ if (in_array("vc", $steps))
 			trigger_error("SGE job $sge_id failed!", E_USER_ERROR);
 		}
 		
-		//copy small variant calls from Dragen
-		$dragen_call_folder = $out_folder."/dragen_variant_calls/";
-		if (!file_exists($dragen_call_folder))
-		{
-			if (!mkdir($dragen_call_folder))
-			{
-				trigger_error("Could not create DRAGEN variant calls folder: ".$dragen_call_folder, E_USER_ERROR);
-			}
-		}
-		//copy out files
-		$parser->moveFile($dragen_output_vcf, $dragen_call_folder.basename($dragen_output_vcf));
-		$parser->moveFile($dragen_output_vcf.".tbi", $dragen_call_folder.basename($dragen_output_vcf).".tbi");
+		*/
 		
-		if (file_exists($dragen_output_msi))
-		{
-			$parser->moveFile($dragen_output_msi, $dragen_call_folder.basename($dragen_output_msi));
-		}
-		
-		if (file_exists($dragen_output_cnvs))
-		{
-			$parser->moveFile($dragen_output_cnvs, $dragen_call_folder.basename($dragen_output_cnvs));
-			$parser->moveFile($dragen_output_cnvs.".tbi", $dragen_call_folder.basename($dragen_output_cnvs).".tbi");
-		}
-		
-		//filter dragen vcf
+		$dragen_vcf = $dragen_output_folder."{$prefix}.hard-filtered.vcf.gz";
+		$dragen_sv_vcf = $dragen_output_folder."{$prefix}.sv.vcf.gz";
+
+		//post-processing SNVs
 		$args = array();
-		$args[] = "-in ".$dragen_call_folder.basename($dragen_output_vcf);
+		$args[] = "-in ".$dragen_vcf;
 		$args[] = "-tumor_name {$t_id}";
 		$args[] = "-normal_name {$n_id}";
 		$args[] = "-out {$variants}";
@@ -582,35 +531,14 @@ if (in_array("vc", $steps))
 		$args[] = "-target ".$roi;
 		$parser->execTool("Tools/an_filter_dragen_somatic.php", implode(" ", $args));
 		
-		
-		if (is_file($dragen_output_svs))
-		{
-			//copy svs
-			$parser->moveFile($dragen_output_svs, $dragen_call_folder.basename($dragen_output_svs));
-			$parser->moveFile($dragen_output_svs.".tbi", $dragen_call_folder.basename($dragen_output_svs).".tbi");
-				
-			$parser->copyFile($dragen_call_folder.basename($dragen_output_svs), $manta_sv);
-			$parser->copyFile($dragen_call_folder.basename($dragen_output_svs).".tbi", $manta_sv.".tbi");
+		//post-processing SVs
+		$parser->copyFile($dragen_sv_vcf, $manta_sv);
+		$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in $manta_sv -out $manta_sv_bedpe", [$manta_sv], [dirname($manta_sv_bedpe)]);
+		$parser->execTool("Tools/bedpe2somatic.php", "-in $manta_sv_bedpe -out $manta_sv_bedpe -tid $t_id -nid $n_id");
 			
-			$parser->execApptainer("ngs-bits", "VcfToBedpe", "-in $manta_sv -out $manta_sv_bedpe", [$manta_sv], [dirname($manta_sv_bedpe)]);
-			$parser->execTool("Tools/bedpe2somatic.php", "-in $manta_sv_bedpe -out $manta_sv_bedpe -tid $t_id -nid $n_id");
-			
-			if( db_is_enabled("NGSD") )
-			{
-				$parser->execApptainer("ngs-bits", "BedpeGeneAnnotation", "-in $manta_sv_bedpe -out $manta_sv_bedpe -add_simple_gene_names", [$manta_sv_bedpe]);
-			}
-		}
-		
-		#remove copied files if exist:
-		if (contains($t_bam_dragen, $dragen_input_folder))
+		if( db_is_enabled("NGSD") )
 		{
-			#if file was copied into the dragen input folder delete it now.
-			unlink($t_bam_dragen);
-		}
-		if (contains($n_bam_dragen, $dragen_input_folder))
-		{
-			#if file was copied into the dragen input folder delete it now.
-			unlink($n_bam_dragen);
+			$parser->execApptainer("ngs-bits", "BedpeGeneAnnotation", "-in $manta_sv_bedpe -out $manta_sv_bedpe -add_simple_gene_names", [$manta_sv_bedpe]);
 		}
 		
 	}
