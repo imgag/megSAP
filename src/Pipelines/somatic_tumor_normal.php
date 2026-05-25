@@ -414,13 +414,11 @@ if (in_array("vc", $steps))
 		$sge_update_interval = 300; //5min
 		
 		//create or clear out folder:
-		/*
 		if (is_dir($dragen_output_folder))
 		{
 			$parser->exec("rm", " -rf {$dragen_output_folder}");
 		}
 		$parser->exec("mkdir", " -p {$dragen_output_folder}");
-		*/
 		
 		// create cmd for vc_dragen_somatic.php
 		$args = array();
@@ -464,7 +462,6 @@ if (in_array("vc", $steps))
 		$parser->log("SGE command:\tqsub {$qsub_command_args}");
 
 		// run qsub as user bioinf
-		/*
 		list($stdout, $stderr) = $parser->exec("qsub", $qsub_command_args);
 		$sge_id = explode(" ", $stdout[0])[2];
 
@@ -515,8 +512,6 @@ if (in_array("vc", $steps))
 			$parser->log("sge stderr:", $sge_stderr);
 			trigger_error("SGE job $sge_id failed!", E_USER_ERROR);
 		}
-		
-		*/
 		
 		$dragen_vcf = $dragen_output_folder."{$prefix}.hard-filtered.vcf.gz";
 		$dragen_sv_vcf = $dragen_output_folder."{$prefix}.sv.vcf.gz";
