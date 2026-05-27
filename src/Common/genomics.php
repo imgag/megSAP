@@ -2691,7 +2691,7 @@ function log_analysis_time($db, $type, $samples, $threads, $steps, $steps_all, $
 	
 	//insert into NGSD
 	$server = strtolower(trim(implode(" ", exec2("hostname -f")[0])));
-	$min = number_format($sec/60.0, 2);
+	$min = number_format($sec/60.0, 2, ".", "");
 	$db->executeStmt("INSERT INTO `analysis_time`(`type`, `samples`, `processing_system_id`, `dragen_used`, `server`, `threads`, `min`) VALUES ('$type','".implode(" ", $samples)."',$sys_id,'".($dragen_used ? "1" : "0")."','$server',$threads,$min)");
 }
 
