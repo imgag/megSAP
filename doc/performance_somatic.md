@@ -30,31 +30,31 @@ The benchmarks were performed on GIAB / PlatinumGenomes high-confidence regions 
 		<th>PPV</th>
 	</tr>
 	<tr>
-		<td>Variants >= 5% allele freq</td> <!--- dataset: NA12878x3_22_NA12877_23 --->
-		<td>90.37%</td>
-		<td>99.21%</td>
-		<td>45.58%</td>
-		<td>89.10%</td>
-    		<td>88.32%</td>
-		<td>98.95%</td>
+		<td>Variants >= 5% allele freq</td> <!--- dataset: NA12878x3_68_NA12877_46 --->
+		<td>93.37%</td>
+		<td>98.86%</td>
+		<td>51.08%</td>
+		<td>76.50%</td>
+    		<td>90.91%</td>
+		<td>98.02%</td>
 	</tr>
 	<tr>
-		<td>Variants >= 10% allele freq</td> <!--- dataset: NA12878x3_22_NA12877_23 --->
-		<td>96.82%</td>
-		<td>99.79%</td>
-		<td>69.42%</td>
-		<td>97.83%</td>
-    		<td>95.57%</td>
-		<td>99.73%</td>
+		<td>Variants >= 10% allele freq</td> <!--- dataset: NA12878x3_68_NA12877_46 --->
+		<td>97.56%</td>
+		<td>99.75%</td>
+		<td>68.00%</td>
+		<td>99.75%</td>
+    		<td>96.02%</td>
+		<td>99.55%</td>
 	</tr>
 	<tr>
-		<td>Variants >= 20% allele freq</td> <!--- dataset: NA12878x3_22_NA12877_23 --->
-		<td>98.55%</td>
+		<td>Variants >= 20% allele freq</td> <!--- dataset: NA12878x3_68_NA12877_46 --->
+		<td>98.58%</td>
 		<td>99.98%</td>
-		<td>77.12%</td>
-		<td>99.50%</td>
-    		<td>97.57%</td>
-		<td>99.96%</td>
+		<td>74.46%</td>
+		<td>99.79%</td>
+    		<td>97.33%</td>
+		<td>99.98%</td>
 	</tr>
 </table>
 
@@ -74,36 +74,36 @@ The benchmarks were performed on GIAB / PlatinumGenomes high-confidence regions 
 		<th>PPV</th>
 	</tr>
 	<tr>
-		<td>Variants >= 5% allele freq</td> <!--- dataset: NA12878x3_22_NA12877_23 --->
-		<td>90.12%</td>
-		<td>99.49%</td>
-		<td>45.77%</td>
-		<td>90.15%</td>
-    <td>88.09%</td>
-		<td>99.25%</td>
+		<td>Variants >= 5% allele freq</td> <!--- dataset: NA12878x3_68_NA12877_46 --->
+		<td>92.97%</td>
+		<td>99.19%</td>
+		<td>47.31%</td>
+		<td>82.35%</td>
+    <td>90.59%</td>
+		<td>98.64%</td>
 	</tr>
 	<tr>
-		<td>Variants >= 10% allele freq</td> <!--- dataset: NA12878x3_22_NA12877_23 --->
-		<td>96.61%</td>
+		<td>Variants >= 10% allele freq</td> <!--- dataset: NA12878x3_68_NA12877_46 --->
+		<td>97.43%</td>
 		<td>99.84%</td>
-		<td>69.42%</td>
-		<td>97.57%</td>
-    <td>95.37%</td>
-		<td>99.76%</td>
+		<td>67.28%</td>
+		<td>95.42%</td>
+    <td>95.86%</td>
+		<td>99.67%</td>
 	</tr>
 	<tr>
-		<td>Variants >= 20% allele freq</td> <!--- dataset: NA12878x3_22_NA12877_23 --->
-		<td>98.34%</td>
-		<td>99.98%</td>
-		<td>76.92%</td>
-		<td>99.50%</td>
-    <td>97.36%</td>
-		<td>99.96%</td>
+		<td>Variants >= 20% allele freq</td> <!--- dataset: NA12878x3_68_NA12877_46 --->
+		<td>98.41%</td>
+		<td>99.99%</td>
+		<td>74.65%</td>
+		<td>100.00%</td>
+    <td>97.18%</td>
+		<td>99.99%</td>
 	</tr>
 </table>
 
 
-#### Dragen calling
+#### Dragen 4.4 calling
 <table>
 	<tr>
 		<th rowspan=2>Test - BWA-MEM2 + Dragen calling</th>
@@ -120,31 +120,31 @@ The benchmarks were performed on GIAB / PlatinumGenomes high-confidence regions 
 		<th>PPV</th>
 	</tr>
 	<tr>
-		<td>Variants >= 5% allele freq</td> <!--- dataset: NA12878x3_22_NA12877_23 --->
-		<td>93.78%</td>
-		<td>98.61%</td>
-		<td>60.39%</td>
-		<td>95.44%</td>
-    		<td>92.26%</td>
-		<td>98.51%</td>
+		<td>Variants >= 5% allele freq</td> <!--- dataset: NA12878x3_68_NA12877_46 --->
+		<td>94.75%</td>
+		<td>98.38%</td>
+		<td>55.08%</td>
+		<td>93.47%</td>
+    		<td>92.75%</td>
+		<td>98.22%</td>
 	</tr>
 	<tr>
-		<td>Variants >= 10% allele freq</td> <!--- dataset: NA12878x3_22_NA12877_23 --->
-		<td>98.29%</td>
-		<td>99.66%</td>
-		<td>75.19%</td>
-		<td>98.24%</td>
-    		<td>97.23%</td>
-		<td>99.61%</td>
+		<td>Variants >= 10% allele freq</td> <!--- dataset: NA12878x3_68_NA12877_46 --->
+		<td>98.67%</td>
+		<td>99.67%</td>
+		<td>69.38%</td>
+		<td>97.83%</td>
+    		<td>97.15%</td>
+		<td>99.60%</td>
 	</tr>
 	<tr>
-		<td>Variants >= 20% allele freq</td> <!--- dataset: NA12878x3_22_NA12877_23 --->
-		<td>99.07%</td>
-		<td>99.99%</td>
-		<td>88.27%</td>
-		<td>99.78%</td>
-    		<td>98.58%</td>
-		<td>99.98%</td>
+		<td>Variants >= 20% allele freq</td> <!--- dataset: NA12878x3_68_NA12877_46 --->
+		<td>99.23%</td>
+		<td>99.97%</td>
+		<td>80.62%</td>
+		<td>99.62%</td>
+    		<td>98.26%</td>
+		<td>99.96%</td>
 	</tr>
 </table>
 
@@ -164,35 +164,35 @@ The benchmarks were performed on GIAB / PlatinumGenomes high-confidence regions 
 		<th>PPV</th>
 	</tr>
 	<tr>
-		<td>Variants >= 5% allele freq</td> <!--- dataset: NA12878x3_22_NA12877_23 --->
-		<td>94.14%</td>
-		<td>98.84%</td>
-		<td>63.01%</td>
-		<td>92.14%</td>
-    <td>92.72%</td>
-		<td>98.62%</td>
+		<td>Variants >= 5% allele freq</td> <!--- dataset: NA12878x3_68_NA12877_46 --->
+		<td>94.72%</td>
+		<td>98.79%</td>
+		<td>57.14%</td>
+		<td>90.73%</td>
+    <td>92.77%</td>
+		<td>98.51%</td>
 	</tr>
 	<tr>
-		<td>Variants >= 10% allele freq</td> <!--- dataset: NA12878x3_22_NA12877_23 --->
-		<td>98.32%</td>
-		<td>99.74%</td>
-		<td>79.04%</td>
-		<td>97.39%</td>
-    <td>97.44%</td>
-		<td>99.65%</td>
+		<td>Variants >= 10% allele freq</td> <!--- dataset: NA12878x3_68_NA12877_46 --->
+		<td>98.59%</td>
+		<td>99.73%</td>
+		<td>73.27%</td>
+		<td>96.36%</td>
+    <td>97.27%</td>
+		<td>99.59%</td>
 	</tr>
 	<tr>
-		<td>Variants >= 20% allele freq</td> <!--- dataset: NA12878x3_22_NA12877_23 --->
-		<td>99.05%</td>
-		<td>99.99%</td>
-		<td>91.73%</td>
-		<td>99.38%</td>
-    <td>98.72%</td>
-		<td>99.96%</td>
+		<td>Variants >= 20% allele freq</td> <!--- dataset: NA12878x3_68_NA12877_46 --->
+		<td>99.14%</td>
+		<td>99.97%</td>
+		<td>84.95%</td>
+		<td>99.10%</td>
+    <td>98.40%</td>
+		<td>99.93%</td>
 	</tr>
 </table> 
 
 ### Conclusion
 
 While the mapping has only a small influence on the sensitivity and precision. The dragen calling improves the sensitivity especially for variants with low allel frequency.
-The sensitivity for InDel variants with Dragen calling improves over Strelka2 by over 10% and for SNVs by ~2%.   
+The sensitivity for InDel variants with Dragen calling improves over Strelka2 by over 5% and for SNVs by ~2%.   
