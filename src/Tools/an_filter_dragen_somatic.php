@@ -95,9 +95,6 @@ for($i = 0; $i < $variants->rows(); ++$i)
 	$f_parts = explode(":", $format);
 	$i_sq_value = array_search("SQ", $f_parts);
 	
-	trigger_error("index SQ:". $i_sq_value, E_USER_NOTICE);
-	trigger_error("tumor format:". $tumor, E_USER_NOTICE);
-	
 	$parts = explode(":", $tumor);
 	if($i_sq_value !== false)
 	{
