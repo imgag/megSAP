@@ -94,8 +94,17 @@ if ($custom!="")
 		foreach($custom_columns as $key => $tmp)
 		{
 			list($vcf, $col, $desc) = explode(";", $tmp, 3);
-			fwrite($config_file, "{$vcf}\tCUSTOM\t{$col}\t\n");
-			$in_files[] = $vcf;
+			//check file extension
+			if (ends_with(strtolower($vcf), ".vcf.gz"))
+			{
+				fwrite($config_file, "{$vcf}\tCUSTOM\t{$col}\t\n");
+				$in_files[] = $vcf;
+			}
+			elseif(!ends_with(strtolower($vcf), ".bed"))
+			{
+				trigger_error("Invalid file type for custom annotation (file: '{$vcf}')! (only .bed and .vcf.gz supported)", E_USER_ERROR); 
+			}
+			
 		}
 	}
 }
@@ -277,6 +286,27 @@ if(file_exists($omim_file) && !$test)
 	$tmp = $parser->tempFile("_omim.vcf");
 	$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed {$omim_file} -name OMIM -sep '&' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", [$omim_file]);
 	$parser->moveFile($tmp, $vcf_annotate_output);
+}
+
+//annotate custom BED files
+if ($custom!="")
+{
+	$custom_columns = get_path($custom, false);
+	if (is_array($custom_columns))
+	{
+		foreach($custom_columns as $key => $tmp)
+		{
+			list($bed, $col, $desc) = explode(";", $tmp, 3);
+			//check file extension
+			if (ends_with(strtolower($bed), ".bed"))
+			{
+				$tmp = $parser->tempFile("_custom.vcf");
+				$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed {$bed} -name CUSTOM_{$col} -sep ', ' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads} -desc ".strtr($desc, " ", "_"), $in_files = [$vcf]);
+				$parser->moveFile($tmp, $vcf_annotate_output);
+			}
+			
+		}
+	}
 }
 
 //mark variants in low-confidence regions

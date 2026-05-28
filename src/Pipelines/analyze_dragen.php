@@ -27,6 +27,7 @@ $parser->addFlag("somatic", "Queue megSAP analysis with somatic flag.");
 $parser->addString("user", "User used to queue megSAP analysis (has to be in the NGSD).", true, "");
 $parser->addFlag("high_mem", "Run DRAGEN analysis in high memory mode for deep samples. (Also increases timeout to prevent job from being terminated.)");
 $parser->addFlag("trim", "Perform adapter and quality trimming. Optional since trimming is usually done during the demultiplexing.");
+$parser->addFlag("skip_report_check", "Do not check for existing report config.");
 
 extract($parser->parse($argv));
 
@@ -64,9 +65,8 @@ if (!$is_wes_or_panel && !$is_wgs) trigger_error("Can only analyze WGS/WES/panel
 if (in_array($sys['umi_type'], [ "MIPs", "ThruPLEX", "Safe-SeqS", "QIAseq", "IDT-xGen-Prism", "Twist"])) trigger_error("UMI handling is not supported by the DRAGEN pipeline! Please use local mapping instead.", E_USER_ERROR);
 if ($sys['type']=="WGS (shallow)") trigger_error("Shallow genomes are not supported by the DRAGEN pipeline! Please use local mapping instead.", E_USER_ERROR);
 
-
 //check for report config
-if (db_is_enabled("NGSD"))
+if (!$skip_report_check && db_is_enabled("NGSD"))
 {
 	$db = DB::getInstance("NGSD", false);
 	list($rc_id) = report_config($db, $name);

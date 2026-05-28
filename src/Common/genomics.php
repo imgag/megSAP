@@ -2242,6 +2242,17 @@ function contains_methylation($bam_file, $n_rows=100, $build="GRCh38")
 	trigger_error("Ambiguous tag counts. Please check BAM file!\nMM:\t{$n_mm}/{$n_rows}\nML:\t{$n_ml}/{$n_rows}", E_USER_ERROR);
 }
 
+//check if BAM file contains aligned reads
+function is_bam_aligned($bam_file, $build="GRCh38")
+{
+	if (!file_exists($bam_file)) trigger_error("BAM file '{$bam_file}'", E_USER_ERROR);
+	$genome = genome_fasta($build);
+	// ignore errors occuring of unknown reason (broken pipe)
+	$samtools_command = execApptainer("samtools", "samtools view", "-F 0x904 -T {$genome} {$bam_file}", [$genome, $bam_file], [], true);
+	list($stdout) = exec2("{$samtools_command} | head -n 1", false);
+	return count($stdout) > 0 && $stdout[0] !== "";
+}
+
 //extracts base-calling description from BAM header
 function get_read_group_description($bam_file)
 {
