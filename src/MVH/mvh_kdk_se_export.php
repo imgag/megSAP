@@ -407,6 +407,10 @@ function json_supporting_variants($variant_repeat_instances, $se_data_rep)
 			if (xml_str($item->redcap_repeat_instance)!=$instance) continue;
 			
 			$var = xml_str($item->variante);
+
+			//skip REs: not modelled in SE-DIP format
+			if (starts_with($var, "RE:")) continue;
+			
 			$id = $var2id[$var];
 			$output[] = [
 				"display" => $var,
