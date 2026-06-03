@@ -2215,7 +2215,7 @@ function contains_methylation($bam_file, $n_rows=100, $build="GRCh38")
 	$samtools_command = execApptainer("samtools", "samtools view", "-T {$genome} {$bam_file}", [$genome, $bam_file], [], true);
 	list($stdout) = exec2("{$samtools_command} | head -n {$n_rows}", false);
 	//additional testing since we cannot rely on samtools error reporting
-	if (count($stdout) != $n_rows) trigger_error("Couldn't extract the first {$n_rows} rows of the BAM file!", E_USER_ERROR);
+	if (count($stdout) != $n_rows) trigger_error("Couldn't extract the first {$n_rows} rows of the BAM file ({$bam_file})!", E_USER_ERROR);
 
 	$n_mm = 0;
 	$n_ml = 0;
