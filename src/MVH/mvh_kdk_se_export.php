@@ -381,6 +381,7 @@ function json_care_plan_1($se_data) //This object models the decisions of the fi
 			"id"=>"ID_CARE_PLAN_1",
 			"patient" => json_patient_ref(),
 			"issuedOn" => xml_str($se_data->datum_fallkonferenz),
+			"boardType" => "indication-board",
 			];
 			
 	if ($no_seq)

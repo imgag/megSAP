@@ -63,7 +63,7 @@ ZSE/ZPM dokumentieren die Meldebestätigung dann im RedCap und SAP:
 
 ![Meldebestaetigung](Meldebestaetigung.png)
 
-## Installation of GRZ QC workflow (not used right now because of the Nextflow problems
+## Installation of GRZ QC workflow (not used right now because of the Nextflow problems)
 
 ### Installation nexflow
 
@@ -135,3 +135,14 @@ Install mapper (outside of UKT network):
 	> ./gradlew build 
 
 Note: now a JAR is available as well: https://github.com/orgs/KohlbacherLab/packages?repo_name=mii_broad_consent_mapper
+
+
+# Updates
+
+## 05.06.2026
+
+- fastp: 0.24 > 1.3.3
+- fastplong: 0.2.2 > 0.4.1
+- grz-cli 1.5.1 > 1.7.2
+- GRZ_QC_Workflow v1.3.0 > v1.3.2
+
