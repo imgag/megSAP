@@ -47,9 +47,9 @@ $min_td = 20;
 $min_nd = 15;
 $max_naf_rel = 1/6;
 $min_call_sq = 5;
+$min_taf = 0.05;
 
 //now as base filters in dragen:
-#$min_taf = 0.05; 			min tumor allel frequency 5%
 #$min_tsupp = 3; 			min number of supporting reads = 3
 #$min_filter_sq = 17.5; 	min somatic quality 17.5
 
@@ -61,6 +61,7 @@ $comments = [
 	sprintf($filter_format, "depth-tum", "Sequencing depth in tumor is too low (< {$min_td})"),
 	sprintf($filter_format, "depth-nor", "Sequencing depth in normal is too low (< {$min_nd})"),
 	sprintf($filter_format, "freq-nor", "Allele frequency in normal > ".number_format($max_naf_rel, 2)." * allele frequency in tumor"),
+	sprintf($filter_format, "freq-tum", "Allele frequency in tumor too low (< {$min_taf})"),
 	];
 
 $variants_filtered->setComments(array_merge($variants->getComments(), $comments));
@@ -119,6 +120,7 @@ for($i = 0; $i < $variants->rows(); ++$i)
 		
 		if ($td < $min_td) $filter[] = "depth-tum";
 		if ($nd < $min_nd) $filter[] = "depth-nor";
+		if ($td < $min_td) $filter[] = "freq-tum";
 		if ($nf > $max_naf_rel * $tf && $nd*$nf >= 2) $filter[] = "freq-nor";
 
 		if (empty($filter))
