@@ -444,6 +444,7 @@ function json_care_plan_2($se_data, $se_data_rep) //'carePlan' is misleading. Th
 		"id" => "ID_THERAPY_{$num}",
 		"patient" => json_patient_ref(),
 		"issuedOn" => xml_str($se_data->klin_datum_fallkonferenz),
+		"boardType" => "therapy-board",
 		"category" => [
 			"code" => convert_therapy_category($therapy_type),
 			],
