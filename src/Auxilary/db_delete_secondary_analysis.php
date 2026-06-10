@@ -12,7 +12,6 @@ $parser = new ToolBase("db_delete_secondary_analysis", "Deletes a secondary anal
 $parser->addString("gsvar", "Substring to match in GSvar file.", true);
 $parser->addString("type", "Type to match.", true);
 $parser->addFlag("multi", "Allow deletion of several matches.");
-$parser->addFlag("debug", "Do not preform deletion, just print commands that would be executed.");
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 extract($parser->parse($argv));
 
