@@ -38,14 +38,9 @@ if (empty($tumor_id)) $tumor_id = basename2($bam_tumor);
 if (!$tumor_only && empty($normal_id)) $normal_id = basename2($bam_normal);
 
 //prepare DeepSomatic arguments
-$args = array();
-$in_files = array();
-
-if ($allow_empty_examples)
-{
-	$args[] = "--call_variants_extra_args=allow_empty_examples=true";
-}
-
+$args = [];
+$in_files = [$genome, $bam_tumor];
+if ($allow_empty_examples) $args[] = "--call_variants_extra_args=allow_empty_examples=true";
 $args[] = "--model_type=$model_type";
 if (!$default) $args[] = "--make_examples_extra_args=min_mapping_quality=$min_mq,min_base_quality=$min_bq,vsc_min_fraction_indels=$min_af_indels,vsc_min_fraction_snps=$min_af_snps";
 $args[] = "--postprocess_variants_extra_args=cpus={$threads}";
@@ -54,15 +49,12 @@ $args[] = "--reads_tumor=$bam_tumor";
 $args[] = "--sample_name_tumor=$tumor_id";
 $args[] = "--num_shards=".$threads;
 $args[] = "--intermediate_results_dir=".$parser->tempFolder(); //if not set, examples are written to /tmp/, even if tmp folder is overwritten in environment variables, e.g. in SGE
-
 if (isset($debug_region)) 
 {
 	$args[] = "--regions $debug_region";
 	if (is_file($debug_region)) $in_files[] = $debug_region;
 }
-
 if (!empty($gvcf)) $args[] = "--output_gvcf=$gvcf";
-
 if (!$tumor_only) 
 {
 	$args[] = "--reads_normal=$bam_normal";
@@ -71,40 +63,29 @@ if (!$tumor_only)
 }
 else $args[] = "--use_default_pon_filtering=true";
 
-$in_files[] = $genome;
-$in_files[] = $bam_tumor; 
+//run deepsomatic
+$vcf_deepsomatic_out = $parser->tempFile(".vcf.gz");
+$parser->execApptainer("deepsomatic", "run_deepsomatic", implode(" ", $args)." --output_vcf=$vcf_deepsomatic_out", $in_files, [dirname($out)]);
 
-// run deepsomatic
-$pipeline = array();
-$prefix = container_platform()=='apptainer' ? "APPTAINERENV" : "SINGULARITYENV";
-
+//raw output > no post-processing
 if ($raw_output)
 {
-	$command = $parser->execApptainer("deepsomatic", "run_deepsomatic" ,implode(" ", $args)." --output_vcf=$out", $in_files, [dirname($out)], true);
-	$parser->exec("{$prefix}_OMP_NUM_THREADS={$threads} {$prefix}_TF_NUM_INTRAOP_THREADS={$threads} {$prefix}_TF_NUM_INTEROP_THREADS={$threads} {$command}", "");
+	$parser->moveFile($vcf_deepsomatic_out, $out);
 	return;
 }
 
-$vcf_deepvar_out = $parser->tempFile(".vcf.gz");
-$command = $parser->execApptainer("deepsomatic", "run_deepsomatic", implode(" ", $args)." --output_vcf=$vcf_deepvar_out", $in_files, [dirname($out)], true);
-$parser->exec("{$prefix}_OMP_NUM_THREADS={$threads} {$prefix}_TF_NUM_INTRAOP_THREADS={$threads} {$prefix}_TF_NUM_INTEROP_THREADS={$threads} {$command}", "");
-
+//post-processing
+$pipeline = [];
 //filter variants
-$pipeline[] = ["zcat", "$vcf_deepvar_out"];
-
+$pipeline[] = ["zcat", "$vcf_deepsomatic_out"];
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfFilter", "-remove_invalid -ref $genome", [$genome], [], true)];
-
 //split multi-allelic variants
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "", [], [], true)];
-
 //normalize all variants and align INDELs to the left
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], true)];
-
 //sort variants by genomic position
 $tmp_out = $parser->tempFile(".vcf");
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "-out $tmp_out", [], [], true)];
-
-//(2) execute pipeline
 $parser->execPipeline($pipeline, "deepsomatic post processing");
 
 //prepend source, date and reference to outfile

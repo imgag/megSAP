@@ -2215,7 +2215,7 @@ function contains_methylation($bam_file, $n_rows=100, $build="GRCh38")
 	$samtools_command = execApptainer("samtools", "samtools view", "-T {$genome} {$bam_file}", [$genome, $bam_file], [], true);
 	list($stdout) = exec2("{$samtools_command} | head -n {$n_rows}", false);
 	//additional testing since we cannot rely on samtools error reporting
-	if (count($stdout) != $n_rows) trigger_error("Couldn't extract the first {$n_rows} rows of the BAM file!", E_USER_ERROR);
+	if (count($stdout) != $n_rows) trigger_error("Couldn't extract the first {$n_rows} rows of the BAM file ({$bam_file})!", E_USER_ERROR);
 
 	$n_mm = 0;
 	$n_ml = 0;
@@ -2240,6 +2240,17 @@ function contains_methylation($bam_file, $n_rows=100, $build="GRCh38")
 
 	//else: something is wrong
 	trigger_error("Ambiguous tag counts. Please check BAM file!\nMM:\t{$n_mm}/{$n_rows}\nML:\t{$n_ml}/{$n_rows}", E_USER_ERROR);
+}
+
+//check if BAM file contains aligned reads
+function is_bam_aligned($bam_file, $build="GRCh38")
+{
+	if (!file_exists($bam_file)) trigger_error("BAM file '{$bam_file}'", E_USER_ERROR);
+	$genome = genome_fasta($build);
+	// ignore errors occuring of unknown reason (broken pipe)
+	$samtools_command = execApptainer("samtools", "samtools view", "-F 0x904 -T {$genome} {$bam_file}", [$genome, $bam_file], [], true);
+	list($stdout) = exec2("{$samtools_command} | head -n 1", false);
+	return count($stdout) > 0 && $stdout[0] !== "";
 }
 
 //extracts base-calling description from BAM header
@@ -2671,5 +2682,28 @@ function get_aa_range($hgvs)
 	}
 }
 
+//logs the analysis time of complete analyses
+function log_analysis_time($db, $type, $samples, $threads, $steps, $steps_all, $dragen_used, $sec)
+{
+	//check that all steps were performed
+	sort($steps);
+	sort($steps_all);
+	if ($steps!==$steps_all) return;
+	
+	//check that all samples have the same processing system
+	$sys_id = -1;
+	foreach($samples as $sample)
+	{
+		$info = get_processed_sample_info($db, $sample, false, true);
+		if (is_null($info)) return;
+		if ($sys_id==-1) $sys_id = $info['sys_id'];
+		if ($sys_id!=$info['sys_id']) return;
+	}
+	
+	//insert into NGSD
+	$server = strtolower(trim(implode(" ", exec2("hostname -f")[0])));
+	$min = number_format($sec/60.0, 2, ".", "");
+	$db->executeStmt("INSERT INTO `analysis_time`(`type`, `samples`, `processing_system_id`, `dragen_used`, `server`, `threads`, `min`) VALUES ('$type','".implode(" ", $samples)."',$sys_id,'".($dragen_used ? "1" : "0")."','$server',$threads,$min)");
+}
 
 ?>

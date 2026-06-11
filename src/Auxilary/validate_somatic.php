@@ -69,7 +69,13 @@ function load_vcf($filename, $roi, $caller)
 			//clear filter column
 			$filter_replace = ["PASS"=>"", "."=>"", "freq-tum"=>"", ";"=>""];
 			$filter = trim(strtr($filter, $filter_replace));
+			
 			if ($ignore_filters) $filter = "";
+			//filter all MNPs: MNP representation not contained in the reference files
+			if (strlen($ref) > 1 && strlen($alt) > 1)
+			{	
+				$filter .= "MNP";
+			}
 			
 			$output[$tag] = array($tumor_af, $tumor_dp, $filter);
 		}
@@ -213,7 +219,15 @@ foreach($calls as $filename)
 			}
 			else if(!isset($vars_germline[$var]))
 			{
-				++$fp;
+				//flag filtered out
+				if ($filter!="")
+				{
+					$af = "FILTERED";
+				}
+				else
+				{
+					++$fp;
+				}
 			}
 			$details[$name][$var] = $af;
 		}
@@ -317,7 +331,7 @@ foreach($afs as $i => $af)
 	$output_af[] = "##tumor fraction {$name}: ".number_format(2.0*$af, 4);
 }
 $output_af[] = "#af\texpected\tTP\tFP\tFN\trecall/sensitivity\tprecision/ppv";
-foreach([0.05, 0.075, 0.1, 0.125, 0.15, 0.2] as $min_af)
+foreach([0.05, 0.1, 0.2] as $min_af)
 {
 	foreach(["", "SNV", "INDEL"] as $curr_type)
 	{

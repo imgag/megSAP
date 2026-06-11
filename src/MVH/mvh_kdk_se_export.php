@@ -381,6 +381,9 @@ function json_care_plan_1($se_data) //This object models the decisions of the fi
 			"id"=>"ID_CARE_PLAN_1",
 			"patient" => json_patient_ref(),
 			"issuedOn" => xml_str($se_data->datum_fallkonferenz),
+			"boardType" => [
+				"code"=>"indication-board"
+				],
 			];
 			
 	if ($no_seq)
@@ -407,6 +410,10 @@ function json_supporting_variants($variant_repeat_instances, $se_data_rep)
 			if (xml_str($item->redcap_repeat_instance)!=$instance) continue;
 			
 			$var = xml_str($item->variante);
+
+			//skip REs: not modelled in SE-DIP format
+			if (starts_with($var, "RE:")) continue;
+			
 			$id = $var2id[$var];
 			$output[] = [
 				"display" => $var,
@@ -439,6 +446,9 @@ function json_care_plan_2($se_data, $se_data_rep) //'carePlan' is misleading. Th
 		"id" => "ID_THERAPY_{$num}",
 		"patient" => json_patient_ref(),
 		"issuedOn" => xml_str($se_data->klin_datum_fallkonferenz),
+		"boardType" => [
+			"code"=>"therapy-board"
+			],
 		"category" => [
 			"code" => convert_therapy_category($therapy_type),
 			],

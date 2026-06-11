@@ -8,7 +8,7 @@ $repo_folder = "/mnt/storage2/megSAP/pipeline"; //fixed absolute path to make th
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-$parser = new ToolBase("copy_ont_run", "Copy ONT flow cell data (FASTQ, BAM).");
+$parser = new ToolBase("copy_ont_run", "Copy ONT flow cell data (BAM).");
 $parser->addString("run_dir",  "Input data folder.", false);
 
 //optional
@@ -20,10 +20,6 @@ $parser->addInt("min_qscore", "Minimal read qScore for basecalling", true, 9);
 $parser->addFlag("force_basecalling", "Enforces complete (re-)basecalling of all POD5s in run folder.(requires '-queue_basecalling')");
 $parser->addFlag("ignore_flowcell_id_check", "Ignores Errors due to mismatching flowcell IDs between NGSD and folder name (e.g. if flowcell was replaced during sequencing)");
 $parser->addString("email",  "Email address which will be notified about the status of basecalling jobs", true, "");
-
-//TODO: re-implement
-// $parser->addFlag("fastq", "Copy FASTQ files.");
-// $parser->addString("single_fastq",  "Create single FASTQ file, without sample lookup and database checks.", true, "");
 
 $parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 $parser->addInt("threads", "Number of threads to use for file merging and compression.", true, 8);
@@ -129,24 +125,6 @@ function get_sample_info(&$db, $run_name)
 		$sample_info_list[$sample] = $sample_info;
 	}
 	return $sample_info_list;
-}
-
-//get BAM info
-function get_bam_info($bam_file)
-{
-	$on_device_basecall_model = get_basecall_model($bam_file);
-
-	$ret = execApptainer("samtools", "samtools view", "--count --exclude-flags 0x900 {$bam_file}", [$bam_file]);
-	$num_records = intval($ret[0][0]);
-	$ret = execApptainer("samtools", "samtools view", "--count --tag ML {$bam_file}", [$bam_file]);
-	$num_base_mods = intval($ret[0][0]);
-	$ret = execApptainer("samtools", "samtools view", "--count --require-flags 0x4 {$bam_file}", [$bam_file]);
-	$num_unaligned = intval($ret[0][0]);
-
-	$modified_bases = $num_records == $num_base_mods;
-	$aligned = $num_unaligned < $num_records;
-
-	return array($on_device_basecall_model, $modified_bases, $aligned);
 }
 
 //create basecall cmd
@@ -266,64 +244,7 @@ if (!$is_test_db)
 
 
 
-//TODO implement
-// if ($fastq || $single_fastq)
-if (false)
-{
-	//TODO: implement
-	trigger_error("Not implemented yet!", E_USER_ERROR);
-
-	
-
-	// $fastq_available = check_data_available($run_dir, "fastq_pass", ".fastq.gz") || check_data_available($run_dir, "fastq_pass/barcode??", ".fastq.gz");
-	// if (!$fastq_available && ($fastq || $single_fastq))
-	// {
-	// 	trigger_error("No FASTQ files available!", E_USER_ERROR);
-	// }
-	// $fastq_paths_glob = "{$run_dir}/*/fastq_pass";
-
-
-	// if ($single_fastq !== "")
-	// {
-	// 	trigger_error("Copy and merge FASTQ files to given output file.", E_USER_NOTICE);
-
-	// 	if (file_exists($single_fastq))
-	// 	{
-	// 		trigger_error("Output FASTQ file '{$single_fastq}' already exists, aborting.", E_USER_ERROR);
-	// 	};
-
-	// 	exec2("find {$fastq_paths_glob} -name '*.fastq.gz' -type f -exec zcat -f {} + | pigz -p {$threads} -c > {$single_fastq}");
-	// 	trigger_error("FASTQ saved in {$single_fastq}.", E_USER_NOTICE);
-	// 	exit();
-	// }
-
-	// if (!$bam_available && !$fastq_available && $prefer_bam)
-	// {
-	// 	trigger_error("No FASTQ/BAM files are available!", E_USER_ERROR);
-	// }
-	// $bam_paths_glob = "{$run_dir}/*/bam_pass";
-
-	// if ($fastq || ($prefer_bam && !$bam_available))
-	// {
-	// 	trigger_error("Copy and merge FASTQ files.", E_USER_NOTICE);
-
-	// 	$out_fastq = "{$out_dir}{$sample}.fastq.gz";
-	// 	if (file_exists($out_fastq))
-	// 	{
-	// 		trigger_error("Output FASTQ file '{$out_fastq}' already exists, aborting.", E_USER_ERROR);
-	// 	};
-
-	// 	exec2("find {$fastq_paths_glob} -name '*.fastq.gz' -type f -exec cat  {} + > {$out_fastq}");
-	// 	trigger_error("FASTQ saved in {$out_fastq}.", E_USER_NOTICE);	
-	// }
-
-	
-
-}
-else //bam output
-{
-	
-	//check for pod5_skip subdirectory (partially basecalled flow cell)
+//check for pod5_skip subdirectory (partially basecalled flow cell)
 	$contains_skipped_bases = contains_skipped_bases($subdirs);
 	if ($contains_skipped_bases && !$queue_basecalling) trigger_error("'pod5_skip' directory present in '{$subdir}', some data has not been basecalled!", E_USER_ERROR);
 
@@ -356,10 +277,14 @@ else //bam output
 		{
 			//get BAM files
 			$bam_files = glob("{$subdir}/bam_pass/*.bam");
+			if (isset($info["barcode"]) && ($info["barcode"] != "")) $bam_files = glob("{$subdir}/bam_pass/".$info["barcode"]."/*.bam");
 			if (count($bam_files) !== 0)
 			{
 				//check each subfolder
-				list($on_device_basecall_model_subfolder, $modified_bases_subfolder, $aligned_subfolder) = get_bam_info($bam_files[array_rand($bam_files, 1)]);
+				$bam_sample = $bam_files[array_rand($bam_files, 1)];
+				$on_device_basecall_model_subfolder = get_basecall_model($bam_sample);
+				$modified_bases_subfolder = contains_methylation($bam_sample, (($is_test_db)?12:100), $build); //reduce number of reads to check for tool test (files are too small)
+				$aligned_subfolder = is_bam_aligned($bam_sample, $build);
 				$on_device_basecall_model[$on_device_basecall_model_subfolder] = true;
 				$modified_bases[$modified_bases_subfolder] = true;
 				$aligned[$aligned_subfolder] = true;
@@ -503,8 +428,6 @@ else //bam output
 				$parser->exec("chgrp", "-R f_ad_bi_l_medgen_access_storages {$out_dir}", true, false);
 			}
 			$out_bam = "{$out_dir}{$sample}.mod.unmapped.bam";
-			// $out_bam = "{$out_dir}{$sample}.unmapped.bam";
-			// if ($modified_bases) $out_bam = "{$out_dir}{$sample}.mod.unmapped.bam";
 			if (file_exists($out_bam)) trigger_error("Output BAM file '{$out_bam}' already exists, aborting.", E_USER_ERROR);
 			
 
@@ -538,10 +461,8 @@ else //bam output
 			trigger_error("Basecall Models doesn't match: On-device basecall model: '{$on_device_basecall_model}', requested basecall model: '{$basecall_model}'. Please check setting or re-do basecalling!", E_USER_ERROR);
 		}
 
-		
-	}
 
-}
+	}
 
 if ($queue_sample)
 {
@@ -549,126 +470,5 @@ if ($queue_sample)
 	$db->executeStmt("UPDATE sequencing_run SET sequencing_run.status='analysis_started' WHERE sequencing_run.name = '{$run_name}' AND sequencing_run.status IN ('run_started', 'run_finished')");
 }
 
-/*
-	
-	//check random BAM file to find out which information is present
-	$bam_files = glob("{$bam_paths_glob}/*.bam");
-	if (count($bam_files) !== 0)
-	{
-		$bam_random_file = $bam_files[array_rand($bam_files, 1)];
-	
-		$on_device_basecall_model = get_basecall_model($bam_random_file);
-		trigger_error("Model used for on-device basecalling: {$on_device_basecall_model}", E_USER_NOTICE);
-
-		$ret = $parser->execApptainer("samtools", "samtools view", "--count --exclude-flags 0x900 {$bam_random_file}", [$run_dir]);
-		$num_records = intval($ret[0][0]);
-		$ret = $parser->execApptainer("samtools", "samtools view", "--count --tag ML {$bam_random_file}", [$run_dir]);
-		$num_base_mods = intval($ret[0][0]);
-		$ret = $parser->execApptainer("samtools", "samtools view", "--count --require-flags 0x4 {$bam_random_file}", [$run_dir]);
-		$num_unaligned = intval($ret[0][0]);
-
-		$modified_bases = $num_records == $num_base_mods;
-		$aligned = $num_unaligned < $num_records;
-
-		if ($aligned) trigger_error("Aligned BAM files available.", E_USER_NOTICE);
-		if ($modified_bases) trigger_error("Modified bases BAM files available.", E_USER_NOTICE);
-
-		
-	}
-	else
-	{
-		$aligned = false;
-		$modified_bases = false;
-	}
-
-}
-
-foreach ($result as $record)
-{
-	$sample = processed_sample_name($db_con, $record["id"]);
-	$sample_info = get_processed_sample_info($db_con, $sample);
-
-	if (count($result) >= 2)
-	{
-		preg_match('/_BP([0-9][0-9])Fw/', $record["mid1_i7_name"], $matches);
-		if (count($matches) == 0)
-		{
-			trigger_error("Could not extract 2-digit barcode number from '{$record['mid1_i7_name']}'!", E_USER_ERROR);
-		}
-		$barcode = "barcode{$matches[1]}";
-		$bam_paths_glob = "{$run_dir}/* /bam_pass/{$barcode}";
-		$fastq_paths_glob = "{$run_dir}/* /fastq_pass/{$barcode}";
-	}
-
-	$out_dir = $sample_info["ps_folder"];
-	// copy to run folder during test:
-	if ($db=="NGSD_TEST")
-	{
-		$out_dir = $run_dir."/TEST_Sample_".$sample."/";
-	}
-
-	if (!file_exists($out_dir))
-	{
-		mkdir($out_dir, 0777, true);
-	}
-
-
-
-
-	if (($bam_available && $prefer_bam) || $bam)
-	{
-		trigger_error("Copy and merge BAM files.", E_USER_NOTICE);
-		$genome = genome_fasta($build);
-
-
-		if ($aligned && !$ignore_aligned)
-		{
-			$out_bam = "{$out_dir}{$sample}.bam";
-		}
-		elseif ($modified_bases)
-		{
-			$out_bam = "{$out_dir}{$sample}.mod.unmapped.bam";
-		}
-		else
-		{
-			$out_bam = "{$out_dir}{$sample}.unmapped.bam";
-		}
-
-		if (file_exists($out_bam))
-		{
-			trigger_error("Output BAM file '{$out_bam}' already exists, aborting.", E_USER_ERROR);
-		}
-
-		$pipeline = [];
-		$pipeline[] = ["find", "{$bam_paths_glob} -name '*.bam' -type f"];
-
-		if ($aligned && !$ignore_aligned)
-		{
-			$tmp_for_sorting = $parser->tempFile();
-			//merge presorted files
-			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools merge", "--reference {$genome} --threads {$threads} -b - -o {$out_bam}", [$genome, $run_dir], [$out_dir], true)];
-			$parser->execPipeline($pipeline, "merge aligned BAM files");
-			$parser->indexBam($out_bam, $threads);
-
-		}
-		else
-		{
-			$pipeline[] = ["", $parser->execApptainer("samtools", "samtools cat", "-o {$out_bam} -b -", [$run_dir], [$out_dir], true)]; //no reference required
-			$parser->execPipeline($pipeline, "merge unaligned BAM files");
-		}
-	}
-
-	
-	//apply file access permissions
-	exec2("chmod -R 775 {$out_dir}");
-	exec2("chgrp -R f_ad_bi_l_medgen_access_storages {$out_dir}", false);
-
-	if ($queue_sample)
-	{
-		$parser->execTool("Tools/db_queue_analysis.php", "-samples {$sample} -type 'single sample' -db {$db}".(($db=="NGSD_TEST")?" -user unknown":""));
-	}
-}
-
-*/
 
 ?>

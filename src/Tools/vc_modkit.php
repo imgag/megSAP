@@ -16,6 +16,7 @@ $parser->addOutfile("bed", "Output BED file containing the methylation info. Bgz
 $parser->addOutfile("summary", "Optional summary file.", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
+$parser->addFlag("debug", "Enable modkit debug log.");
 
 extract($parser->parse($argv));
 
@@ -25,6 +26,9 @@ $log_file = $parser->tempFile("_modkit_pileup.log");
 $tmp_folder = $parser->tempFolder("modkit");
 
 //run modkit
+$in_files = [];
+$in_files[] = $bam;
+$in_files[] = $genome;
 $args = [];
 $args[] = "pileup";
 $args[] = $bam;
@@ -34,20 +38,13 @@ $args[] = "--cpg";
 $args[] = "--modified-bases 5mC 5hmC";
 // $args[] = "--bgzf";
 $args[] = "--ref ".$genome;
-$args[] = "--log-filepath ".$log_file;
+if ($debug) $args[] = "--log-filepath ".$log_file;
 $args[] = "--threads ".$threads;
-
-//set bind paths for modkit
-$in_files = array();
-$in_files[] = $bam;
-$in_files[] = $genome;
-
 $parser->execApptainer("modkit", "modkit", implode(" ", $args), $in_files);
 
 //filter & copy logfile
 $log = array_filter(file($log_file), fn($line) => !strpos($line, "[DEBUG]"));
 $parser->log("modkit pileup log file", $log);
-
 //compress BED files
 $bed_hp1 = dirname($bed)."/".basename($bed, ".bed.gz")."_hp1.bed.gz";
 $bed_hp2 = dirname($bed)."/".basename($bed, ".bed.gz")."_hp2.bed.gz";
@@ -70,12 +67,12 @@ if (isset($summary))
 	$args[] = $bam;
 	$args[] = "--reference ".$genome;
 	$args[] = "--threads ".$threads;
-	$args[] = "--log-filepath ".$log_file2;
+	if ($debug)	$args[] = "--log-filepath ".$log_file2;
 	$args[] = " > ".$summary;
-
 	$parser->execApptainer("modkit", "modkit", implode(" ", $args), $in_files, [dirname($summary)]);
-	//copy logfile 
-	$parser->log("modkit summary log file", file($log_file2));
+	
+	//debug logging
+	if ($debug) $parser->log("modkit summary log file", file($log_file2));
 }
 
 

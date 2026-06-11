@@ -8,7 +8,8 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("compare_variants", "Comparison of two GSvar files.");
 $parser->addInfile("in1", "First GSvar file.", false, false);
 $parser->addInfile("in2", "Second GSvar file.", false, false);
-$parser->addString("add", "Comma-separated list of columns to compare in addition to chr,start,end,ref,obs.", true);
+$default_colums = "chr,start,end,ref,obs,filter,quality";
+$parser->addString("add", "Comma-separated list of columns to compare in addition to {$default_colums}. Used e.g. for genotype colums.", true);
 extract($parser->parse($argv));
 
 //exec
@@ -16,7 +17,7 @@ $args = [];
 $args[] = "-in1 {$in1}";
 $args[] = "-in2 {$in2}";
 $args[] = "-skip_comments";
-$args[] = "-comp chr,start,end,ref,obs".($add=="" ? "" : ",".$add);
+$args[] = "-comp ".$default_colums.($add=="" ? "" : ",".$add);
 list($stdout, $stderr, $code) = execApptainer("ngs-bits", "TsvDiff", implode(" ", $args), [$in1, $in2], [], false, false, false);
 foreach($stdout as $line)
 {

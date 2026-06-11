@@ -2,9 +2,10 @@
 ##CALLING_DATE=2021-11-09
 ##SOURCE=freebayes v1.3.3
 ##FILTER=low_conf_region=Variant marked as 'low_conf_region'.
-##DESCRIPTION=genotype=Genotype of variant in sample.
+##SAMPLE=<ID=vc_freebayes_in,Gender=female,ExternalSampleName=77162048,IsTumor=no,IsFFPE=no,DiseaseGroup=Diseases of the nervous system,DiseaseStatus=control>
+##DESCRIPTION=vc_freebayes_in=Genotype of variant in sample.
 ##DESCRIPTION=filter=Annotations for filtering and ranking variants.
-##DESCRIPTION=quality=Quality parameters - variant quality (QUAL), depth (DP), quality divided by depth (QD), allele frequency (AF), mean mapping quality of alternate allele (MQM), probability of strand bias for alternate bases as phred score (SAP), probability of allele ballance as phred score (ABP)
+##DESCRIPTION=quality=Quality parameters. QUAL: variant quality, DP: depth, AF: allele frequency, GQ: genotype quality, CT: call type - MO is mosaic, LM is low-mappabilty, RC is re-calling of missing variants in multi-sample pipeline.
 ##DESCRIPTION=gene=Affected gene list (comma-separated).
 ##DESCRIPTION=variant_type=Variant type.
 ##DESCRIPTION=coding_and_splicing=Coding and splicing details (Gene, ENST number, type, impact, exon/intron number, HGVS.c, HGVS.p, Pfam domain).
@@ -35,4 +36,4 @@
 ##DESCRIPTION=comment=Variant comments from the NGSD.
 ##DESCRIPTION=gene_info=Gene information from NGSD (inheritance mode, gnomAD o/e scores).
 ##FILTER=low_conf_region=Low confidence region for small variant calling based on gnomAD AC0/RF filters and IMGAG trio/twin data.
-#chr	start	end	ref	obs	genotype	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	gnomAD	gnomAD_sub	gnomAD_hom_hemi	gnomAD_het	gnomAD_wt	phyloP	CADD	REVEL	AlphaMissense	MaxEntScan	SpliceAI	NGSD_hom	NGSD_het	NGSD_mosaic	NGSD_group	classification	classification_comment	validation	comment	gene_info
+#chr	start	end	ref	obs	vc_freebayes_in	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	gnomAD	gnomAD_sub	gnomAD_hom_hemi	gnomAD_het	gnomAD_wt	phyloP	CADD	REVEL	AlphaMissense	MaxEntScan	SpliceAI	NGSD_hom	NGSD_het	NGSD_mosaic	NGSD_group	classification	classification_comment	validation	comment	gene_info

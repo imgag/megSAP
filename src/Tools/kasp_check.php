@@ -433,7 +433,7 @@ if ($snps=="set2")
 		"H" => array("rs7742431", "chr6", "78969860", "A", "G", false),
 		"I" => array("rs41288423", "chr6", "100718219", "G", "A", false),
 		"J" => array("rs10756457", "chr9", "13150532", "T", "C", false),
-		"K" => array("rs4290270", "chr12", "72022455", "A", "T", null), //null=skipped (this SNP produces very many false calls)
+		"K" => array("rs4290270", "chr12", "72022455", "A", "T", false),
 		"L" => array("rs6313", "chr13", "46895805", "G", "A", false),
 		"M" => array("rs5351", "chr13", "77901178", "T", "C", false),
 		"N" => array("rs140679", "chr15", "27527530", "C", "T", false),

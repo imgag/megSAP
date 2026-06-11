@@ -9,19 +9,18 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("vc_dragen_somatic", "Performs small/structural variant calling for tumor or tumor-normal samples using the Illumina DRAGEN server.");
-$parser->addInfile("t_bam", "Input file tumor sample BAM.", false);
-$parser->addOutfile("out", "Output .VCF file for small variants.", false);
+$parser = new ToolBase("vc_dragen_somatic", "Performs small/structural variant calling for tumor-normal samples using the Illumina DRAGEN server.");
+$parser->addInfile("t_bam", "Input file - tumor sample BAM or CRAM.", false);
+$parser->addInfile("n_bam", "Input file - normal sample BAM or CRAM.", false);
+$parser->addString("prefix", "Prefix for output.", false);
+$parser->addString("dragen_out_folder", "Folder for output.", false);
 
 //optional
-$parser->addInfile("n_bam", "Input file normal sample BAM.", true);
-$parser->addOutfile("out_sv", "Outfile for dragen somatic SV calls. Activates dragen SV calling when given.", true);
-$parser->addOutfile("out_cnv", "Outfile for dragen somatic CNV calls. Activates dragen CNV calling when given.", true);
 $parser->addInfile("normal_snvs", "Dragen SNV calls of the normalsample. Necessary if -out_cnv is given.", true);
 $parser->addString("build", "The genome build to use. The genome must be indexed for BWA!", true, "GRCh38");
-$parser->addString("tumor", "Sample name of the tumor sample. If unset the basename of the 'tumor_bam' file is used.", true, "");
-$parser->addString("normal", "Sample name of the normal Sample. If unset the basename of the 'normal_bam' file is used.", true, "");
+
 $parser->addFlag("is_targeted", "If the sequencing is a targeted sequencing.");
+$parser->addFlag("high_mem", "");
 $parser->addFlag("debug", "Add debug output to the log file.");
 
 extract($parser->parse($argv));
@@ -50,16 +49,10 @@ if ($debug)
 	$parser->log("dragen licence status before:", $stdout);
 }
 
-
-//if no sample name is given use output name
-if ($tumor=="") $tumor = basename($t_bam, ".bam");
-if ($n_bam != "" && $normal=="") $normal = basename($n_bam, ".bam");
-
 //check if input files are readable and output file is writeable
 if (!is_readable($t_bam)) trigger_error("Input file '$t_bam' is not readable!", E_USER_ERROR);
 if ($n_bam != "" && !is_readable($n_bam)) trigger_error("Input file '$n_bam' is not readable!", E_USER_ERROR);
-if (!is_writable2($out)) trigger_error("Output file '$out' is not writable!", E_USER_ERROR);
-if ($out_sv != "" && !is_writable2($out_sv)) trigger_error("Output file '$out_sv' is not writable!", E_USER_ERROR);
+
 
 // create empty folder for analysis
 $working_dir = get_path("dragen_data")."/megSAP_working_dir/";
@@ -97,13 +90,16 @@ if ($n_bam != "")
 	}
 }
 $dragen_parameter[] = "--output-directory $working_dir";
-$dragen_parameter[] = "--output-file-prefix output";
+$dragen_parameter[] = "--output-file-prefix {$prefix}";
 $dragen_parameter[] = "--enable-map-align false"; # cannot map multiple (tumor, normal) inputs at once
 $dragen_parameter[] = "--pair-by-name true";
 
 //parameters for  high memory mode
-// $dragen_parameter[] = "--bin_memory 85899345920"; //80GB (default: 20 (GB), max on DRAGEN v4: 90)
-// $dragen_parameter[] = "--vc-max-callable-region-memory-usage 27917287424"; //26GB (default: 13 (GB))
+if ($high_mem)
+{
+	$dragen_parameter[] = "--bin_memory 85899345920"; //80GB (default: 20 (GB), max on DRAGEN v4: 90)
+	$dragen_parameter[] = "--vc-max-callable-region-memory-usage 27917287424"; //26GB (default: 13 (GB))
+}
 
 
 //small variant calling
@@ -115,24 +111,19 @@ $dragen_parameter[] = "--vc-callability-normal-thresh 5"; # default 5
 $dragen_parameter[] = "--vc-enable-unequal-ntd-errors false"; # disables model to correct FFPE errors.. //TODO get to work with model
 
 //CNV calling:
-if ($out_cnv != "")
-{
-	if ($normal_snvs == "") trigger_error("If outfile 'out_cnv' is given 'normal_snvs' have to be given as well.", E_USER_ERROR);
-	
-	$dragen_parameter[] = "--enable-cnv true";
-	$dragen_parameter[] = "--cnv-somatic-enable-het-calling true";
-	$dragen_parameter[] = "--cnv-normal-b-allele-vcf $normal_snvs";
-}
+// if ($normal_snvs == "") trigger_error("If outfile 'out_cnv' is given 'normal_snvs' have to be given as well.", E_USER_ERROR);
+
+// $dragen_parameter[] = "--enable-cnv true";
+// $dragen_parameter[] = "--cnv-somatic-enable-het-calling true";
+// $dragen_parameter[] = "--cnv-normal-b-allele-vcf $normal_snvs";
+
 
 //SV calling:
-if ($out_sv != "")
+$dragen_parameter[] = "--enable-sv true";
+$dragen_parameter[] = "--sv-use-overlap-pair-evidence true";
+if ($is_targeted)
 {
-	$dragen_parameter[] = "--enable-sv true";
-	$dragen_parameter[] = "--sv-use-overlap-pair-evidence true";
-	if ($is_targeted)
-	{
-		$dragen_parameter[] = "--sv-exome true";
-	}
+	$dragen_parameter[] = "--sv-exome true";
 }
 
 //MSI: microsattelite instability:
@@ -142,7 +133,7 @@ if (! is_file($msi_ref))
 	trigger_error("Skipping dragen MSI calling because MSI reference: '{$msi_ref}' doesn't exist.", E_USER_WARNING);
 }
 
-if ($n_bam != "" && is_file($msi_ref))
+if (is_file($msi_ref))
 {
 	$dragen_parameter[] = "--msi-command tumor-normal";
 	$dragen_parameter[] = "--msi-microsatellites-file $msi_ref";
@@ -160,32 +151,12 @@ if ($debug)
 	$parser->log("working_dir content:", $stdout);
 }
 
-// ********************************* copy data back *********************************//
 
-$parser->log("Copying SNVs to output folder");
-$parser->copyFile($working_dir."output.vcf.gz", $out);
-$parser->copyFile($working_dir."output.vcf.gz.tbi", $out.".tbi");
+// ********************************* copy data to Sample folder *********************************//
 
-if ($out_cnv != "")
-{
-	$parser->log("Copying CNVs to output folder");
-	$parser->copyFile($working_dir."output.cnv.vcf.gz", $out_cnv);
-	$parser->copyFile($working_dir."output.cnv.vcf.gz.tbi", $out_cnv.".tbi");
-	// exec("cp {$working_dir}output.cnv* ".dirname($out_cnv)); //TODO replace with additional needed specific cnv output files? baf, seg files?
-}
+$parser->log("Copying complete DRAGEN folder to output...");
+$parser->exec("cp", "-rf {$working_dir}/* {$dragen_out_folder}");
 
-if ($out_sv != "")
-{
-	$parser->log("Copying SVs to output folder");
-	$parser->copyFile($working_dir."output.sv.vcf.gz", $out_sv);
-	$parser->copyFile($working_dir."output.sv.vcf.gz.tbi", $out_sv.".tbi");
-}
-
-if (is_file($working_dir."output.microsat_output.json"))
-{
-	$parser->log("Copying MSI file to output folder");
-	$parser->copyFile($working_dir."output.microsat_output.json", dirname($out)."/".basename($out, ".vcf.gz")."_msi.json");
-}
 
 
 // ********************************* cleanup *********************************//

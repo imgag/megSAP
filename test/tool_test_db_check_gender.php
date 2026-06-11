@@ -5,7 +5,7 @@ require_once("framework.php");
 $name = "db_check_gender";
 start_test($name);
 
-$bam = get_path("test_data_folder")."/GS140127_01.bam";
+$bam = get_path("test_data_folder")."/GS140127_01.cram";
 if (file_exists($bam))	
 {
 

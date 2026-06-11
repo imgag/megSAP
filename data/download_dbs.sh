@@ -262,6 +262,17 @@ singularity exec -B $dbs/GIAB/HCC1395/ $htslib tabix $dbs/GIAB/HCC1395/high_conf
 zcat $dbs/GIAB/HCC1395/high_conf_variants.vcf.gz | singularity exec $ngsbits VcfBreakMulti | singularity exec -B $genome_dir $ngsbits VcfFilter -remove_invalid -ref $genome | singularity exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | singularity exec $ngsbits VcfStreamSort | singularity exec $htslib bgzip > $dbs/GIAB/HCC1395/high_conf_variants_normalized.vcf.gz
 singularity exec -B $dbs/GIAB/HCC1395/ $htslib tabix $dbs/GIAB/HCC1395/high_conf_variants_normalized.vcf.gz
 
+#download and normalize HG002/NA24385 reference data (v5.0q)
+mkdir -p $dbs/GIAB/NA24385_v5.0q/
+cd $dbs/GIAB/NA24385_v5.0q/
+wget https://42basepairs.com/download/web/giab/release/AshkenazimTrio/HG002_NA24385_son/v5.0q/HG002_GRCh38_v5.0q_smvar.vcf.gz -O high_conf_variants.vcf.gz
+wget https://42basepairs.com/download/web/giab/release/AshkenazimTrio/HG002_NA24385_son/v5.0q/HG002_GRCh38_v5.0q_smvar.benchmark.bed -O high_conf_regions.bed
+zcat high_conf_variants.vcf.gz | singularity exec $ngsbits VcfBreakMulti | singularity exec -B $genome_dir $ngsbits VcfFilter -remove_invalid -ref $genome | singularity exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | singularity exec $ngsbits VcfStreamSort | singularity exec $htslib bgzip > high_conf_variants_normalized.vcf.gz
+singularity exec $htslib tabix -p vcf high_conf_variants_normalized.vcf.gz
+wget https://42basepairs.com/download/web/giab/release/AshkenazimTrio/HG002_NA24385_son/v5.0q/HG002_GRCh38_v5.0q_stvar.vcf.gz -O high_conf_variants_SVs.vcf.gz
+wget https://42basepairs.com/download/web/giab/release/AshkenazimTrio/HG002_NA24385_son/v5.0q/HG002_GRCh38_v5.0q_stvar.vcf.gz.tbi -O high_conf_variants_SVs.vcf.gz.tbi
+wget https://42basepairs.com/download/web/giab/release/AshkenazimTrio/HG002_NA24385_son/v5.0q/HG002_GRCh38_v5.0q_stvar.benchmark.bed -O high_conf_regions_SVs.bed
+
 #download reference genome for orad
 cd $dbs
 mkdir -p oradata

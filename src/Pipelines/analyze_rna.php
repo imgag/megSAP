@@ -24,9 +24,10 @@ $parser->addInt("threads", "The maximum number of threads to use.", true, 5);
 $parser->addFlag("skip_dna_reannotation", "Do not automatically start the reannotation of the related DNA sample.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("skip_gender_check", "Skip check of the detected gender against the entry in NGSD.");
-
 extract($parser->parse($argv));
 
+//start time
+$start_time = microtime(true);
 
 function getCohortStrategy($ps_info)
 {
@@ -1032,7 +1033,14 @@ if (in_array("db", $steps))
 		{
 			$parser->execApptainer("ngs-bits", "NGSDImportExpressionData", "-mode exons -expression {$expr_exon} ".implode(" ", $args), [$out_folder]);
 		}
-	}	
+	}
+	
+	//log analysis time
+	if (db_is_enabled("NGSD"))
+	{
+		$db = DB::getInstance("NGSD", false);
+		log_analysis_time($db, 'rna', [$name], $threads, $steps, $steps_all, false, microtime(true)-$start_time);
+	}
 }
 
 

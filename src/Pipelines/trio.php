@@ -8,18 +8,6 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
-function determine_index($name, $parts)
-{
-	$index = array_search($name, $parts);
-	
-	if ($index===FALSE || $index==-1)
-	{
-		trigger_error("Could not determine index of column '$name' in header line: ".implode(" ", $parts), E_USER_ERROR);
-	}
-	
-	return $index;
-}
-
 function fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data)
 {
 	global $parser;
@@ -97,8 +85,11 @@ $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("no_check", "Skip gender check of parents and parent-child correlation check (otherwise done before variant calling)");
 $parser->addFlag("annotation_only", "Performs only a reannotation of the already created variant calls.");
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
-
+$parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
 extract($parser->parse($argv));
+
+//start time
+$start_time = microtime(true);
 
 //init
 $sample_c = basename2($c);
@@ -113,7 +104,7 @@ $parser->logServerEnvronment();
 
 //file names
 $gsvar = "{$out_folder}/trio.GSvar";
-$vcf_all = "{$out_folder}/all.vcf.gz";
+$vcf_multi = "{$out_folder}/trio_var.vcf.gz";
 $cnv_multi = "{$out_folder}/trio_cnvs_clincnv.tsv";
 $bedpe_out = "{$out_folder}/trio_var_structural_variants.bedpe";
 
@@ -127,7 +118,7 @@ foreach($steps as $step)
 if ($annotation_only)
 {
 	// check if required VC files for annotation is available and print warning otherwise
-	if (in_array("vc", $steps) && !file_exists($vcf_all))
+	if (in_array("vc", $steps) && !file_exists($vcf_multi))
 	{
 		trigger_error("VCF for reannotation is missing. Skipping 'vc' step!", E_USER_WARNING);
 		if (($key = array_search("vc", $steps)) !== false) unset($steps[$key]);
@@ -162,8 +153,8 @@ $args_multisample = [
 	"-no_sync", //already done if needed
 	"-threads $threads"
 	];
-	
 if ($annotation_only) $args_multisample[] = "-annotation_only";
+if ($no_splice) $args_multisample[] = "-no_splice";
 
 //check steps
 $is_wgs_shallow = $sys['type']=="WGS (shallow)";
@@ -176,11 +167,8 @@ if ($is_wgs_shallow)
 	}
 }
 
-//set up local NGS data copy (to reduce network traffic and speed up analysis)
-if (!$no_sync)
-{
-	$parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
-}
+//set up local NGS data copy
+if (!$no_sync) $parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
 
 //pre-analysis checks
 if (!$no_check && !$is_wgs_shallow && !$annotation_only)
@@ -212,10 +200,10 @@ if (in_array("vc", $steps))
 	$parser->execTool("Pipelines/multisample.php", implode(" ", $args_multisample)." -steps vc", true); 
 
 	//determine mendelian error rate
-	list($stdout) = $parser->execApptainer("ngs-bits", "TrioMendelianErrors", "-vcf {$vcf_all} -c {$sample_c} -f {$sample_f} -m {$sample_m}", [$vcf_all]);
+	list($stdout) = $parser->execApptainer("ngs-bits", "TrioMendelianErrors", "-vcf {$vcf_multi} -c {$sample_c} -f {$sample_f} -m {$sample_m} -min_dp 10", [$vcf_multi]);
 	foreach($stdout as $line)
 	{
-		if (starts_with($line, "Mendelian error rate:"))
+		if (starts_with($line, "Mendelian error rate "))
 		{
 			print trim($line)."\n";
 		}
@@ -244,28 +232,22 @@ if (in_array("cn", $steps))
 		//UPD detection
 		if (!$is_wgs_shallow)
 		{
-			$args_upd = [
-				"-in {$out_folder}/all.vcf.gz",
+			$in_files = [$vcf_multi];
+			$args = [
+				"-in {$vcf_multi}",
 				"-c {$sample_c}",
 				"-f {$sample_f}",
 				"-m {$sample_m}",
+				"-var_min_q 0", //with VcfMerge QUAL is undefined
 				"-out {$out_folder}/trio_upd.tsv",
 				];
-			$in_files = [$out_folder, $c];
-			$base = dirname($c)."/".basename2($c);
-			if (file_exists("{$base}_cnvs.tsv"))
-			{
-				$args_upd[] = "-exclude {$base}_cnvs.tsv";
-			}
-			else if (file_exists("{$base}_cnvs_clincnv.tsv"))
-			{
-				$args_upd[] = "-exclude {$base}_cnvs_clincnv.tsv";
-			}
-			else
-			{
-				trigger_error("Child CNV file not found for UPD detection!", E_USER_WARNING);
-			}
-			$parser->execApptainer("ngs-bits", "UpdHunter", implode(" ", $args_upd), $in_files);
+			$exclude_files = [repository_basedir()."/data/misc/nobase_regions.bed"];
+			$cnv_file = dirname($c)."/".basename2($c)."_cnvs_clincnv.tsv";
+			if (file_exists($cnv_file)) $exclude_files[] = $cnv_file;
+			else trigger_error("Child CNV file not found for UPD detection!", E_USER_WARNING);
+			$args[] = "-exclude ".implode(" ", $exclude_files);
+			$in_files = array_merge($in_files, $exclude_files);
+			$parser->execApptainer("ngs-bits", "UpdHunter", implode(" ", $args), $in_files, [$out_folder]);
 		}
 		
 		//update GSvar file (because 'an' is skipped)
@@ -328,6 +310,13 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	
 	//add secondary analysis (if missing)
 	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'trio' -gsvar {$gsvar}");
+	
+	//log analysis time
+	if (db_is_enabled("NGSD"))
+	{
+		$db = DB::getInstance("NGSD", false);
+		log_analysis_time($db, 'trio', [$sample_c, $sample_f, $sample_m], $threads, $steps, $steps_all, false, microtime(true)-$start_time);
+	}
 }
 
 ?>

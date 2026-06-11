@@ -59,7 +59,7 @@ test_pipeline_l: dummy
 	@cd test/data_longread && make all
 
 test_pipeline_l_all: dummy
-	@cd test/data_longread && make all_3_tests
+	@cd test/data_longread && make all all_single_steps
 
 test_pipeline_tl: dummy
 	@cd test/data_trio_longread && make all
@@ -90,7 +90,7 @@ test_all_status:
 	@egrep -a -i "WARNING" test_*.log | grep -v "command6_exit123" || :
 	@echo ""
 	@echo "### ERRORS ###"
-	@egrep -a -i "ERROR|FAILED" test_*.log | egrep -v "Mendelian error rate:|command6_exit123" || :
+	@egrep -a -i "ERROR|FAILED" test_*.log | egrep -v "Mendelian error rate |command6_exit123" || :
 
 test_clear:
 	@cd test/data_amplicon && make clean
