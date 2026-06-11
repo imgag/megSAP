@@ -336,7 +336,7 @@ function run_clincnv($out, $mosaic=FALSE)
 		"--normalSample {$ps_name}",
 		"--out {$out_folder}",
 		"--numberOfThreads {$threads}",
-		"--par \"chrX:10001-2781479;chrX:155701383-156030895\"", //this is correct for hg38 only!
+		"--par \"chrX:10001-2781479;chrX:155701383-156030895\"", //this is correct for hg38/GRCh38 only!
 		"--hg38",
 		"--noPlot",
 		];
@@ -363,19 +363,22 @@ function run_clincnv($out, $mosaic=FALSE)
 			$args[] = "--bafFolder {$baf_folder}";
 			$in_files[] = $baf_folder;
 		} 
+		//$args[] = "--denoise 1"; //TODO maybe activate after testing (tumor-only)
 	}
 	else if($mosaic)
 	{
 		$args[] = "--maxNumGermCNVs 10";
-		$args[] = "--lengthG 2"; //lengthG actually gives the number of additional regions > subtract 1
+		$args[] = "--lengthG 2"; //attention: this means the CNV has to consist of at least 3 regions
 		$args[] = "--scoreG 500";
 		$args[] = "--mosaicism";
+		//$args[] = "--denoise 1"; //TODO maybe activate after testing (germline mosaic)
 	}
 	else
 	{
 		$args[] = "--maxNumGermCNVs {$max_cnvs}";
 		$args[] = "--lengthG ".($regions-1); //lengthG actually gives the number of additional regions > subtract 1
 		$args[] = "--scoreG 20";
+		//$args[] = "--denoise 1"; //TODO maybe acivate after testing (germline)
 	}
 
 	//use_off_target is set for tumor_only with off target cov/bed files
