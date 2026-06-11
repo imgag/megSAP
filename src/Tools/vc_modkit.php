@@ -48,15 +48,6 @@ $parser->execApptainer("modkit", "modkit", implode(" ", $args), $in_files);
 $log = array_filter(file($log_file), fn($line) => !strpos($line, "[DEBUG]"));
 $parser->log("modkit pileup log file", $log);
 
-/*
-//copy bed.gz
-$parser->copyFile($tmp_folder."/combined.bed.gz", $bed);
-$bed_hp1 = dirname($bed)."/".basename($bed, ".bed.gz")."_hp1.bed.gz";
-$bed_hp2 = dirname($bed)."/".basename($bed, ".bed.gz")."_hp2.bed.gz";
-$parser->copyFile($tmp_folder."/hp1.bed.gz", $bed_hp1);
-$parser->copyFile($tmp_folder."/hp2.bed.gz", $bed_hp2);
-*/
-
 //compress BED files
 $bed_hp1 = dirname($bed)."/".basename($bed, ".bed.gz")."_hp1.bed.gz";
 $bed_hp2 = dirname($bed)."/".basename($bed, ".bed.gz")."_hp2.bed.gz";
@@ -65,9 +56,10 @@ $parser->execApptainer("htslib", "bgzip", "-@ {$threads} -c -l 9 {$tmp_folder}/h
 $parser->execApptainer("htslib", "bgzip", "-@ {$threads} -c -l 9 {$tmp_folder}/hp2.bedmethyl > {$bed_hp2}", [], [dirname($bed_hp2)]);
 
 //create index
-$parser->execApptainer("htslib", "tabix", "-f -p bed {$bed}", [$bed], [dirname($bed)]);
-$parser->execApptainer("htslib", "tabix", "-f -p bed {$bed_hp1}", [$bed_hp1], [dirname($bed_hp1)]);
-$parser->execApptainer("htslib", "tabix", "-f -p bed {$bed_hp2}", [$bed_hp2], [dirname($bed_hp2)]);
+$parser->execApptainer("htslib", "tabix", "--help");
+$parser->execApptainer("htslib", "tabix", "-f -0 -s 1 -b 2 -e 3 {$bed}", [$bed], [dirname($bed)], false, true, false, true);
+$parser->execApptainer("htslib", "tabix", "-f -0 -s 1 -b 2 -e 3 {$bed_hp1}", [$bed_hp1], [dirname($bed_hp1)], false, true, false, true);
+$parser->execApptainer("htslib", "tabix", "-f -0 -s 1 -b 2 -e 3 {$bed_hp2}", [$bed_hp2], [dirname($bed_hp2)], false, true, false, true);
 
 //run summary
 if (isset($summary))
@@ -76,6 +68,7 @@ if (isset($summary))
 	$args = [];
 	$args[] = "summary";
 	$args[] = $bam;
+	$args[] = "--reference ".$genome;
 	$args[] = "--threads ".$threads;
 	$args[] = "--log-filepath ".$log_file2;
 	$args[] = " > ".$summary;
