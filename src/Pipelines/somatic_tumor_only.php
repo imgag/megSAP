@@ -41,6 +41,9 @@ $parser->addString("rna_ref_tissue", "Reference data for RNA annotation", true);
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
 extract($parser->parse($argv));
 
+//start time
+$start_time = microtime(true);
+
 //check steps
 $steps = explode(",", $steps);
 foreach($steps as $step)
@@ -487,5 +490,8 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 				
 	//add secondary analysis (if missing)
 	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'somatic' -gsvar {$variants_gsvar}");
+	
+	//log analysis time
+	log_analysis_time($db_conn, 'tumor-only', [$prefix], $threads, $steps, $steps_all, false, microtime(true)-$start_time);
 }
 ?>
