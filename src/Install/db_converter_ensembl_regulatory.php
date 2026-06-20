@@ -97,7 +97,9 @@ fclose($handle);
 fclose($handle_out2);
 
 //CTCF_binding_site are in both files, remove them from the TF_binding_site list
-list($stdout) = exec2("BedSubtract -in $out2 -in2 $out | BedMerge");
+$tmp = temp_file();
+execApptainer("ngs-bits", "BedSubtract", "-in $out2 -in2 $out -out $tmp");
+list($stdout) = execApptainer("ngs-bits", "BedMerge", "-in $tmp");
 foreach($stdout as $line)
 {
 	$line = nl_trim($line);

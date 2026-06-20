@@ -25,9 +25,10 @@ From: ubuntu:24.04
 	add-apt-repository ppa:ondrej/php
 	apt-get update
 	apt-get install -y \
-		php8.2-cli \
-		php8.2-xml \
-		php8.2-mysql
+		php8.3-cli \
+		php8.3-xml \
+		php8.3-mysql \
+		php8.3-curl
 	
 	# Install apptainer
 	add-apt-repository -y ppa:apptainer/ppa

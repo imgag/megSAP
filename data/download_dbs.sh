@@ -61,7 +61,7 @@ cd Ensembl
 wget https://ftp.ensembl.org/pub/release-115/regulation/homo_sapiens/GRCh38/annotation/Homo_sapiens.GRCh38.regulatory_features.v115.gff3.gz
 wget https://ftp.ensembl.org/pub/release-115/regulation/homo_sapiens/GRCh38/annotation/Homo_sapiens.GRCh38.motif_features.v115.gff3.gz
 php $src/Install/db_converter_ensembl_regulatory.php Homo_sapiens.GRCh38.115.gff3 Homo_sapiens.GRCh38.regulatory_features.v115.gff3.gz Homo_sapiens.GRCh38.motif_features.v115.gff3.gz > Ensembl_regulatory_115.bed
-BedSort -in Ensembl_regulatory_115.bed -out Ensembl_regulatory_115.bed
+singularity exec -B $genome_dir $ngsbits BedSort -in Ensembl_regulatory_115.bed -out Ensembl_regulatory_115.bed
 
 #Download Ensembl domain data
 cd $dbs
@@ -163,8 +163,8 @@ wget -O hg38.phyloP100way.bw http://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyl
 cd $dbs
 mkdir -p CADD
 cd CADD
-wget -O - https://krishna.gs.washington.edu/download/CADD/v1.7/GRCh38/gnomad.genomes.r4.0.indel.tsv.gz > CADD_InDels_1.7_GRCh38.tsv.gz
-wget -O - https://krishna.gs.washington.edu/download/CADD/v1.7/GRCh38/whole_genome_SNVs.tsv.gz > CADD_SNVs_1.7_GRCh38.tsv.gz
+wget -O - https://kircherlab.bihealth.org/download/CADD/v1.7/GRCh38/gnomad.genomes.r4.0.indel.tsv.gz > CADD_InDels_1.7_GRCh38.tsv.gz
+wget -O - https://kircherlab.bihealth.org/download/CADD/v1.7/GRCh38/whole_genome_SNVs.tsv.gz > CADD_SNVs_1.7_GRCh38.tsv.gz
 zcat CADD_InDels_1.7_GRCh38.tsv.gz | php $src/Install/db_converter_cadd.php -build GRCh38 | singularity exec $ngsbits VcfStreamSort | singularity exec $htslib bgzip > CADD_InDels_1.7_GRCh38.vcf.gz
 singularity exec $htslib tabix -f -C -m 9 -p vcf CADD_InDels_1.7_GRCh38.vcf.gz
 zcat CADD_SNVs_1.7_GRCh38.tsv.gz | php $src/Install/db_converter_cadd.php -build GRCh38 | singularity exec $ngsbits VcfStreamSort | singularity exec $htslib bgzip > CADD_SNVs_1.7_GRCh38.vcf.gz
@@ -231,15 +231,15 @@ wget -O - 'https://ftp.ensembl.org/pub/release-109/fasta/homo_sapiens/cdna/Homo_
 
 #download and normalize HG001/NA12878 reference data
 mkdir -p $dbs/GIAB/NA12878/
-wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.vcf.gz -O $dbs/GIAB/NA12878/high_conf_variants.vcf.gz
-wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/latest/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.bed -O $dbs/GIAB/NA12878/high_conf_regions.bed
+wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv4.2.1/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.vcf.gz -O $dbs/GIAB/NA12878/high_conf_variants.vcf.gz
+wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/NA12878_HG001/NISTv4.2.1/GRCh38/HG001_GRCh38_1_22_v4.2.1_benchmark.bed -O $dbs/GIAB/NA12878/high_conf_regions.bed
 zcat $dbs/GIAB/NA12878/high_conf_variants.vcf.gz | singularity exec $ngsbits VcfBreakMulti | singularity exec -B $genome_dir $ngsbits VcfFilter -remove_invalid -ref $genome | singularity exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | singularity exec $ngsbits VcfStreamSort | singularity exec $htslib bgzip > $dbs/GIAB/NA12878/high_conf_variants_normalized.vcf.gz
 singularity exec $htslib tabix -p vcf $dbs/GIAB/NA12878/high_conf_variants_normalized.vcf.gz
 
 #download and normalize HG002/NA24385 reference data
 mkdir -p $dbs/GIAB/NA24385/
-wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/AshkenazimTrio/HG002_NA24385_son/latest/GRCh38/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz -O $dbs/GIAB/NA24385/high_conf_variants.vcf.gz
-wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/AshkenazimTrio/HG002_NA24385_son/latest/GRCh38/HG002_GRCh38_1_22_v4.2.1_benchmark_noinconsistent.bed -O $dbs/GIAB/NA24385/high_conf_regions.bed
+wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/AshkenazimTrio/HG002_NA24385_son/NISTv4.2.1/GRCh38/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz -O $dbs/GIAB/NA24385/high_conf_variants.vcf.gz
+wget https://ftp-trace.ncbi.nlm.nih.gov/giab/ftp/release/AshkenazimTrio/HG002_NA24385_son/NISTv4.2.1/GRCh38//HG002_GRCh38_1_22_v4.2.1_benchmark_noinconsistent.bed -O $dbs/GIAB/NA24385/high_conf_regions.bed
 zcat $dbs/GIAB/NA24385/high_conf_variants.vcf.gz | singularity exec $ngsbits VcfBreakMulti | singularity exec -B $genome_dir $ngsbits VcfFilter -remove_invalid -ref $genome | singularity exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | singularity exec $ngsbits VcfStreamSort | singularity exec $htslib bgzip > $dbs/GIAB/NA24385/high_conf_variants_normalized.vcf.gz
 singularity exec $htslib tabix -p vcf $dbs/GIAB/NA24385/high_conf_variants_normalized.vcf.gz
 
@@ -287,7 +287,7 @@ rm -rf orad_2_6_1
 cd $dbs
 mkdir -p msisensor-pro
 cd msisensor-pro
-singularity exec -B $genome $msisensor msisensor-pro scan -d $genome -o msisensor_references_GRCh38.site
+singularity exec -B $genome $msisensor msisensor-pro-v1.3.0 scan -d $genome -o msisensor_references_GRCh38.site
 
 #download tandem-repeat file for sniffles2
 cd $dbs
