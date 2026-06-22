@@ -12,7 +12,7 @@ If you are using other Linux distributions, you have to adapt them yourself.
 Install base dependencies:
 
 	> sudo apt-get update
-	> sudo apt-get install -y rsync zlib1g bzip2 php8.3-cli php8.3-xml php8.3-mysql make unzip wget git gnumeric pigz ghostscript
+	> sudo apt-get install -y rsync zlib1g bzip2 php8.3-cli php8.3-xml php8.3-mysql php8.3-curl make unzip wget git gnumeric pigz ghostscript
 
 Install Apptainer:
 
@@ -60,7 +60,7 @@ Next, we need to download and index the reference genome:
 Finally, we need to download and convert some open-source databases for annotations:
 
 	> ./download_dbs.sh
-	> php ../src/Install/db_download.php # DB downloads that require apptainer containers
+	> php ../src/Install/db_download.php
 
 **Note:** OMIM, HGMD and COSMIC are not downloaded automatically because of license issues. If you have the license for those databases, download/convert them according to the commented sections in the `download_dbs.sh` script.
 
