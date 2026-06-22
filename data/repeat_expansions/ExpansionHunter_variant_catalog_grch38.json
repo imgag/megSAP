@@ -3022,5 +3022,46 @@
             "chrX:19990766-19991128"
         ],
         "MainReferenceRegion": "chr7:55887600-55887639"
+    },
+    {
+        "LocusId": "GOLGA8A",
+        "LocusStructure": "(TYTC)*",
+        "ReferenceRegion": "chr15:34419425-34419451",
+        "RepeatUnit": "TYTC",
+        "VariantType": "RareRepeat",
+        "Gene": "GOLGA8A",
+        "GeneRegion": "intron",
+        "GeneId": "ENSG00000175265",
+        "Diseases": [],
+        "MainReferenceRegion": "chr15:34419425-34419451"
+    },
+	{
+        "LocusId": "TBC1D7 ",
+        "LocusStructure": "(CCG)*",
+        "ReferenceRegion": "chr6:13328476-13328603",
+        "RepeatUnit": "CCG",
+        "VariantType": "RareRepeat",
+        "Gene": "TBC1D7 ",
+        "GeneRegion": "promotor",
+        "GeneId": "ENSG00000145979",
+        "Diseases": [],
+        "MainReferenceRegion": "chr6:13328476-13328603"
+    },
+    {
+        "LocusId": "CHD3",
+        "LocusStructure": "(CCG)*",
+        "ReferenceRegion": "chr17:7885307-7885345",
+        "RepeatUnit": "CCG",
+        "VariantType": "RareRepeat",
+        "Gene": "CHD3",
+        "GeneRegion": "intron",
+        "GeneId": "ENSG00000170004",
+        "Diseases": [
+			{
+                "Symbol": "SNIBCPS",
+                "Name": "Snijders Blok-Campeau syndrome"
+            }
+        ],
+        "MainReferenceRegion": "chr17:7885307-7885345"
     }
 ]
