@@ -53,8 +53,8 @@ If you want to use our full [software stack](doc/full_software_stack.md) in a cl
 
 You can cite megSAP using Zenodo DOIs:
 
-* 2026_06: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20792735.svg)](https://doi.org/10.5281/zenodo.20792735) 
-* 2025_10: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17357942.svg)](https://doi.org/10.5281/zenodo.17357942)
+* [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20792735.svg)](https://zenodo.org/records/20792735)  
+* [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17357942.svg)](https://zenodo.org/records/17357942)
 
 ## ChangeLog
 
