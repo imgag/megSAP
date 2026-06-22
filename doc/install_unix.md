@@ -6,7 +6,7 @@ Currently only Linux is supported!
 
 ## Base dependencies
 
-We are providing instructions for the latest Ubuntu LTS distibution (Ubuntu 24.04).  
+We are providing instructions for the Ubuntu LTS distibution 24.04.  
 If you are using other Linux distributions, you have to adapt them yourself.
 
 Install base dependencies:
@@ -24,7 +24,7 @@ Install Apptainer:
 
 Clone the last release of megSAP (there is usually a branch with fixes):
 
-	> git clone --branch 2025_10_fixes https://github.com/imgag/megSAP.git
+	> git clone --branch 2026_06_with_fixes https://github.com/imgag/megSAP.git
 
 ### Resolving proxy issues with git
 

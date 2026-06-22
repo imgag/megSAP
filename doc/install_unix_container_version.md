@@ -17,7 +17,7 @@ Install Apptainer:
 ## Building the container
 
 First, you have to create a container with megSAP inside.  
-A apptainer recipe to create a container with megSAP 2025_10 can be found [here](../data/tools/container_recipes/megSAP_container.def).  
+A apptainer recipe to create a container with megSAP 2026_06 can be found [here](../data/tools/container_recipes/megSAP_container.def).  
 
 ## Initial Setup
 

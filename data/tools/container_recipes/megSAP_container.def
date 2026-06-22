@@ -37,7 +37,7 @@ From: ubuntu:24.04
 	# Download and build tool
 	git clone https://github.com/imgag/megSAP.git
     cd megSAP/
-	git checkout 2025_10
+	git checkout 2026_06_with_fixes
 	git describe --tags > megSAP_tag.txt
 	
     # Modify settings.ini.default for container usage

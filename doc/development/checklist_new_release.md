@@ -1,6 +1,6 @@
 # megSAP release
 
-1. Check that containers are ok
+1. Check that containers are the same in all settings files and uploaded to megsap.de:
 	
 	> php src/IMGAG/container_status.php -check_md5
 
@@ -12,7 +12,7 @@
 
 	> make find_missing_tests
 
-1. Make sure there are no PHP warnings in the tests
+1. Make sure there are no PHP warnings/errors in the tests
 
 	> make find_php_warnings_in_tests
 
@@ -20,9 +20,9 @@
 
 	> make test_all
 
-1. Make a test deployment of `master` on a clean Ubuntu using WSL on out test laptop.
+1. Make a test deployment of the `master` on a clean Ubuntu using WSL on out test laptop.
 
-1. Update the release version in `doc/install_unix.md` to `[version]_with_fixes` commit and push.
+1. Update the release version in `doc/install_unix.md` to `[version]_with_fixes`, commit and push.
 
 1. Compile changelog for the new release:
 
