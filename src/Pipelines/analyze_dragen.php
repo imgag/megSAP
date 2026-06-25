@@ -311,13 +311,6 @@ if (!$mapping_only)
 	//add gVCF output
 	$dragen_parameter[] = "--vc-emit-ref-confidence GVCF";
 	$dragen_parameter[] = "--vc-enable-vcf-output true";
-
-	//enable also for WES to allow mosaic calling:
-		// //disabled ML model because it leads to a sensitivity drop for Twist Exome V2 (see /mnt/storage2/users/ahsturm1/scripts/2025_03_21_megSAP_release_performance)
-		// if ($is_wes_or_panel)
-		// {
-		// 	$dragen_parameter[] = "--vc-ml-enable-recalibration false";
-		// }
 	
 	//CNVs
 	if ($is_wgs)

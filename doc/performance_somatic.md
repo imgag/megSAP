@@ -1,4 +1,4 @@
-# megSAP benchmarks
+# megSAP benchmarks for somatic pipelines
 
 ## tumor-normal short-read pipline
 
