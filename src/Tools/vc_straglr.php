@@ -18,9 +18,53 @@ $parser->addInfile("loci", "BED file containing repeat loci.", false);
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addString("pid", "Processed sample name (e.g. 'GS120001_01'). If unset BAM file name will be used.", true);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
-$parser->addFlag("test", "Run in test mode. Skips annotatation of NGSD information.");
+$parser->addInfile("sv_vcf", "Sniffles VCF.GZ for additional annotation of insertions.", true);
+$parser->addFlag("test", "Run in test mode. Skips annotation of NGSD information.");
 $parser->addFlag("exclude_partials", "If not set, uses partially overlapping repeats when genotyping.");
 extract($parser->parse($argv));
+
+function get_overlapping_insertions($chr, $start, $end, $ref_motif, $ref_size)
+{
+  global $parser;
+  global $sv_vcf;
+
+  //extend target region
+  $start = max(0, $start - 5);
+  $end -= 5;
+
+  $overlapping_ins = [];
+
+  list($stdout, $stderr, $ec) = $parser->execApptainer("htslib", "tabix", "{$sv_vcf} {$chr}:{$start}-{$end}", [$sv_vcf], [], false, true);
+  
+  foreach ($stdout as $line) 
+  {
+    $line = trim($line);
+    # skip empty lines
+    if ($line == "") continue;
+    $columns = explode("\t", $line);
+    $info = explode(";", $columns[7]);
+    $format_keys = explode(":", $columns[8]);
+    $format_values = explode(":", $columns[9]);
+    $genotype = vcfgeno2human($format_values[array_search("GT", $format_keys)]);
+    if (array_search("SVTYPE=INS", $info) > -1)
+    {
+      foreach ($info as $kv_pair) 
+      {
+        if (starts_with($kv_pair, "SVLEN="))
+        {
+          $repeat_units = (floatval(explode("=", $kv_pair)[1]) / floatval(strlen($ref_motif))) + $ref_size;
+          $overlapping_ins[] = number_format($repeat_units, 1, '.', '')." ({$genotype})";
+          break;
+        }
+      }
+    }
+
+  }
+
+  if (count($overlapping_ins) == 0) return "";
+  else return "OVERLAPPING_INS=".implode(",", $overlapping_ins);
+
+}
 
 // use BAM file name as fallback if no processed sample name is provided
 if(!isset($pid)) $pid = basename2($in);
@@ -137,8 +181,10 @@ foreach ($vcf_content_in as $line)
     if (starts_with($line, "##")) $vcf_content_out[] = $line;
     elseif (starts_with($line, "#")) 
     {
-      $vcf_content_out[] = "##INFO=<ID=REF_MOTIF,Number=.,Type=String,Description=\"Reference motif\">";
+      $vcf_content_out[] = "##INFO=<ID=REF_MOTIF,Number=1,Type=String,Description=\"Reference motif\">";
+      $vcf_content_out[] = "##INFO=<ID=REF_SIZE,Number=1,Type=Integer,Description=\"Repeat unit size in the reference sequence\">";
       $vcf_content_out[] = "##INFO=<ID=RUC_WT,Number=.,Type=Float,Description=\"Wild type repeat unit count of corresponding repeat sequence\">";
+      if ($sv_vcf != "") $vcf_content_out[] = "##INFO=<ID=OVERLAPPING_INS,Number=.,Type=String,Description=\"(Overall) number and genotype of repeat units according to the SV caller\">";
       $vcf_content_out[] = "##reference=".genome_fasta($build);
       $vcf_content_out[] = $line;
     }
@@ -147,12 +193,15 @@ foreach ($vcf_content_in as $line)
         $columns = explode("\t", $line);
         $chr = $columns[0];
         $start = $columns[1];
+        $start = $columns[1];
         
         $info =  explode(";", $columns[7]);
         // $info[] = "END=".$catalog["{$chr}:{$start}"][4]; //add end pos
         $ref_motif = $catalog["{$chr}:{$start}"][3];
+        $ref_size = $catalog["{$chr}:{$start}"][2];
         $repeat_id = $catalog["{$chr}:{$start}"][0];
         $info[] = "REF_MOTIF=".$ref_motif;
+        $info[] = "REF_SIZE=".$ref_size;
 
         if (!isset($wildtype_length[$repeat_id])) trigger_error("No wiltype copy number found for repeat_id '{$repeat_id}'!", E_USER_ERROR);
         $wt_cn = $wildtype_length[$repeat_id];
@@ -190,6 +239,16 @@ foreach ($vcf_content_in as $line)
             //hom alt with 2 alleles
           }
           else trigger_error("Invalid genotype '".$format_values[0]."' in line '{$line}'!", E_USER_ERROR);
+        }
+
+        //TODO: add SV INS overlap
+
+        if ($sv_vcf != "")
+        {
+          //get end pos from catalog
+          $end = $catalog["{$chr}:{$start}"][4];
+          $overlapping_ins = get_overlapping_insertions($chr, $start, $end, $ref_motif, $ref_size);
+          if ($overlapping_ins != "") $info[] = $overlapping_ins;
         }
 
         $columns[7] = implode(";", $info);

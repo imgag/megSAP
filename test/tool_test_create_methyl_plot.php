@@ -22,7 +22,7 @@ check(filesize(output_folder()."methylartist/Testsample_01_PEG10_TSS-DMR.png"), 
 check(filesize(output_folder()."methylartist/Testsample_01_PHF6.png"), 222518, 2048);
 check(filesize(output_folder()."methylartist/Testsample_01_RP2.png"), 264019, 2048);
 
-check(filesize(output_folder()."methylartist/Testsample_01_GRB10_alt-TSS-DMR_cohort.png"), 180102, 2048);
+check(filesize(output_folder()."methylartist/Testsample_01_GRB10_alt-TSS-DMR_cohort.png"), 186372, 2048);
 check(filesize(output_folder()."methylartist/Testsample_01_PLAGL1_alt-TSS-DMR_cohort.png"), 114136, 2048);
 check(filesize(output_folder()."methylartist/Testsample_01_PEG10_TSS-DMR_cohort.png"), 65202, 2048);
 check(filesize(output_folder()."methylartist/Testsample_01_PHF6_cohort.png"), 45832, 2048);

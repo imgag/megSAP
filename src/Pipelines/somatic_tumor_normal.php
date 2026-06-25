@@ -50,6 +50,9 @@ $parser->addString("rna_ref_tissue", "Reference data for RNA annotation", true);
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
 extract($parser->parse($argv));
 
+//start time
+$start_time = microtime(true);
+
 ###################################### AUXILARY FUNCTIONS ######################################
 
 //Checks $baf_folder for missing B-AF files and creates them if neccessary
@@ -314,7 +317,7 @@ if (in_array("vc", $steps))
 	$parser->execTool("Tools/hla_genotyper.php", "-bam $n_bam -name $n_id -out " . $hla_file_normal);
 	
 	
-	if (! $use_dragen)
+	if (!$use_dragen)
 	{
 		// structural variant calling
 		if (!$sys['shotgun'])
@@ -1029,6 +1032,9 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 		
 		//add secondary analysis (if missing)
 		$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'somatic' -gsvar {$variants_gsvar}");
+		
+		//log analysis time
+		log_analysis_time($db_conn, 'tumor-normal', [$t_id, $n_id], $threads, $steps, $steps_all, $use_dragen, microtime(true)-$start_time);
 	}
 }
 ?>

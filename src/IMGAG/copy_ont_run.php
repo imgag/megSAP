@@ -283,7 +283,7 @@ if (!$is_test_db)
 				//check each subfolder
 				$bam_sample = $bam_files[array_rand($bam_files, 1)];
 				$on_device_basecall_model_subfolder = get_basecall_model($bam_sample);
-				$modified_bases_subfolder = contains_methylation($bam_sample, 100, $build);
+				$modified_bases_subfolder = contains_methylation($bam_sample, (($is_test_db)?12:100), $build); //reduce number of reads to check for tool test (files are too small)
 				$aligned_subfolder = is_bam_aligned($bam_sample, $build);
 				$on_device_basecall_model[$on_device_basecall_model_subfolder] = true;
 				$modified_bases[$modified_bases_subfolder] = true;
