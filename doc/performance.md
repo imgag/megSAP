@@ -53,12 +53,12 @@ The benchmarks were performed on the GIAB high-confidence region **with at least
 
 <table>
 	<tr>
-		<th rowspan=3>Test</th>
+		<th rowspan=2>Test</th>
+		<th rowspan=2>%roi covered 15x</th>
 		<th colspan=3>SNV</th>
 		<th colspan=3>InDel</th>
 	</tr>
 	<tr>
-		<th>%roi covered 15x</th>
 		<th>sensitivity</th>
 		<th>PPV</th>
 		<th>genotyping</th>
@@ -205,12 +205,10 @@ To allow a comparison of WES, WGS and lrGS independent of the coverage, we also 
 </table>
 
 ### CMRG benchmark
-<!--- TODO sample names --->
 
 For genome sequening, we also performed the [CMRG benchmark](https://www.nature.com/articles/s41587-021-01158-1) based on the NA24385/HG002 sample.
 
-The short-read WGS sample was processed with the Illumina TruSeq DNA PCR-Free kit and sequenced on NovaSeq X Plus using 159PE at 39.5x average depth.  
-The long-read WGS sample with the Oxford Nanopore Tech. Ligation Sequencing Kit V14 (SQK-LSK114) and sequenced at 40.5x average depth.  
+TODO: sample table
 
 All benchmarks were performed on GIAB high-confidence regions **with at least 15x coverage**.
 
@@ -279,6 +277,8 @@ All benchmarks were performed on GIAB high-confidence regions **with at least 15
 
 All structural variant benchmarks are done on the GIAB reference sample NA24385/HG002 using the [draft SV benchmark v1.1](https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/data/AshkenazimTrio/analysis/NIST_HG002_DraftBenchmark_defrabbV0.019-20241113/).  
 The analyses were performed with the short-read and long-read single sample pipelines.
+
+TODO: sample table or reference to table in CMRG
 
 Sensitivity and positive predictive value (PPV) were measured using [Hap-Eval](https://github.com/Sentieon/hap-eval).
 
