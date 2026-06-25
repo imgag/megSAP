@@ -157,7 +157,7 @@ singularity exec $htslib tabix -C -m 9 -p vcf gnomAD_genome_v3.1.mito_GRCh38.vcf
 cd $dbs
 mkdir -p phyloP
 cd phyloP
-wget -O hg38.phyloP100way.bw http://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.phyloP100way.bw
+wget -O hg38.phyloP100way.bw https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.phyloP100way.bw
 
 #Install CADD
 cd $dbs
@@ -179,7 +179,7 @@ mkdir -p REVEL
 cd REVEL
 wget -O revel-v1.3_all_chromosomes.zip https://zenodo.org/record/7072866/files/revel-v1.3_all_chromosomes.zip
 unzip -p revel-v1.3_all_chromosomes.zip | php $src/Install/db_converter_revel.php > tmp.vcf
-singularity exec $ngsbits VcfSort -in tmp.vcf -out REVEL_1.3.vcf
+singularity exec $ngsbits VcfSort -in tmp.vcf -out REVEL_1.3.vcf -split_chrs
 rm tmp.vcf
 singularity exec $htslib bgzip REVEL_1.3.vcf
 singularity exec $htslib tabix -f -C -m 9 -p vcf REVEL_1.3.vcf.gz
@@ -191,13 +191,13 @@ mkdir -p AlphaMissense
 cd AlphaMissense
 wget -O AlphaMissense_hg38.tsv.gz https://storage.googleapis.com/dm_alphamissense/AlphaMissense_hg38.tsv.gz
 php $src/Install/db_converter_alphamissense.php AlphaMissense_hg38.tsv.gz > AlphaMissense_hg38.vcf
-singularity exec $ngsbits VcfSort -in AlphaMissense_hg38.vcf -out AlphaMissense_hg38.vcf
+singularity exec $ngsbits VcfSort -in AlphaMissense_hg38.vcf -out AlphaMissense_hg38.vcf -split_chrs
 singularity exec $htslib bgzip AlphaMissense_hg38.vcf
 singularity exec $htslib tabix -p vcf AlphaMissense_hg38.vcf.gz
 #also download isoforms file as backup - for some genes the main file does not contain anything, e.g. PRPH2
 wget -O AlphaMissense_isoforms_hg38.tsv.gz https://storage.googleapis.com/dm_alphamissense/AlphaMissense_isoforms_hg38.tsv.gz
 php $src/Install/db_converter_alphamissense.php AlphaMissense_isoforms_hg38.tsv.gz > AlphaMissense_isoforms_hg38.vcf
-singularity exec $ngsbits VcfSort -in AlphaMissense_isoforms_hg38.vcf -out AlphaMissense_isoforms_hg38.vcf
+singularity exec $ngsbits VcfSort -in AlphaMissense_isoforms_hg38.vcf -out AlphaMissense_isoforms_hg38.vcf -split_chrs
 singularity exec $htslib bgzip AlphaMissense_isoforms_hg38.vcf
 singularity exec $htslib tabix -p vcf AlphaMissense_isoforms_hg38.vcf.gz
 
@@ -220,7 +220,7 @@ wget -O - https://www.proteinatlas.org/download/tsv/rna_tissue_consensus.tsv.zip
 cd $dbs
 mkdir -p gene_annotations
 cd gene_annotations
-wget -O - 'http://ftp.ensembl.org/pub/release-107/gtf/homo_sapiens/Homo_sapiens.GRCh38.107.gtf.gz' | gzip -cd | awk '{ if ($$1 !~ /^#/) { print "chr"$0 } else { print $0 } }' > GRCh38.gtf
+wget -O - 'https://ftp.ensembl.org/pub/release-107/gtf/homo_sapiens/Homo_sapiens.GRCh38.107.gtf.gz' | gzip -cd | awk '{ if ($$1 !~ /^#/) { print "chr"$0 } else { print $0 } }' > GRCh38.gtf
 
 #create hemoglobin FASTA file
 cd $misc

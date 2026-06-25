@@ -20,6 +20,10 @@
 
 	> make test_all
 
+1. Check URLs
+
+	> make doc_check_urls
+	
 1. Make a test deployment of the `master` on a clean Ubuntu using WSL on out test laptop.
 
 1. Update the release version in `doc/install_unix.md` to `[version]_with_fixes`, commit and push.
