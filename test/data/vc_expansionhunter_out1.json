@@ -409,6 +409,25 @@
         }
       }
     },
+    "CHD3": {
+      "AlleleCount": 2,
+      "Coverage": 0.0,
+      "FragmentLength": 0,
+      "LocusId": "CHD3",
+      "ReadLength": 0,
+      "Variants": {
+        "CHD3": {
+          "CountsOfFlankingReads": "()",
+          "CountsOfInrepeatReads": "()",
+          "CountsOfSpanningReads": "()",
+          "ReferenceRegion": "chr17:7885307-7885345",
+          "RepeatUnit": "CCG",
+          "VariantId": "CHD3",
+          "VariantSubtype": "RareRepeat",
+          "VariantType": "Repeat"
+        }
+      }
+    },
     "CNBP": {
       "AlleleCount": 2,
       "Coverage": 49.45945945945946,
@@ -778,6 +797,25 @@
           "ReferenceRegion": "chr2:190880872-190880920",
           "RepeatUnit": "GCA",
           "VariantId": "GLS",
+          "VariantSubtype": "RareRepeat",
+          "VariantType": "Repeat"
+        }
+      }
+    },
+    "GOLGA8A": {
+      "AlleleCount": 2,
+      "Coverage": 0.0,
+      "FragmentLength": 0,
+      "LocusId": "GOLGA8A",
+      "ReadLength": 0,
+      "Variants": {
+        "GOLGA8A": {
+          "CountsOfFlankingReads": "()",
+          "CountsOfInrepeatReads": "()",
+          "CountsOfSpanningReads": "()",
+          "ReferenceRegion": "chr15:34419425-34419451",
+          "RepeatUnit": "TYTC",
+          "VariantId": "GOLGA8A",
           "VariantSubtype": "RareRepeat",
           "VariantType": "Repeat"
         }
@@ -1301,6 +1339,25 @@
           "ReferenceRegion": "chr2:96197066-96197121",
           "RepeatUnit": "RAAAT",
           "VariantId": "STARD7",
+          "VariantSubtype": "RareRepeat",
+          "VariantType": "Repeat"
+        }
+      }
+    },
+    "TBC1D7 ": {
+      "AlleleCount": 2,
+      "Coverage": 0.0,
+      "FragmentLength": 0,
+      "LocusId": "TBC1D7 ",
+      "ReadLength": 0,
+      "Variants": {
+        "TBC1D7 ": {
+          "CountsOfFlankingReads": "()",
+          "CountsOfInrepeatReads": "()",
+          "CountsOfSpanningReads": "()",
+          "ReferenceRegion": "chr6:13328476-13328603",
+          "RepeatUnit": "CCG",
+          "VariantId": "TBC1D7 ",
           "VariantSubtype": "RareRepeat",
           "VariantType": "Repeat"
         }
