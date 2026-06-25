@@ -2142,20 +2142,6 @@ function phenotype_roi(&$db_conn, $ps_name)
 	return $output;
 }
 
-
-function phenotype_roi_overlaps(&$roi, $chr, $start, $end)
-{
-	foreach($roi as list($chr2, $start2, $end2))
-	{
-		if ($chr==$chr2 && range_overlap($start, $end, $start2, $end2))
-		{
-			return true;
-		}
-	}
-	
-	return false;
-}
-
 //Returns the base file name without path and extension. Used e.g. to extract the base name independent of BAM/CRAM format.
 function basename2($filename)
 {

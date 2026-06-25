@@ -588,8 +588,6 @@ if (in_array("vc", $steps))
 
 				//sort and convert to VCF.GZ
 				$parser->execApptainer("ngs-bits", "VcfSort", "-in {$tmp4} -compression_level 7 -out {$vcffile}", [], [dirname($vcffile)]);
-
-				//index output file
 				$parser->execApptainer("htslib", "tabix", "-p vcf $vcffile", [], [dirname($vcffile)]);
 			}
 			else //perform variant calling with DeepVariant
@@ -768,13 +766,9 @@ if (in_array("vc", $steps))
 							
 		}
 
-				
 		//sort and remove unused contig lines
-		$parser->execApptainer("ngs-bits", "VcfSort", "-in $vcf -remove_unused_contigs -out $vcf");
-		
-		//zip and index
-		$parser->execApptainer("htslib", "bgzip", "-c $vcf > $vcffile", [], [dirname($vcffile)]);
-		$parser->execApptainer("htslib", "tabix", "-f -p vcf $vcffile", [], [dirname($vcffile)]);
+		$parser->execApptainer("ngs-bits", "VcfSort", "-in {$vcf} -remove_unused_contigs -compression_level 5 -out {$vcffile}", [$vcf], [dirname($vcffile)]);
+		$parser->execApptainer("htslib", "tabix", "-f -p vcf {$vcffile}", [$vcffile], [dirname($vcffile)]);
 		
 		//create b-allele frequency file
 		$params = array();
