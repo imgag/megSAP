@@ -157,7 +157,7 @@ singularity exec $htslib tabix -C -m 9 -p vcf gnomAD_genome_v3.1.mito_GRCh38.vcf
 cd $dbs
 mkdir -p phyloP
 cd phyloP
-wget -O hg38.phyloP100way.bw http://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.phyloP100way.bw
+wget -O hg38.phyloP100way.bw https://hgdownload.soe.ucsc.edu/goldenPath/hg38/phyloP100way/hg38.phyloP100way.bw
 
 #Install CADD
 cd $dbs
@@ -220,7 +220,7 @@ wget -O - https://www.proteinatlas.org/download/tsv/rna_tissue_consensus.tsv.zip
 cd $dbs
 mkdir -p gene_annotations
 cd gene_annotations
-wget -O - 'http://ftp.ensembl.org/pub/release-107/gtf/homo_sapiens/Homo_sapiens.GRCh38.107.gtf.gz' | gzip -cd | awk '{ if ($$1 !~ /^#/) { print "chr"$0 } else { print $0 } }' > GRCh38.gtf
+wget -O - 'https://ftp.ensembl.org/pub/release-107/gtf/homo_sapiens/Homo_sapiens.GRCh38.107.gtf.gz' | gzip -cd | awk '{ if ($$1 !~ /^#/) { print "chr"$0 } else { print $0 } }' > GRCh38.gtf
 
 #create hemoglobin FASTA file
 cd $misc
