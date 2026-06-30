@@ -27,24 +27,24 @@ The following data was used for the benchmark:
 		<td>short-read WES</td>
 		<td>Covaris</td>
 		<td>Twist custom exome kit (Core, RefSeq, Mito and custom content)</td>
-		<td>TODO  - TODO PE</td>
-		<td>TODO</td>
-		<td>TODO</td>
+		<td>NovaSeq 6000 - 2x105bp PE</td>
+		<td>101.1</td>
+		<td>304.4</td>
 	</tr>
 	<tr>
 		<td>short-read WGS</td>
 		<td>Covaris</td>
 		<td>Illumina TruSeq DNA PCR-Free</td>
-		<td>TODO  - TODO PE</td>
-		<td>TODO</td>
-		<td>TODO</td>
+		<td>NovaSeq 6000 - 2x159bp PE</td>
+		<td>42.6</td>
+		<td>377.3</td>
 	</tr>
 	<tr>
 		<td>long-read WGS</td>
 		<td>-</td>
 		<td>Oxford Nanopore Tech. Ligation Sequencing Kit V14e (SQK-LSK114)</td>
-		<td>TODO</td>
-		<td>TODO</td>
+		<td>PromethION P24</td>
+		<td>44.3</td>
 		<td>-</td>
 	</tr>
 </table>
@@ -99,32 +99,32 @@ The benchmarks were performed on the GIAB high-confidence region **with at least
 	<tr>
 		<td>short-read WGS - DRAGEN 4.4/td>
 		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
+		<td>0.9979</td>
+		<td>0.9983</td>
+		<td>0.9998</td>
+		<td>0.9972</td>
+		<td>0.9966</td>
+		<td>0.9994</td>
 	</tr>
 	<tr>
 		<td>long-read WGS (high accuracy)</td>
 		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
+		<td>0.9989</td>
+		<td>0.9987</td>
+		<td>0.9999</td>
+		<td>0.8764</td>
+		<td>0.9456</td>
+		<td>0.9859</td>
 	</tr>
 	<tr>
 		<td>long-read WGS (super accuracy)</td>
 		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
+		<td>0.9997</td>
+		<td>0.9959</td>
+		<td>0.9998</td>
+		<td>0.9042</td>
+		<td>0.9420</td>
+		<td>0.9843</td>
 	</tr>
 </table>
 
