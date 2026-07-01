@@ -1,6 +1,6 @@
 # megSAP benchmarks for germline pipelines
 
-All benchmarks are perfomed with the megSAP release [2025_03](https://github.com/imgag/megSAP/releases/tag/2025_03).  
+All benchmarks are perfomed with the megSAP release [2026_06](https://github.com/imgag/megSAP/releases/tag/2026_06).  
 As reference genome GRCh38 with decoy chromosomes, without ALT chromosomes and with [masked false duplications](https://www.nature.com/articles/s41587-021-01158-1) was used.
 
 ## Small variants benchmark
@@ -97,7 +97,7 @@ The benchmarks were performed on the GIAB high-confidence region **with at least
 		<td>TODO</td>
 	</tr>
 	<tr>
-		<td>short-read WGS - DRAGEN 4.4/td>
+		<td>short-read WGS - DRAGEN 4.4</td>
 		<td>TODO</td>
 		<td>0.9979</td>
 		<td>0.9983</td>
