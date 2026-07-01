@@ -18,6 +18,8 @@ $out_headers = ["#sample", "is_tumor", "sys_name", "sys_type", "GRZ_quality_thre
 if (! is_file($out)) file_put_contents($out, implode("\t", $out_headers)."\n");
 
 
+$mvh_folder = get_path("mvh_folder");
+
 foreach(file($samples) as $line)
 {
 	$time_start = microtime(true);
@@ -35,6 +37,8 @@ foreach(file($samples) as $line)
 	$info = get_processed_sample_info($db, $ps_name, false);
 	$sys_name = $info['sys_name_short'];
 	$sys_type = $info['sys_type'];
+	//overwrite target for exoms - no extra regions (no +/- 20bp, additional designed targets)
+	if ($sys_name=="twistCustomExomeV2" || $sys_name=="twistCustomExomeV2Covaris") $roi = "{$mvh_folder}/rois/twist_exome_core_plus_refseq.bed";
 	
 	$seq_mode = $sys_type;
 	$is_lrgs = $sys_type=="lrGS";
