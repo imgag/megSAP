@@ -150,57 +150,57 @@ To allow a comparison of WES, WGS and lrGS independent of the coverage, we also 
 	</tr>
 	<tr>
 		<td>short-read WES - bwa-mem2, DeepVariant</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
+		<td>0.9897</td>
+        <td>0.9868</td>
+        <td>0.9999</td>
+        <td>0.9739</td>
+        <td>0.9760</td>
+        <td>1.0000</td>
 	</tr>
 	<tr>
 		<td>short-read WES - DRAGEN 4.4</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
+		<td>0.9878</td>
+        <td>0.9974</td>
+        <td>0.9993</td>
+        <td>0.9799</td>
+        <td>0.9799</td>
+        <td>0.9977</td>
 	</tr>
 	<tr>
 		<td>short-read WGS - bwa-mem2, DeepVariant</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
+		<td>0.9957</td>
+        <td>0.9915</td>
+        <td>0.9997</td>
+        <td>0.9845</td>
+        <td>0.9903</td>
+        <td>0.9980</td>
 	</tr>
 	<tr>
 		<td>short-read WGS - DRAGEN 4.4</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
+		<td>0.9964</td>
+        <td>0.9973</td>
+        <td>0.9996</td>
+        <td>0.9884</td>
+        <td>0.9771</td>
+        <td>0.9980</td>
 	</tr>
 	<tr>
 		<td>long-read WGS (high accuracy)</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
+		<td>0.9989</td>
+        <td>0.9984</td>
+        <td>0.9999</td>
+        <td>0.9674</td>
+        <td>0.9825</td>
+        <td>0.9980</td>
 	</tr>
 	<tr>
 		<td>long-read WGS (super accuracy)</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
+		<td>0.9998</td>
+        <td>0.9928</td>
+        <td>0.9999</td>
+        <td>0.9655</td>
+        <td>0.9618</td>
+        <td>0.9980</td>
 	</tr>
 </table>
 
