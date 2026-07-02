@@ -69,32 +69,32 @@ The benchmarks were performed on the GIAB high-confidence region **with at least
 	<tr>
 		<td>short-read WES - bwa-mem2, DeepVariant</td>
 		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
+		<td>0.9949</td>
+        <td>0.9848</td>
+        <td>0.9994</td>
+        <td>0.9727</td>
+        <td>0.9714</td>
+        <td>0.9986</td>
 	</tr>
 	<tr>
 		<td>short-read WES - DRAGEN 4.4</td>
 		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
+		<td>0.9906</td>
+        <td>0.9968</td>
+        <td>0.9991</td>
+        <td>0.9835</td>
+        <td>0.9849</td>
+        <td>0.9944</td>
 	</tr>
 	<tr>
 		<td>short-read WGS - bwa-mem2, DeepVariant</td>
 		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
+		<td>0.9963</td>
+        <td>0.9992</td>
+        <td>0.9998</td>
+        <td>0.9914</td>
+        <td>0.9971</td>
+        <td>0.9991</td>
 	</tr>
 	<tr>
 		<td>short-read WGS - DRAGEN 4.4</td>
