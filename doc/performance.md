@@ -54,7 +54,7 @@ The benchmarks were performed on the GIAB high-confidence region **with at least
 <table>
 	<tr>
 		<th rowspan=2>Test</th>
-		<th rowspan=2>%roi covered 15x</th>
+		<th rowspan=2>%genom in high conf region and covered 15x</th>
 		<th colspan=3>SNV</th>
 		<th colspan=3>InDel</th>
 	</tr>
