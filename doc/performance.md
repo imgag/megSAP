@@ -68,7 +68,7 @@ The benchmarks were performed on the GIAB high-confidence region **with at least
 	</tr>
 	<tr>
 		<td>short-read WES - bwa-mem2, DeepVariant</td>
-		<td>TODO</td>
+		<td>88.29%</td>
 		<td>0.9949</td>
         <td>0.9848</td>
         <td>0.9994</td>
@@ -78,7 +78,7 @@ The benchmarks were performed on the GIAB high-confidence region **with at least
 	</tr>
 	<tr>
 		<td>short-read WES - DRAGEN 4.4</td>
-		<td>TODO</td>
+		<td>88.29%</td>
 		<td>0.9906</td>
         <td>0.9968</td>
         <td>0.9991</td>
@@ -98,7 +98,7 @@ The benchmarks were performed on the GIAB high-confidence region **with at least
 	</tr>
 	<tr>
 		<td>short-read WGS - DRAGEN 4.4</td>
-		<td>TODO</td>
+		<td>81.09%</td>
 		<td>0.9979</td>
 		<td>0.9983</td>
 		<td>0.9998</td>
@@ -108,7 +108,7 @@ The benchmarks were performed on the GIAB high-confidence region **with at least
 	</tr>
 	<tr>
 		<td>long-read WGS (high accuracy)</td>
-		<td>TODO</td>
+		<td>81.34%</td>
 		<td>0.9989</td>
 		<td>0.9987</td>
 		<td>0.9999</td>
@@ -118,7 +118,7 @@ The benchmarks were performed on the GIAB high-confidence region **with at least
 	</tr>
 	<tr>
 		<td>long-read WGS (super accuracy)</td>
-		<td>TODO</td>
+		<td>81.34%</td>
 		<td>0.9997</td>
 		<td>0.9959</td>
 		<td>0.9998</td>
