@@ -237,39 +237,39 @@ All benchmarks were performed on GIAB high-confidence regions **with at least 15
 	</tr>
 	<tr>
 		<td>short-read WGS - bwa-mem2, DeepVariant</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
+		<td>0.9803</td>
+        <td>0.9969</td>
+        <td>0.9981</td>
+        <td>0.9333</td>
+        <td>0.9526</td>
+        <td>0.9957</td>
 	</tr>
 	<tr>
 		<td>short-read WGS - DRAGEN 4.4</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
+		<td>0.9791</td>
+        <td>0.9962</td>
+        <td>0.9979</td>
+        <td>0.9467</td>
+        <td>0.9301</td>
+        <td>0.9955</td>
 	</tr>
 	<tr>
 		<td>long-read WGS (high accuracy)</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
+		<td>0.9877</td>
+        <td>0.9603</td>
+        <td>0.9989</td>
+        <td>0.7582</td>
+        <td>0.8195</td>
+        <td>0.9735</td>
 	</tr>
 	<tr>
 		<td>long-read WGS (super accuracy)</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
+		<td>0.9905</td>
+        <td>0.9417</td>
+        <td>0.9980</td>
+        <td>0.7993</td>
+        <td>0.8058</td>
+        <td>0.9712</td>
 	</tr>
 </table>
 
