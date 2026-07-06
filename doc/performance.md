@@ -88,7 +88,7 @@ The benchmarks were performed on the GIAB high-confidence region **with at least
 	</tr>
 	<tr>
 		<td>short-read WGS - bwa-mem2, DeepVariant</td>
-		<td>TODO</td>
+		<td>81.09%</td>
 		<td>0.9963</td>
         <td>0.9992</td>
         <td>0.9998</td>
