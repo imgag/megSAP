@@ -1818,7 +1818,15 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 								}
 								if (($ref_file_path != "") && basename($ref_file_path, ".fa") != "genome") //special case NovaSeq X: always uses genome.fa as genome file
 								{
-									$build = basename($ref_file_path, ".fa");
+									
+									if (ends_with($ref_file_path, ".fasta"))
+									{
+										$build = basename($ref_file_path, ".fasta");
+									}
+									else 
+									{
+										$build = basename($ref_file_path, ".fa");
+									}
 									break;
 								}
 							}
@@ -2007,6 +2015,7 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 	//check that there is not more/less than one genome match
 	$builds = array_map('strtolower', $builds);
 	$builds = array_unique($builds);
+	
 	if (count($builds) < 1) 
 	{
 		trigger_error("File '$filename' does not contain genome build information!", E_USER_NOTICE);
