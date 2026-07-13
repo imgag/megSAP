@@ -208,7 +208,40 @@ To allow a comparison of WES, WGS and lrGS independent of the coverage, we also 
 
 For genome sequening, we also performed the [CMRG benchmark](https://www.nature.com/articles/s41587-021-01158-1) based on the NA24385/HG002 sample.
 
-TODO: sample table
+<table>
+	<tr>
+		<th>Type</th>
+		<th>DNA Fragmentation</th>
+		<th>Kit</th>
+		<th>Sequencer</th>
+		<th>Mean depth</th>
+		<th>Mean insert size</th>
+	</tr>
+	<tr>
+		<td>short-read WGS</td>
+		<td>Covaris</td>
+		<td>Illumina TruSeq DNA PCR-Free</td>
+		<td>NovaSeq 6000 - 2x159bp PE</td>
+		<td>42.4</td>
+		<td>348.3</td>
+	</tr>
+	<tr>
+		<td>long-read WGS (ONT)</td>
+		<td>-</td>
+		<td>Oxford Nanopore Tech. Ligation Sequencing Kit V14e (SQK-LSK114)</td>
+		<td>PromethION P24</td>
+		<td>44.3</td>
+		<td>-</td>
+	</tr>
+	<tr>
+		<td>long-read WGS (PacBio)</td>
+		<td>-</td>
+		<td>LongRead Sequencing with PacBio (LR-PB-highcov)</td>
+		<td>Revio</td>
+		<td>38.0</td>
+		<td>-</td>
+	</tr>
+</table>
 
 All benchmarks were performed on GIAB high-confidence regions **with at least 15x coverage**.
 
@@ -225,15 +258,6 @@ All benchmarks were performed on GIAB high-confidence regions **with at least 15
 		<th>sensitivity</th>
 		<th>PPV</th>
 		<th>genotyping</th>
-	</tr>
-	<tr>
-		<td>short-read WGS - bwa-mem2, ABRA2, freebayes</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
-		<td>TODO</td>
 	</tr>
 	<tr>
 		<td>short-read WGS - bwa-mem2, DeepVariant</td>
