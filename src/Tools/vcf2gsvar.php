@@ -645,19 +645,6 @@ while(!gzeof($handle))
 		}
 	}
 	$info = $tmp;
-	
-	//TODO: remove (now already done in VCF)
-	/*
-	//special handling for DRAGEN calling
-	if (isset($info["TARGETED"]))
-	{
-		$filter[] = "targeted";
-	}
-	if ($chr!="chrMT" && isset($info["MOSAIC"]))
-	{
-		$filter[] = "mosaic";
-	}
-	*/
 
 	//convert genotype information to TSV format
 	if($sample_count==1)

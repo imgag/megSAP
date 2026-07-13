@@ -630,9 +630,9 @@ if (in_array("vc", $steps))
 				$args[] = "-min_mq ".$min_mq;
 				$args[] = "-min_bq ".$min_bq;
 				$args[] = "-allow_empty_examples";
-				if ($platform=="Roche")
+				if ($platform=="Roche") 
 				{
-					//TODO SBX model of DV 1.10 - pan-genome aware
+					$args[] = "-sbx";
 				}
 
 				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));

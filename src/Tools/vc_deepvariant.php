@@ -26,6 +26,7 @@ $parser->addFlag("raw_output", "return the raw output of deepvariant with no pos
 $parser->addFlag("allow_empty_examples", "allows DeepVariant to call variants even if no examples were created with make_examples.");
 $parser->addFlag("gpu", "Use DeepVariant container with GPU acceleration support.");
 $parser->addFlag("add_sample_header", "Add sample header to VCF file.");
+$parser->addFlag("sbx", "Use Roche SBX caller/model/parameters. The following parameters are ignored in this mode: min_af, min_mq, min_bq."); //based on SBX case study https://github.com/google/deepvariant/blob/r1.10/docs/roche-sbx-case-study.md
 $parser->addString("name", "Sample name for the sample header. Has to be set with add_sample_header.", true, "");
 $parser->addString("analysistype", "Type of analysis performed for the sample header. Has to be set with add_sample_header.", true, "GERMLINE_SINGLESAMPLE");
 extract($parser->parse($argv));
@@ -64,9 +65,20 @@ if ($allow_empty_examples)
 {
 	$args[] = "--call_variants_extra_args=allow_empty_examples=true";
 }
-$args[] = "--model_type={$model_type}";
-$args[] = "--make_examples_extra_args=min_mapping_quality={$min_mq},min_base_quality={$min_bq},vsc_min_fraction_indels={$min_af},vsc_min_fraction_snps={$min_af}";
-$args[] = "--postprocess_variants_extra_args=cpus={$threads}";
+if ($sbx)
+{
+	$args[] = "--model_type=WGS";
+	$args[] = "--make_examples_extra_args=\"alt_aligned_pileup=single_row,create_complex_alleles=true,enable_strict_insertion_filter=true,keep_legacy_allele_counter_behavior=true,keep_only_window_spanning_haplotypes=true,keep_supplementary_alignments=true,min_mapping_quality=0,normalize_reads=true,pileup_image_height_pangenome=100,pileup_image_height_reads=100,pileup_image_width=301,sort_by_haplotypes=true,trim_reads_for_pileup=true,vsc_min_fraction_indels=0.08,ws_min_base_quality=25\"";
+	$args[] = "--postprocess_variants_extra_args=\"cpus={$threads},multiallelic_mode=product\"";
+	$args[] = "--pangenome ".get_path("data_folder")."/dbs/graph_genome/hprc-v1.1-mc-grch38.gbz";
+	$args[] = "--customized_model ".get_path("data_folder")."/dbs/graph_genome/sbx_model/model.ckpt";
+}
+else
+{
+	$args[] = "--model_type={$model_type}";
+	$args[] = "--make_examples_extra_args=\"min_mapping_quality={$min_mq},min_base_quality={$min_bq},vsc_min_fraction_indels={$min_af},vsc_min_fraction_snps={$min_af}\"";
+	$args[] = "--postprocess_variants_extra_args=\"cpus={$threads}\"";
+}
 $args[] = "--ref={$genome}";
 $args[] = "--num_shards={$threads}";
 if (!empty($gvcf))
@@ -83,7 +95,9 @@ $env = [
 	"TF_NUM_INTEROP_THREADS" => $threads
 ];
 apptainerEnv($env);
-$parser->execApptainer("deepvariant", "run_deepvariant", implode(" ", $args)." --output_vcf={$vcf_deepvar_out}", [$genome, $bam], [dirname($out)], false, true, true, true, $gpu);
+$dv_exe = $sbx ? "run_pangenome_aware_deepvariant" : "run_deepvariant";
+$dv_container = $sbx ? "deepvariant_sbx" : "deepvariant";
+$parser->execApptainer($dv_container, $dv_exe, implode(" ", $args)." --output_vcf={$vcf_deepvar_out}", [$genome, $bam, get_path("data_folder")."/dbs/graph_genome/"], [dirname($out)], false, true, true, true, $gpu);
 
 //raw output > no post-processing
 if ($raw_output)

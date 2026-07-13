@@ -241,8 +241,7 @@ foreach ($vcf_content_in as $line)
           else trigger_error("Invalid genotype '".$format_values[0]."' in line '{$line}'!", E_USER_ERROR);
         }
 
-        //TODO: add SV INS overlap
-
+        //add SV INS overlap
         if ($sv_vcf != "")
         {
           //get end pos from catalog

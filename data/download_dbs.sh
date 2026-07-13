@@ -295,7 +295,7 @@ mkdir -p tandem-repeats
 cd tandem-repeats
 wget -O human_GRCh38_no_alt_analysis_set.trf.bed https://raw.githubusercontent.com/fritzsedlazeck/Sniffles/fdf6e6d334353a06872fe98f74fe68cc9a9a7d1f/annotations/human_GRCh38_no_alt_analysis_set.trf.bed
 
-#download illumina EPIC ids:
+#download illumina EPIC ids
 cd $dbs
 mkdir -p illumina-epicids
 cd illumina-epicids
@@ -304,6 +304,17 @@ unzip -d . InfiniumMethylationEPICv2.0ProductFiles.zip
 cp "MethylationEPIC v2.0 Files/EPIC-8v2-0_A1.csv" .
 rm -r "MethylationEPIC v2.0 Files"
 rm InfiniumMethylationEPICv2.0ProductFiles.zip
+
+#downlad graph genome and DeepVariant SBX model for Roche
+cd $dbs
+mkdir -p graph_genome
+cd graph_genome
+wget https://s3-us-west-2.amazonaws.com/human-pangenomics/pangenomes/freeze/freeze1/minigraph-cactus/hprc-v1.1-mc-grch38/hprc-v1.1-mc-grch38.gbz
+mkdir -p graph_genome/sbx_model/
+cd graph_genome/sbx_model/
+wget https://storage.googleapis.com/brain-genomics-public/research/sbx/2025/model/leave-out-HG001/model.ckpt.data-00000-of-00001
+wget https://storage.googleapis.com/brain-genomics-public/research/sbx/2025/model/leave-out-HG001/model.ckpt.index
+wget https://storage.googleapis.com/brain-genomics-public/research/sbx/2025/model/leave-out-HG001/example_info.json
 
 # # install OMIM (you might need a license; production NGSD has to be available and initialized)
 # cd $dbs
