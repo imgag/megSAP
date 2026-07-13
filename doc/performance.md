@@ -302,7 +302,7 @@ All benchmarks were performed on GIAB high-confidence regions **with at least 15
 All structural variant benchmarks are done on the GIAB reference sample NA24385/HG002 using the [draft SV benchmark v1.1](https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/data/AshkenazimTrio/analysis/NIST_HG002_DraftBenchmark_defrabbV0.019-20241113/).  
 The analyses were performed with the short-read and long-read single sample pipelines.
 
-TODO: sample table or reference to table in CMRG section
+samples: see ([CMRG benchmark](https://github.com/imgag/megSAP/edit/benchmarks/doc/performance.md#cmrg-benchmark))
 
 Sensitivity and positive predictive value (PPV) were measured using [Hap-Eval](https://github.com/Sentieon/hap-eval).
 
