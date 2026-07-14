@@ -12,7 +12,7 @@
 ##targetRefGenome=/mnt/storage2/megSAP/data/genomes/GRCh38.fa
 ##liftOverDate=May17,2024
 ##INFO=<ID=WEIGHT,Number=1,Type=Float,Description="PRS weight of this variant.">
-##INFO=<ID=POP_AF,Number=1,Type=Float,Description="Population allele frequency of this variant.">
+##INFO=<ID=POP_AF,Number=1,Type=Float,Description="Population allele frequency of the effect allele. Usually, this is the alt allele. If REF_IS_EFFECT_ALLELE is set, it is the reference allele.">
 ##INFO=<ID=hg19_var,Number=1,Type=String,Description="Variant info (position and nucleotide change) of variant">
 ##INFO=<ID=REF_IS_EFFECT_ALLELE,Number=0,Type=Flag,Description="Reference is effect allele.">
 ##INFO=<ID=IMPUTE,Number=0,Type=Flag,Description="Variant does not exist in NGS based on HG38. Always impute with twice the expected allele frequency.">
