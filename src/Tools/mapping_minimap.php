@@ -192,7 +192,7 @@ if ($qc_map !== "")
 		"-read_qc $qcml_reads",
 		"-ref ".genome_fasta($sys["build"]),
 		"-build ".ngsbits_build($sys["build"]),
-		"-long_read"
+		"-single_end"
 	];
 
 	if ($sys['target_file']=="" || $sys['type']=="lrGS")

@@ -2250,6 +2250,28 @@ function is_bam_aligned($bam_file, $build="GRCh38")
 }
 
 //extracts base-calling description from BAM header
+function get_bam_sample_id($bam_file)
+{
+	list($stdout) = execApptainer("samtools", "samtools view", "-H $bam_file", [$bam_file]);
+	foreach($stdout as $line)
+	{
+		$line = trim($line);
+		if (starts_with($line, "@RG\t"))
+		{
+			foreach(explode("\t", $line) as $entry)
+			{
+				if (starts_with($entry, "SM:"))
+				{
+					return trim(explode(":", $entry, 2)[1]);
+				}
+			}
+		}
+	}
+	
+	return "";
+}
+
+//extracts base-calling description from BAM header
 function get_read_group_description($bam_file)
 {
 	$rg_description = [];
