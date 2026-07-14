@@ -186,28 +186,6 @@ function get_avg_methylation($file_path_prefix, $sort_haplotype=true)
 
     }
 
-    /*
-
-    //TODO: restructure and add depth
-    //TODO: sort hp by mean methylation
-    $modified = [];
-    $aggregated = [];
-    foreach ([1, 2, "ungrouped"] as $hp)
-    {
-        $modified[$hp] = [];
-        $buffer = file("{$file_path_prefix}_{$hp}.bed", FILE_IGNORE_NEW_LINES + FILE_SKIP_EMPTY_LINES);
-        foreach ($buffer as $line)
-        {
-            $parts = explode("\t", $line);
-            if ($parts[3] !== "m") continue;
-            $percent_modified = (float) $parts[10];
-            $modified[$hp][] = $percent_modified;
-        }        
-        if (count($modified[$hp]) > 0) $aggregated[$hp] = [ mean($modified[$hp]), stdev($modified[$hp]) ];
-        else $aggregated[$hp] = [NAN, NAN];
-    }
-    return array($modified, $aggregated);
-    */
     return $methylation;
 }
 
@@ -921,6 +899,24 @@ if (!$skip_cohort_annotation && (db_is_enabled("NGSD") || $test))
     {
         foreach ($cohort_plot_data as $identifier => $plot_data) 
         {
+            /*
+            // debug: store plot input data
+            $debug_folder = "{$folder}/methylartist/debug/".$plot_data["site"];
+            $parser->exec("mkdir", "-p {$debug_folder}");
+            $parser->exec("cp", $plot_data["hp1_file"]." {$debug_folder}/");
+            foreach ($plot_data["hp1_cohort_files"] as $file) 
+            {
+                $parser->exec("cp", "{$file} {$debug_folder}/");
+            }
+            if (!$plot_data["unphased"])
+            {
+                $parser->exec("cp", $plot_data["hp2_file"]." {$debug_folder}/");
+                foreach ($plot_data["hp2_cohort_files"] as $file) 
+                {
+                    $parser->exec("cp", "{$file} {$debug_folder}/");
+                }
+            }
+            */
 
             $python_script = repository_basedir()."/src/Tools/generate_methylation_cohort_plot.py";
 
@@ -956,7 +952,7 @@ if (!$skip_cohort_annotation && (db_is_enabled("NGSD") || $test))
             $out_files = array("{$folder}/methylartist/");
 
             $jobs_plotting_cohort[] = array("Plotting_".$plot_data["site"]."_cohort", 
-                $parser->execApptainer("python", "python3", repository_basedir()."/src/Tools/generate_methylation_cohort_plot.py ".implode(" ", $args), $in_files, $out_files, true));
+                $parser->execApptainer("python", "python3", $python_script." ".implode(" ", $args), $in_files, $out_files, true));
 
         }
     }

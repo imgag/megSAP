@@ -69,7 +69,6 @@ if ($somatic) $args[] = "-somatic";
 if (get_path("annotate_refseq_consequences", false)) $args[] = "-annotate_refseq_consequences";
 $args[] = "-custom custom_columns";
 if ($no_splice) $args[] = "-no_splice";
-if ($multi && !$is_lrgs) $args[] = "-low_mappabily_filter low_mappability";
 if ($is_lrgs) $args[] = "-low_mappabily_filter sr_low_mappability";
 $parser->execTool("Tools/an_vcf.php", implode(" ", $args));
 

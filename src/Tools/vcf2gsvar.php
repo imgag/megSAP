@@ -645,19 +645,6 @@ while(!gzeof($handle))
 		}
 	}
 	$info = $tmp;
-	
-	//TODO: remove (now already done in VCF)
-	/*
-	//special handling for DRAGEN calling
-	if (isset($info["TARGETED"]))
-	{
-		$filter[] = "targeted";
-	}
-	if ($chr!="chrMT" && isset($info["MOSAIC"]))
-	{
-		$filter[] = "mosaic";
-	}
-	*/
 
 	//convert genotype information to TSV format
 	if($sample_count==1)
@@ -730,24 +717,20 @@ while(!gzeof($handle))
 		//special handling of DRAGEN targeted calls (can have multiple alleles)
 		if (isset($info["TARGETED"]))
 		{
-			$affected_alleles = array_sum(explode("|", strtr($sample["GT"], array("."=>"0", "/"=>"|"))));
-			if ($affected_alleles == 0)
+			$alleles = explode("|", strtr($sample["GT"], array("."=>"0", "/"=>"|")));
+			$alt_alleles = array_sum($alleles);
+			if ($alt_alleles == 0)
 			{
 				$genotype = "wt";
-			} 
-			else if ($affected_alleles == 1)
+			}
+			else if ($alt_alleles < count($alleles))
 			{
 				$genotype = "het";
 			}
-			else if ($affected_alleles == 2)
+			else
 			{
 				$genotype = "hom";
 			}
-			else 
-			{
-				trigger_error("VCF contains invalid genotype '".$sample["GT"]."'!", E_USER_ERROR);	
-			}
-
 		}
 		else
 		{

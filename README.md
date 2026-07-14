@@ -30,7 +30,7 @@ Installation instructions to build megSAP in a container can be found [here](doc
 
 ## Documentation
 
-Documentation about the different **Illumina short-read pipelines** can be found here:
+Documentation about the different **short-read pipelines (Illumina)** can be found here:
 
 * [DNA germline analysis (single sample)](doc/dna_single_sample.md)
 * [DNA germline analysis (multi-sample and trio)](doc/dna_multi_sample.md)
@@ -38,9 +38,10 @@ Documentation about the different **Illumina short-read pipelines** can be found
 * [DNA somatic analysis(tumor only)](doc/dna_tumor_only.md)
 * [RNA analysis (expression, fusions)](doc/rna_expression.md)
 
-Documentation about the different **ONT long-read pipelines** can be found here:
+Documentation about the different **long-read pipelines (ONT, PacBio)** can be found here:
 
 * [DNA germline analysis (single sample)](doc/dna_longread_single_sample.md)
+* [DNA germline analysis (multi-sample and trio)](doc/dna_longread_multi_sample.md)
 
 ## Support
 
@@ -52,8 +53,8 @@ If you want to use our full [software stack](doc/full_software_stack.md) in a cl
 
 You can cite megSAP using Zenodo DOIs:
 
-* 2025_10: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17357942.svg)](https://doi.org/10.5281/zenodo.17357942)
-* 2025_03: [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15063428.svg)](https://doi.org/10.5281/zenodo.15063428)
+* [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.20792735.svg)](https://zenodo.org/records/20792735)  
+* [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17357942.svg)](https://zenodo.org/records/17357942)
 
 ## ChangeLog
 

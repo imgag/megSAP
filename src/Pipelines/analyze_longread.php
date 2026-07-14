@@ -497,7 +497,6 @@ if (in_array("vc", $steps))
 		//sort and remove unused contig lines
 		$parser->execApptainer("ngs-bits", "VcfSort", "-in {$vcf_file} -remove_unused_contigs -compression_level 5 -out {$vcf_file}", [$vcf_file], [dirname($vcf_file)]);
 		$parser->execApptainer("htslib", "tabix", "-f -p vcf {$vcf_file}", [$vcf_file], [dirname($vcf_file)]);
-		
 	}
 
 	//create b-allele frequency file
@@ -739,7 +738,8 @@ if (in_array("re", $steps))
 {
 	//Repeat-expansion calling using straglr
 	$variant_catalog = repository_basedir()."/data/repeat_expansions/straglr_variant_catalog_grch38.bed";
-	$parser->execTool("Tools/vc_straglr.php", "-in {$used_bam_or_cram} -out {$straglr_file} -loci {$variant_catalog} -threads {$threads} -build {$build} --log ".$parser->getLogFile());
+	
+	$parser->execTool("Tools/vc_straglr.php", "-in {$used_bam_or_cram} -out {$straglr_file} -loci {$variant_catalog} ".((!file_exists($sv_vcf_file))?"-sv_vcf {$sv_vcf_file} ":"")."-threads {$threads} -build {$build} --log ".$parser->getLogFile());
 }
 
 

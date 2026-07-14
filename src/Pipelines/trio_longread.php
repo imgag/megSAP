@@ -170,7 +170,6 @@ $args_multisample[] = "-prefix trio";
 $args_multisample[] = "-system $system";
 $args_multisample[] = "-threads $threads";
 $args_multisample[] = "-no_sync"; //already done if needed
-$args_multisample[] = "-ped {$ped_file}";
 if ($no_splice) $args_multisample[] = "-no_splice";
 
 //variant calling (and annotation)

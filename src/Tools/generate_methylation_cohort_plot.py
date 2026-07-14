@@ -118,7 +118,8 @@ def main():
     else:
         hp2_methylation = pd.DataFrame(parse_methylation(args.hp2_file, "case_hp2"))
         # create combined DataFrame to keep plots in sync
-        methylation = pd.concat([hp1_methylation, hp2_methylation], axis=1)
+        methylation = hp1_methylation.join(hp2_methylation)
+        # methylation = pd.concat([hp1_methylation, hp2_methylation], axis=1, join='inner')
 
     # get cohort methylation
     for file in args.hp1_cohort_files:

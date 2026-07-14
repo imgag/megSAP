@@ -430,6 +430,14 @@ check(get_basecall_model(data_folder()."/get_basecall_model_no_model.bam"), "");
 end_test();
 
 //##################################################################################
+start_test("get_bam_sample_id");
+
+check(get_bam_sample_id(data_folder()."/get_read_count_in1.bam"), "23014LRa023L2_01");
+
+end_test();
+
+
+//##################################################################################
 start_test("chr_list");
 
 check(chr_list(), array("chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", 

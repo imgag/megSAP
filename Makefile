@@ -128,4 +128,7 @@ swap_settings:
 clean_ignored:
 	git clean -Xn | cut -f3 -d' ' | egrep -v "settings.ini|megSAP_tag.txt" | xargs rm
 
+doc_check_urls:
+	php src/Auxilary/check_urls.php -files data/download_tools.sh data/download_dbs.sh src/Install/db_download.php
+
 dummy:

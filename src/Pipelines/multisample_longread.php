@@ -20,7 +20,6 @@ $steps_all = array("vc", "cn", "sv", "an", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=variant calling, cn=copy-number analysis, sv=structural variant calling, an=annotation, db=database import.", true, implode(",", $steps_all));
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
-$parser->addInfile("ped", "(PLINK-compatible) Pedigree file to phase related samples.", true);
 $parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
 extract($parser->parse($argv));
 
@@ -207,7 +206,7 @@ if (in_array("an", $steps))
 		$args[] = "-threads {$threads}";
 		$args[] = "-multi";
 		if ($no_splice) $args[] = "-no_splice";
-		$parser->execTool("Tools/annotate.php", "-out_name $prefix -out_folder $out_folder -system $system -threads $threads -multi");
+		$parser->execTool("Tools/annotate.php", implode(" ", $args));
 		
 		//check for truncated output
 		if ($check_chrs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$out_folder}/{$prefix}_var_annotated.vcf.gz -max_missing_perc 5");

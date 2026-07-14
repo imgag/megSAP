@@ -70,6 +70,7 @@ foreach ($json_file_content as $repeat)
 file_put_contents($out, implode("\n", $output));
 
 //sort output file
+$out = realpath2($out); 
 $parser->execApptainer("ngs-bits", "BedSort", "-in {$out} -out {$out}", [], [dirname($out)]);
 
 ?>

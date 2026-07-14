@@ -1818,7 +1818,15 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 								}
 								if (($ref_file_path != "") && basename($ref_file_path, ".fa") != "genome") //special case NovaSeq X: always uses genome.fa as genome file
 								{
-									$build = basename($ref_file_path, ".fa");
+									
+									if (ends_with($ref_file_path, ".fasta"))
+									{
+										$build = basename($ref_file_path, ".fasta");
+									}
+									else 
+									{
+										$build = basename($ref_file_path, ".fa");
+									}
 									break;
 								}
 							}
@@ -2007,6 +2015,7 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 	//check that there is not more/less than one genome match
 	$builds = array_map('strtolower', $builds);
 	$builds = array_unique($builds);
+	
 	if (count($builds) < 1) 
 	{
 		trigger_error("File '$filename' does not contain genome build information!", E_USER_NOTICE);
@@ -2142,20 +2151,6 @@ function phenotype_roi(&$db_conn, $ps_name)
 	return $output;
 }
 
-
-function phenotype_roi_overlaps(&$roi, $chr, $start, $end)
-{
-	foreach($roi as list($chr2, $start2, $end2))
-	{
-		if ($chr==$chr2 && range_overlap($start, $end, $start2, $end2))
-		{
-			return true;
-		}
-	}
-	
-	return false;
-}
-
 //Returns the base file name without path and extension. Used e.g. to extract the base name independent of BAM/CRAM format.
 function basename2($filename)
 {
@@ -2238,8 +2233,9 @@ function contains_methylation($bam_file, $n_rows=100, $build="GRCh38")
 	// methylation
 	if($n_mm == $n_rows) return true;
 
-	//else: something is wrong
-	trigger_error("Ambiguous tag counts. Please check BAM file!\nMM:\t{$n_mm}/{$n_rows}\nML:\t{$n_ml}/{$n_rows}", E_USER_ERROR);
+	//else: partly methylated
+	trigger_error("Ambiguous tag counts. Please check BAM file!\nMM:\t{$n_mm}/{$n_rows}\nML:\t{$n_ml}/{$n_rows}", E_USER_WARNING);
+	return true;
 }
 
 //check if BAM file contains aligned reads
@@ -2251,6 +2247,28 @@ function is_bam_aligned($bam_file, $build="GRCh38")
 	$samtools_command = execApptainer("samtools", "samtools view", "-F 0x904 -T {$genome} {$bam_file}", [$genome, $bam_file], [], true);
 	list($stdout) = exec2("{$samtools_command} | head -n 1", false);
 	return count($stdout) > 0 && $stdout[0] !== "";
+}
+
+//extracts base-calling description from BAM header
+function get_bam_sample_id($bam_file)
+{
+	list($stdout) = execApptainer("samtools", "samtools view", "-H $bam_file", [$bam_file]);
+	foreach($stdout as $line)
+	{
+		$line = trim($line);
+		if (starts_with($line, "@RG\t"))
+		{
+			foreach(explode("\t", $line) as $entry)
+			{
+				if (starts_with($entry, "SM:"))
+				{
+					return trim(explode(":", $entry, 2)[1]);
+				}
+			}
+		}
+	}
+	
+	return "";
 }
 
 //extracts base-calling description from BAM header
