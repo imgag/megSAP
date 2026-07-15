@@ -613,7 +613,8 @@ $in_files[] = $cov_folder;
 list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "CnvReferenceCohort", implode(" ", $args), $in_files);
 foreach($stdout as $line)
 {
-	if (starts_with($line, "Mean correlation to reference samples is:"))	{
+	if (starts_with($line, "Mean correlation to reference samples is:"))
+	{
 		$mean_correlation = number_format(trim(explode(":", $line)[1]), 3);
 	}
 }

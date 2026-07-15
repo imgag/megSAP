@@ -58,6 +58,8 @@ $is_panel = $sys['type']=="Panel" || $sys['type']=="Panel Haloplex";
 $is_wgs_shallow = $sys['type']=="WGS (shallow)";
 $roi = trim($sys['target_file']);
 $build = $sys['build'];
+$platform = $sys['platform'];
+$location = trim(get_path("location", false));
 
 //check that ROI is sorted
 if ($roi!="")
@@ -191,10 +193,16 @@ if ($annotation_only)
 	} 
 }
 
-//prevent accidentally re-mapping if DRAGEN already ran
+//prevent accidentally re-mapping if data is pre-analyzed with DRAGEN
 if (in_array("ma", $steps) && !$no_dragen && file_exists($dragen_folder) && ($bam_or_cram_exists || $dragen_bam_or_cram_exists)) 
 {
 	trigger_error("'ma' step requested, but sample is already analyzed with DRAGEN. Use '-no_dragen' if you really want to do a re-mapping!", E_USER_ERROR);
+}
+
+//Roche AXELIOS1 data is mapped on the sequencer
+if ($platform=="Roche" && in_array("ma", $steps))
+{
+	trigger_error("'ma' step requested, but is not supported for Roche data!", E_USER_ERROR);
 }
 
 //move BAM/CRAM from DRAGEN folder to sample folder (on first analysis)
@@ -368,8 +376,10 @@ else if ($bam_or_cram_exists)
 	
 	//check genome build of BAM
 	check_genome_build($used_bam_or_cram, $build);
-
-	//QC for samples mapped/called on NovaSeq X
+	
+	//TODO Marc: check chrMT is not called chrM (Roche/DRAGEN)
+	
+	//QC for samples pre-mapped by sequencer (NovaSeq X, Illumina DRAGEN, Roche AXELIOS1)
 	if( (!file_exists($qc_map) && !$no_qc) || $force_qc)
 	{
 		//QC
@@ -398,6 +408,10 @@ else if ($bam_or_cram_exists)
 		if (!file_exists($qc_fastq) || $force_qc)
 		{
 			$params[] = "-read_qc $qc_fastq";
+		}
+		if ($platform=="Roche")
+		{
+			$params[] = "-single_end";
 		}
 		$parser->execApptainer("ngs-bits", "MappingQC", implode(" ", $params), $in_files);
 	}
@@ -463,6 +477,13 @@ else if ($bam_or_cram_exists)
 				}
 			}
 		}
+	}
+	
+	//check sample name is correct in BAM/CRAM header
+	$sample_id = get_bam_sample_id($used_bam_or_cram);
+	if ($sample_id!=$name)
+	{
+		trigger_error("BAM/CRAM file contains sample ID '$sample_id' in @RG header, but expected '$name': $used_bam_or_cram", E_USER_ERROR);
 	}
 }
 else
@@ -609,6 +630,10 @@ if (in_array("vc", $steps))
 				$args[] = "-min_mq ".$min_mq;
 				$args[] = "-min_bq ".$min_bq;
 				$args[] = "-allow_empty_examples";
+				if ($platform=="Roche") 
+				{
+					$args[] = "-sbx";
+				}
 
 				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
 			}
@@ -784,7 +809,7 @@ if (in_array("vc", $steps))
 	else
 	{
 		check_genome_build($vcffile, $build);
-	}
+	}	
 
 	//annotation
 	$args = [];
@@ -1363,6 +1388,15 @@ if (( (in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps
 		
 		$sources[] = $bedpe_out;
 	}
+	
+	//perform Modellvorhaben QC if sample is in the study
+	if ($location=="UKT" && db_is_enabled("NGSD"))
+	{
+		$db = DB::getInstance("NGSD", false);
+		$ps_id = get_processed_sample_id($db, $name, false);
+		
+	}
+
 	
 	//create qcML file
 	if (count($sources)>0)

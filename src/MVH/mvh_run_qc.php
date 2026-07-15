@@ -47,7 +47,7 @@ foreach(file($samples) as $line)
 	if ($is_lrgs) trigger_error("Long read samples currently not supported (implementation ofthe BAM correction necessary?): $ps_name", E_USER_ERROR);
 	
 	$is_tumor = $info['is_tumor'];
-	$is_somatic = $is_tumor;
+	$is_somatic = $is_tumor || ! $is_wgs;
 
 	$tmp_folder_base = $parser->tempFolder("mvh_run_qc_".$ps_name."_");
 	$qc_folder = $tmp_folder_base."/qc/";

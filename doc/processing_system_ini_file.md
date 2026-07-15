@@ -8,6 +8,7 @@ The processing system INI file described the wet-lab processing of the sample (a
 * `adapter1_p5` - Read 1 adapter sequence (Illumina standard is `AGATCGGAAGAGCACACGTCTGAACTCCAGTCA`).
 * `adapter2_p7` - Read 2 adapter sequence (Illumina standard is `AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT`).
 * `type` - Processing system type: `WGS`, `WES`, `Panel`, `Panel Haloplex`, `Panel MIPs` or `RNA`.
+* `platform` - Sequencing platform: `Illumina`, `MGI`, `ONT`, `PacBio` or `Roche`.
 * `shotgun` - `true` for randomly-fragmented reads,  `false` for amplicon-based reads.
 * `umi_type` - Unique molecular identifier type: `n/a`, `HaloPlex HS`, `SureSelect HS`, `ThruPLEX`, `Safe-SeqS` or `MIPs`.
 * `build` - Only `GRCh38` is supported.
@@ -22,12 +23,10 @@ Notes for the [RNA analysis pipeline](rna_single_sample.md):
 Example processing system INI files are provided here:
 
 * WES: [Agilent SureSelectXT Human All Exon V7](ini_examples/ssHAEv7.ini)
-* WGS: [Illumina TruSeq DNA PCR-Free](ini_examples/TruSeqPCRfree.ini) (for WGS you can use this [generic WGS target region](ini_examples/WGS_hg38.bed) independent of the kit)
-* lrGS: [ONT Amplicon by Ligation ONT SQK-LSK114](ini_examples/PCR-SQK-LSK114.ini)
+* WGS: [Illumina TruSeq DNA PCR-Free](ini_examples/TruSeqPCRfree.ini)
+* lrGS ONT: [ONT SQK-LSK114](ini_examples/SQK-LSK114.ini)
 
-**Note:** For WES and WGS you need to adapt the paths to the target region before using these examples!
-	
-	
-	
+**Note:** You need to adapt the paths to the target region before using these examples! For WGS you can use this [generic WGS target region](ini_examples/WGS_hg38.bed) independent of the kit.
+
 
 [back to the start page](../README.md)
