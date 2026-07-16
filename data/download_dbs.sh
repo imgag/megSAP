@@ -310,8 +310,8 @@ cd $dbs
 mkdir -p graph_genome
 cd graph_genome
 wget https://s3-us-west-2.amazonaws.com/human-pangenomics/pangenomes/freeze/freeze1/minigraph-cactus/hprc-v1.1-mc-grch38/hprc-v1.1-mc-grch38.gbz
-mkdir -p graph_genome/sbx_model/
-cd graph_genome/sbx_model/
+mkdir -p sbx_model/
+cd sbx_model/
 wget https://storage.googleapis.com/brain-genomics-public/research/sbx/2025/model/leave-out-HG001/model.ckpt.data-00000-of-00001
 wget https://storage.googleapis.com/brain-genomics-public/research/sbx/2025/model/leave-out-HG001/model.ckpt.index
 wget https://storage.googleapis.com/brain-genomics-public/research/sbx/2025/model/leave-out-HG001/example_info.json
