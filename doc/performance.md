@@ -278,7 +278,7 @@ All benchmarks were performed on GIAB high-confidence regions **with at least 15
         <td>0.9955</td>
 	</tr>
 	<tr>
-		<td>long-read WGS (high accuracy)</td>
+		<td>ONT long-read WGS (high accuracy)</td>
 		<td>0.9877</td>
         <td>0.9603</td>
         <td>0.9989</td>
@@ -287,13 +287,22 @@ All benchmarks were performed on GIAB high-confidence regions **with at least 15
         <td>0.9735</td>
 	</tr>
 	<tr>
-		<td>long-read WGS (super accuracy)</td>
+		<td> ONT long-read WGS (super accuracy)</td>
 		<td>0.9905</td>
         <td>0.9417</td>
         <td>0.9980</td>
         <td>0.7993</td>
         <td>0.8058</td>
         <td>0.9712</td>
+	</tr>
+	<tr>
+		<td>PacBio long-read WGS </td>
+		<td>0.9972</td>
+        <td>0.9941</td>
+        <td>0.9992</td>
+        <td>0.9732</td>
+        <td>0.9769</td>
+        <td>0.9958</td>
 	</tr>
 </table>
 
@@ -302,7 +311,7 @@ All benchmarks were performed on GIAB high-confidence regions **with at least 15
 All structural variant benchmarks are done on the GIAB reference sample NA24385/HG002 using the [draft SV benchmark v1.1](https://ftp-trace.ncbi.nlm.nih.gov/ReferenceSamples/giab/data/AshkenazimTrio/analysis/NIST_HG002_DraftBenchmark_defrabbV0.019-20241113/).  
 The analyses were performed with the short-read and long-read single sample pipelines.
 
-samples: see ([CMRG benchmark](https://github.com/imgag/megSAP/edit/benchmarks/doc/performance.md#cmrg-benchmark))
+samples: see [CMRG benchmark](#cmrg-benchmark)
 
 Sensitivity and positive predictive value (PPV) were measured using [Hap-Eval](https://github.com/Sentieon/hap-eval).
 
@@ -326,15 +335,21 @@ Sensitivity and positive predictive value (PPV) were measured using [Hap-Eval](h
 		<td>0.9474</td>
 	</tr>
 	<tr>
-		<td>long-read WGS (high accuracy) - Sniffles 2.4</td>
+		<td>ONT long-read WGS (high accuracy) - Sniffles 2.4</td>
 		<td>42.32</td>
 		<td>0.8986</td>
 		<td>0.9636</td>
 	</tr>
 	<tr>
-		<td>long-read WGS (super accuracy) - Sniffles 2.4</td>
+		<td>ONT long-read WGS (super accuracy) - Sniffles 2.4</td>
 		<td>42.36</td>
 		<td>0.9027</td>
 		<td>0.9648</td>
+	</tr>
+	<tr>
+		<td>PacBio long-read WGS - Sniffles 2.4</td>
+		<td>38.0</td>
+		<td>0.9104</td>
+		<td>0.9729</td>
 	</tr>
 </table>
