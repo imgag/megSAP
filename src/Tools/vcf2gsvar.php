@@ -1109,6 +1109,9 @@ while(!gzeof($handle))
 	$gnomad_het = collapse($tag, "gnomAD Het", $het_gnomad, "max");
 	$gnomad_wt = collapse($tag, "gnomAD Wt", $wt_gnomad, "max");
 
+	//NGSD clas
+	$ngsd_clas = "";
+
 	if (!$skip_ngsd)
 	{
 		// extract NGSD somatic counts
@@ -1195,10 +1198,6 @@ while(!gzeof($handle))
 		if (isset($info["NGSD_CLAS"]))
 		{
 			$ngsd_clas = trim($info["NGSD_CLAS"]);
-		}
-		else
-		{
-			$ngsd_clas = "";
 		}
 
 		if (isset($info["NGSD_CLAS_COM"]))
