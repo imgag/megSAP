@@ -51,11 +51,12 @@
     ```bash
     ulimit -n 10000
     php /mnt/storage2/megSAP/pipeline/src/IMGAG/copy_ont_run.php \
-        -run_name <run name> \
         -run_dir <run directory> \
-        -bam \
         -ignore_aligned \
-        -queue_sample
+        -queue_sample \
+        [-queue_basecalling] \
+        -basecall_model [sup/hac] \
+        -email [email]
     ```
 
     The result file is `<processed sample>.mod.unmapped.bam` in the
