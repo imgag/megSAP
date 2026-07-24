@@ -132,9 +132,13 @@ if (in_array("vc", $steps))
 		$vcfs[] = $vcf;
 	}
 	
-	//filter VCFs by (extended) target region
+	//filter VCFs by (extended) target region plus chrMT
+	$reg_mito = $parser->tempFile("_mito.bed");
+	file_put_contents($reg_mito, "chrMT\t0\t16569");
+	$target_with_mito = $parser->tempFile("_roi_with_mito.bed");
+	$parser->execApptainer("ngs-bits", "BedAdd", "-in $target_file $reg_mito -out $target_with_mito", [$target_file, $genome]);
 	$target_extended = $parser->tempFile("_roi_extended.bed");
-	$parser->execApptainer("ngs-bits", "BedExtend", "-in $target_file -n 200 -out $target_extended -fai {$genome}.fai", [$target_file, $genome]);
+	$parser->execApptainer("ngs-bits", "BedExtend", "-in $target_with_mito -n 200 -out $target_extended -fai {$genome}.fai", [$genome]);
 	$vcfs_filtered = [];
 	foreach($vcfs as $vcf)
 	{
@@ -209,7 +213,7 @@ if (in_array("an", $steps))
 		$parser->execTool("Tools/annotate.php", implode(" ", $args));
 		
 		//check for truncated output
-		if ($check_chrs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$out_folder}/{$prefix}_var_annotated.vcf.gz -max_missing_perc 5");
+		if ($check_chrs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$out_folder}/{$prefix}_var_annotated.vcf.gz -max_missing_perc 5 -check_mito");
 		
 		//update sample entry 
 		update_gsvar_sample_header($gsvar, $status_map);

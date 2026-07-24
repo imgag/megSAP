@@ -13,26 +13,30 @@ $parser->addInfile("in",  "Input VCF or VCF.GZ file.", false);
 //optional
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addFloat("max_missing_perc", "If set, the percentage of bases without variants for each chromosome is checked (used for small variants mainly).", true, 0);
+$parser->addFlag("check_mito", "Check that there are variants on chrMT (used for small variants mainly).");
 $parser->addFlag("debug", "Add debug output");
 extract($parser->parse($argv));
 
 //init
 $chrs = chr_list(false);
-$is_gvcf = ends_with(strtolower($in), ".gvcf") || ends_with(strtolower($in), ".gvcf.gz");
 
-//determine variant coordiante range for each chromosome
+//determine variant coordiante range for autosomes
 $ranges = [];
+$vars_on_chrmt = false;
 $h = gzopen2($in, "r");
 while(!gzeof($h))
 {
 	$line = trim(gzgets($h));
 	if ($line=="" || $line[0]=="#") continue;
 	
-	$parts = explode("\t", $line, 6);
-	$chr = $parts[0];
-	$pos = $parts[1];
-	if($chr=="chrMT" || $chr=="chrY") continue;
-	if ($is_gvcf && $parts[4]=="<NON_REF>") continue;
+	list($chr, $pos, $id, $ref, $alt) = explode("\t", $line, 6);
+	if($chr=="chrY" || $alt=="<NON_REF>") continue;
+
+	if($chr=="chrMT" )
+	{
+		$vars_on_chrmt = true;
+		continue;
+	}
 	
 	if (!isset($ranges[$chr])) $ranges[$chr] = [$pos, $pos];
 	if ($pos<$ranges[$chr][0]) $ranges[$chr][0] = $pos;
@@ -54,6 +58,7 @@ foreach ($chrs as $chr)
 {
 	if (!isset($ranges[$chr])) $missing[] = $chr;
 }
+if ($check_mito && !$vars_on_chrmt) $missing[] = "chrMT";
 if (count($missing)>0) trigger_error("Missing chromosomes ".implode(", ", $missing)." in {$in}", E_USER_ERROR);
 
 //check for chromosome parts without variants
@@ -92,7 +97,6 @@ if ($max_missing_perc>0)
 	}
 
 	if (count($missing)>0) trigger_error("Chromosome percentage without variants: ".implode(", ", $missing)." in {$in}", E_USER_ERROR);
-
 }
 
 ?>

@@ -19,25 +19,25 @@ check_contains($output[0], "chr3, chr21");
 $output = check_exec("php ".src_folder()."/Tools/{$name}.php -in {$data_folder}/{$name}_in3.tsv");
 check($output, []);
 
-$output = check_exec("php ".src_folder()."/Tools/{$name}.php -in {$data_folder}/{$name}_in4.tsv", false);
+$output = check_exec("php ".src_folder()."/Tools/{$name}.php -in {$data_folder}/{$name}_in4.tsv -check_mito", false);
 check_true(count($output)==1);
-check_contains($output[0], "chr3, chr10, chr19");
+check_contains($output[0], "chr3, chr10, chr19, chrMT");
 
 //GSvar
 $output = check_exec("php ".src_folder()."/Tools/{$name}.php -in {$data_folder}/{$name}_in5.GSvar");
 check($output, []);
 
-$output = check_exec("php ".src_folder()."/Tools/{$name}.php -in {$data_folder}/{$name}_in6.GSvar", false);
+$output = check_exec("php ".src_folder()."/Tools/{$name}.php -in {$data_folder}/{$name}_in6.GSvar -check_mito", false);
 check_true(count($output)==1);
-check_contains($output[0], "chr10, chr11, chr12, chrX");
+check_contains($output[0], "chr10, chr11, chr12, chrX, chrMT");
 
 //VCF.GZ
 $output = check_exec("php ".src_folder()."/Tools/{$name}.php -in {$data_folder}/{$name}_in7.vcf.gz");
 check($output, []);
 
-$output = check_exec("php ".src_folder()."/Tools/{$name}.php -in {$data_folder}/{$name}_in8.vcf.gz", false);
+$output = check_exec("php ".src_folder()."/Tools/{$name}.php -in {$data_folder}/{$name}_in8.vcf.gz -check_mito", false);
 check_true(count($output)==1);
-check_contains($output[0], "chr3, chr21");
+check_contains($output[0], "chr3, chr21, chrMT");
 
 //max_missing_perc
 $output = check_exec("php ".src_folder()."/Tools/{$name}.php -in {$data_folder}/{$name}_in1.vcf -max_missing_perc 5", false);

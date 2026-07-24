@@ -823,7 +823,7 @@ if (in_array("vc", $steps))
 	$parser->execTool("Tools/annotate.php", implode(" ", $args));
 
 	//check for truncated output
-	if ($is_wgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$vcffile_annotated} -max_missing_perc 5");
+	if ($is_wgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$vcffile_annotated} -max_missing_perc 5 -check_mito");
 		
 	//ROH detection
 	if ($is_wes || $is_wgs)

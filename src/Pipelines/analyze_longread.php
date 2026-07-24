@@ -768,7 +768,7 @@ if (in_array("an", $steps))
 		$parser->execTool("Tools/annotate.php", implode(" ", $args));
 
 		//check for truncated output
-		if ($check_chrs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$vcf_file_annotated} -max_missing_perc 5");
+		if ($check_chrs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$vcf_file_annotated} -max_missing_perc 5 -check_mito");
 		
 		//ROH detection
 		$in_files = [];
