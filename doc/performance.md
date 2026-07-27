@@ -67,7 +67,7 @@ The benchmarks were performed on the GIAB high-confidence region **with at least
 		<th>genotyping</th>
 	</tr>
 	<tr>
-		<td>short-read WES - bwa-mem2, DeepVariant</td>
+		<td>short-read WES - bwa-mem2, DeepVariant 1.9</td>
 		<td>88.29%</td>
 		<td>0.9949</td>
         <td>0.9848</td>
@@ -87,7 +87,7 @@ The benchmarks were performed on the GIAB high-confidence region **with at least
         <td>0.9944</td>
 	</tr>
 	<tr>
-		<td>short-read WGS - bwa-mem2, DeepVariant</td>
+		<td>short-read WGS - bwa-mem2, DeepVariant 1.9</td>
 		<td>81.09%</td>
 		<td>0.9963</td>
         <td>0.9992</td>
@@ -107,7 +107,7 @@ The benchmarks were performed on the GIAB high-confidence region **with at least
 		<td>0.9994</td>
 	</tr>
 	<tr>
-		<td>long-read WGS (high accuracy)</td>
+		<td>long-read WGS (HAC6.0, minimap2, clair3v1.2)</td>
 		<td>81.34%</td>
 		<td>0.9989</td>
 		<td>0.9987</td>
@@ -117,7 +117,7 @@ The benchmarks were performed on the GIAB high-confidence region **with at least
 		<td>0.9859</td>
 	</tr>
 	<tr>
-		<td>long-read WGS (super accuracy)</td>
+		<td>long-read WGS (SUP5.2, minimap2, clair3v1.2)</td>
 		<td>81.34%</td>
 		<td>0.9997</td>
 		<td>0.9959</td>
@@ -149,7 +149,7 @@ To allow a comparison of WES, WGS and lrGS independent of the coverage, we also 
 		<th>genotyping</th>
 	</tr>
 	<tr>
-		<td>short-read WES - bwa-mem2, DeepVariant</td>
+		<td>short-read WES - bwa-mem2, DeepVariant 1.9</td>
 		<td>0.9897</td>
         <td>0.9868</td>
         <td>0.9999</td>
@@ -167,7 +167,7 @@ To allow a comparison of WES, WGS and lrGS independent of the coverage, we also 
         <td>0.9977</td>
 	</tr>
 	<tr>
-		<td>short-read WGS - bwa-mem2, DeepVariant</td>
+		<td>short-read WGS - bwa-mem2, DeepVariant 1.9</td>
 		<td>0.9957</td>
         <td>0.9915</td>
         <td>0.9997</td>
@@ -185,7 +185,7 @@ To allow a comparison of WES, WGS and lrGS independent of the coverage, we also 
         <td>0.9980</td>
 	</tr>
 	<tr>
-		<td>long-read WGS (high accuracy)</td>
+		<td>long-read WGS (HAC6.0, minimap2, clair3v1.2)</td>
 		<td>0.9989</td>
         <td>0.9984</td>
         <td>0.9999</td>
@@ -194,7 +194,7 @@ To allow a comparison of WES, WGS and lrGS independent of the coverage, we also 
         <td>0.9980</td>
 	</tr>
 	<tr>
-		<td>long-read WGS (super accuracy)</td>
+		<td>long-read WGS (SUP5.2, minimap2, clair3v1.2)</td>
 		<td>0.9998</td>
         <td>0.9928</td>
         <td>0.9999</td>
@@ -260,7 +260,7 @@ All benchmarks were performed on GIAB high-confidence regions **with at least 15
 		<th>genotyping</th>
 	</tr>
 	<tr>
-		<td>short-read WGS - bwa-mem2, DeepVariant</td>
+		<td>short-read WGS - bwa-mem2, DeepVariant 1.9</td>
 		<td>0.9803</td>
         <td>0.9969</td>
         <td>0.9981</td>
@@ -278,7 +278,7 @@ All benchmarks were performed on GIAB high-confidence regions **with at least 15
         <td>0.9955</td>
 	</tr>
 	<tr>
-		<td>ONT long-read WGS (high accuracy)</td>
+		<td>ONT long-read WGS (HAC6.0, minimap2, clair3v1.2)</td>
 		<td>0.9877</td>
         <td>0.9603</td>
         <td>0.9989</td>
@@ -287,7 +287,7 @@ All benchmarks were performed on GIAB high-confidence regions **with at least 15
         <td>0.9735</td>
 	</tr>
 	<tr>
-		<td> ONT long-read WGS (super accuracy)</td>
+		<td> ONT long-read WGS (SUP5.2, minimap2, clair3v1.2)</td>
 		<td>0.9905</td>
         <td>0.9417</td>
         <td>0.9980</td>
@@ -296,7 +296,7 @@ All benchmarks were performed on GIAB high-confidence regions **with at least 15
         <td>0.9712</td>
 	</tr>
 	<tr>
-		<td>PacBio long-read WGS </td>
+		<td>PacBio long-read WGS (minimap2, DeepVariant 1.9)</td>
 		<td>0.9972</td>
         <td>0.9941</td>
         <td>0.9992</td>
@@ -335,19 +335,19 @@ Sensitivity and positive predictive value (PPV) were measured using [Hap-Eval](h
 		<td>0.9474</td>
 	</tr>
 	<tr>
-		<td>ONT long-read WGS (high accuracy) - Sniffles 2.4</td>
+		<td>ONT long-read WGS (HAC, minimap2) - Sniffles 2.7</td>
 		<td>42.32</td>
 		<td>0.8986</td>
 		<td>0.9636</td>
 	</tr>
 	<tr>
-		<td>ONT long-read WGS (super accuracy) - Sniffles 2.4</td>
+		<td>ONT long-read WGS (SUP5.2, minimap2) - Sniffles 2.7</td>
 		<td>42.36</td>
 		<td>0.9027</td>
 		<td>0.9648</td>
 	</tr>
 	<tr>
-		<td>PacBio long-read WGS - Sniffles 2.4</td>
+		<td>PacBio long-read WGS (minimap2)- Sniffles 2.7</td>
 		<td>38.0</td>
 		<td>0.9104</td>
 		<td>0.9729</td>
