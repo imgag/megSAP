@@ -91,6 +91,7 @@ if (!$no_sync)
 }
 
 $genome = genome_fasta($build);
+$location = trim(get_path("location", false));
 
 //output file names:
 //mapping
@@ -126,6 +127,7 @@ $straglr_file = $folder."/".$name."_repeats.vcf";
 $methyl_regions = repository_basedir()."/data/methylation/methylartist_catalog_grch38.tsv";
 $methylation_table = $folder."/".$name."_var_methylation.tsv";
 //db import
+$qc_mvh = $folder."/".$name."_mvh_qc.tsv";
 $qc_fastq  = $folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $folder."/".$name."_stats_map.qcML";
 $qc_vc  = $folder."/".$name."_stats_vc.qcML";
@@ -1117,6 +1119,39 @@ if ((in_array("ma", $steps)) || (in_array("cn", $steps) || in_array("sv", $steps
 		}
 		
 		$sources[] = $bedpe_file;
+	}
+	
+	//perform Modellvorhaben QC if sample is in the study
+	if ($location=="UKT" && db_is_enabled("NGSD"))
+	{
+		$db = DB::getInstance("NGSD", false);
+		$ps_id = get_processed_sample_id($db, $name, false);
+		if ($ps_id!=-1) //sample is in NGSD
+		{
+			$study_sample_id = $db->getValue("SELECT id FROM study_sample WHERE study_id=(SELECT id FROM study WHERE name='Modellvorhaben_2024') AND processed_sample_id='$ps_id'", -1);
+			if ($study_sample_id!=-1) //sample has MVH study
+			{
+				//if it does not exist create MVH QC file
+				if (!file_exists($qc_mvh))
+				{
+					$tmp_file_in = $parser->tempFile("_mvh_qc.tsv");
+					file_put_contents($tmp_file_in, $name);
+					$parser->execTool("MVH/mvh_run_qc.php", "-samples {$tmp_file_in} -out {$qc_mvh} -threads {$threads}");
+				}
+				
+				//parse MVH QC file
+				foreach(file($qc_mvh) as $line)
+				{
+					$line = nl_trim($line);
+					if ($line=="" || $line[0]=="#") continue;
+					$parts = explode("\t", $line);
+					$terms[] = "QC:2000152\t".number_format($parts[5], 2);
+					$terms[] = "QC:2000153\t".number_format($parts[7], 2);
+					$terms[] = "QC:2000154\t".number_format($parts[9], 2);
+				}				
+				$sources[] = $qc_mvh;
+			}
+		}
 	}
 	
 	if(count($sources) > 0)

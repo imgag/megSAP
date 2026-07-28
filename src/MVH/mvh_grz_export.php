@@ -211,7 +211,6 @@ function create_lab_data_json($files, $info, $grz_qc, $is_tumor, $info_germline=
 $parser = new ToolBase("mvh_grz_export", "GRZ export for Modellvorhaben.");
 $parser->addInt("cm_id", "ID in case management RedCap database.", false);
 $parser->addFlag("clear", "Clear export and QC folder before running this script.");
-$parser->addFlag("qc_only", "Calculate only the MVH QC and stop.");
 $parser->addFlag("test", "Test mode.");
 extract($parser->parse($argv));
 
@@ -299,18 +298,16 @@ $roi = "";
 if ($sys=="twistCustomExomeV2" || $sys=="twistCustomExomeV2Covaris") $roi = "{$mvh_folder}/rois/twist_exome_core_plus_refseq.bed";
 if ($seq_mode!="WGS" && $seq_mode!="lrGS" && $roi=="") trigger_error("Could not determine target region for sample '{$ps}' with processing system '{$sys}'!", E_USER_ERROR);
 
-if (! $qc_only)
-{
-	//determine tanG==VNg
-	$sub_ids = $db_mvh->getValues("SELECT id FROM `submission_grz` WHERE status='pending' AND case_id='{$id}'");
-	if (count($sub_ids)!=1)  trigger_error(count($sub_ids)." pending GRZ submissions for case {$cm_id}. Must be one!", E_USER_ERROR);
-	$sub_id = $sub_ids[0];
-	print "ID in submission_grz table: {$sub_id}\n";
-	$tan_g = $db_mvh->getValue("SELECT tang FROM submission_grz WHERE id='{$sub_id}'");
-	print "TAN: {$tan_g}\n";
-	$patient_id = $db_mvh->getValue("SELECT pseudog FROM submission_grz WHERE id='{$sub_id}'");
-	print "patient pseudonym: {$patient_id}\n";
-}
+//determine tanG==VNg
+$sub_ids = $db_mvh->getValues("SELECT id FROM `submission_grz` WHERE status='pending' AND case_id='{$id}'");
+if (count($sub_ids)!=1)  trigger_error(count($sub_ids)." pending GRZ submissions for case {$cm_id}. Must be one!", E_USER_ERROR);
+$sub_id = $sub_ids[0];
+print "ID in submission_grz table: {$sub_id}\n";
+$tan_g = $db_mvh->getValue("SELECT tang FROM submission_grz WHERE id='{$sub_id}'");
+print "TAN: {$tan_g}\n";
+$patient_id = $db_mvh->getValue("SELECT pseudog FROM submission_grz WHERE id='{$sub_id}'");
+print "patient pseudonym: {$patient_id}\n";
+
 //determine megSAP version from germline GSvar file
 $megsap_ver = megsap_version($info['ps_folder']."/{$ps}.GSvar");
 
@@ -331,7 +328,7 @@ if ($is_somatic)
 print "base checks took ".time_readable(microtime(true)-$time_start)."\n";
 $time_start = microtime(true);
 
-//TODO add support for trio?
+//TODO add support for multi/trio?
 //create germline raw data (FASTQs + germline VCF)
 $n_bam = $info['ps_bam'];
 $n_fq1 = "{$folder}/files/normal_R1.fastq.gz";
@@ -451,29 +448,15 @@ $time_start = microtime(true);
 //run QC pipeline for germline sample
 exec2("mkdir -p {$qc_folder}/checksums/");
 print "QC folder: {$qc_folder}\n";
-$grz_qc = run_qc_pipeline($ps, $is_lrgs ? $lrgs_bam : $n_bam, $n_fq1, $n_fq2, $roi, false);
+$grz_qc = run_qc_pipeline($ps, $is_lrgs ? $lrgs_bam : $n_bam, $n_fq1, $n_fq2, $roi, false, $parser, $seq_mode, false, $qc_folder, $is_lrgs, $patient_id, 10);
 
 //run QC pipeline for somatic sample
 if ($is_somatic)
 {
-	$grz_qc_t = run_qc_pipeline($ps_t, $t_bam, $t_fq1, $t_fq2, $roi, true);
+	$grz_qc_t = run_qc_pipeline($ps_t, $t_bam, $t_fq1, $t_fq2, $roi, true, $parser, $seq_mode, true, $qc_folder, $is_lrgs, $patient_id, 10);
 }
 
 print "running QC pipeline took ".time_readable(microtime(true)-$time_start)."\n";
-
-if ($qc_only)
-{	
-	print "QC {$ps}:\n";
-	print_grz_qc($grz_qc);
-	
-	if ($is_somatic)
-	{
-		print "QC {$ps_t}:\n";
-		print_grz_qc($grz_qc_t);
-	}
-	exit(0);
-}
-
 
 $time_start = microtime(true);
 
