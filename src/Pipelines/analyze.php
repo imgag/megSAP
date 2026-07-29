@@ -1398,7 +1398,7 @@ if (( (in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps
 			if ($study_sample_id!=-1) //sample has MVH study
 			{
 				//if it does not exist create MVH QC file
-				if (!file_exists($qc_mvh))
+				if (!file_exists($qc_mvh) || $force_qc)
 				{
 					$tmp_file_in = $parser->tempFile("_mvh_qc.tsv");
 					file_put_contents($tmp_file_in, $name);
