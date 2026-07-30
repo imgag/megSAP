@@ -140,6 +140,7 @@ $dragen_cram = "{$dragen_folder}/{$name}.cram";
 $dragen_bam_or_cram_exists = file_exists($dragen_bam) || file_exists($dragen_cram);
 $dragen_output_vcf = "{$dragen_folder}/{$name}.hard-filtered.vcf.gz";
 $dragen_output_sv_vcf = "{$dragen_folder}/{$name}.sv.vcf.gz";
+$dragen_output_mrjd_vcf = "{$dragen_folder}/{$name}.mrjd.hard-filtered.vcf.gz";
 
 //output file names:
 //mapping
@@ -606,8 +607,22 @@ if (in_array("vc", $steps))
 				$tmp4 = $parser->tempFile("_with_mosaic+targeted.vcf");
 				$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$tmp3} {$tmp_targeted} -out {$tmp4} -filter targeted -filter_desc Variant_is_called_by_targeted_caller -skip_duplicates");
 
+				if (file_exists($dragen_output_mrjd_vcf))
+				{
+					//add DRAGEN MRJD calling
+					trigger_error("DRAGEN MRJD analysis found in sample folder. Using this data for MRJD small variant calling. ", E_USER_NOTICE);
+					$tmp5 = $parser->tempFile("_with_mosaic+targeted+mrjd.vcf");
+					$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$tmp4} {$dragen_output_mrjd_vcf} -out {$tmp5} -filter dragen_mrjd -filter_desc Variant_is_called_by_DRAGEN_MRJD-Caller -skip_duplicates", [$dragen_output_mrjd_vcf]);					
+				}
+				else
+				{
+					$tmp5 = $tmp4;
+					//TODO: add own MRJD caller
+				}
+				
+
 				//sort and convert to VCF.GZ
-				$parser->execApptainer("ngs-bits", "VcfSort", "-in {$tmp4} -compression_level 7 -out {$vcffile}", [], [dirname($vcffile)]);
+				$parser->execApptainer("ngs-bits", "VcfSort", "-in {$tmp5} -compression_level 7 -out {$vcffile}", [], [dirname($vcffile)]);
 				$parser->execApptainer("htslib", "tabix", "-p vcf $vcffile", [], [dirname($vcffile)]);
 			}
 			else //perform variant calling with DeepVariant
@@ -635,6 +650,8 @@ if (in_array("vc", $steps))
 				}
 
 				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
+
+				//TODO: add own MRJD caller
 			}
 		}
 		
@@ -1254,6 +1271,7 @@ if (in_array("sv", $steps))
 //repeat expansions (only for WGS/WES)
 if (in_array("re", $steps))
 {
+	//perform repeat expansion analysis (only for WGS/WES):
 	$parser->execTool("Tools/vc_expansionhunter.php", "-in $used_bam_or_cram -out $expansion_hunter_file -build ".$build." -pid $name -threads {$threads}");
 }
 
@@ -1392,33 +1410,9 @@ if (( (in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps
 	{
 		$db = DB::getInstance("NGSD", false);
 		$ps_id = get_processed_sample_id($db, $name, false);
-		if ($ps_id!=-1) //sample is in NGSD
-		{
-			$study_sample_id = $db->getValue("SELECT id FROM study_sample WHERE study_id=(SELECT id FROM study WHERE name='Modellvorhaben_2024') AND processed_sample_id='$ps_id'", -1);
-			if ($study_sample_id!=-1) //sample has MVH study
-			{
-				//if it does not exist create MVH QC file
-				if (!file_exists($qc_mvh) || $force_qc)
-				{
-					$tmp_file_in = $parser->tempFile("_mvh_qc.tsv");
-					file_put_contents($tmp_file_in, $name);
-					$parser->execTool("MVH/mvh_run_qc.php", "-samples {$tmp_file_in} -out {$qc_mvh} -threads {$threads}");
-				}
-				
-				//parse MVH QC file
-				foreach(file($qc_mvh) as $line)
-				{
-					$line = nl_trim($line);
-					if ($line=="" || $line[0]=="#") continue;
-					$parts = explode("\t", $line);
-					$terms[] = "QC:2000152\t".number_format($parts[5], 2);
-					$terms[] = "QC:2000153\t".number_format($parts[7], 2);
-					$terms[] = "QC:2000154\t".number_format($parts[9], 2);
-				}				
-				$sources[] = $qc_mvh;
-			}
-		}
+		
 	}
+
 	
 	//create qcML file
 	if (count($sources)>0)

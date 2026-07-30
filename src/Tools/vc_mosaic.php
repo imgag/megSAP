@@ -29,11 +29,11 @@ extract($parser->parse($argv));
 //check parameters
 if ($max_af <= 0)
 {
-	trigger_error("The maximum allel frequency cannot be smaller or equal to zero.", E_USER_ERROR);
+	trigger_error("The maximum allele frequency cannot be smaller or equal to zero.", E_USER_ERROR);
 }
 if ($max_gnomad_af <= 0)
 {
-	trigger_error("The maximum allowed gnomad allel frequency cannot be smaller or equal to zero.", E_USER_ERROR);
+	trigger_error("The maximum allowed gnomad allele frequency cannot be smaller or equal to zero.", E_USER_ERROR);
 }
 if ($min_obs < 0)
 {
