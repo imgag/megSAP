@@ -174,6 +174,72 @@ function add_submission_to_redcap($record_id, $data_type, $tan)
 	}
 }
 
+//add the TAN to the case management SAP table
+function add_submission_to_sap($sap_id, $data_type, $tan)
+{
+	//input checks
+	if ($data_type!="G" && $data_type!="K") trigger_error("Invalid type '{$data_type}'", E_USER_ERROR);
+	
+	//prepare data
+	$request = "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+				<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:urn=\"urn:sap-com:document:sap:soap:functions:mc-style\">
+				  <soapenv:Header/>
+				  <soapenv:Body>
+					<urn:ZishWsSetGenomData>
+					  <ImpFalnr>".str_pad($sap_id, 10, '0', STR_PAD_LEFT)."</ImpFalnr>
+					  <ImpMeldeDatum></ImpMeldeDatum>
+					  <ImpMeldungsart>0</ImpMeldungsart>
+					  <ImpMeldungsnr></ImpMeldungsnr>
+					  <ImpMeldungstyp>{$data_type}</ImpMeldungstyp>
+					  <ImpVorgangsnr>{$tan}</ImpVorgangsnr>
+					  <ImpVgUploadDatum>".date("Y-m-d")."</ImpVgUploadDatum>
+					</urn:ZishWsSetGenomData>
+				  </soapenv:Body>
+				</soapenv:Envelope>";
+	
+	//perform SOAP query using CURL
+	$url = 'http://vslpr3ascs.med.uni-tuebingen.de:8001/sap/bc/srt/rfc/sap/zish_ws_set_genom_data/100/zish_ws_set_genom_data/zish_ws_set_genom_data';
+	$curl = curl_init($url); //http://vslpr3ascs.med.uni-tuebingen.de:8001/sap/bc/srt/wsdl/flv_10002A111AD1/bndg_url/sap/bc/srt/rfc/sap/zish_ws_set_genom_data/100/zish_ws_set_genom_data/zish_ws_set_genom_data?sap-client=100
+	if ($curl === false) trigger_error('Could not initialize cURL', E_USER_ERROR);
+
+	curl_setopt_array($curl, [
+		CURLOPT_POST => true,
+		CURLOPT_POSTFIELDS => $request,
+		CURLOPT_RETURNTRANSFER => true,
+
+		CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
+		CURLOPT_USERPWD => get_path("mvh_sap_user").':'.get_path("mvh_sap_password"),
+
+		CURLOPT_HTTPHEADER => [
+			'Content-Type: text/xml; charset=utf-8',
+			'SOAPAction: "urn:sap-com:document:sap:soap:functions:mc-style:ZISH_WS_SET_GENOM_DATA:ZishWsSetGenomDataRequest"',
+			'Content-Length: ' . strlen($request),
+		],
+
+		CURLOPT_CONNECTTIMEOUT => 30,
+		CURLOPT_TIMEOUT => 120,
+		CURLOPT_PROXY => ''
+	]);
+
+	$response = curl_exec($curl);
+	if ($response === false)
+	{
+		$error = curl_error($curl);
+		$error_number = curl_errno($curl);
+		curl_close($curl);
+		trigger_error("CURL request failed: {$error} (cURL error number: {$error_number})", E_USER_ERROR);
+	}
+
+	$http_code = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+	curl_close($curl);
+
+	if ($http_code<200 || $http_code>=300) trigger_error("SOAP server returned HTTP {$http_code}:\n{$response}");
+	//print "URL: $url\n";
+	//print "REQUEST: $request\n";
+	print "HTTP CODE: $http_code\n";
+	print "REPLY: $response\n";
+}
+
 ################# converter functions #################
 
 function not_empty($value, $element)
