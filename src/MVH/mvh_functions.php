@@ -54,7 +54,6 @@ function get_gl_data($db_mvh, $id)
 	return $xml_obj;
 }
 
-
 //returns research consent data as an XML object
 function get_rc_data($db_mvh, $id)
 {

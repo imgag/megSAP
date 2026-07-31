@@ -3,6 +3,22 @@
 include("framework.php");
 
 //##################################################################################
+start_test("mito_is_chrM");
+
+//BAM
+check(mito_is_chrM(data_folder()."/get_read_count_in2.cram"), false);
+check(mito_is_chrM(data_folder()."/get_genome_build_dragenGRCh38.bam"), false);
+check(mito_is_chrM(data_folder()."/dragen_pangenome.bam"), true);
+
+//VCF
+check(mito_is_chrM(data_folder()."/vc_deepvariant_out1.vcf.gz"), false);
+check(mito_is_chrM(data_folder()."/vcf2gsvar_in3.vcf"), false);
+check(mito_is_chrM(data_folder()."/dragen_pangenome_small_vars.vcf.gz"), true);
+check(mito_is_chrM(data_folder()."/dragen_pangenome_sv.vcf.gz"), true);
+
+end_test();
+
+//##################################################################################
 start_test("log_analysis_time");
 if (db_is_enabled("NGSD_TEST"))
 {
