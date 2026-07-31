@@ -611,8 +611,20 @@ if (in_array("vc", $steps))
 				{
 					//add DRAGEN MRJD calling
 					trigger_error("DRAGEN MRJD analysis found in sample folder. Using this data for MRJD small variant calling. ", E_USER_NOTICE);
+
+					//fix mrjd file
+					$pipeline = [];
+					$tmp_mrjd = $parser->tempFile("mrjd.vcf");
+					$pipeline[] = array("zcat", $dragen_output_mrjd_vcf);
+					//split multi-allelic variants
+					$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "", [], [], true)];
+					//normalize all variants and align INDELs to the left
+					$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome -out {$tmp_mrjd}", [$genome], [], true));
+					//execute pipeline
+					$parser->execPipeline($pipeline, "Dragen MRJD post processing");
+
 					$tmp5 = $parser->tempFile("_with_mosaic+targeted+mrjd.vcf");
-					$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$tmp4} {$dragen_output_mrjd_vcf} -out {$tmp5} -filter dragen_mrjd -filter_desc Variant_is_called_by_DRAGEN_MRJD-Caller -skip_duplicates", [$dragen_output_mrjd_vcf]);					
+					$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$tmp4} {$tmp_mrjd} -out {$tmp5} -filter dragen_mrjd -filter_desc Variant_is_called_by_DRAGEN_MRJD-Caller -skip_duplicates");					
 				}
 				else
 				{
