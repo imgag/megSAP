@@ -253,7 +253,7 @@ $spliceai_regions = $parser->tempFile("spliceai_scoring_regions.bed");
 $pipeline = [];
 $pipeline[] = array("cut", "-f 2,4,5 -d'\t' {$transcript_annotations}");
 $pipeline[] = array("sed", "'1d' > {$spliceai_regions}");
-$parser->execPipeline($pipeline, "Dragen small variants post processing");
+$parser->execPipeline($pipeline, "SpliceAI region creation");
 
 //filter for variants in SpliceAI transcript regions
 $tmp2 = $parser->tempFile("_spliceai_filtered_regions.vcf");
