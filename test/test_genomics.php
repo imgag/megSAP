@@ -394,6 +394,8 @@ check(check_genome_build(data_folder()."/get_genome_build_dragenGRCh38.bam", "GR
 check(check_genome_build(data_folder()."/get_genome_build_NovaSeqXGRCh38.bam", "GRCh38"), 1);
 check(check_genome_build(data_folder()."/check_genome_build_minimap2GRCh38.bam", "GRCh38"), 1);
 check(check_genome_build(data_folder()."/check_genome_build_minimap2GRCh38_2.bam", "GRCh38"), 1);
+check(check_genome_build(data_folder()."/dragen_pangenome.bam", "GRCh38"), 1);
+check(check_genome_build(data_folder()."/dragen_svs.bedpe", "GRCh38"), 1);
 end_test();
 
 //##################################################################################
