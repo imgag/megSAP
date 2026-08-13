@@ -35,10 +35,9 @@
 	
 	Jun 07 09:49:37 PCA100348 systemd[25641]: Started rsync-seq-data.service - rsync data from /data to storage3 buffer.
    ```
-
     
-    
-5. Copy raw data to buffer (diagnostic data):
+4. Copy raw data to buffer (diagnostic data):   
+   (this can already be done during sequencing)
 	```bash
 	cd /mnt/storage3/raw_data/[MINERVA/VULCAN]/
  	# diagnostic samples
@@ -46,8 +45,9 @@
  	# research
  	ionice -c 3 rsync -ah --info=stats2,progress2 --omit-dir-times [BATCH_NAME] /mnt/storage3/promethion_rawdata_buffer/[YYYYmmdd]
  	 ```
+	
 
-6. Copy runs and start optional basecalling and analysis
+5. Copy runs and start optional basecalling and analysis
 	
 	**Check for urgent samples and queue them first!**   
     Using `copy_ont_data.php`, the flow cell data is copied to the
@@ -75,13 +75,21 @@
     subdirectory, indicating a partially basecalled flow cell (see
     below) and no basecalling is queued.
 
-8. Backup raw run data using backup script (**after basecalling is done!!!**):   
+6. Backup raw run data using backup script (**after basecalling is done!!!**):   
 	By default no POD5 data is included in the backup, only the BAM files! 
 	```bash
 	sudo -u archive-gs php /mnt/storage2/megSAP/pipeline/src/IMGAG/backup_queue.php -mode run -in [run] -email [email]
 	```
-
-9. Delete the run raw data (when all samples are analyzed with passed QC, raw data is copied to buffer and backup is done):
+7. Copy basecalled BAMs to buffer (diagnostic data):   
+    simply rerun `rsync` from 4.:
+	```bash
+	cd /mnt/storage3/raw_data/[MINERVA/VULCAN]/
+ 	# diagnostic samples
+ 	ionice -c 3 rsync -ah --info=stats2,progress2 --omit-dir-times [BATCH_NAME] /mnt/storage3b/promethion_rawdata_buffer/[Minerva|Vulcan]
+ 	# research
+ 	ionice -c 3 rsync -ah --info=stats2,progress2 --omit-dir-times [BATCH_NAME] /mnt/storage3/promethion_rawdata_buffer/[YYYYmmdd]
+ 	 ```
+8. Delete the run raw data (when all samples are analyzed with passed QC, raw data is copied to buffer and backup is done):
 	- delete from PromethION
  	- delete from /mnt/storage3/raw_data
   	- after 3 months: delete from buffer
