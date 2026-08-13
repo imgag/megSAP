@@ -448,12 +448,12 @@ $time_start = microtime(true);
 //run QC pipeline for germline sample
 exec2("mkdir -p {$qc_folder}/checksums/");
 print "QC folder: {$qc_folder}\n";
-$grz_qc = run_qc_pipeline($ps, $is_lrgs ? $lrgs_bam : $n_bam, $n_fq1, $n_fq2, $roi, false, $parser, $seq_mode, false, $qc_folder, $is_lrgs, $patient_id, 10);
+$grz_qc = run_qc_pipeline($ps, $is_lrgs ? $lrgs_bam : $n_bam, $n_fq1, $n_fq2, $roi, false, $parser, $seq_mode, $is_somatic, $qc_folder, $is_lrgs, $patient_id, 10);
 
 //run QC pipeline for somatic sample
 if ($is_somatic)
 {
-	$grz_qc_t = run_qc_pipeline($ps_t, $t_bam, $t_fq1, $t_fq2, $roi, true, $parser, $seq_mode, true, $qc_folder, $is_lrgs, $patient_id, 10);
+	$grz_qc_t = run_qc_pipeline($ps_t, $t_bam, $t_fq1, $t_fq2, $roi, true, $parser, $seq_mode, $is_somatic, $qc_folder, $is_lrgs, $patient_id, 10);
 }
 
 print "running QC pipeline took ".time_readable(microtime(true)-$time_start)."\n";
@@ -498,6 +498,7 @@ else
 	$date = "";
 	$start = "";
 	$end = "";
+	//TODO correctly handle retracted BCs, OR pass through JSON from meDIC!
 	$rc_data = get_rc_data($db_mvh, $id);
 	if ($rc_data!=false)
 	{

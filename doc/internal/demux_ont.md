@@ -48,7 +48,8 @@
  	 ```
 
 6. Copy runs and start optional basecalling and analysis
-
+	
+	**Check for urgent samples and queue them first!**   
     Using `copy_ont_data.php`, the flow cell data is copied to the
     default sample folder location, based on the information entered in
     GSvar.
@@ -74,7 +75,7 @@
     subdirectory, indicating a partially basecalled flow cell (see
     below) and no basecalling is queued.
 
-7. Backup raw run data using backup script (**after basecalling is done!!!**):   
+8. Backup raw run data using backup script (**after basecalling is done!!!**):   
 	By default no POD5 data is included in the backup, only the BAM files! 
 	```bash
 	sudo -u archive-gs php /mnt/storage2/megSAP/pipeline/src/IMGAG/backup_queue.php -mode run -in [run] -email [email]

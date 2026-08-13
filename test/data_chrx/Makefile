@@ -55,6 +55,7 @@ link2:
 	php ../link_test_data.php NA12878_17.sv.vcf.gz.tbi dragen -copy
 	php ../link_test_data.php NA12878_17.hard-filtered.gvcf.gz dragen -copy
 	php ../link_test_data.php NA12878_17.hard-filtered.gvcf.gz.tbi dragen -copy
+	php ../link_test_data.php NA12878_17.mrjd.hard-filtered.vcf.gz dragen -copy
 
 dragen_call:
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps vc,cn,sv,re -threads 5

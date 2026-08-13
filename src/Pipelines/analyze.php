@@ -140,6 +140,7 @@ $dragen_cram = "{$dragen_folder}/{$name}.cram";
 $dragen_bam_or_cram_exists = file_exists($dragen_bam) || file_exists($dragen_cram);
 $dragen_output_vcf = "{$dragen_folder}/{$name}.hard-filtered.vcf.gz";
 $dragen_output_sv_vcf = "{$dragen_folder}/{$name}.sv.vcf.gz";
+$dragen_output_mrjd_vcf = "{$dragen_folder}/{$name}.mrjd.hard-filtered.vcf.gz";
 
 //output file names:
 //mapping
@@ -606,8 +607,34 @@ if (in_array("vc", $steps))
 				$tmp4 = $parser->tempFile("_with_mosaic+targeted.vcf");
 				$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$tmp3} {$tmp_targeted} -out {$tmp4} -filter targeted -filter_desc Variant_is_called_by_targeted_caller -skip_duplicates");
 
+				if (file_exists($dragen_output_mrjd_vcf))
+				{
+					//add DRAGEN MRJD calling
+					trigger_error("DRAGEN MRJD analysis found in sample folder. Using this data for MRJD small variant calling. ", E_USER_NOTICE);
+
+					//fix mrjd file
+					$pipeline = [];
+					$tmp_mrjd = $parser->tempFile("mrjd.vcf");
+					$pipeline[] = array("zcat", $dragen_output_mrjd_vcf);
+					//split multi-allelic variants
+					$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "", [], [], true)];
+					//normalize all variants and align INDELs to the left
+					$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome -out {$tmp_mrjd}", [$genome], [], true));
+					//execute pipeline
+					$parser->execPipeline($pipeline, "Dragen MRJD post processing");
+
+					$tmp5 = $parser->tempFile("_with_mosaic+targeted+mrjd.vcf");
+					$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$tmp4} {$tmp_mrjd} -out {$tmp5} -filter dragen_mrjd -filter_desc Variant_is_called_by_DRAGEN_MRJD-Caller -skip_duplicates");					
+				}
+				else
+				{
+					$tmp5 = $tmp4;
+					//TODO: add own MRJD caller
+				}
+				
+
 				//sort and convert to VCF.GZ
-				$parser->execApptainer("ngs-bits", "VcfSort", "-in {$tmp4} -compression_level 7 -out {$vcffile}", [], [dirname($vcffile)]);
+				$parser->execApptainer("ngs-bits", "VcfSort", "-in {$tmp5} -compression_level 7 -out {$vcffile}", [], [dirname($vcffile)]);
 				$parser->execApptainer("htslib", "tabix", "-p vcf $vcffile", [], [dirname($vcffile)]);
 			}
 			else //perform variant calling with DeepVariant
@@ -635,6 +662,8 @@ if (in_array("vc", $steps))
 				}
 
 				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
+
+				//TODO: add own MRJD caller
 			}
 		}
 		
@@ -1398,7 +1427,7 @@ if (( (in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps
 			if ($study_sample_id!=-1) //sample has MVH study
 			{
 				//if it does not exist create MVH QC file
-				if (!file_exists($qc_mvh))
+				if (!file_exists($qc_mvh) || $force_qc)
 				{
 					$tmp_file_in = $parser->tempFile("_mvh_qc.tsv");
 					file_put_contents($tmp_file_in, $name);
@@ -1410,6 +1439,7 @@ if (( (in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps
 				{
 					$line = nl_trim($line);
 					if ($line=="" || $line[0]=="#") continue;
+					
 					$parts = explode("\t", $line);
 					$terms[] = "QC:2000152\t".number_format($parts[5], 2);
 					$terms[] = "QC:2000153\t".number_format($parts[7], 2);
@@ -1419,6 +1449,7 @@ if (( (in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps
 			}
 		}
 	}
+
 	
 	//create qcML file
 	if (count($sources)>0)

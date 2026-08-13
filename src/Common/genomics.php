@@ -2042,6 +2042,48 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 	return 1;
 }
 
+//checks if mito is called 'chrM', so it has to be renamed to 'chrMT'
+function mito_is_chrM($filename)
+{
+	//check file exists
+	if (!file_exists($filename)) trigger_error("Cannot run 'mito_is_chrM'! {$filename} does not exist!",  E_USER_ERROR);
+	
+	//BAM/CRAM file
+	if (ends_with($filename, ".bam") || ends_with($filename, ".cram"))
+	{
+		$samtools_command = execApptainer("samtools", "samtools view", "-H $filename", [$filename], [], true);
+		list($stdout) = exec2("{$samtools_command} | egrep '@SQ' | grep SN:chrM");
+		if (count($stdout)!=1)
+		{
+			print_r($stdout);
+			trigger_error("No or several matching contig line in {$filename}",  E_USER_ERROR);
+		}
+		return !contains($stdout[0], "SN:chrMT");
+	}
+	
+	//VCF file
+	if (ends_with($filename, ".vcf.gz") || ends_with($filename, ".vcf"))
+	{
+		if (ends_with($filename, ".gz"))
+		{
+			list($stdout) = exec2("zcat $filename | zgrep '^##contig=<ID=chrM'");
+		}
+		else
+		{
+			list($stdout) = exec2("cat $filename | egrep '^##contig=<ID=chrM'");
+		}
+		if (count($stdout)!=1)
+		{
+			print_r($stdout);
+			trigger_error("No or several matching contig line in {$filename}",  E_USER_ERROR);
+		}
+		return !contains($stdout[0], "ID=chrMT");
+	}
+	
+	
+	trigger_error("Unsupported file type given to 'mito_is_chrM': {$filename}",  E_USER_ERROR);
+}
+
 //converts a proessing system genome build string to a string compatible with ngs-bits
 function ngsbits_build($system_build)
 {

@@ -30,6 +30,7 @@ container_deepsomatic = 1.9.0
 container_dorado = v2.0.1-20260707
 container_expansionhunter = v5.0.0
 container_freebayes = v1.3.10-20260122
+container_grz_qc_workflow = master-20260727
 container_happy = v0.3.14
 container_hla-genotyper = 2025-04
 container_htslib = 1.23-20260123
@@ -40,7 +41,7 @@ container_methylartist = v1.5.3-20260421
 container_minimap2 = v2.30-20251119
 container_modkit = v0.5.0-20251105
 container_msisensor-pro = v1.3.0-20251125
-container_ngs-bits = master-2026-06-68-g9b45cb6f
+container_ngs-bits = master-2026-06-79-g3e4c43fc
 container_orad = v2.6.1
 container_paraphase = v3.3.1-20251125
 container_python = v3.10.9-20250729
@@ -133,6 +134,8 @@ db_pass['MVH'] = ""
 mvh_folder = ""
 mvh_redcap_token_se = ""
 mvh_redcap_token_cm = ""
+mvh_sap_user = ""
+mvh_sap_password = ""
 
 [queues]
 queuing_engine = ""

@@ -205,8 +205,8 @@ singularity exec $htslib tabix -p vcf AlphaMissense_isoforms_hg38.vcf.gz
 cd $dbs
 mkdir -p SpliceAI
 cd SpliceAI
-wget https://megsap.de/download/SpliceAI/spliceai_scores_2024_08_26_GRCh38.vcf.gz -O spliceai_scores_2024_08_26_GRCh38.vcf.gz
-singularity exec $htslib tabix -C -m 9 -p vcf spliceai_scores_2024_08_26_GRCh38.vcf.gz
+wget https://megsap.de/download/SpliceAI/spliceai_scores_2026_07_31_GRCh38.vcf.gz -O spliceai_scores_2026_07_31_GRCh38.vcf.gz
+singularity exec $htslib tabix -C -m 9 -p vcf spliceai_scores_2026_07_31_GRCh38.vcf.gz
 
 #download reference data for gene expression
 #Human Protein Atlas HPA

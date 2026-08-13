@@ -11,15 +11,26 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("index_genome", "Indexes a genome FASTA file with BWA and samtools.");
 $parser->addInfile("in", "FASTA file to index.", false);
 $parser->addFlag("mask", "Mask false duplications in GRCh38 (see https://www.nature.com/articles/s41587-021-01158-1).");
+$parser->addInfile("additional_masking_region", "BED file containing additional regions which should be masked (e.g. for targeted calling)", true);
+$parser->addFlag("skip_checksum_update", "Do not update FASTA checksums to prevent problems with IGV and custom masked genomes.");
 extract($parser->parse($argv));
 
-if ($mask)
+if ($mask || ($additional_masking_region != ""))
 {
-	$exclusion_bed = $parser->tempFile("_exclusion.bed");
-	exec2("wget -O {$exclusion_bed} https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_GRC_exclusions.bed");
+	$exclusion_bed_files = [];
+	if ($mask)	
+	{
+		$false_duplications = $parser->tempFile("_false_duplications.bed");
+		exec2("wget -O {$false_duplications} https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/001/405/GCA_000001405.15_GRCh38/seqs_for_alignment_pipelines.ucsc_ids/GCA_000001405.15_GRCh38_GRC_exclusions.bed");
+		$exclusion_bed_files[] = $false_duplications;
+	}
+	if ($additional_masking_region != "") $exclusion_bed_files[] = $additional_masking_region;
+	
+	$combined_exclusion_bed = $parser->tempFile("_exclusions.bed");
+	$parser->execApptainer("ngs-bits", "BedAdd", "-in ".implode(" ", $exclusion_bed_files)." -out {$combined_exclusion_bed}", $exclusion_bed_files);
 	$tmp = $parser->tempFile("_masked.fa");
-	$parser->execApptainer("ngs-bits", "FastaMask", "-in {$in} -reg {$exclusion_bed} -out {$tmp}", [$in]);	
-	$parser->execApptainer("ngs-bits", "FastaChecksumUpdate", "-in {$tmp} -out {$in}", [$in]);
+	$parser->execApptainer("ngs-bits", "FastaMask", "-in {$in} -reg {$combined_exclusion_bed} -out {$tmp}", [$in]);	
+	if (!$skip_checksum_update) $parser->execApptainer("ngs-bits", "FastaChecksumUpdate", "-in {$tmp} -out {$in}", [$in]);
 }
 
 //BWA index

@@ -25,7 +25,6 @@ if (!is_file($out))
 	file_put_contents($out, implode("\t", $out_headers)."\n");
 }
 
-
 foreach(file($samples) as $line)
 {
 	$time_start = microtime(true);
@@ -59,8 +58,6 @@ foreach(file($samples) as $line)
 	$add_args = "";
 	if (!$is_lrgs) $add_args = "-out2 {$fq2}";
 	$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$bam} -out1 {$fq1} {$add_args}", [$bam], [$tmp_folder_base]);
-	
-	
 	
 	//run QC pipeline
 	$is_tumor = $info['is_tumor'];
