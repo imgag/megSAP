@@ -402,6 +402,22 @@ if (in_array("vc", $steps))
 		$args[] = "-gvcf ".$gvcf_file;
 		
 		$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
+
+		//run mito calling
+		$tmp_mito = $parser->tempFile("_mito.vcf.gz");
+		$args = [];
+		$args[] = "-bam {$used_bam_or_cram}";
+		$args[] = "-out {$tmp_mito}";
+		$args[] = "-name {$name}";
+		$args[] = "-data_type pacbio";
+		$args[] = "-threads ".$threads;
+		$args[] = "-build ".$build;
+		$parser->execTool("Tools/vc_himito.php", implode(" ", $args));
+
+		//add to main variant list
+		$vcf_merged = $parser->tempFile("_merged_mosaic.vcf");
+		$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mito} -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out {$vcf_merged}", [$vcf_file]);
+		$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
 	}
 	else if (get_path("use_deepvariant_ONT"))
 	{
@@ -448,6 +464,23 @@ if (in_array("vc", $steps))
 		{
 			trigger_error("Mosaic calling is only done for superaccuracy samples!", E_USER_NOTICE);
 		}
+
+		//run mito calling
+		$tmp_mito = $parser->tempFile("_mito.vcf.gz");
+		$args = [];
+		$args[] = "-bam {$used_bam_or_cram}";
+		$args[] = "-out {$tmp_mito}";
+		$args[] = "-name {$name}";
+		//TODO get flowcell type
+		$args[] = "-data_type ont-r10";
+		$args[] = "-threads ".$threads;
+		$args[] = "-build ".$build;
+		$parser->execTool("Tools/vc_himito.php", implode(" ", $args));
+
+		//add to main variant list
+		$vcf_merged = $parser->tempFile("_merged_mosaic.vcf");
+		$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mito} -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out {$vcf_merged}", [$vcf_file]);
+		$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
 
 		//sort and remove unused contig lines
 		$parser->execApptainer("ngs-bits", "VcfSort", "-in {$vcf_file} -remove_unused_contigs -compression_level 5 -out {$vcf_file}", [$vcf_file], [dirname($vcf_file)]);
