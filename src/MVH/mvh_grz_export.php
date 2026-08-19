@@ -308,6 +308,10 @@ print "TAN: {$tan_g}\n";
 $patient_id = $db_mvh->getValue("SELECT pseudog FROM submission_grz WHERE id='{$sub_id}'");
 print "patient pseudonym: {$patient_id}\n";
 
+//get data from MVH database
+$se_data = get_se_data($db_mvh, $id);
+$se_data_rep = get_se_data($db_mvh, $id, true);
+
 //determine megSAP version from germline GSvar file
 $megsap_ver = megsap_version($info['ps_folder']."/{$ps}.GSvar");
 
@@ -480,7 +484,6 @@ if ($is_somatic)
 $is_kids_bc = false;
 if (xml_str($cm_data->bc_signed)=="Ja" && $network=="Netzwerk Seltene Erkrankungen")
 {
-	$se_data_rep = get_se_data($db_mvh, $id, true);
 	list($bc_type, $bc_item) = get_bc_data_se($se_data_rep);
 	$is_kids_bc = starts_with($bc_type, "Kinder");
 }
@@ -488,7 +491,6 @@ if (xml_str($cm_data->bc_signed)=="Ja" && $network=="Netzwerk Seltene Erkrankung
 //prepare research consent data - for format see https://www.medizininformatik-initiative.de/Kerndatensatz/KDS_Consent_V2025/MII-IG-Modul-Consent-TechnischeImplementierung-FHIRProfile-Consent.html
 if ($is_kids_bc)
 {
-	$se_data = get_se_data($db_mvh, $id);
 	$research_consent = convert_se_kids_bc_to_fhir($bc_item, $se_data, $parser);
 }
 else
@@ -734,8 +736,15 @@ $time_start = microtime(true);
 //if upload successfull, add 'Pruefbericht' to CM RedCap
 if ($submission_type=='initial' && !$test)
 {
-	print "Adding Pruefbericht to CM RedCap...\n";
+	print "Adding VNg to CM RedCap...\n";
 	add_submission_to_redcap($cm_id, "G", $tan_g);
+}
+
+//if upload successfull, add 'Pruefbericht' to SAP
+if ($submission_type=='initial' && !$test)
+{
+	print "Adding VNg to SAP...\n";
+	add_submission_to_sap($se_data->case_id, "G", $tan_g);
 }
 
 //archive metadata JSON

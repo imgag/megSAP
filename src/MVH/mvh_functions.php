@@ -174,7 +174,7 @@ function add_submission_to_redcap($record_id, $data_type, $tan)
 }
 
 //add the TAN to the case management SAP table
-function add_submission_to_sap($sap_id, $data_type, $tan)
+function add_submission_to_sap($sap_case_id, $data_type, $tan)
 {
 	//input checks
 	if ($data_type!="G" && $data_type!="K") trigger_error("Invalid type '{$data_type}'", E_USER_ERROR);
@@ -185,7 +185,7 @@ function add_submission_to_sap($sap_id, $data_type, $tan)
 				  <soapenv:Header/>
 				  <soapenv:Body>
 					<urn:ZishWsSetGenomData>
-					  <ImpFalnr>".str_pad($sap_id, 10, '0', STR_PAD_LEFT)."</ImpFalnr>
+					  <ImpFalnr>".str_pad($sap_case_id, 10, '0', STR_PAD_LEFT)."</ImpFalnr>
 					  <ImpMeldeDatum></ImpMeldeDatum>
 					  <ImpMeldungsart>0</ImpMeldungsart>
 					  <ImpMeldungsnr></ImpMeldungsnr>
