@@ -69,27 +69,36 @@
     
     ```
 
-    The result file is `[processed sample].mod.unmapped.bam` in the corresponding project/sample directory and the sample analysis is automatically queued. If `-queue_basecalling` is set, the basecalled BAM is also stored in the run folder.
+    The result file is `[processed sample].mod.unmapped.bam` in the corresponding
+   project/sample directory and the sample analysis is automatically queued.
+   If `-queue_basecalling` is set, the basecalled BAM is also stored in the run folder.
 
     The script aborts if the flow cell directory contains a `pod5_skip`
     subdirectory, indicating a partially basecalled flow cell (see
     below) and no basecalling is queued.
 
-6. Backup raw run data using backup script (**after basecalling is done!!!**):   
+    ```bash
+    ERROR: 'Multiple basecall models found (dna_r10.4.1_e8.2_400bps_sup@v5.2.0, undefined)! Cannot perform copy.'
+    ```
+	This can happen if sample is restarted with a different flow cell or in a different slot and only one of
+them is started with basecalling. Then rename the `bam_pass` folder and start the script again with
+`-queue_basecalling` immediately (before the copy-job re-creates the folder again).
+
+7. Backup raw run data using backup script (**after basecalling is done!!!**):   
 	By default no POD5 data is included in the backup, only the BAM files! 
 	```bash
 	sudo -u archive-gs php /mnt/storage2/megSAP/pipeline/src/IMGAG/backup_queue.php -mode run -in [run] -email [email]
 	```
-7. Copy basecalled BAMs to buffer (diagnostic data):   
+8. Copy basecalled BAMs to buffer (diagnostic data):   
     simply rerun `rsync` from 4.:
 	```bash
 	cd /mnt/storage3/raw_data/[MINERVA/VULCAN]/
- 	# diagnostic samples
+ 	# diagnostic samples (no '/' after BATCH_NAME!)
  	ionice -c 3 rsync -ah --info=stats2,progress2 --omit-dir-times [BATCH_NAME] /mnt/storage3b/promethion_rawdata_buffer/[Minerva|Vulcan]
  	# research
  	ionice -c 3 rsync -ah --info=stats2,progress2 --omit-dir-times [BATCH_NAME] /mnt/storage3/promethion_rawdata_buffer/[YYYYmmdd]
  	 ```
-8. Delete the run raw data (when all samples are analyzed with passed QC, raw data is copied to buffer and backup is done):
+9. Delete the run raw data (when all samples are analyzed with passed QC, raw data is copied to buffer and backup is done):
 	- delete from PromethION
  	- delete from /mnt/storage3/raw_data
   	- after 3 months: delete from buffer
