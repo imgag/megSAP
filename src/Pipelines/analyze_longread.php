@@ -419,75 +419,8 @@ if (in_array("vc", $steps))
 		$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mito} -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out {$vcf_merged}", [$vcf_file]);
 		$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
 	}
-	else if (get_path("use_deepvariant_ONT"))
-	{
-		$args = [];
-		$args[] = "-model_type ONT_R104";
-		$args[] = "-bam ".$used_bam_or_cram;
-		$args[] = "-out ".$vcf_file;
-		$args[] = "-build ".$build;
-		$args[] = "-threads ".$threads;
-		$args[] = "-target ".$sys['target_file'];
-		$args[] = "-target_extend 200";
-		$args[] = "-min_af ".$min_af;
-		$args[] = "-min_mq ".$min_mq;
-		$args[] = "-min_bq ".$min_bq;
-		$args[] = "-add_sample_header";
-		$args[] = "-name ".$name;
-		if ($gpu) $args[] = "-gpu";
-		$args[] = "-gvcf ".$gvcf_file;
-		
-		$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
-
-		//mosaic calling only for SUP samples
-		$basecall_model = get_basecall_model($used_bam_or_cram);
-		if (str_contains($basecall_model, "_sup@"))
-		{
-			$tmp_mosaic = $parser->tempFile("_mosaic.vcf.gz");
-
-			$args = [];
-			$args[] = "-bam {$used_bam_or_cram}";
-			$args[] = "-out {$tmp_mosaic}";
-			$args[] = "-name {$name}";
-			$args[] = "-model ont_r10_dorado_sup_5khz";
-			$args[] = "-threads ".$threads;
-			$args[] = "-build ".$build;
-
-			$parser->execTool("Tools/vc_clair_mosaic.php", implode(" ", $args));
-			
-			//add to main variant list
-			$vcf_merged = $parser->tempFile("_merged_mosaic.vcf");
-			$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mosaic} -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out {$vcf_merged}", [$vcf_file, $tmp_mosaic]);
-			$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
-		}
-		else
-		{
-			trigger_error("Mosaic calling is only done for superaccuracy samples!", E_USER_NOTICE);
-		}
-
-		//run mito calling
-		$tmp_mito = $parser->tempFile("_mito.vcf.gz");
-		$args = [];
-		$args[] = "-bam {$used_bam_or_cram}";
-		$args[] = "-out {$tmp_mito}";
-		$args[] = "-name {$name}";
-		//TODO get flowcell type
-		$args[] = "-data_type ont-r10";
-		$args[] = "-threads ".$threads;
-		$args[] = "-build ".$build;
-		$parser->execTool("Tools/vc_himito.php", implode(" ", $args));
-
-		//add to main variant list
-		$vcf_merged = $parser->tempFile("_merged_mosaic.vcf");
-		$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mito} -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out {$vcf_merged}", [$vcf_file]);
-		$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
-
-		//sort and remove unused contig lines
-		$parser->execApptainer("ngs-bits", "VcfSort", "-in {$vcf_file} -remove_unused_contigs -compression_level 5 -out {$vcf_file}", [$vcf_file], [dirname($vcf_file)]);
-		$parser->execApptainer("htslib", "tabix", "-f -p vcf {$vcf_file}", [$vcf_file], [dirname($vcf_file)]);
-			
-	}
-	else //ONT clair3
+	//ONT
+	else if (get_path("use_clair3"))
 	{
 		//determine basecall model
 		$basecall_model = get_basecall_model($used_bam_or_cram);
@@ -584,7 +517,75 @@ if (in_array("vc", $steps))
 		$parser->execApptainer("ngs-bits", "VcfSort", "-in {$vcf_file} -remove_unused_contigs -compression_level 5 -out {$vcf_file}", [$vcf_file], [dirname($vcf_file)]);
 		$parser->execApptainer("htslib", "tabix", "-f -p vcf {$vcf_file}", [$vcf_file], [dirname($vcf_file)]);
 	}
+	else //deepvariant
+	{
+		$args = [];
+		$args[] = "-model_type ONT_R104";
+		$args[] = "-bam ".$used_bam_or_cram;
+		$args[] = "-out ".$vcf_file;
+		$args[] = "-build ".$build;
+		$args[] = "-threads ".$threads;
+		$args[] = "-target ".$sys['target_file'];
+		$args[] = "-target_extend 200";
+		$args[] = "-min_af ".$min_af;
+		$args[] = "-min_mq ".$min_mq;
+		$args[] = "-min_bq ".$min_bq;
+		$args[] = "-add_sample_header";
+		$args[] = "-name ".$name;
+		if ($gpu) $args[] = "-gpu";
+		$args[] = "-gvcf ".$gvcf_file;
+		
+		$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
 
+		//mosaic calling only for SUP samples
+		$basecall_model = get_basecall_model($used_bam_or_cram);
+		if (str_contains($basecall_model, "_sup@"))
+		{
+			$tmp_mosaic = $parser->tempFile("_mosaic.vcf.gz");
+
+			$args = [];
+			$args[] = "-bam {$used_bam_or_cram}";
+			$args[] = "-out {$tmp_mosaic}";
+			$args[] = "-name {$name}";
+			$args[] = "-model ont_r10_dorado_sup_5khz";
+			$args[] = "-threads ".$threads;
+			$args[] = "-build ".$build;
+
+			$parser->execTool("Tools/vc_clair_mosaic.php", implode(" ", $args));
+			
+			//add to main variant list
+			$vcf_merged = $parser->tempFile("_merged_mosaic.vcf");
+			$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mosaic} -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out {$vcf_merged}", [$vcf_file, $tmp_mosaic]);
+			$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
+		}
+		else
+		{
+			trigger_error("Mosaic calling is only done for superaccuracy samples!", E_USER_NOTICE);
+		}
+
+		//run mito calling
+		$tmp_mito = $parser->tempFile("_mito.vcf.gz");
+		$args = [];
+		$args[] = "-bam {$used_bam_or_cram}";
+		$args[] = "-out {$tmp_mito}";
+		$args[] = "-name {$name}";
+		//TODO get flowcell type
+		$args[] = "-data_type ont-r10";
+		$args[] = "-threads ".$threads;
+		$args[] = "-build ".$build;
+		$parser->execTool("Tools/vc_himito.php", implode(" ", $args));
+
+		//add to main variant list
+		$vcf_merged = $parser->tempFile("_merged_mosaic.vcf");
+		$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mito} -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out {$vcf_merged}", [$vcf_file]);
+		$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
+
+		//sort and remove unused contig lines
+		$parser->execApptainer("ngs-bits", "VcfSort", "-in {$vcf_file} -remove_unused_contigs -compression_level 5 -out {$vcf_file}", [$vcf_file], [dirname($vcf_file)]);
+		$parser->execApptainer("htslib", "tabix", "-f -p vcf {$vcf_file}", [$vcf_file], [dirname($vcf_file)]);
+			
+	}
+	
 	//create b-allele frequency file
 	$params = [];
 	$params[] = "-vcf {$vcf_file}";
