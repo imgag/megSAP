@@ -740,13 +740,6 @@ if ($submission_type=='initial' && !$test)
 	add_submission_to_redcap($cm_id, "G", $tan_g);
 }
 
-//if upload successfull, add 'Pruefbericht' to SAP
-if ($submission_type=='initial' && !$test)
-{
-	print "Adding VNg to SAP...\n";
-	add_submission_to_sap($se_data->case_id, "G", $tan_g);
-}
-
 //archive metadata JSON
 copy($json_file, $mvh_folder."/metadata_archive/GRZ/{$cm_id}.json");
 
@@ -758,4 +751,10 @@ if (!$test)
 
 print "cleanup took ".time_readable(microtime(true)-$time_start)."\n";
 
+//if upload successfull, add 'Pruefbericht' to SAP
+if ($submission_type=='initial' && !$test)
+{
+	print "Adding VNg to SAP (SAP case-id: ".$se_data->case_id.")...\n";
+	add_submission_to_sap($se_data->case_id, "G", $tan_g);
+}
 ?>

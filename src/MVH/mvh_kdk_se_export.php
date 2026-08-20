@@ -1048,13 +1048,6 @@ if ($submission_type=='initial' && !$test)
 	add_submission_to_redcap($cm_id, "K", $tan_k);
 }
 
-//if upload successfull, add 'Pruefbericht' to SAP
-if ($submission_type=='initial' && !$test)
-{
-	print "Adding VNk to SAP...\n";
-	add_submission_to_sap($se_data->case_id, "K", $tan_k);
-}
-
 //archive metadata JSON
 copy($json_file, $mvh_folder."/metadata_archive/KDK_SE/{$cm_id}.json");
 
@@ -1066,4 +1059,10 @@ if (!$test)
 
 print "cleanup took ".time_readable(microtime(true)-$time_start)."\n";
 
+//if upload successfull, add 'Pruefbericht' to SAP
+if ($submission_type=='initial' && !$test)
+{
+	print "Adding VNk to SAP (SAP case-id: ".$se_data->case_id.")...\n";
+	add_submission_to_sap($se_data->case_id, "K", $tan_k);
+}
 ?>
