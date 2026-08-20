@@ -231,12 +231,34 @@ function add_submission_to_sap($sap_case_id, $data_type, $tan)
 
 	$http_code = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
 	curl_close($curl);
-
-	if ($http_code<200 || $http_code>=300) trigger_error("SOAP server returned HTTP {$http_code}:\n{$response}");
-	//print "URL: $url\n";
-	//print "REQUEST: $request\n";
-	print "HTTP CODE: $http_code\n";
-	print "REPLY: $response\n";
+	
+	//check HTTP code
+	if ($http_code<200 || $http_code>=300) trigger_error("SOAP server returned HTTP {$http_code}:\nresponse: {$response}", E_USER_ERROR);
+	
+	//parse response code
+	$pos = strpos($response, "<Rc>")+4;
+	$pos2 = strpos($response, "</Rc>", $pos);
+	$response_code = substr($response, $pos, $pos2-$pos);
+	if ($response_code!=0)
+	{
+		$code2error = [
+			"1" => "Fallnr nicht vorhanden",
+			"2" => "Fallnr storniert",
+			"3" => "Vorgangsnr fehlt",
+			"4" => "Meldungstyp fehlt",
+			"5" => "Meldungsnr kann nicht zu medizinisch oder genom zugeordnet werden",
+			"6" => "Meldungsart fehlt",
+			"7" => "Fallnr nicht vorhanden in Tabelle zna_genom_prot",
+			"8" => "Fehler beim GENOM_CHECK",
+			"9" => "Verbucher meldet Fehler",
+			"10" => "Uploaddatum fehlt",
+			"11" => "Meldedatum fehlt",
+			"12" => "Fallnummer fehlt",
+		];
+		trigger_error("SOAP server returned response code {$response_code} (".$code2error[$response_code].")\nresponse: {$response}", E_USER_ERROR);
+	}
+	//print "response_code: $response_code\n";
+	//print "response: $response\n";
 }
 
 ################# converter functions #################
