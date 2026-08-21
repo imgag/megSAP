@@ -596,11 +596,11 @@ if (in_array("vc", $steps))
 
 				//split up VCF in targeted/mosaic and merge again to remove duplicates
 				$tmp_mosaic = $parser->tempFile("_mosaic.vcf");
-				$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp2} -out {$tmp_mosaic} -info_flags MOSAIC");
+				$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp2} -out {$tmp_mosaic} -info_flags MOSAIC -ref $genome", [$genome]);
 				$tmp_targeted = $parser->tempFile("_targeted.vcf");
-				$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp2} -out {$tmp_targeted} -info_flags TARGETED");
+				$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp2} -out {$tmp_targeted} -info_flags TARGETED -ref $genome", [$genome]);
 				$tmp_normal = $parser->tempFile("_normal.vcf");
-				$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp2} -out {$tmp_normal} -info_flags_exclude MOSAIC,TARGETED");
+				$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp2} -out {$tmp_normal} -info_flags_exclude MOSAIC,TARGETED -ref $genome", [$genome]);
 
 				$tmp3 = $parser->tempFile("_with_mosaic.vcf");
 				$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$tmp_normal} {$tmp_mosaic} -out {$tmp3} -filter mosaic -filter_desc Variant_is_called_by_mosaic_caller -skip_duplicates");
