@@ -672,12 +672,14 @@ if (in_array("vc", $steps))
 		if ($mito)
 		{
 			$vcffile_mito = $parser->tempFile("_mito.vcf.gz");
-			if (!$no_dragen && file_exists($dragen_output_vcf) && contains_mito($dragen_output_vcf))
+			if (!$no_dragen && file_exists($dragen_output_vcf) && contains_mito($dragen_output_vcf) && is_dragen_pangenome_bam($used_bam_or_cram))
 			{
-				trigger_error("DRAGEN analysis found in sample folder. Using this data for mito small variant calling. ", E_USER_NOTICE);
+				trigger_error("DRAGEN analysis found in sample folder. Using DRAGEN mito small variants calls.", E_USER_NOTICE);
 				$pipeline = [];
 				
 				$pipeline[] = array("zcat", $dragen_output_vcf);
+				
+				//TODO Marc: rename chrM to chrMT
 				
 				//filter by target region and quality 5
 				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfFilter", "-reg chrMT:1-16569 -qual 5 -filter_clear -ref $genome", [$genome], [], true));

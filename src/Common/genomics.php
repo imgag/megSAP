@@ -2021,6 +2021,26 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 	return 1;
 }
 
+//cecks if the BAM/CRAM file is based on the DRAGEN pan-genome
+function is_dragen_pangenome_bam($filename)
+{
+	//check file exists
+	if (!file_exists($filename)) trigger_error("File does not exist: {$filename}",  E_USER_ERROR);
+	
+	//check in BAM/CRAM header for parameters starting with "--ht-graph"
+	$samtools_command = execApptainer("samtools", "samtools view", "-H $filename", [$filename], [], true);
+	list($stdout) = exec2("{$samtools_command} | egrep '@PG'");
+	foreach($stdout as $line)
+	{
+		if (contains($line, "--ht-graph-msvcf-file="))
+		{
+			return true;
+		}
+	}
+	
+	return false;
+}
+
 //checks if mito is called 'chrM', so it has to be renamed to 'chrMT'
 function mito_is_chrM($filename)
 {

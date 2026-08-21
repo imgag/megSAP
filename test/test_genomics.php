@@ -3,6 +3,14 @@
 include("framework.php");
 
 //##################################################################################
+start_test("is_dragen_pangenome_bam");
+
+check(is_dragen_pangenome_bam(data_folder()."/get_read_count_in2.cram"), false);
+check(is_dragen_pangenome_bam(data_folder()."/dragen_pangenome.bam"), true);
+
+end_test();
+
+//##################################################################################
 start_test("mito_is_chrM");
 
 //BAM
