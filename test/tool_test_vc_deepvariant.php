@@ -41,6 +41,21 @@ $out_file6 = output_folder().$name."_out6.vcf.gz";
 check_exec("php ".src_folder()."/Tools/{$name}.php -bam ".data_folder().$name."_in.bam -out $out_file6 -model_type WES -target ".data_folder().$name."_in.bed -gvcf ".output_folder().$name."_out6.gvcf.gz --log ".output_folder().$name."_out6.log");
 check_file(output_folder().$name."_out6.gvcf.gz", data_folder().$name."_out6.gvcf.gz");
 
+
+########################## lrGS test ############################
+//ONT
+$out_file7 = output_folder().$name."_out7.vcf.gz";
+check_exec("php ".src_folder()."/Tools/{$name}.php -threads 4 -bam ".data_folder().$name."_in_ont.bam -out $out_file7 -model_type ONT_R104 -target ".data_folder().$name."_in_lrGS.bed -gvcf ".output_folder().$name."_out7.gvcf.gz --log ".output_folder().$name."_out7.log");
+check_file(output_folder().$name."_out7.vcf.gz", data_folder().$name."_out7.vcf.gz");
+check_file(output_folder().$name."_out7.gvcf.gz", data_folder().$name."_out7.gvcf.gz");
+
+//PacBio
+$out_file8 = output_folder().$name."_out8.vcf.gz";
+check_exec("php ".src_folder()."/Tools/{$name}.php -threads 4 -bam ".data_folder().$name."_in_pacbio.bam -out $out_file8 -model_type PACBIO -target ".data_folder().$name."_in_lrGS.bed -gvcf ".output_folder().$name."_out8.gvcf.gz --log ".output_folder().$name."_out8.log");
+check_file(output_folder().$name."_out8.vcf.gz", data_folder().$name."_out8.vcf.gz");
+check_file(output_folder().$name."_out8.gvcf.gz", data_folder().$name."_out8.gvcf.gz");
+
+
 end_test();
 
 ?>

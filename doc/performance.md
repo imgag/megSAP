@@ -131,7 +131,6 @@ The benchmarks were performed on the GIAB high-confidence region **with at least
 	
 ## Small variants benchmark - coding region
 
-All small variant benchmarks above are done on regions with at least with 15x coverage.  
 To allow a comparison of WES, WGS and lrGS independent of the coverage, we also perfomed a benchmark without depth cutoff on the coding region of all protein-coding genes padded by two bases to include the consensus splice sites.
 
 <table>
