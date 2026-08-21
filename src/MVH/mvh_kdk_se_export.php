@@ -1062,7 +1062,7 @@ print "cleanup took ".time_readable(microtime(true)-$time_start)."\n";
 //if upload successfull, add 'Pruefbericht' to SAP
 if ($submission_type=='initial' && !$test)
 {
-	print "Adding VNk to SAP (SAP case-id: ".$se_data->case_id.")...\n";
-	add_submission_to_sap($se_data->case_id, "K", $tan_k);
+	print "Adding VNk to SAP (SAP case-id: ".$cm_data->case_id.")...\n";
+	add_submission_to_sap($cm_data->case_id, "K", $tan_k);
 }
 ?>
