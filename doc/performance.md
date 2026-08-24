@@ -149,39 +149,39 @@ To allow a comparison of WES, WGS and lrGS independent of the coverage, we also 
 	</tr>
 	<tr>
 		<td>short-read WES - bwa-mem2, DeepVariant 1.9</td>
-		<td>0.9897</td>
-        <td>0.9868</td>
-        <td>0.9999</td>
-        <td>0.9739</td>
-        <td>0.9760</td>
-        <td>1.0000</td>
+		<td>0.9634</td>
+        <td>0.9828</td>
+        <td>0.9991</td>
+        <td>0.8793</td>
+        <td>0.9725</td>
+        <td>0.9978</td>
 	</tr>
 	<tr>
 		<td>short-read WES - DRAGEN 4.4</td>
-		<td>0.9878</td>
-        <td>0.9974</td>
-        <td>0.9993</td>
-        <td>0.9799</td>
-        <td>0.9799</td>
-        <td>0.9977</td>
+		<td>0.9584</td>
+		<td>0.9971</td>
+		<td>0.9990</td>
+		<td>0.8755</td>
+		<td>0.9807</td>
+		<td>0.9934</td>
 	</tr>
 	<tr>
 		<td>short-read WGS - bwa-mem2, DeepVariant 1.9</td>
-		<td>0.9957</td>
-        <td>0.9915</td>
-        <td>0.9997</td>
-        <td>0.9845</td>
-        <td>0.9903</td>
+		<td>0.9930</td>
+        <td>0.9875</td>
+        <td>0.9989</td>
+        <td>0.9770</td>
+        <td>0.9884</td>
         <td>0.9980</td>
 	</tr>
 	<tr>
 		<td>short-read WGS - DRAGEN 4.4</td>
-		<td>0.9964</td>
-        <td>0.9973</td>
-        <td>0.9996</td>
-        <td>0.9884</td>
-        <td>0.9771</td>
-        <td>0.9980</td>
+		<td>0.9938</td>
+        <td>0.9972</td>
+        <td>0.9993</td>
+        <td>0.9847</td>
+        <td>0.9772</td>
+        <td>0.9981</td>
 	</tr>
 	<tr>
 		<td>long-read WGS (HAC6.0, minimap2, clair3v1.2)</td>
