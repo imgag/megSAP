@@ -339,8 +339,8 @@ $qc_map = $prefix."_stats_map.qcML";
 if (in_array("ma", $steps))
 {
 	//check FASTQ quality encoding
-	$files = array_merge($in_for, $in_rev);
-	foreach ($files as $file)
+	$fastq_files = array_merge($in_for, $in_rev);
+	foreach ($fastq_files as $file)
 	{
 		list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "FastqFormat", "-in {$file}", [$file]);
 		if (!contains($stdout[2], "Sanger"))
@@ -359,12 +359,12 @@ if (in_array("ma", $steps))
 	$fastq_trimmed1 = $parser->tempFile("_trimmed.fastq.gz");
 	$fastq_trimmed2 = $parser->tempFile("_trimmed.fastq.gz");
 	$seqpurge_params = [
-		"-out1", $fastq_trimmed1,
-		"-out2", $fastq_trimmed2,
-		"-a1", $sys["adapter1_p5"],
-		"-a2", $sys["adapter2_p7"],
-		"-qc", $qc_fastq,
-		"-threads", bound($threads, 1, 6),
+		"-out1 ".$fastq_trimmed1,
+		"-out2 ".$fastq_trimmed2,
+		"-a1 ".$sys["adapter1_p5"],
+		"-a2 ".$sys["adapter2_p7"],
+		"-qc ".$qc_fastq,
+		"-threads ".bound($threads, 1, 6),
 		"-qcut 0"
 	];
 
@@ -386,11 +386,8 @@ if (in_array("ma", $steps))
 				trigger_error("No UMI read files found! Aborting analysis.", E_USER_ERROR);
 			}
 
-			$seqpurge_params = array_merge($seqpurge_params,
-			[
-				"-in1", implode(" ", $in_for),
-				"-in2", implode(" ", $in_rev)
-			]);
+			$seqpurge_params[] = "-in1 ".implode(" ", $in_for);
+			$seqpurge_params[] = "-in2 ".implode(" ", $in_rev);
 		}
 		else
 		{
@@ -399,24 +396,18 @@ if (in_array("ma", $steps))
 			$merged2_bc = $parser->tempFile("_bc2.fastq.gz");
 			$parser->execApptainer("ngs-bits", "FastqAddBarcode", "-in1 ".implode(" ", $in_for)." -in2 ".implode(" ", $in_rev)." -in_barcode ".implode(" ", $in_umi)." -out1 $merged1_bc -out2 $merged2_bc", [$folder]);
 			
-			$seqpurge_params = array_merge($seqpurge_params,
-				[
-					"-in1", $merged1_bc,
-					"-in2", $merged2_bc
-				]);
+			$seqpurge_params[] = "-in1 ".$merged1_bc;
+			$seqpurge_params[] = "-in2 ".$merged2_bc;
 		}
 	}
 	else
 	{
-		$seqpurge_params = array_merge($seqpurge_params,
-			[
-				"-in1", implode(" ", $in_for),
-				"-in2", implode(" ", $in_rev)
-			]);
+		$seqpurge_params[] = "-in1 ".implode(" ", $in_for);
+		$seqpurge_params[] = "-in2 ".implode(" ", $in_rev);
 	}
 
 
-	$parser->execApptainer("ngs-bits", "SeqPurge", implode(" ", $seqpurge_params), [$folder], [$out_folder]);
+	$parser->execApptainer("ngs-bits", "SeqPurge", implode(" ", $seqpurge_params), $fastq_files);
 
 	//cut off Twist UMIs
 	if (in_array($sys['umi_type'], ["Twist"]))
