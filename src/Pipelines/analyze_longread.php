@@ -235,7 +235,7 @@ if (in_array("ma", $steps))
 	if ($cram_exists) $rc_mapped_bam = get_read_count($cram_file, max(8, $threads), array("-F", "2304"), $sys['build']);
 	else if ($bam_exists) $rc_mapped_bam = get_read_count($bam_file, max(8, $threads), array("-F", "2304"), $sys['build']);
 	else trigger_error("Cannot delete FASTQ/BAM files - no BAM/CRAM file found!", E_USER_ERROR);
-	trigger_error("Mapped BAM file read counts: ".$rc_mapped_bam, E_USER_NOTICE);
+	//trigger_error("Mapped BAM file read counts: ".$rc_mapped_bam, E_USER_NOTICE);
 
 	//if reanalysis is performed: remove temporary subfolder
 	if (isset($old_bam_files_moved) && count($old_bam_files_moved) > 0)
@@ -245,7 +245,7 @@ if (in_array("ma", $steps))
 		foreach ($old_bam_files_moved as $old_bam) 
 		{
 			$read_count = get_read_count($old_bam, max(8, $threads), array("-F", "2304"), $sys['build']);
-			trigger_error("Previous BAM/CRAM file read counts (".$old_bam."): ".$read_count, E_USER_NOTICE);
+			//trigger_error("Previous BAM/CRAM file read counts (".$old_bam."): ".$read_count, E_USER_NOTICE);
 			$rc_old += $read_count;
 		}
 
@@ -256,11 +256,11 @@ if (in_array("ma", $steps))
 		if (($rc_mapped_bam == $rc_old) || ($rel_diff < 0.0001))
 		{
 			// remove old BAM(s)
-			if ($rc_mapped_bam == $rc_old) trigger_error("Read count of mapped and unmapped BAM(s) match. Deleting old BAM(s)/CRAM(s)...", E_USER_NOTICE);
-			if ($rel_diff < 0.0001) trigger_error("Read count of new and old BAM(s)/CRAM(s) in allowed tolerance (<0.01%) (".($rel_diff*100)."%). Deleting old BAM(s)/CRAM(s)...", E_USER_NOTICE);
+			//if ($rc_mapped_bam == $rc_old) trigger_error("Read count of mapped and unmapped BAM(s) match. Deleting old BAM(s)/CRAM(s)...", E_USER_NOTICE);
+			if ($rel_diff < 0.0001) trigger_error("Read count of new and old BAM(s)/CRAM(s) in allowed tolerance (<0.01%) (".($rel_diff*100)."%). Deleting old BAM(s)/CRAM(s) anyway...", E_USER_NOTICE);
 			$mapping_folder = "{$folder}/bams_for_mapping";
 			$parser->exec("rm", "-r {$mapping_folder}");
-			trigger_error("previous BAM/CRAM file removed!", E_USER_NOTICE);
+			//trigger_error("previous BAM/CRAM file removed!", E_USER_NOTICE);
 		}
 		else
 		{
@@ -1293,11 +1293,7 @@ if (in_array("db", $steps))
 			$parts = explode("\t", $line);
 			$same_samples[] = trim($parts[0]);
 		}
-		if (count($same_samples) < 1)
-		{
-			trigger_error("No related WGS/WES sample found for {$name}. Cannot perform similarity check!", E_USER_WARNING);
-		} 
-		else
+		if (count($same_samples) >= 1)
 		{
 			//check same-sample correlation for each WGS sample
 			$min_corr = 0.85;
