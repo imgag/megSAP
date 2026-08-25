@@ -975,10 +975,11 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 		$qcmls = implode(" ", array_filter([
 			"{$t_basename}_stats_fastq.qcML",
 			"{$t_basename}_stats_map.qcML",
+			"{$t_basename}_stats_other.qcML",
 			$somaticqc,
 			$qc_other
 		], "file_exists"));
-		$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps $t_id -files $qcmls -force", ["{$t_basename}_stats_fastq.qcML", "{$t_basename}_stats_map.qcML", $somaticqc, $qc_other]);
+		$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps $t_id -files $qcmls -force", ["{$t_basename}_stats_fastq.qcML", "{$t_basename}_stats_map.qcML", "{$t_basename}_stats_other.qcML", $somaticqc, $qc_other]);
 
 		// check tumor/normal flag
 		if (!$t_info['is_tumor'])
