@@ -1,0 +1,212 @@
+Built on: SRV026
+Built by: ahschul1
+Build date: 2026-08-24 11:23:02
+
+INFO:    Starting build...
+INFO:    Fetching OCI image...
+INFO:    Extracting OCI image...
+INFO:    Inserting Apptainer configuration...
+INFO:    Running post scriptlet
++ LANG=C.UTF-8
++ LC_ALL=C.UTF-8
++ PATH=/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++ apt-get update
+Get:1 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Get:2 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+Get:3 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Get:4 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Get:5 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1525 kB]
+Get:6 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
+Get:7 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1721 kB]
+Get:8 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+Get:9 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [50.0 kB]
+Get:10 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1193 kB]
+Get:11 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+Get:12 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+Get:13 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [55.8 kB]
+Get:14 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2146 kB]
+Get:15 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1522 kB]
+Get:16 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1838 kB]
+Get:17 http://archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [671 B]
+Get:18 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [48.9 kB]
+Get:19 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [35.9 kB]
+Fetched 32.3 MB in 2s (14.7 MB/s)
+Reading package lists...
++ apt-get upgrade
+Reading package lists...
+Building dependency tree...
+Reading state information...
+Calculating upgrade...
+0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
++ apt-get install -y wget
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  ca-certificates libpsl5t64 openssl publicsuffix
+The following NEW packages will be installed:
+  ca-certificates libpsl5t64 openssl publicsuffix wget
+0 upgraded, 5 newly installed, 0 to remove and 0 not upgraded.
+Need to get 1662 kB of archives.
+After this operation, 3695 kB of additional disk space will be used.
+Get:1 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 openssl amd64 3.0.13-0ubuntu3.12 [1003 kB]
+Get:2 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 ca-certificates all 20260601~24.04.1 [139 kB]
+Get:3 http://archive.ubuntu.com/ubuntu noble/main amd64 libpsl5t64 amd64 0.21.2-1.1build1 [57.1 kB]
+Get:4 http://archive.ubuntu.com/ubuntu noble/main amd64 publicsuffix all 20231001.0357-0.1 [129 kB]
+Get:5 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 wget amd64 1.21.4-1ubuntu4.5 [334 kB]
+debconf: delaying package configuration, since apt-utils is not installed
+Fetched 1662 kB in 0s (3873 kB/s)
+Selecting previously unselected package openssl.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4381 files and directories currently installed.)
+Preparing to unpack .../openssl_3.0.13-0ubuntu3.12_amd64.deb ...
+Unpacking openssl (3.0.13-0ubuntu3.12) ...
+Selecting previously unselected package ca-certificates.
+Preparing to unpack .../ca-certificates_20260601~24.04.1_all.deb ...
+Unpacking ca-certificates (20260601~24.04.1) ...
+Selecting previously unselected package libpsl5t64:amd64.
+Preparing to unpack .../libpsl5t64_0.21.2-1.1build1_amd64.deb ...
+Unpacking libpsl5t64:amd64 (0.21.2-1.1build1) ...
+Selecting previously unselected package publicsuffix.
+Preparing to unpack .../publicsuffix_20231001.0357-0.1_all.deb ...
+Unpacking publicsuffix (20231001.0357-0.1) ...
+Selecting previously unselected package wget.
+Preparing to unpack .../wget_1.21.4-1ubuntu4.5_amd64.deb ...
+Unpacking wget (1.21.4-1ubuntu4.5) ...
+Setting up libpsl5t64:amd64 (0.21.2-1.1build1) ...
+Setting up openssl (3.0.13-0ubuntu3.12) ...
+Setting up publicsuffix (20231001.0357-0.1) ...
+Setting up wget (1.21.4-1ubuntu4.5) ...
+Setting up ca-certificates (20260601~24.04.1) ...
+debconf: unable to initialize frontend: Dialog
+debconf: (No usable dialog-like program is installed, so the dialog based frontend cannot be used. at /usr/share/perl5/Debconf/FrontEnd/Dialog.pm line 79.)
+debconf: falling back to frontend: Readline
+debconf: unable to initialize frontend: Readline
+debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC entries checked: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.38.2 /usr/local/share/perl/5.38.2 /usr/lib/x86_64-linux-gnu/perl5/5.38 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl-base /usr/lib/x86_64-linux-gnu/perl/5.38 /usr/share/perl/5.38 /usr/local/lib/site_perl) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 8.)
+debconf: falling back to frontend: Teletype
+Updating certificates in /etc/ssl/certs...
+121 added, 0 removed; done.
+Processing triggers for libc-bin (2.39-0ubuntu8.8) ...
+Processing triggers for ca-certificates (20260601~24.04.1) ...
+Updating certificates in /etc/ssl/certs...
+0 added, 0 removed; done.
+Running hooks in /etc/ca-certificates/update.d...
+done.
++ rm -rf /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-backports_InRelease /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-backports_main_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-backports_multiverse_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-backports_universe_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-updates_InRelease /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-updates_main_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-updates_multiverse_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-updates_restricted_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-updates_universe_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble_InRelease /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble_main_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble_multiverse_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble_restricted_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble_universe_binary-amd64_Packages.lz4 /var/lib/apt/lists/auxfiles /var/lib/apt/lists/lock /var/lib/apt/lists/partial /var/lib/apt/lists/security.ubuntu.com_ubuntu_dists_noble-security_InRelease /var/lib/apt/lists/security.ubuntu.com_ubuntu_dists_noble-security_main_binary-amd64_Packages.lz4 /var/lib/apt/lists/security.ubuntu.com_ubuntu_dists_noble-security_multiverse_binary-amd64_Packages.lz4 /var/lib/apt/lists/security.ubuntu.com_ubuntu_dists_noble-security_restricted_binary-amd64_Packages.lz4 /var/lib/apt/lists/security.ubuntu.com_ubuntu_dists_noble-security_universe_binary-amd64_Packages.lz4
++ cd /opt
++ wget https://github.com/PacificBiosciences/sawfish/releases/download/v2.2.1/sawfish-v2.2.1-x86_64-unknown-linux-gnu.tar.gz
+--2026-08-24 09:23:12--  https://github.com/PacificBiosciences/sawfish/releases/download/v2.2.1/sawfish-v2.2.1-x86_64-unknown-linux-gnu.tar.gz
+Resolving httpproxy.zit.med.uni-tuebingen.de (httpproxy.zit.med.uni-tuebingen.de)... 192.168.31.57
+Connecting to httpproxy.zit.med.uni-tuebingen.de (httpproxy.zit.med.uni-tuebingen.de)|192.168.31.57|:8080... connected.
+Proxy request sent, awaiting response... 302 Found
+Location: https://release-assets.githubusercontent.com/github-production-release-asset/761478964/d3561ad9-d3f4-4b8e-8500-b6e3381413e7?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-08-24T09%3A57%3A21Z&rscd=attachment%3B+filename%3Dsawfish-v2.2.1-x86_64-unknown-linux-gnu.tar.gz&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-08-24T08%3A56%3A22Z&ske=2026-08-24T09%3A57%3A21Z&sks=b&skv=2018-11-09&sig=XyiGi72gRFTzT0KDNkX4PzUwDzg2vBWB9X4AyY%2FWfz8%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc4NzU2MzY5MiwibmJmIjoxNzg3NTYzMzkyLCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.2-mrOkbGkpVrvuoPGR8if10QSGNiUbW4TAYPkw5ITJE&response-content-disposition=attachment%3B%20filename%3Dsawfish-v2.2.1-x86_64-unknown-linux-gnu.tar.gz&response-content-type=application%2Foctet-stream [following]
+--2026-08-24 09:23:12--  https://release-assets.githubusercontent.com/github-production-release-asset/761478964/d3561ad9-d3f4-4b8e-8500-b6e3381413e7?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-08-24T09%3A57%3A21Z&rscd=attachment%3B+filename%3Dsawfish-v2.2.1-x86_64-unknown-linux-gnu.tar.gz&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-08-24T08%3A56%3A22Z&ske=2026-08-24T09%3A57%3A21Z&sks=b&skv=2018-11-09&sig=XyiGi72gRFTzT0KDNkX4PzUwDzg2vBWB9X4AyY%2FWfz8%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc4NzU2MzY5MiwibmJmIjoxNzg3NTYzMzkyLCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.2-mrOkbGkpVrvuoPGR8if10QSGNiUbW4TAYPkw5ITJE&response-content-disposition=attachment%3B%20filename%3Dsawfish-v2.2.1-x86_64-unknown-linux-gnu.tar.gz&response-content-type=application%2Foctet-stream
+Connecting to httpproxy.zit.med.uni-tuebingen.de (httpproxy.zit.med.uni-tuebingen.de)|192.168.31.57|:8080... connected.
+Proxy request sent, awaiting response... 200 OK
+Length: 3616061 (3.4M) [application/octet-stream]
+Saving to: ‘sawfish-v2.2.1-x86_64-unknown-linux-gnu.tar.gz’
+
+     0K .......... .......... .......... .......... ..........  1% 3.71M 1s
+    50K .......... .......... .......... .......... ..........  2% 11.0M 1s
+   100K .......... .......... .......... .......... ..........  4% 14.1M 0s
+   150K .......... .......... .......... .......... ..........  5% 14.1M 0s
+   200K .......... .......... .......... .......... ..........  7% 22.7M 0s
+   250K .......... .......... .......... .......... ..........  8% 18.0M 0s
+   300K .......... .......... .......... .......... ..........  9% 12.0M 0s
+   350K .......... .......... .......... .......... .......... 11% 15.1M 0s
+   400K .......... .......... .......... .......... .......... 12% 10.5M 0s
+   450K .......... .......... .......... .......... .......... 14% 35.0M 0s
+   500K .......... .......... .......... .......... .......... 15% 11.9M 0s
+   550K .......... .......... .......... .......... .......... 16% 22.6M 0s
+   600K .......... .......... .......... .......... .......... 18% 19.9M 0s
+   650K .......... .......... .......... .......... .......... 19% 14.3M 0s
+   700K .......... .......... .......... .......... .......... 21% 24.2M 0s
+   750K .......... .......... .......... .......... .......... 22% 8.88M 0s
+   800K .......... .......... .......... .......... .......... 24% 23.1M 0s
+   850K .......... .......... .......... .......... .......... 25% 22.4M 0s
+   900K .......... .......... .......... .......... .......... 26% 16.7M 0s
+   950K .......... .......... .......... .......... .......... 28% 27.0M 0s
+  1000K .......... .......... .......... .......... .......... 29% 17.2M 0s
+  1050K .......... .......... .......... .......... .......... 31% 21.6M 0s
+  1100K .......... .......... .......... .......... .......... 32% 20.3M 0s
+  1150K .......... .......... .......... .......... .......... 33% 16.6M 0s
+  1200K .......... .......... .......... .......... .......... 35% 30.3M 0s
+  1250K .......... .......... .......... .......... .......... 36% 19.4M 0s
+  1300K .......... .......... .......... .......... .......... 38% 26.4M 0s
+  1350K .......... .......... .......... .......... .......... 39% 22.4M 0s
+  1400K .......... .......... .......... .......... .......... 41% 22.2M 0s
+  1450K .......... .......... .......... .......... .......... 42% 21.2M 0s
+  1500K .......... .......... .......... .......... .......... 43% 32.9M 0s
+  1550K .......... .......... .......... .......... .......... 45% 16.8M 0s
+  1600K .......... .......... .......... .......... .......... 46% 19.9M 0s
+  1650K .......... .......... .......... .......... .......... 48% 33.9M 0s
+  1700K .......... .......... .......... .......... .......... 49% 38.9M 0s
+  1750K .......... .......... .......... .......... .......... 50% 21.8M 0s
+  1800K .......... .......... .......... .......... .......... 52% 22.7M 0s
+  1850K .......... .......... .......... .......... .......... 53% 18.5M 0s
+  1900K .......... .......... .......... .......... .......... 55% 2.92M 0s
+  1950K .......... .......... .......... .......... .......... 56% 59.2M 0s
+  2000K .......... .......... .......... .......... .......... 58%  101M 0s
+  2050K .......... .......... .......... .......... .......... 59% 60.0M 0s
+  2100K .......... .......... .......... .......... .......... 60% 78.1M 0s
+  2150K .......... .......... .......... .......... .......... 62% 50.7M 0s
+  2200K .......... .......... .......... .......... .......... 63% 47.3M 0s
+  2250K .......... .......... .......... .......... .......... 65% 48.9M 0s
+  2300K .......... .......... .......... .......... .......... 66% 47.7M 0s
+  2350K .......... .......... .......... .......... .......... 67% 63.1M 0s
+  2400K .......... .......... .......... .......... .......... 69% 85.7M 0s
+  2450K .......... .......... .......... .......... .......... 70% 95.0M 0s
+  2500K .......... .......... .......... .......... .......... 72% 62.3M 0s
+  2550K .......... .......... .......... .......... .......... 73% 50.6M 0s
+  2600K .......... .......... .......... .......... .......... 75% 82.9M 0s
+  2650K .......... .......... .......... .......... .......... 76% 57.9M 0s
+  2700K .......... .......... .......... .......... .......... 77% 41.4M 0s
+  2750K .......... .......... .......... .......... .......... 79% 29.9M 0s
+  2800K .......... .......... .......... .......... .......... 80% 25.8M 0s
+  2850K .......... .......... .......... .......... .......... 82% 31.5M 0s
+  2900K .......... .......... .......... .......... .......... 83% 38.0M 0s
+  2950K .......... .......... .......... .......... .......... 84% 35.5M 0s
+  3000K .......... .......... .......... .......... .......... 86% 68.7M 0s
+  3050K .......... .......... .......... .......... .......... 87% 16.4M 0s
+  3100K .......... .......... .......... .......... .......... 89% 36.6M 0s
+  3150K .......... .......... .......... .......... .......... 90% 29.3M 0s
+  3200K .......... .......... .......... .......... .......... 92% 56.9M 0s
+  3250K .......... .......... .......... .......... .......... 93% 59.1M 0s
+  3300K .......... .......... .......... .......... .......... 94% 17.8M 0s
+  3350K .......... .......... .......... .......... .......... 96% 24.6M 0s
+  3400K .......... .......... .......... .......... .......... 97% 4.97M 0s
+  3450K .......... .......... .......... .......... .......... 99% 51.7M 0s
+  3500K .......... .......... .......... .                    100% 73.7M=0.2s
+
+2026-08-24 09:23:13 (20.0 MB/s) - ‘sawfish-v2.2.1-x86_64-unknown-linux-gnu.tar.gz’ saved [3616061/3616061]
+
++ tar -xzf sawfish-v2.2.1-x86_64-unknown-linux-gnu.tar.gz
++ apt-get remove -y wget
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following packages were automatically installed and are no longer required:
+  libpsl5t64 publicsuffix
+Use 'apt autoremove' to remove them.
+The following packages will be REMOVED:
+  wget
+0 upgraded, 0 newly installed, 1 to remove and 0 not upgraded.
+After this operation, 938 kB disk space will be freed.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4864 files and directories currently installed.)
+Removing wget (1.21.4-1ubuntu4.5) ...
++ apt-get autoremove -y
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following packages will be REMOVED:
+  libpsl5t64 publicsuffix
+0 upgraded, 0 newly installed, 2 to remove and 0 not upgraded.
+After this operation, 485 kB disk space will be freed.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4854 files and directories currently installed.)
+Removing libpsl5t64:amd64 (0.21.2-1.1build1) ...
+Removing publicsuffix (20231001.0357-0.1) ...
+Processing triggers for libc-bin (2.39-0ubuntu8.8) ...
++ apt-get clean
++ rm -rf /var/lib/apt/lists/auxfiles /var/lib/apt/lists/lock /var/lib/apt/lists/partial
+INFO:    Adding environment to container
+INFO:    Creating SIF file...
+INFO:    Build complete: sawfish_v2.2.1-20260824.sif
