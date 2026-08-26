@@ -684,8 +684,34 @@ if (in_array("cn", $steps))
 //structural variants
 if (in_array("sv", $steps))
 {
-	//run Sniffles
-	$parser->execTool("Tools/vc_sniffles.php", "-bam {$used_bam_or_cram} -include_mosaic -sample_ids {$name} -out {$sv_vcf_file} -threads {$threads} -build {$build} --log ".$parser->getLogFile());
+	if ($platform == "PacBio")
+	{
+		//run sawfish
+		$gender = "n/a";
+		if (db_is_enabled("NGSD"))
+		{
+			$db = DB::getInstance("NGSD", false);
+			$info = get_processed_sample_info($db, $name, false);
+			if (!is_null($info)) $gender  = $info['gender'];
+		}
+		$args = array();
+		$args[] = "-bams {$used_bam_or_cram}";
+		$args[] = "-genders '{$gender}'";
+		$args[] = "-sample_ids {$name}";
+		$args[] = "-out {$sv_vcf_file}";
+		$args[] = "-threads {$threads}";
+		$args[] = "-build {$build}";
+		$args[] = "-keep_common_cnvs";
+		$args[] = "--log ".$parser->getLogFile();
+		if (file_exists($vcf_file)) $args[] = "-small_var_vcfs {$vcf_file}";
+		$parser->execTool("Tools/vc_sawfish.php", implode(" ", $args));      
+	}
+	else
+	{
+		//run Sniffles
+		$parser->execTool("Tools/vc_sniffles.php", "-bam {$used_bam_or_cram} -include_mosaic -sample_ids {$name} -out {$sv_vcf_file} -threads {$threads} -build {$build} --log ".$parser->getLogFile());
+	}
+	
 }
 
 //phasing

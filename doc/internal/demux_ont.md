@@ -100,6 +100,10 @@ them is started with basecalling. Then rename the `bam_pass` folder and start th
  	 ```
 9. Delete the run raw data (when all samples are analyzed with passed QC, raw data is copied to buffer and backup is done):
 	- delete from PromethION
+	```bash
+ 	ssh prom@[IP]
+	rm -r /data/[VULCAN/MINERVA]/[BATCH_NAME]
+	```   
  	- delete from /mnt/storage3/raw_data
   	- after 3 months: delete from buffer
 	```bash
