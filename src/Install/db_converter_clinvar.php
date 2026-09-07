@@ -62,7 +62,7 @@ while(!feof($in))
 	$chr = "chr".$chr;
 	
 	//skip special chromosomes
-	if (chr_check($chr, 22, false)===FALSE)
+	if (chr_check($chr, false)===FALSE)
 	{
 		if ($debug) print "SKIPPED CHR: $line\n";
 		continue;

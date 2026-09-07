@@ -42,3 +42,6 @@ circos_karyotype_files:
 roh_exclude_regions:
 	#Excluded regions for ROH analysis: centromer regions, telomer regions, N base regions, unmappable regions. 
 	#Filtered for >500kb and manually curated: /mnt/storage2/users/ahsturm1/scripts/2025_02_21_RohHunter_dragen4.3/
+	
+unsupported_regions_dragen44_pangenome:
+	cp /mnt/storage5/users/ahsturm1/scripts/2026_07_31_DRAGEN_pangenome_use_in_megSAP/unsupported.bed unsupported_regions_dragen44_pangenome.bed

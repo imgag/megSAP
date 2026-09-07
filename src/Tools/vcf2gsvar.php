@@ -616,7 +616,7 @@ while(!gzeof($handle))
 	}
 
 	//parse variant data from VCF
-	if(chr_check($chr, 22, false) === FALSE) continue; //skip bad chromosomes
+	if(chr_check($chr, false) === FALSE) continue; //skip bad chromosomes
 	$start = $pos;
 	$end = $pos;
 	$ref = strtoupper($ref);

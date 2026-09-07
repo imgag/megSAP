@@ -212,15 +212,32 @@ if (!in_array("ma", $steps) && !$no_dragen && file_exists($dragen_folder))
 {
 	if ($dragen_bam_or_cram_exists)
 	{
+		$illumina_ref = get_path("data_folder")."/dbs/illumina_dragen44_genome/hg38.fa";
+		$unsupported_regs = repository_basedir()."/data/misc/unsupported_regions_dragen44_pangenome.bed";
 		if (file_exists($dragen_cram))
 		{
-			$parser->moveFile($dragen_cram, $cramfile);
-			$parser->moveFile($dragen_cram.".crai", $cramfile.".crai");
+			if (is_dragen_pangenome_bam($dragen_cram))
+			{
+				$parser->execTool("Tools/convert_dragen_cram.php", "-in $dragen_cram -in_ref $illumina_ref -unsupported $unsupported_regs -threads $threads -out $cramfile");
+				exit(1); //TODO remove
+			}
+			else
+			{
+				$parser->moveFile($dragen_cram, $cramfile);
+				$parser->moveFile($dragen_cram.".crai", $cramfile.".crai");
+			}
 		}
 		else
 		{
-			$parser->moveFile($dragen_bam, $bamfile);
-			$parser->moveFile($dragen_bam.".bai", $bamfile.".bai");
+			if (is_dragen_pangenome_bam($dragen_bam))
+			{	
+				$parser->execTool("Tools/convert_dragen_cram.php", "-in $dragen_bam -in_ref $illumina_ref -unsupported $unsupported_regs -threads $threads -out $cramfile");
+			}
+			else
+			{
+				$parser->moveFile($dragen_bam, $bamfile);
+				$parser->moveFile($dragen_bam.".bai", $bamfile.".bai");
+			}
 		}
 		$bam_or_cram_exists = true;
 	}

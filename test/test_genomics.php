@@ -2,6 +2,18 @@
 
 include("framework.php");
 
+
+//##################################################################################
+start_test("is_dragen_pangenome_bam");
+
+$chr_sizes = genome_chr_sizes(genome_fasta("GRCh38"));
+
+check(count($chr_sizes), 2580);
+check($chr_sizes["chr9"], 138394717);
+check($chr_sizes["chrMT"], 16569);
+
+end_test();
+
 //##################################################################################
 start_test("is_dragen_pangenome_bam");
 
@@ -239,11 +251,11 @@ check(chr_check("chrM"), true);
 check(chr_check("1"), true);
 check(chr_check("chr22"), true);
 
-check(chr_check("chr0",22,false), false);
-check(chr_check("0",22,false), false);
-check(chr_check("chr23",22,false), false);
-check(chr_check("23",22,false), false);
-check(chr_check("chrO",22,false), false);
+check(chr_check("chr0",false), false);
+check(chr_check("0",false), false);
+check(chr_check("chr23",false), false);
+check(chr_check("23",false), false);
+check(chr_check("chrO",false), false);
 
 end_test();
 

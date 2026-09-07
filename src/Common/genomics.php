@@ -224,7 +224,7 @@ function from_IUPAC($in)
 function chr_trim($chr)
 {
 	$chr = strtoupper($chr);
-	if (strlen($chr)>3 && $chr[0]=="C" && $chr[1]=="H" && $chr[2]=="R")
+	if (starts_with($chr, "CHR"))
 	{
 		$chr = substr($chr, 3);
 	}
@@ -232,16 +232,16 @@ function chr_trim($chr)
 }
 
 /**
-	@brief Checks if a chromosome string is valid: 1, 2, ..., $max, X, Y, M.
+	@brief Checks if a chromosome string is valid: 1, 2, ..., 22, X, Y, M.
 	
 	@return The sanitized chromosome string.
 	@ingroup genomics
 */
-function chr_check($chr, $max = 22, $fail_trigger_error = true)
+function chr_check($chr, $fail_trigger_error = true)
 {
 	$chr = chr_trim($chr);
 	
-	if($chr!="X" && $chr!="Y" && $chr!="M" && $chr!="MT" && (!ctype_digit($chr) || $chr<1 || $chr>$max))
+	if($chr!="X" && $chr!="Y" && $chr!="M" && $chr!="MT" && (!ctype_digit($chr) || $chr<1 || $chr>22))
 	{
 		if ($fail_trigger_error)
 		{
@@ -1487,23 +1487,40 @@ function genome_fasta($build, $use_local_data=true, $use_local_ramdrive=true)
 	return get_path("data_folder")."/genomes/".$build.".fa";
 }
 
-//Create Bed File that contains off target regions of a target region
+//Returns a map of chromosome name to chromosome size for a given genome fasta file
+function genome_chr_sizes($fasta)
+{
+	$fai = "{$fasta}.fai";
+	if (!file_exists($fai)) trigger_error("FAI file '{$fai}' is missing!", E_USER_ERROR);
+		
+	$chrs = [];
+	foreach(file($fai) as $line)
+	{
+		$line = nl_trim($line);
+		if ($line=="") continue;
+		
+		$parts = explode("\t", $line);
+		if (count($parts)!=5) trigger_error("Error parsing FAI file '$fai': Line does not contain 5 parts: $line", E_USER_ERROR);
+		list($chr, $size) = $parts;
+		
+		$chrs[$chr] = intval($size);
+	}
+	return $chrs;
+}
+
+//Create BED File that contains off target regions of a target region
 function create_off_target_bed_file($out,$target_file,$ref_genome_fasta)
 {
-	//generate bed file that contains edges of whole reference genome
-	$handle_in = fopen2("{$ref_genome_fasta}.fai","r");
+	//generate BED file that contains the whole reference genome, exculuding special chromosomes
 	$ref_bed = temp_file(".bed");
 	$handle_out = fopen2($ref_bed,"w");
-	while(!feof($handle_in))
+	foreach(genome_chr_sizes($ref_genome_fasta) as $chr => $chr_length)
 	{
-		$line = trim(fgets($handle_in));
-		if(empty($line)) continue;
-		list($chr,$chr_length) = explode("\t",$line);
-		if(chr_check($chr,22,false) === false) continue;
-		$chr_length--; //0-based coordinates
+		if(chr_check($chr, false) === false) continue;
+		
+		--$chr_length; //0-based coordinates
 		fputs($handle_out,"{$chr}\t0\t{$chr_length}\n");
 	}
-	fclose($handle_in);
 	fclose($handle_out);
 	
 	//Create off target bed file
@@ -2688,19 +2705,8 @@ function vcf_add_missing_contigs($build, $filename)
 	if(!$contains_contig)
 	{
 		//add new contig lines to comments
-		$fai_file = genome_fasta($build).".fai";
-		if (!file_exists($fai_file)) trigger_error("FAI file '{$fai_file}' is missing!", E_USER_ERROR);
-		foreach (file($fai_file) as $line) 
-		{
-			$line = nl_trim($line);
-			if ($line=="") continue;
-
-			$parts = explode("\t", $line);
-			if (count($parts)!=5) trigger_error("Error parsing FAI file: Line does not contain 5 parts: {$line}", E_USER_ERROR);
-			
-			$chr = trim($parts[0]);
-			$len = intval($parts[1]);
-			
+		foreach (genome_chr_sizes(genome_fasta($build)) as $chr => $len) 
+		{			
 			$comments[] = "##contig=<ID={$chr},length={$len}>";
 		}
 		

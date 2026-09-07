@@ -83,6 +83,7 @@ function exec2($command, $abort_on_error = true)
 */
 function range_overlap($from1, $to1, $from2, $to2)
 {
+	//TODO Marc try return $from1 <= $to2 && $from2 <= $to1;
 	return ($from2<=$from1 && $to2>=$from1) || ($from2<=$to1 && $to2>=$to1) || ($from2>=$from1 && $to2<=$to1);
 }
 

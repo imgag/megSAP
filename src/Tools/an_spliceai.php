@@ -145,14 +145,9 @@ function add_contigs_if_missing($vcf)
 	$parser->log("Contig lines are missing. Adding them from genome FAI file!");
 	
 	//parse contig data from genome FAI file
-	$new_contigs = array();
-	$fai = file(genome_fasta($build).".fai");
-	foreach($fai as $line)
+	$new_contigs = [];
+	foreach(genome_chr_sizes(genome_fasta($build)) as $chr => $len)
 	{
-		$line = trim($line);
-		if ($line=="") continue;
-		
-		list($chr, $len) = explode("\t", $line);
 		if (contains($chr, "chrUn") || contains($chr, "_random") || contains($chr, "_decoy")) continue;
 		$new_contigs[] = "##contig=<ID={$chr},length={$len}>\n";
 	}
