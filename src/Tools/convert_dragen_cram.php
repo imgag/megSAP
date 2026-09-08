@@ -383,7 +383,7 @@ try
 	
 	//merge unaffected and affected reads
 	$combined_bam = $tmp_dir . '/combined.bam';
-	$parser->execApptainer("samtools", "samtools merge", "-@ $threads -f -h $unaffected_bam --reference $in_ref -o $combined_bam $affected_resorted $unaffected_bam", [$in_ref, $affected_resorted, $unaffected_bam]);
+	$parser->execApptainer("samtools", "samtools merge", "-c -@ $threads -f -h $unaffected_bam --reference $in_ref -o $combined_bam $affected_resorted $unaffected_bam", [$in_ref, $affected_resorted, $unaffected_bam]);
 	if (!$debug) unlink($affected_resorted);
 	if (!$debug) unlink($unaffected_bam);
 	print "  took ".time_readable(microtime(true)-$time_start)."\n";

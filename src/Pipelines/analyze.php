@@ -219,7 +219,6 @@ if (!in_array("ma", $steps) && !$no_dragen && file_exists($dragen_folder))
 			if (is_dragen_pangenome_bam($dragen_cram))
 			{
 				$parser->execTool("Tools/convert_dragen_cram.php", "-in $dragen_cram -in_ref $illumina_ref -unsupported $unsupported_regs -threads $threads -out $cramfile");
-				exit(1); //TODO remove
 			}
 			else
 			{
