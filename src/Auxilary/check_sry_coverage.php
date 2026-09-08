@@ -23,7 +23,7 @@ if( db_is_enabled("NGSD") )
 	
 	if(!is_null($tinfo) && $tinfo["gender"] == "female")
 	{
-        $out = $parser->execApptainer("ngs-bits", "SampleGender", "-in $t_bam -build ".ngsbits_build($build)." -method sry -ref {$genome}", [$t_bam, $genome]);
+        $out = $parser->execApptainer("ngs-bits", "SampleGender", "-in $t_bam -method sry -ref {$genome}", [$t_bam, $genome]);
         list(,,$cov_sry) = explode("\t", $out[0][1]);
 
         if(is_numeric($cov_sry) && (float)$cov_sry >= 30)

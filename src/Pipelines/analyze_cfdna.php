@@ -461,7 +461,6 @@ if (in_array("vc", $steps))
 			"-bam", $bamfile,
 			"-cfdna_panel", $target,
 			"-out", $qc_cfdna,
-			"-build", ngsbits_build($sys['build']),
 			"-ref", $genome
 		];
 		$in_files[] = $folder;
@@ -637,7 +636,7 @@ if (!($annotation_only || $skip_tumor))
 {
 	if (($tumor_bam != "") && (in_array("ma", $steps) || in_array("vc", $steps)))
 	{
-		$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$bamfile} {$tumor_bam} -mode bam -ref {$genome} -build ".ngsbits_build($sys['build']), [$folder, $tumor_bam, $genome]);
+		$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$bamfile} {$tumor_bam} -mode bam -ref {$genome}", [$folder, $tumor_bam, $genome]);
 		$correlation = explode("\t", $output[0][1])[3];
 		if ($correlation < $min_corr)
 		{
@@ -651,7 +650,7 @@ if (!($annotation_only || $skip_tumor))
 		// calculate similarity between related cfDNA samples
 		foreach ($related_cfdna_bams as $cfdna_sample => $cfdna_bam) 
 		{
-			$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$bamfile} {$cfdna_bam} -mode bam -ref {$genome} -build ".ngsbits_build($sys['build']), [$folder, $cfdna_bam, $genome]);
+			$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$bamfile} {$cfdna_bam} -mode bam -ref {$genome}", [$folder, $cfdna_bam, $genome]);
 			$correlation = explode("\t", $output[0][1])[3];
 			trigger_error("The genotype correlation of cfDNA and related sample ({$cfdna_sample}) is {$correlation}.", E_USER_NOTICE);
 		}

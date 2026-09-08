@@ -904,7 +904,7 @@ if (in_array("vc", $steps))
 	//determine ancestry
 	if (ngsbits_build($build) != "non_human")
 	{
-		$parser->execApptainer("ngs-bits", "SampleAncestry", "-in {$vcffile} -out {$ancestry_file} -build ".ngsbits_build($build), [$folder]);
+		$parser->execApptainer("ngs-bits", "SampleAncestry", "-in {$vcffile} -out {$ancestry_file}", [$folder]);
 	}
 }
 

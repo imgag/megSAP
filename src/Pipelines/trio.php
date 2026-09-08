@@ -175,13 +175,13 @@ if (!$no_check && !$is_wgs_shallow && !$annotation_only)
 {
 	//check parent-child correlation
 	$min_corr = 0.45;
-	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in $f $c -mode bam -ref {$genome} -build ".ngsbits_build($sys['build']), [$f, $c, $genome]);
+	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in $f $c -mode bam -ref {$genome}", [$f, $c, $genome]);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)
 	{
 		trigger_error("The genotype correlation of father and child is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
 	}
-	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in $m $c -mode bam -ref {$genome} -build ".ngsbits_build($sys['build']), [$m, $c, $genome]);
+	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in $m $c -mode bam -ref {$genome}", [$m, $c, $genome]);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)
 	{
@@ -210,7 +210,7 @@ if (in_array("vc", $steps))
 	}
 	
 	//determine gender of child
-	list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-method hetx -in $c -build ".ngsbits_build($sys['build'])." -ref {$genome}", [$c, $genome]);
+	list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-method hetx -in $c -ref {$genome}", [$c, $genome]);
 	$gender_data = explode("\t", $stdout[1])[1];
 	if ($gender_data!="male" && $gender_data!="female") $gender_data = "n/a";
 	print "Gender of child (from data): {$gender_data}\n";
@@ -254,7 +254,7 @@ if (in_array("cn", $steps))
 		if ($is_wgs_shallow)
 		{
 			//determine gender of child
-			list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-method xy -in $c -build ".ngsbits_build($sys['build'])." -ref {$genome}", [$c, $genome]);
+			list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-method xy -in $c -ref {$genome}", [$c, $genome]);
 			$gender_data = explode("\t", $stdout[1])[1];
 			if ($gender_data!="male" && $gender_data!="female") $gender_data = "n/a";
 			print "Gender of child (from data): {$gender_data}\n";
@@ -264,7 +264,7 @@ if (in_array("cn", $steps))
 			//contamination check (only necessary for shallow - for deep genomes we have the check in VariantQC)
 			if($lines = file($cnv_multi))
 			{
-				list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "TrioMaternalContamination", "-bam_m $m -bam_f $f -bam_c $c -build ".ngsbits_build($sys['build']), [$m, $f, $c]);
+				list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "TrioMaternalContamination", "-bam_m $m -bam_f $f -bam_c $c", [$m, $f, $c]);
 				$trio_info = "##TrioMaternalContamination ".implode(" | ", $stdout)."\n";
 				foreach($lines as $line_num => $line)
 				{

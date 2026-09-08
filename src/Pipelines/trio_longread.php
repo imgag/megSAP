@@ -136,13 +136,13 @@ if (!$no_check)
 	$c_gsvar = dirname($c)."/".basename2($c).".GSvar";
 	$f_gsvar = dirname($f)."/".basename2($f).".GSvar";
 	$m_gsvar = dirname($m)."/".basename2($m).".GSvar";
-	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$f_gsvar} {$c_gsvar} -mode gsvar -min_cov 15 -max_snps 4000 -ref {$genome} -build ".ngsbits_build($build), [$f_gsvar, $c_gsvar, $genome]);
+	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$f_gsvar} {$c_gsvar} -mode gsvar -min_cov 15 -max_snps 4000 -ref {$genome}", [$f_gsvar, $c_gsvar, $genome]);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)
 	{
 		trigger_error("The genotype correlation of father and child is {$correlation}; it should be above {$min_corr}!", E_USER_ERROR);
 	}
-	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$m_gsvar} {$c_gsvar} -mode gsvar  -min_cov 15 -max_snps 4000 -ref {$genome} -build ".ngsbits_build($build), [$m_gsvar, $c_gsvar, $genome]);
+	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$m_gsvar} {$c_gsvar} -mode gsvar  -min_cov 15 -max_snps 4000 -ref {$genome}", [$m_gsvar, $c_gsvar, $genome]);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)
 	{
@@ -231,7 +231,7 @@ if (in_array("an", $steps))
 		}
 		
 		//determine gender of child
-		list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-method hetx -long_read -in $c -build ".ngsbits_build($build)." -ref {$genome}", [$c, $genome]);
+		list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-method hetx -long_read -in $c -ref {$genome}", [$c, $genome]);
 		$gender_data = explode("\t", $stdout[1])[1];
 		if ($gender_data!="male" && $gender_data!="female") $gender_data = "n/a";
 		print "Gender of child (from data): {$gender_data}\n";

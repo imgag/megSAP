@@ -172,7 +172,7 @@ if (!$somatic) //germline only
 
 				if (file_exists($dna_bam))
 				{
-					$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$bam_rna} {$dna_bam} -mode bam -ref {$genome} -build ".ngsbits_build($sys['build']), [$bam_rna, $dna_bam, $genome]);
+					$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$bam_rna} {$dna_bam} -mode bam -ref {$genome}", [$bam_rna, $dna_bam, $genome]);
 					$correlation = explode("\t", $output[0][1])[3];
 					if ($correlation=="nan")
 					{

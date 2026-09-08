@@ -232,7 +232,6 @@ else
 	$args_similarity = [
 		"-in ".implode(" ", $bams),
 		"-mode bam",
-		"-build ".ngsbits_build($sys['build']),
 		"-ref {$ref_genome}"
 	];
 	if (!empty($roi))
@@ -873,8 +872,7 @@ if (in_array("an", $steps))
 		"-blacklist", repository_basedir() ."/data/gene_lists/somatic_tmb_blacklist.bed", //Blacklisted genes that are not included in TMB calculation (e.g. HLA-A and HLA-B)
 		"-tsg_bed", repository_basedir() ."/data/gene_lists/somatic_tmb_tsg.bed", //TSG genes whose mutations are treated specially in TMB calculation
 		"-ref", $ref_genome,
-		"-out", $somaticqc,
-		"-build", ngsbits_build($sys['build'])
+		"-out", $somaticqc
 	];
 	if (!empty($links))
 	{

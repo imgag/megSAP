@@ -911,7 +911,7 @@ if (in_array("an", $steps))
 		//determine ancestry
 		if (ngsbits_build($build) != "non_human")
 		{
-			$parser->execApptainer("ngs-bits", "SampleAncestry", "-in {$vcf_file} -out {$ancestry_file} -build ".ngsbits_build($build), [$folder]);
+			$parser->execApptainer("ngs-bits", "SampleAncestry", "-in {$vcf_file} -out {$ancestry_file}", [$folder]);
 		}
 	}
 
@@ -1332,7 +1332,7 @@ if (in_array("db", $steps))
 					trigger_error("GSvar file {$ps_gsvar} not found! Skipping sample similarity check", E_USER_WARNING);
 					continue;
 				}
-				$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$var_file} {$ps_gsvar} -mode gsvar -ref {$genome} -build ".ngsbits_build($sys['build']), [$folder, $ps_gsvar, $genome]);
+				$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$var_file} {$ps_gsvar} -mode gsvar -ref {$genome}", [$folder, $ps_gsvar, $genome]);
 				$correlation = explode("\t", $output[0][1])[3];
 				if ($correlation<$min_corr)
 				{
