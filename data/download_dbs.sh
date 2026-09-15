@@ -316,6 +316,13 @@ wget https://storage.googleapis.com/brain-genomics-public/research/sbx/2025/mode
 wget https://storage.googleapis.com/brain-genomics-public/research/sbx/2025/model/leave-out-HG001/model.ckpt.index
 wget https://storage.googleapis.com/brain-genomics-public/research/sbx/2025/model/leave-out-HG001/example_info.json
 
+#download Illumina reference genome for DRAGEN 4.4
+cd $dbs
+mkdir -p illumina_dragen44_genome
+cd illumina_dragen44_genome
+wget https://webdata.illumina.com/downloads/software/dragen/resource-files/fasta-files/hg38-fasta-0-1.tar.gz
+tar xzf hg38-fasta-0-1.tar.gz
+
 # # install OMIM (you might need a license; production NGSD has to be available and initialized)
 # cd $dbs
 # mkdir -p OMIM

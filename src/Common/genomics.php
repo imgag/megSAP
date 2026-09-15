@@ -224,7 +224,7 @@ function from_IUPAC($in)
 function chr_trim($chr)
 {
 	$chr = strtoupper($chr);
-	if (strlen($chr)>3 && $chr[0]=="C" && $chr[1]=="H" && $chr[2]=="R")
+	if (starts_with($chr, "CHR"))
 	{
 		$chr = substr($chr, 3);
 	}
@@ -232,16 +232,16 @@ function chr_trim($chr)
 }
 
 /**
-	@brief Checks if a chromosome string is valid: 1, 2, ..., $max, X, Y, M.
+	@brief Checks if a chromosome string is valid: 1, 2, ..., 22, X, Y, M.
 	
 	@return The sanitized chromosome string.
 	@ingroup genomics
 */
-function chr_check($chr, $max = 22, $fail_trigger_error = true)
+function chr_check($chr, $fail_trigger_error = true)
 {
 	$chr = chr_trim($chr);
 	
-	if($chr!="X" && $chr!="Y" && $chr!="M" && $chr!="MT" && (!ctype_digit($chr) || $chr<1 || $chr>$max))
+	if($chr!="X" && $chr!="Y" && $chr!="M" && $chr!="MT" && (!ctype_digit($chr) || $chr<1 || $chr>22))
 	{
 		if ($fail_trigger_error)
 		{
@@ -1423,13 +1423,17 @@ function analysis_job_info(&$db_conn, $job_id, $error_if_not_found=true)
 }
 
 //Returns if a BED, VCF or VCF.GZ file contains mito lines
-function contains_mito($filename)
+function contains_mito($filename, $allow_chrM=false)
 {
 	$h = gzopen($filename, 'r');
 	while(!gzeof($h))
 	{
 		$line = gzgets($h);
 		if (starts_with($line, "chrMT\t"))
+		{
+			return true;
+		}
+		if ($allow_chrM && starts_with($line, "chrM\t"))
 		{
 			return true;
 		}
@@ -1487,23 +1491,40 @@ function genome_fasta($build, $use_local_data=true, $use_local_ramdrive=true)
 	return get_path("data_folder")."/genomes/".$build.".fa";
 }
 
-//Create Bed File that contains off target regions of a target region
+//Returns a map of chromosome name to chromosome size for a given genome fasta file
+function genome_chr_sizes($fasta)
+{
+	$fai = "{$fasta}.fai";
+	if (!file_exists($fai)) trigger_error("FAI file '{$fai}' is missing!", E_USER_ERROR);
+		
+	$chrs = [];
+	foreach(file($fai) as $line)
+	{
+		$line = nl_trim($line);
+		if ($line=="") continue;
+		
+		$parts = explode("\t", $line);
+		if (count($parts)!=5) trigger_error("Error parsing FAI file '$fai': Line does not contain 5 parts: $line", E_USER_ERROR);
+		list($chr, $size) = $parts;
+		
+		$chrs[$chr] = intval($size);
+	}
+	return $chrs;
+}
+
+//Create BED File that contains off target regions of a target region
 function create_off_target_bed_file($out,$target_file,$ref_genome_fasta)
 {
-	//generate bed file that contains edges of whole reference genome
-	$handle_in = fopen2("{$ref_genome_fasta}.fai","r");
+	//generate BED file that contains the whole reference genome, exculuding special chromosomes
 	$ref_bed = temp_file(".bed");
 	$handle_out = fopen2($ref_bed,"w");
-	while(!feof($handle_in))
+	foreach(genome_chr_sizes($ref_genome_fasta) as $chr => $chr_length)
 	{
-		$line = trim(fgets($handle_in));
-		if(empty($line)) continue;
-		list($chr,$chr_length) = explode("\t",$line);
-		if(chr_check($chr,22,false) === false) continue;
-		$chr_length--; //0-based coordinates
+		if(chr_check($chr, false) === false) continue;
+		
+		--$chr_length; //0-based coordinates
 		fputs($handle_out,"{$chr}\t0\t{$chr_length}\n");
 	}
-	fclose($handle_in);
 	fclose($handle_out);
 	
 	//Create off target bed file
@@ -1760,201 +1781,181 @@ function annotate_gsvar_by_gene(&$gsvar, $annotation_f, $key, $column, $column_n
 //If @throw_error is false, no error is triggered and -1 is returned. 
 function check_genome_build($filename, $build_expected, $throw_error = true)
 {
+	$build_expected = strtolower($build_expected);
 	$builds = [];
 	
 	//check file exists
-	if (!file_exists($filename))
-	{
-		trigger_error("Cannot check genome build of file '{$filename}'. The file does not exist!",  E_USER_ERROR);
-	}
+	if (!file_exists($filename)) trigger_error("Cannot check genome build of file '{$filename}'. The file does not exist!",  E_USER_ERROR);
 	
 	//BAM file
 	if (ends_with($filename, ".bam") || ends_with($filename, ".cram"))
 	{
 		$samtools_command = execApptainer("samtools", "samtools view", "-H $filename", [$filename], [], true);
-		list($stdout, $stderr, $exit_code) = exec2("{$samtools_command} | egrep '^@PG' ");
-		if  ($exit_code==0)
+		list($stdout) = exec2("{$samtools_command} | egrep '^@PG'");
+		foreach($stdout as $line)
 		{
-			foreach($stdout as $line)
+			$split_line = explode("\t", trim($line));
+			if ($split_line[0] == "@PG")
 			{
-				$split_line = explode("\t", trim($line));
-				if ($split_line[0] == "@PG")
+				if (($split_line[1] == "ID:bwa") || ($split_line[1] == "ID:bwa-mem2"))
 				{
-					if (($split_line[1] == "ID:bwa") || ($split_line[1] == "ID:bwa-mem2"))
+					$build = "";
+					// parse genome build from bwa command line
+					foreach($split_line as $column)
 					{
-						$build = "";
-						// parse genome build from bwa command line
-						foreach($split_line as $column)
+						if (starts_with($column, "CL:"))
 						{
-							if (starts_with($column, "CL:"))
+							$ref_file_path = explode(" ", $column)[2];
+							$build = basename($ref_file_path, ".fa");
+							break;
+						}
+					}
+					if ($build!="") 
+					{
+						$builds[] = $build;
+					}
+				}
+				else if ($split_line[1] == "ID: Hash Table Build") //DRAGEN - on premise
+				{
+					$build = "";
+					foreach($split_line as $column)
+					{
+						if (starts_with($column, "CL:"))
+						{
+							$cl = explode(" ", $column);
+							$ref_file_path = "";
+							for ($i=0; $i < count($cl); ++$i) 
+							{ 
+								if($cl[$i] == "--ht-reference")
+								{
+									$ref_file_path = $cl[$i + 1];
+									break;
+								}
+								if(starts_with($cl[$i], "--ht-reference="))
+								{
+									$ref_file_path = explode("=", $cl[$i], 2)[1];
+									break;
+								}
+							}
+							if ($ref_file_path!="" && basename($ref_file_path)!="genome.fa") //special case NovaSeq X: always uses genome.fa as genome file
 							{
-								$ref_file_path = explode(" ", $column)[2];
-								$build = basename($ref_file_path, ".fa");
+								$build = basename2($ref_file_path);
 								break;
 							}
 						}
-						if ($build!="") 
-						{
-							$builds[] = $build;
-						}
 					}
-					else if ($split_line[1] == "ID: Hash Table Build")
+					if ($build!="") 
 					{
-						$build = "";
-						// parse genome build from ABRA2 command line
-						foreach($split_line as $column)
+						$builds[] = $build;
+					}
+				}
+				else if ($split_line[1] == "ID:STAR")
+				{
+					$build = "";
+					// parse genome build from STAR command line
+					foreach($split_line as $column)
+					{
+						if (starts_with($column, "CL:"))
 						{
-							if (starts_with($column, "CL:"))
-							{
-								$cl = explode(" ", $column);
-								$ref_file_path = "";
-								for ($i=0; $i < count($cl); ++$i) 
-								{ 
-									if($cl[$i] == "--ht-reference")
-									{
-										$ref_file_path = $cl[$i + 1];
-										break;
-									}
-								}
-								if (($ref_file_path != "") && basename($ref_file_path, ".fa") != "genome") //special case NovaSeq X: always uses genome.fa as genome file
+							while(contains($column, "  ")) $column = strtr($column, ["  "=>" "]);
+							$cl = explode(" ", $column);
+							for ($i=0; $i < count($cl); ++$i) 
+							{ 
+								if($cl[$i] == "--genomeDir")
 								{
-									
-									if (ends_with($ref_file_path, ".fasta"))
-									{
-										$build = basename($ref_file_path, ".fasta");
-									}
-									else 
-									{
-										$build = basename($ref_file_path, ".fa");
-									}
+									$path = trim($cl[$i + 1]);
+									if (!ends_with($path, "/")) $path .= "/";
+									$path_parts = explode("/", $path);
+									$build = $path_parts[count($path_parts)-2];
 									break;
 								}
 							}
 						}
-						if ($build!="") 
-						{
-							$builds[] = $build;
-						}
 					}
-					else if ($split_line[1] == "ID:STAR")
+					if ($build!="") 
 					{
-						$build = "";
-						// parse genome build from STAR command line
-						foreach($split_line as $column)
+						$builds[] = $build;
+					}
+				}
+				else if ($split_line[1] == "ID:minimap2")
+				{
+					$build = "";
+					// parse genome build from minimap2 command line
+					foreach($split_line as $column)
+					{
+						if (starts_with($column, "CL:"))
 						{
-							if (starts_with($column, "CL:"))
+							while (contains($column, "  ")) $column = strtr($column, ["  "=>" "]);
+							$cl = explode(" ", $column);
+							//use the first entry that ends with '.fa' when iteration through the parameter list in reverse order (normally second-to-last)
+							$idx = count($cl);
+							while ($idx)
 							{
-								while(contains($column, "  ")) $column = strtr($column, ["  "=>" "]);
-								$cl = explode(" ", $column);
-								for ($i=0; $i < count($cl); ++$i) 
-								{ 
-									if($cl[$i] == "--genomeDir")
-									{
-										$path = trim($cl[$i + 1]);
-										if (!ends_with($path, "/")) $path .= "/";
-										$path_parts = explode("/", $path);
-										$build = $path_parts[count($path_parts)-2];
-										break;
-									}
-								}
+								$parameter = $cl[--$idx];
+								if (ends_with($parameter, ".fa"))
+								{
+									$build = basename($parameter, ".fa");
+									break;
+								} 
 							}
-						}
-						if ($build!="") 
-						{
-							$builds[] = $build;
+							if ($build!="") break;								
 						}
 					}
-					else if ($split_line[1] == "ID:minimap2")
+					if ($build!="") 
 					{
-						$build = "";
-						// parse genome build from minimap2 command line
-						foreach($split_line as $column)
-						{
-							if (starts_with($column, "CL:"))
-							{
-								while (contains($column, "  ")) $column = strtr($column, ["  "=>" "]);
-								$cl = explode(" ", $column);
-								//use the first entry that ends with '.fa' when iteration through the parameter list in reverse order (normally second-to-last)
-								$idx = count($cl);
-								while ($idx)
-								{
-									$parameter = $cl[--$idx];
-									if (ends_with($parameter, ".fa"))
-									{
-										$build = basename($parameter, ".fa");
-										break;
-									} 
-								}
-								if ($build!="") break;								
-							}
-						}
-						if ($build!="") 
-						{
-							$builds[] = $build;
-						}
+						$builds[] = $build;
 					}
-					else if	($split_line[1] == "ID: DRAGEN SW build")
+				}
+				else if	($split_line[1] == "ID: DRAGEN SW build") //DRAGEN on NovaSeqX+: Genome has to be stripped from the command line
+				{
+					$build = "";
+					// parse genome build from bwa command line
+					foreach($split_line as $column)
 					{
-						//NovaSeq X: Genome has to be stripped from the command line
-						$build = "";
-						// parse genome build from bwa command line
-						foreach($split_line as $column)
+						if (starts_with($column, "CL:"))
 						{
-							if (starts_with($column, "CL:"))
+							$cl = explode(" ", $column);
+							for ($i=0; $i < count($cl); ++$i) 
 							{
-								$cl = explode(" ", $column);
-								for ($i=0; $i < count($cl); ++$i) 
+								if($cl[$i]=="ref-dir:")
 								{
-									if($cl[$i] == "--ref-dir")
-									{
-										$ref_file_path = $cl[$i + 1];
-										break;
-									}
-								}
-								if (starts_with($ref_file_path, "/usr/local/illumina/install/genomes/"))
-								{
-									$build = trim(explode("/", $ref_file_path)[6]);
+									$ref_file_path = strtolower($cl[$i + 1]);
 									break;
 								}
 							}
-						}
-						if ($build!="") 
-						{
-							$builds[] = $build;
+							if (contains($ref_file_path, "/{$build_expected}/"))
+							{
+								$build = $build_expected;
+								break;
+							}
 						}
 					}
-
+					if ($build!="") 
+					{
+						$builds[] = $build;
+					}
 				}
 			}
 		}
 	}
 	
-	//small variants and unannotated structural variants (unannotated)
+	//small variants and unannotated structural variants
 	if (ends_with($filename, ".vcf.gz") || ends_with($filename, ".vcf"))
 	{
-		if (ends_with($filename, ".vcf.gz"))
-		{
-			list($stdout, $stderr, $exit_code) = exec2("zcat $filename | egrep '^##reference='");
-		}
-		else
-		{
-			list($stdout, $stderr, $exit_code) = exec2("egrep '^##reference=' {$filename}");
-		}
-		
+		$cat_command = ends_with($filename, ".gz") ? "zcat" : "cat";
+		list($stdout, $stderr, $exit_code) = exec2("$cat_command $filename | egrep '^##reference='", false);
 		if ($exit_code==0)
 		{
 			foreach($stdout as $line)
 			{
-				list(, $fasta) = explode("=", $line);
+				list(, $fasta) = explode("=", strtolower($line));
 				if (ends_with($fasta, ".fa"))
 				{
 					$builds[] = basename($fasta, ".fa");
 				}
-				else if (contains($fasta, "/dragen/")) //special handling for Dragen (e.g. file://staging/genomes/GRCh38/dragen/reference.bin)
+				else if (contains($fasta, "/{$build_expected}/")) //special handling for Dragen e.g. file://staging/genomes/GRCh38/dragen/reference.bin
 				{
-					$fasta = strtr($fasta, ["//"=>"/"]);
-					$parts = explode("/", $fasta);
-					$builds[] = $parts[count($parts)-3];
+					$builds[] = $build_expected;
 				}
 			}
 		}
@@ -1996,17 +1997,15 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 		{
 			foreach($stdout as $line)
 			{
-				list(, $fasta) = explode("=", $line);
+				list(, $fasta) = explode("=", strtolower($line));
 				
 				if (ends_with($fasta, ".fa"))
 				{
-					$builds[] = basename($fasta, ".fa");
+					$builds[] = basename2($fasta, ".fa");
 				}
-				else if (contains($fasta, "/dragen/") || contains($fasta, "/DRAGEN/")) //special handling for Dragen (e.g. file:///staging/human/reference/GRCh38/dragen/ or file:///usr/local/illumina/install/genomes/GRCh38/DRAGEN/10)
+				else if (contains($fasta, "/{$build_expected}/")) //special handling for Dragen e.g. file:///staging/human/reference/GRCh38/dragen/ file:///usr/local/illumina/install/genomes/GRCh38/DRAGEN/10 file:///staging/genomes/GRCh38/dragen44/
 				{
-					$fasta = strtr($fasta, ["//"=>"/"]);
-					$parts = explode("/", $fasta);
-					$builds[] = $parts[count($parts)-3];
+					$builds[] = $build_expected;
 				}
 			}
 		}
@@ -2029,7 +2028,8 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 	
 	//compare found and expected build
 	$build_found = $builds[0];
-	$build_expected = strtolower($build_expected);
+	if ($build_found=="hg38") $build_found = "grch38";
+	if ($build_found=="hg19") $build_found = "grch37";
 	if (!starts_with($build_found, $build_expected))
 	{
 		if ($throw_error)
@@ -2040,6 +2040,26 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 	}
 	
 	return 1;
+}
+
+//cecks if the BAM/CRAM file is based on the DRAGEN pan-genome
+function is_dragen_pangenome_bam($filename)
+{
+	//check file exists
+	if (!file_exists($filename)) trigger_error("File does not exist: {$filename}",  E_USER_ERROR);
+	
+	//check in BAM/CRAM header for parameters starting with "--ht-graph"
+	$samtools_command = execApptainer("samtools", "samtools view", "-H $filename", [$filename], [], true);
+	list($stdout) = exec2("{$samtools_command} | egrep '@PG'");
+	foreach($stdout as $line)
+	{
+		if (contains($line, "--ht-graph-msvcf-file="))
+		{
+			return true;
+		}
+	}
+	
+	return false;
 }
 
 //checks if mito is called 'chrM', so it has to be renamed to 'chrMT'
@@ -2689,19 +2709,8 @@ function vcf_add_missing_contigs($build, $filename)
 	if(!$contains_contig)
 	{
 		//add new contig lines to comments
-		$fai_file = genome_fasta($build).".fai";
-		if (!file_exists($fai_file)) trigger_error("FAI file '{$fai_file}' is missing!", E_USER_ERROR);
-		foreach (file($fai_file) as $line) 
-		{
-			$line = nl_trim($line);
-			if ($line=="") continue;
-
-			$parts = explode("\t", $line);
-			if (count($parts)!=5) trigger_error("Error parsing FAI file: Line does not contain 5 parts: {$line}", E_USER_ERROR);
-			
-			$chr = trim($parts[0]);
-			$len = intval($parts[1]);
-			
+		foreach (genome_chr_sizes(genome_fasta($build)) as $chr => $len) 
+		{			
 			$comments[] = "##contig=<ID={$chr},length={$len}>";
 		}
 		

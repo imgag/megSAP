@@ -616,7 +616,7 @@ while(!gzeof($handle))
 	}
 
 	//parse variant data from VCF
-	if(chr_check($chr, 22, false) === FALSE) continue; //skip bad chromosomes
+	if(chr_check($chr, false) === FALSE) continue; //skip bad chromosomes
 	$start = $pos;
 	$end = $pos;
 	$ref = strtoupper($ref);
@@ -1243,11 +1243,12 @@ while(!gzeof($handle))
 	{
 		$tmp = [];
 		$spliceai_info = trim($info["SpliceAI"]);
-		$spliceai_values = [];
-
 		$entries = explode(",", strtr($spliceai_info, "&", ",")); //both & and , are used as separator, depending on the sources of the SpliceAI annotation (pre-calcualted or calculated on the fly)
 		foreach($entries as $entry)
 		{
+			$entry = trim($entry);
+			if ($entry=="" || $entry==".") continue;
+			
 			$delta_scores = explode("|", $entry);
 			if(count($delta_scores) == 10)
 			{

@@ -34,7 +34,7 @@ if(!file_exists($msi_ref)) // create msi-ref file
 		#$chr, $pos, $repeat_unit_len, $repeat_unit_bin, $repeat_times, ...
 		$parts = explode("\t", $line);
 
-		if ($parts[0] != "chromosome" && !chr_check($parts[0], 22, false)) continue;
+		if ($parts[0] != "chromosome" && !chr_check($parts[0], false)) continue;
 		if (is_numeric($parts[4]) && floatval($parts[4]) > 100) continue;
 		$out_lines[] = $line;
 	}

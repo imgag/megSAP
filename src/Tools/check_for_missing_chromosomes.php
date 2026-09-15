@@ -65,17 +65,7 @@ if (count($missing)>0) trigger_error("Missing chromosomes ".implode(", ", $missi
 if ($max_missing_perc>0)
 {
 	//get chromosome sizes
-	$sizes = [];
-	list($stdout) = exec2("cut -f1,2 ".genome_fasta($build).".fai");
-	foreach($stdout as $line)
-	{
-		$line = trim($line);
-		if ($line=="") continue;
-		if (!in_array($chr, $chrs)) continue;
-		
-		list($chr, $size) = explode("\t", $line);
-		$sizes[$chr] = $size;
-	}
+	$sizes = genome_chr_sizes(genome_fasta($build));
 
 	//check covered chromosome range
 	$missing = [];

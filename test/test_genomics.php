@@ -2,6 +2,26 @@
 
 include("framework.php");
 
+
+//##################################################################################
+start_test("genome_chr_sizes");
+
+$chr_sizes = genome_chr_sizes(genome_fasta("GRCh38"));
+
+check(count($chr_sizes), 2580);
+check($chr_sizes["chr9"], 138394717);
+check($chr_sizes["chrMT"], 16569);
+
+end_test();
+
+//##################################################################################
+start_test("is_dragen_pangenome_bam");
+
+check(is_dragen_pangenome_bam(data_folder()."/get_read_count_in2.cram"), false);
+check(is_dragen_pangenome_bam(data_folder()."/dragen_pangenome.bam"), true);
+
+end_test();
+
 //##################################################################################
 start_test("mito_is_chrM");
 
@@ -231,11 +251,11 @@ check(chr_check("chrM"), true);
 check(chr_check("1"), true);
 check(chr_check("chr22"), true);
 
-check(chr_check("chr0",22,false), false);
-check(chr_check("0",22,false), false);
-check(chr_check("chr23",22,false), false);
-check(chr_check("23",22,false), false);
-check(chr_check("chrO",22,false), false);
+check(chr_check("chr0",false), false);
+check(chr_check("0",false), false);
+check(chr_check("chr23",false), false);
+check(chr_check("23",false), false);
+check(chr_check("chrO",false), false);
 
 end_test();
 
@@ -394,6 +414,8 @@ check(check_genome_build(data_folder()."/get_genome_build_dragenGRCh38.bam", "GR
 check(check_genome_build(data_folder()."/get_genome_build_NovaSeqXGRCh38.bam", "GRCh38"), 1);
 check(check_genome_build(data_folder()."/check_genome_build_minimap2GRCh38.bam", "GRCh38"), 1);
 check(check_genome_build(data_folder()."/check_genome_build_minimap2GRCh38_2.bam", "GRCh38"), 1);
+check(check_genome_build(data_folder()."/dragen_pangenome.bam", "GRCh38"), 1);
+check(check_genome_build(data_folder()."/dragen_svs.bedpe", "GRCh38"), 1);
 end_test();
 
 //##################################################################################

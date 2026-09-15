@@ -86,7 +86,7 @@ for($i = 0; $i < $variants->rows(); ++$i)
 	{
 		$filter[] = "all-unknown";
 	}
-	if (chr_check($row[0], 22, false) === FALSE)
+	if (chr_check($row[0], false) === FALSE)
 	{
 		$filter[] = "special-chromosome";
 	}
