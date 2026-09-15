@@ -1423,13 +1423,17 @@ function analysis_job_info(&$db_conn, $job_id, $error_if_not_found=true)
 }
 
 //Returns if a BED, VCF or VCF.GZ file contains mito lines
-function contains_mito($filename)
+function contains_mito($filename, $allow_chrM=false)
 {
 	$h = gzopen($filename, 'r');
 	while(!gzeof($h))
 	{
 		$line = gzgets($h);
 		if (starts_with($line, "chrMT\t"))
+		{
+			return true;
+		}
+		if ($allow_chrM && starts_with($line, "chrM\t"))
 		{
 			return true;
 		}

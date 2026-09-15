@@ -4,7 +4,7 @@ include("framework.php");
 
 
 //##################################################################################
-start_test("is_dragen_pangenome_bam");
+start_test("genome_chr_sizes");
 
 $chr_sizes = genome_chr_sizes(genome_fasta("GRCh38"));
 

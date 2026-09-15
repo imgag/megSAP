@@ -218,7 +218,10 @@ if (!in_array("ma", $steps) && !$no_dragen && file_exists($dragen_folder))
 		{
 			if (is_dragen_pangenome_bam($dragen_cram))
 			{
-				$parser->execTool("Tools/convert_dragen_cram.php", "-in $dragen_cram -in_ref $illumina_ref -unsupported $unsupported_regs -threads $threads -out $cramfile");
+				if (!file_exists($cramfile))
+				{
+					$parser->execTool("Tools/convert_dragen_cram.php", "-in $dragen_cram -in_ref $illumina_ref -unsupported $unsupported_regs -threads $threads -out $cramfile");
+				}
 			}
 			else
 			{
@@ -230,7 +233,10 @@ if (!in_array("ma", $steps) && !$no_dragen && file_exists($dragen_folder))
 		{
 			if (is_dragen_pangenome_bam($dragen_bam))
 			{	
-				$parser->execTool("Tools/convert_dragen_cram.php", "-in $dragen_bam -in_ref $illumina_ref -unsupported $unsupported_regs -threads $threads -out $cramfile");
+				if (!file_exists($cramfile))
+				{
+					$parser->execTool("Tools/convert_dragen_cram.php", "-in $dragen_bam -in_ref $illumina_ref -unsupported $unsupported_regs -threads $threads -out $cramfile");
+				}
 			}
 			else
 			{
@@ -547,8 +553,8 @@ if (in_array("vc", $steps))
 
 		//perform main variant calling on autosomes/genosomes
 		if(!$only_mito_in_target_region)
-		{			
-			if (!$no_dragen && file_exists($dragen_output_vcf))
+		{
+			if (!$no_dragen && file_exists($dragen_output_vcf)) //use DRAGEN output
 			{
 				trigger_error("DRAGEN analysis found in sample folder. Using this data for small variant calling. ", E_USER_NOTICE);
 				$pipeline = [];
@@ -579,8 +585,7 @@ if (in_array("vc", $steps))
 				$tmp = $parser->tempFile("_offtarget.vcf");
 				$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $vcffile -mark off-target -reg {$roi} -out $tmp", [$folder, $roi]);
 				
-				//remove variants with less than 3 alternative observations
-				//(still required in DRAGEN 4.4.6: removes ~50k variants)
+				//remove variants with less than 3 alternative observations - still required in DRAGEN 4.4.6: removes ~50k variants
 				$tmp2 = $parser->tempFile("_ad.vcf");
 				$hr = gzopen2($tmp, "r");
 				$hw = fopen2($tmp2, "w");
@@ -623,9 +628,9 @@ if (in_array("vc", $steps))
 				$tmp4 = $parser->tempFile("_with_mosaic+targeted.vcf");
 				$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$tmp3} {$tmp_targeted} -out {$tmp4} -filter targeted -filter_desc Variant_is_called_by_targeted_caller -skip_duplicates");
 
+				//add DRAGEN MRJD variants
 				if (file_exists($dragen_output_mrjd_vcf))
 				{
-					//add DRAGEN MRJD calling
 					trigger_error("DRAGEN MRJD analysis found in sample folder. Using this data for MRJD small variant calling. ", E_USER_NOTICE);
 
 					//fix mrjd file
@@ -639,15 +644,14 @@ if (in_array("vc", $steps))
 					//execute pipeline
 					$parser->execPipeline($pipeline, "Dragen MRJD post processing");
 
-					$tmp5 = $parser->tempFile("_with_mosaic+targeted+mrjd.vcf");
+					$tmp5 = $parser->tempFile("_with_mosaic_targeted_mrjd.vcf");
 					$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$tmp4} {$tmp_mrjd} -out {$tmp5} -filter dragen_mrjd -filter_desc Variant_is_called_by_DRAGEN_MRJD-Caller -skip_duplicates");					
 				}
 				else
 				{
 					$tmp5 = $tmp4;
-					//TODO: add own MRJD caller
+					//TODO add own MRJD caller
 				}
-				
 
 				//sort and convert to VCF.GZ
 				$parser->execApptainer("ngs-bits", "VcfSort", "-in {$tmp5} -compression_level 7 -out {$vcffile}", [], [dirname($vcffile)]);
@@ -683,19 +687,50 @@ if (in_array("vc", $steps))
 			}
 		}
 		
-		//perform special variant calling for mitochondria
+		//determine mito variants
 		$mito = enable_special_mito_vc($sys) || $only_mito_in_target_region;
 		if ($mito)
 		{
 			$vcffile_mito = $parser->tempFile("_mito.vcf.gz");
-			if (!$no_dragen && file_exists($dragen_output_vcf) && contains_mito($dragen_output_vcf) && is_dragen_pangenome_bam($used_bam_or_cram))
+			if (!$no_dragen && file_exists($dragen_output_vcf) && contains_mito($dragen_output_vcf, true) && is_dragen_pangenome_bam($used_bam_or_cram)) //use DRAGEN mito calls
 			{
 				trigger_error("DRAGEN analysis found in sample folder. Using DRAGEN mito small variants calls.", E_USER_NOTICE);
+				
+				$mito_vcf = $dragen_output_vcf;
+				
+				//pan-genome: rename chrM to chrMT, set filter to PASS, move SQ INFO value to QUAL
+				if (is_dragen_pangenome_bam($used_bam_or_cram))
+				{
+					$tmp = [];
+					
+					$tmp_file_mito = $parser->tempFile("_mito_pan.vcf");
+					$parser->execApptainer("htslib", "tabix", "-h $dragen_output_vcf chrM:1-16569 > $tmp_file_mito", [$dragen_output_vcf]);
+					foreach(file($tmp_file_mito) as $line)
+					{
+						$line = nl_trim($line);
+						if ($line=="") continue;
+						
+						if ($line[0]=="#") //headers
+						{
+							$tmp[] = $line;
+						}
+						else //variants
+						{
+							$parts = explode("\t", $line);
+							$parts[0] = "chrMT";
+							$sq_index = array_search("SQ", explode(":", $parts[8]));
+							$sq = explode(":", $parts[9])[$sq_index];
+							$parts[5] = $sq;
+							$parts[6] = "PASS";
+							$tmp[] = implode("\t", $parts);
+						}
+					}
+					$mito_vcf = $parser->tempFile("_mito_pan.vcf.gz");
+					file_put_contents($mito_vcf, gzencode(implode("\n", $tmp)));
+				}
+				
 				$pipeline = [];
-				
-				$pipeline[] = array("zcat", $dragen_output_vcf);
-				
-				//TODO Marc: rename chrM to chrMT
+				$pipeline[] = array("zcat", $mito_vcf);
 				
 				//filter by target region and quality 5
 				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfFilter", "-reg chrMT:1-16569 -qual 5 -filter_clear -ref $genome", [$genome], [], true));
@@ -718,7 +753,7 @@ if (in_array("vc", $steps))
 				//index output file
 				$parser->execApptainer("htslib", "tabix", "-p vcf $vcffile_mito");
 			}
-			else
+			else //perform own mito variant calling
 			{
 				$target_mito = $parser->tempFile("_mito.bed");
 				file_put_contents($target_mito, "chrMT\t0\t16569");
@@ -735,7 +770,6 @@ if (in_array("vc", $steps))
 				$args[] = "-min_mq 20";
 				$parser->execTool("Tools/vc_mosaic.php", implode(" ", $args)); //TODO Marc: maybe there are better mito callers, see https://pmc.ncbi.nlm.nih.gov/articles/PMC8957813 and newer papers
 			}
-		
 			if($only_mito_in_target_region) 
 			{
 				$parser->copyFile($vcffile_mito, $vcffile);
