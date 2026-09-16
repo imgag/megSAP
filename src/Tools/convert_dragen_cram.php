@@ -20,7 +20,7 @@ extract($parser->parse($argv));
 
 //init
 $genome = genome_fasta("GRCh38");
-$tmp_dir = "/tmp/test_marc/";//TODO make tmp again: $parser->tempFolder("dragen2megsap");
+$tmp_dir = $parser->tempFolder("dragen2megsap");
 
 //extract contigs from a CRAM header
 function parse_contigs_from_header($in_header): array
@@ -511,7 +511,7 @@ try
 }
 finally
 {
-    //exec2("rm -rf $tmp_dir"); //TODO add again
+    exec2("rm -rf $tmp_dir");
 }
 
 ?>
