@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("analyze", "Complete NGS analysis pipeline.");
+$parser = new ToolBase("analyze", "Short-read germline analysis pipeline.");
 $parser->addInfile("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
