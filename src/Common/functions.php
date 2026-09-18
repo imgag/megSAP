@@ -1123,4 +1123,10 @@ function realpath2(string $path)
     return '/'.implode('/', $parts);
 }
 
+//trim leading/trailing whitespace and collapse internal whitespace to a single space
+function str_simplified(string $text): string
+{
+	return preg_replace('/\s+/', ' ', trim($text));
+}
+
 ?>
