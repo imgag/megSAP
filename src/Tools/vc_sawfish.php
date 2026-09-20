@@ -57,11 +57,8 @@ if(!is_null($small_var_vcfs) && (count($small_var_vcfs) != 0))
 
 $genome = genome_fasta($build);
 
-
-$discover_output = [];
-$jointcall_output = $parser->tempFolder("_sawfish_joint_call");;
-
 //run discover step
+$discover_output = [];
 for ($i=0; $i < count($bams); $i++) 
 { 
 	$discover_output[] = $parser->tempFolder("_sawfish_discover");
@@ -80,12 +77,17 @@ for ($i=0; $i < count($bams); $i++)
 		else $args[] = "--cnv-excluded-regions /opt/sawfish-v2.2.1-x86_64-unknown-linux-gnu/data/cnv_excluded_regions/annotation_and_common_cnv.hg38.bed.gz";
 	}
 	if ($test) $args[] = "--disable-cnv"; //disable CNV calling for testing (will not work on small testset)
-	if(!is_null($small_var_vcfs) && (count($small_var_vcfs) != 0)) $args[] = "--maf ".$small_var_vcfs[$i];
+	if(!is_null($small_var_vcfs) && (count($small_var_vcfs) != 0))
+	{
+		$args[] = "--maf ".$small_var_vcfs[$i];
+		$in_files[] = $small_var_vcfs[$i];
+	}
 	$args[] = "--output-dir ".$discover_output[$i];
 	$parser->execApptainer("sawfish", "sawfish discover", implode(" ", $args), $in_files);
 }
 
 //run joint-call step
+$jointcall_output = $parser->tempFolder("_sawfish_joint_call");
 $args = [];
 $in_files = [];
 $args[] = "--threads ".$threads;

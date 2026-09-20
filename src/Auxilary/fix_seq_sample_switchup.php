@@ -512,7 +512,7 @@ else
 	
 	//mark this switchup complete -> any further calls to this data will be rejected
 	file_put_contents($commit_file, "All commands executed: ".date("Y-m-d H:i:s"));
-	#TODO add chmod to make all files read-only
+	//TODO Alexander: add chmod to make all files read-only
 }
 
 
