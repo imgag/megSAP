@@ -647,7 +647,7 @@ foreach($file as $line)
 
 						//determine overall match
 						print "    ".basename2($bam)." sys:{$system}".($quality=="bad" ? " [qualty:bad]" : "")." kasp:$c_kasp both:$c_both match:$c_match";
-						if ($c_both<=6)
+						if ($c_both<10)
 						{
 							$messages[] = "ERROR - too few common SNPs";
 						}
