@@ -1469,7 +1469,7 @@ if (( (in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps
 	}
 	
 	//perform Modellvorhaben QC if sample is in the study
-	if ($location=="UKT" && db_is_enabled("NGSD"))
+	if ($location=="UKT" && db_is_enabled("NGSD") && ($is_wgs || $is_wes))
 	{
 		$db = DB::getInstance("NGSD", false);
 		$ps_id = get_processed_sample_id($db, $name, false);
