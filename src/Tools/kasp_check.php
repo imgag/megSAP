@@ -304,7 +304,7 @@ function sample_from_ngsd(&$db, $dna_number, $irp, $itp, $ibad)
 	{
 		$sample = $row['name'];
 		$pipeline = [
-			["", $parser->execApptainer("ngs-bits", "NGSDExportSamples", "-sample {$sample} ".($ibad ? "" : "-no_bad_samples")." -run_finished -add_path SAMPLE_FOLDER", [], [], true)],
+			["", $parser->execApptainer("ngs-bits", "NGSDExportSamples", "-sample {$sample} ".($ibad ? "" : "-ps_quality n/a,good,medium")." -run_finished -add_path SAMPLE_FOLDER", [], [], true)],
 			["", $parser->execApptainer("ngs-bits", "TsvSlice", "-cols 'name,project_type,project_name,path,quality,system_name_short'", [], [], true)],
 		];
 		list($stdout) = $parser->execPipeline($pipeline, "NGSD sample extraction");

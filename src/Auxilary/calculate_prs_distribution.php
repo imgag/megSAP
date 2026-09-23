@@ -32,7 +32,7 @@ if ($custom_sample_table == "")
 	$export_table = $parser->tempFile("_diag_wgs.tsv");
 	
 	$args = array();
-	$args[] = "-no_bad_samples";
+	$args[] = "-ps_quality n/a,good,medium";
 	$args[] = "-no_tumor";
 	$args[] = "-no_ffpe";
 	$args[] = "-run_finished";
