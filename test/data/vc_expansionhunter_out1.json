@@ -1344,20 +1344,20 @@
         }
       }
     },
-    "TBC1D7 ": {
+    "TBC1D7": {
       "AlleleCount": 2,
       "Coverage": 0.0,
       "FragmentLength": 0,
-      "LocusId": "TBC1D7 ",
+      "LocusId": "TBC1D7",
       "ReadLength": 0,
       "Variants": {
-        "TBC1D7 ": {
+        "TBC1D7": {
           "CountsOfFlankingReads": "()",
           "CountsOfInrepeatReads": "()",
           "CountsOfSpanningReads": "()",
           "ReferenceRegion": "chr6:13328476-13328603",
           "RepeatUnit": "CCG",
-          "VariantId": "TBC1D7 ",
+          "VariantId": "TBC1D7",
           "VariantSubtype": "RareRepeat",
           "VariantType": "Repeat"
         }

@@ -8,12 +8,12 @@ PATH=/bin:$PATH
 
 # update ubuntu packages and install build dependencies
 apt-get update
-apt-get upgrade
+apt-get upgrade -y
 apt-get install -y wget
 
 rm -rf /var/lib/apt/lists/*
 
-# download sawfish
+# download trgt
 cd /opt
 wget https://github.com/PacificBiosciences/trgt/releases/download/v5.1.0/trgt-v5.1.0-x86_64-unknown-linux-gnu.tar.gz
 tar -xzf trgt-v5.1.0-x86_64-unknown-linux-gnu.tar.gz

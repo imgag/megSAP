@@ -1,0 +1,316 @@
+Built on: SRV026
+Built by: ahschul1
+Build date: 2026-09-21 13:33:46
+
+INFO:    Starting build...
+INFO:    Fetching OCI image...
+INFO:    Extracting OCI image...
+INFO:    Inserting Apptainer configuration...
+INFO:    Running post scriptlet
++ LANG=C.UTF-8
++ LC_ALL=C.UTF-8
++ PATH=/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
++ apt-get update
+Get:1 http://security.ubuntu.com/ubuntu noble-security InRelease [126 kB]
+Get:2 http://security.ubuntu.com/ubuntu noble-security/universe amd64 Packages [1544 kB]
+Get:3 http://archive.ubuntu.com/ubuntu noble InRelease [256 kB]
+Get:4 http://security.ubuntu.com/ubuntu noble-security/multiverse amd64 Packages [50.0 kB]
+Get:5 http://archive.ubuntu.com/ubuntu noble-updates InRelease [126 kB]
+Get:6 http://archive.ubuntu.com/ubuntu noble-backports InRelease [126 kB]
+Get:7 http://security.ubuntu.com/ubuntu noble-security/restricted amd64 Packages [1839 kB]
+Get:8 http://security.ubuntu.com/ubuntu noble-security/main amd64 Packages [1259 kB]
+Get:9 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages [19.3 MB]
+Get:10 http://archive.ubuntu.com/ubuntu noble/multiverse amd64 Packages [331 kB]
+Get:11 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages [1808 kB]
+Get:12 http://archive.ubuntu.com/ubuntu noble/restricted amd64 Packages [117 kB]
+Get:13 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 Packages [1580 kB]
+Get:14 http://archive.ubuntu.com/ubuntu noble-updates/restricted amd64 Packages [1960 kB]
+Get:15 http://archive.ubuntu.com/ubuntu noble-updates/universe amd64 Packages [2149 kB]
+Get:16 http://archive.ubuntu.com/ubuntu noble-updates/multiverse amd64 Packages [56.2 kB]
+Get:17 http://archive.ubuntu.com/ubuntu noble-backports/universe amd64 Packages [36.0 kB]
+Get:18 http://archive.ubuntu.com/ubuntu noble-backports/multiverse amd64 Packages [671 B]
+Get:19 http://archive.ubuntu.com/ubuntu noble-backports/main amd64 Packages [49.0 kB]
+Fetched 32.7 MB in 3s (9814 kB/s)
+Reading package lists...
++ apt-get upgrade -y
+Reading package lists...
+Building dependency tree...
+Reading state information...
+Calculating upgrade...
+The following packages will be upgraded:
+  perl-base
+1 upgraded, 0 newly installed, 0 to remove and 0 not upgraded.
+Need to get 1826 kB of archives.
+After this operation, 1024 B of additional disk space will be used.
+Get:1 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 perl-base amd64 5.38.2-3.2ubuntu0.6 [1826 kB]
+debconf: delaying package configuration, since apt-utils is not installed
+Fetched 1826 kB in 1s (2995 kB/s)
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4381 files and directories currently installed.)
+Preparing to unpack .../perl-base_5.38.2-3.2ubuntu0.6_amd64.deb ...
+Unpacking perl-base (5.38.2-3.2ubuntu0.6) over (5.38.2-3.2ubuntu0.4) ...
+Setting up perl-base (5.38.2-3.2ubuntu0.6) ...
++ apt-get install -y wget
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following additional packages will be installed:
+  ca-certificates libpsl5t64 openssl publicsuffix
+The following NEW packages will be installed:
+  ca-certificates libpsl5t64 openssl publicsuffix wget
+0 upgraded, 5 newly installed, 0 to remove and 0 not upgraded.
+Need to get 1663 kB of archives.
+After this operation, 3695 kB of additional disk space will be used.
+Get:1 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 openssl amd64 3.0.13-0ubuntu3.15 [1003 kB]
+Get:2 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 ca-certificates all 20260601~24.04.1 [139 kB]
+Get:3 http://archive.ubuntu.com/ubuntu noble/main amd64 libpsl5t64 amd64 0.21.2-1.1build1 [57.1 kB]
+Get:4 http://archive.ubuntu.com/ubuntu noble/main amd64 publicsuffix all 20231001.0357-0.1 [129 kB]
+Get:5 http://archive.ubuntu.com/ubuntu noble-updates/main amd64 wget amd64 1.21.4-1ubuntu4.5 [334 kB]
+debconf: delaying package configuration, since apt-utils is not installed
+Fetched 1663 kB in 1s (2090 kB/s)
+Selecting previously unselected package openssl.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4381 files and directories currently installed.)
+Preparing to unpack .../openssl_3.0.13-0ubuntu3.15_amd64.deb ...
+Unpacking openssl (3.0.13-0ubuntu3.15) ...
+Selecting previously unselected package ca-certificates.
+Preparing to unpack .../ca-certificates_20260601~24.04.1_all.deb ...
+Unpacking ca-certificates (20260601~24.04.1) ...
+Selecting previously unselected package libpsl5t64:amd64.
+Preparing to unpack .../libpsl5t64_0.21.2-1.1build1_amd64.deb ...
+Unpacking libpsl5t64:amd64 (0.21.2-1.1build1) ...
+Selecting previously unselected package publicsuffix.
+Preparing to unpack .../publicsuffix_20231001.0357-0.1_all.deb ...
+Unpacking publicsuffix (20231001.0357-0.1) ...
+Selecting previously unselected package wget.
+Preparing to unpack .../wget_1.21.4-1ubuntu4.5_amd64.deb ...
+Unpacking wget (1.21.4-1ubuntu4.5) ...
+Setting up libpsl5t64:amd64 (0.21.2-1.1build1) ...
+Setting up openssl (3.0.13-0ubuntu3.15) ...
+Setting up publicsuffix (20231001.0357-0.1) ...
+Setting up wget (1.21.4-1ubuntu4.5) ...
+Setting up ca-certificates (20260601~24.04.1) ...
+debconf: unable to initialize frontend: Dialog
+debconf: (No usable dialog-like program is installed, so the dialog based frontend cannot be used. at /usr/share/perl5/Debconf/FrontEnd/Dialog.pm line 79.)
+debconf: falling back to frontend: Readline
+debconf: unable to initialize frontend: Readline
+debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC entries checked: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.38.2 /usr/local/share/perl/5.38.2 /usr/lib/x86_64-linux-gnu/perl5/5.38 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl-base /usr/lib/x86_64-linux-gnu/perl/5.38 /usr/share/perl/5.38 /usr/local/lib/site_perl) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 8.)
+debconf: falling back to frontend: Teletype
+Updating certificates in /etc/ssl/certs...
+121 added, 0 removed; done.
+Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
+Processing triggers for ca-certificates (20260601~24.04.1) ...
+Updating certificates in /etc/ssl/certs...
+0 added, 0 removed; done.
+Running hooks in /etc/ca-certificates/update.d...
+done.
++ rm -rf /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-backports_InRelease /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-backports_main_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-backports_multiverse_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-backports_universe_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-updates_InRelease /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-updates_main_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-updates_multiverse_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-updates_restricted_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble-updates_universe_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble_InRelease /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble_main_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble_multiverse_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble_restricted_binary-amd64_Packages.lz4 /var/lib/apt/lists/archive.ubuntu.com_ubuntu_dists_noble_universe_binary-amd64_Packages.lz4 /var/lib/apt/lists/auxfiles /var/lib/apt/lists/lock /var/lib/apt/lists/partial /var/lib/apt/lists/security.ubuntu.com_ubuntu_dists_noble-security_InRelease /var/lib/apt/lists/security.ubuntu.com_ubuntu_dists_noble-security_main_binary-amd64_Packages.lz4 /var/lib/apt/lists/security.ubuntu.com_ubuntu_dists_noble-security_multiverse_binary-amd64_Packages.lz4 /var/lib/apt/lists/security.ubuntu.com_ubuntu_dists_noble-security_restricted_binary-amd64_Packages.lz4 /var/lib/apt/lists/security.ubuntu.com_ubuntu_dists_noble-security_universe_binary-amd64_Packages.lz4
++ cd /opt
++ wget https://github.com/PacificBiosciences/trgt/releases/download/v5.1.0/trgt-v5.1.0-x86_64-unknown-linux-gnu.tar.gz
+--2026-09-21 11:33:59--  https://github.com/PacificBiosciences/trgt/releases/download/v5.1.0/trgt-v5.1.0-x86_64-unknown-linux-gnu.tar.gz
+Resolving httpproxy.zit.med.uni-tuebingen.de (httpproxy.zit.med.uni-tuebingen.de)... 192.168.31.57
+Connecting to httpproxy.zit.med.uni-tuebingen.de (httpproxy.zit.med.uni-tuebingen.de)|192.168.31.57|:8080... connected.
+Proxy request sent, awaiting response... 302 Found
+Location: https://release-assets.githubusercontent.com/github-production-release-asset/476899720/41a91333-0bca-4520-bfba-2b40633145ef?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-09-21T12%3A16%3A17Z&rscd=attachment%3B+filename%3Dtrgt-v5.1.0-x86_64-unknown-linux-gnu.tar.gz&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-09-21T11%3A16%3A08Z&ske=2026-09-21T12%3A16%3A17Z&sks=b&skv=2018-11-09&sig=vqvFfFmYNmit8qyi0RMCaLRF8ZDFeKfdtoYTBQTN7b8%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc4OTk5MDc0MCwibmJmIjoxNzg5OTkwNDQwLCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.HzrJG1uL0ZsfUq22kXqhueOOXJOgnmjHyfhJfAwe1rM&response-content-disposition=attachment%3B%20filename%3Dtrgt-v5.1.0-x86_64-unknown-linux-gnu.tar.gz&response-content-type=application%2Foctet-stream [following]
+--2026-09-21 11:34:00--  https://release-assets.githubusercontent.com/github-production-release-asset/476899720/41a91333-0bca-4520-bfba-2b40633145ef?sp=r&sv=2018-11-09&sr=b&spr=https&se=2026-09-21T12%3A16%3A17Z&rscd=attachment%3B+filename%3Dtrgt-v5.1.0-x86_64-unknown-linux-gnu.tar.gz&rsct=application%2Foctet-stream&skoid=96c2d410-5711-43a1-aedd-ab1947aa7ab0&sktid=398a6654-997b-47e9-b12b-9515b896b4de&skt=2026-09-21T11%3A16%3A08Z&ske=2026-09-21T12%3A16%3A17Z&sks=b&skv=2018-11-09&sig=vqvFfFmYNmit8qyi0RMCaLRF8ZDFeKfdtoYTBQTN7b8%3D&jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmVsZWFzZS1hc3NldHMuZ2l0aHVidXNlcmNvbnRlbnQuY29tIiwia2V5Ijoia2V5MSIsImV4cCI6MTc4OTk5MDc0MCwibmJmIjoxNzg5OTkwNDQwLCJwYXRoIjoicmVsZWFzZWFzc2V0cHJvZHVjdGlvbi5ibG9iLmNvcmUud2luZG93cy5uZXQifQ.HzrJG1uL0ZsfUq22kXqhueOOXJOgnmjHyfhJfAwe1rM&response-content-disposition=attachment%3B%20filename%3Dtrgt-v5.1.0-x86_64-unknown-linux-gnu.tar.gz&response-content-type=application%2Foctet-stream
+Connecting to httpproxy.zit.med.uni-tuebingen.de (httpproxy.zit.med.uni-tuebingen.de)|192.168.31.57|:8080... connected.
+Proxy request sent, awaiting response... 200 OK
+Length: 8352335 (8.0M) [application/octet-stream]
+Saving to: ‘trgt-v5.1.0-x86_64-unknown-linux-gnu.tar.gz’
+
+     0K .......... .......... .......... .......... ..........  0% 5.85M 1s
+    50K .......... .......... .......... .......... ..........  1% 11.4M 1s
+   100K .......... .......... .......... .......... ..........  1% 28.9M 1s
+   150K .......... .......... .......... .......... ..........  2% 33.6M 1s
+   200K .......... .......... .......... .......... ..........  3% 11.8M 1s
+   250K .......... .......... .......... .......... ..........  3% 25.4M 1s
+   300K .......... .......... .......... .......... ..........  4% 67.2M 1s
+   350K .......... .......... .......... .......... ..........  4% 13.6M 1s
+   400K .......... .......... .......... .......... ..........  5% 84.8M 0s
+   450K .......... .......... .......... .......... ..........  6%  117M 0s
+   500K .......... .......... .......... .......... ..........  6% 41.8M 0s
+   550K .......... .......... .......... .......... ..........  7% 82.0M 0s
+   600K .......... .......... .......... .......... ..........  7% 57.3M 0s
+   650K .......... .......... .......... .......... ..........  8% 41.1M 0s
+   700K .......... .......... .......... .......... ..........  9% 16.0M 0s
+   750K .......... .......... .......... .......... ..........  9% 31.9M 0s
+   800K .......... .......... .......... .......... .......... 10% 33.0M 0s
+   850K .......... .......... .......... .......... .......... 11% 34.7M 0s
+   900K .......... .......... .......... .......... .......... 11% 37.4M 0s
+   950K .......... .......... .......... .......... .......... 12% 55.6M 0s
+  1000K .......... .......... .......... .......... .......... 12% 82.4M 0s
+  1050K .......... .......... .......... .......... .......... 13% 98.2M 0s
+  1100K .......... .......... .......... .......... .......... 14% 97.8M 0s
+  1150K .......... .......... .......... .......... .......... 14% 65.7M 0s
+  1200K .......... .......... .......... .......... .......... 15% 69.6M 0s
+  1250K .......... .......... .......... .......... .......... 15% 85.4M 0s
+  1300K .......... .......... .......... .......... .......... 16% 81.0M 0s
+  1350K .......... .......... .......... .......... .......... 17%  109M 0s
+  1400K .......... .......... .......... .......... .......... 17% 76.6M 0s
+  1450K .......... .......... .......... .......... .......... 18% 77.8M 0s
+  1500K .......... .......... .......... .......... .......... 19% 12.0M 0s
+  1550K .......... .......... .......... .......... .......... 19% 37.6M 0s
+  1600K .......... .......... .......... .......... .......... 20% 87.3M 0s
+  1650K .......... .......... .......... .......... .......... 20% 71.2M 0s
+  1700K .......... .......... .......... .......... .......... 21% 78.2M 0s
+  1750K .......... .......... .......... .......... .......... 22% 59.2M 0s
+  1800K .......... .......... .......... .......... .......... 22%  107M 0s
+  1850K .......... .......... .......... .......... .......... 23% 64.8M 0s
+  1900K .......... .......... .......... .......... .......... 23% 92.0M 0s
+  1950K .......... .......... .......... .......... .......... 24% 48.3M 0s
+  2000K .......... .......... .......... .......... .......... 25% 42.5M 0s
+  2050K .......... .......... .......... .......... .......... 25% 56.8M 0s
+  2100K .......... .......... .......... .......... .......... 26% 78.3M 0s
+  2150K .......... .......... .......... .......... .......... 26% 51.2M 0s
+  2200K .......... .......... .......... .......... .......... 27% 67.4M 0s
+  2250K .......... .......... .......... .......... .......... 28% 82.9M 0s
+  2300K .......... .......... .......... .......... .......... 28%  105M 0s
+  2350K .......... .......... .......... .......... .......... 29% 49.0M 0s
+  2400K .......... .......... .......... .......... .......... 30% 75.4M 0s
+  2450K .......... .......... .......... .......... .......... 30%  103M 0s
+  2500K .......... .......... .......... .......... .......... 31% 84.8M 0s
+  2550K .......... .......... .......... .......... .......... 31% 64.3M 0s
+  2600K .......... .......... .......... .......... .......... 32%  104M 0s
+  2650K .......... .......... .......... .......... .......... 33% 84.2M 0s
+  2700K .......... .......... .......... .......... .......... 33% 42.4M 0s
+  2750K .......... .......... .......... .......... .......... 34% 40.1M 0s
+  2800K .......... .......... .......... .......... .......... 34% 53.3M 0s
+  2850K .......... .......... .......... .......... .......... 35% 60.2M 0s
+  2900K .......... .......... .......... .......... .......... 36% 87.6M 0s
+  2950K .......... .......... .......... .......... .......... 36% 50.8M 0s
+  3000K .......... .......... .......... .......... .......... 37% 79.2M 0s
+  3050K .......... .......... .......... .......... .......... 38% 50.8M 0s
+  3100K .......... .......... .......... .......... .......... 38% 41.0M 0s
+  3150K .......... .......... .......... .......... .......... 39% 23.3M 0s
+  3200K .......... .......... .......... .......... .......... 39% 56.4M 0s
+  3250K .......... .......... .......... .......... .......... 40% 59.9M 0s
+  3300K .......... .......... .......... .......... .......... 41% 28.3M 0s
+  3350K .......... .......... .......... .......... .......... 41% 65.0M 0s
+  3400K .......... .......... .......... .......... .......... 42% 43.3M 0s
+  3450K .......... .......... .......... .......... .......... 42% 31.4M 0s
+  3500K .......... .......... .......... .......... .......... 43% 53.3M 0s
+  3550K .......... .......... .......... .......... .......... 44% 37.7M 0s
+  3600K .......... .......... .......... .......... .......... 44% 33.3M 0s
+  3650K .......... .......... .......... .......... .......... 45% 27.0M 0s
+  3700K .......... .......... .......... .......... .......... 45% 27.9M 0s
+  3750K .......... .......... .......... .......... .......... 46% 40.7M 0s
+  3800K .......... .......... .......... .......... .......... 47% 47.0M 0s
+  3850K .......... .......... .......... .......... .......... 47% 43.5M 0s
+  3900K .......... .......... .......... .......... .......... 48% 65.3M 0s
+  3950K .......... .......... .......... .......... .......... 49% 32.2M 0s
+  4000K .......... .......... .......... .......... .......... 49% 48.7M 0s
+  4050K .......... .......... .......... .......... .......... 50% 27.9M 0s
+  4100K .......... .......... .......... .......... .......... 50% 91.3M 0s
+  4150K .......... .......... .......... .......... .......... 51% 54.2M 0s
+  4200K .......... .......... .......... .......... .......... 52% 77.1M 0s
+  4250K .......... .......... .......... .......... .......... 52% 30.9M 0s
+  4300K .......... .......... .......... .......... .......... 53% 29.1M 0s
+  4350K .......... .......... .......... .......... .......... 53% 42.7M 0s
+  4400K .......... .......... .......... .......... .......... 54% 26.4M 0s
+  4450K .......... .......... .......... .......... .......... 55% 85.4M 0s
+  4500K .......... .......... .......... .......... .......... 55% 49.1M 0s
+  4550K .......... .......... .......... .......... .......... 56% 34.2M 0s
+  4600K .......... .......... .......... .......... .......... 57% 35.5M 0s
+  4650K .......... .......... .......... .......... .......... 57% 44.4M 0s
+  4700K .......... .......... .......... .......... .......... 58% 48.9M 0s
+  4750K .......... .......... .......... .......... .......... 58% 27.6M 0s
+  4800K .......... .......... .......... .......... .......... 59% 35.3M 0s
+  4850K .......... .......... .......... .......... .......... 60% 33.7M 0s
+  4900K .......... .......... .......... .......... .......... 60% 90.4M 0s
+  4950K .......... .......... .......... .......... .......... 61% 25.7M 0s
+  5000K .......... .......... .......... .......... .......... 61% 82.8M 0s
+  5050K .......... .......... .......... .......... .......... 62% 39.4M 0s
+  5100K .......... .......... .......... .......... .......... 63% 37.5M 0s
+  5150K .......... .......... .......... .......... .......... 63% 32.7M 0s
+  5200K .......... .......... .......... .......... .......... 64% 39.3M 0s
+  5250K .......... .......... .......... .......... .......... 64% 51.2M 0s
+  5300K .......... .......... .......... .......... .......... 65% 23.4M 0s
+  5350K .......... .......... .......... .......... .......... 66% 50.9M 0s
+  5400K .......... .......... .......... .......... .......... 66% 54.4M 0s
+  5450K .......... .......... .......... .......... .......... 67% 51.1M 0s
+  5500K .......... .......... .......... .......... .......... 68% 35.3M 0s
+  5550K .......... .......... .......... .......... .......... 68% 56.9M 0s
+  5600K .......... .......... .......... .......... .......... 69% 58.8M 0s
+  5650K .......... .......... .......... .......... .......... 69% 21.3M 0s
+  5700K .......... .......... .......... .......... .......... 70% 69.6M 0s
+  5750K .......... .......... .......... .......... .......... 71% 46.8M 0s
+  5800K .......... .......... .......... .......... .......... 71% 74.2M 0s
+  5850K .......... .......... .......... .......... .......... 72% 49.9M 0s
+  5900K .......... .......... .......... .......... .......... 72% 22.8M 0s
+  5950K .......... .......... .......... .......... .......... 73% 46.0M 0s
+  6000K .......... .......... .......... .......... .......... 74% 52.7M 0s
+  6050K .......... .......... .......... .......... .......... 74% 83.9M 0s
+  6100K .......... .......... .......... .......... .......... 75% 19.0M 0s
+  6150K .......... .......... .......... .......... .......... 76% 42.0M 0s
+  6200K .......... .......... .......... .......... .......... 76% 79.8M 0s
+  6250K .......... .......... .......... .......... .......... 77% 43.6M 0s
+  6300K .......... .......... .......... .......... .......... 77% 28.9M 0s
+  6350K .......... .......... .......... .......... .......... 78% 31.3M 0s
+  6400K .......... .......... .......... .......... .......... 79% 59.4M 0s
+  6450K .......... .......... .......... .......... .......... 79% 44.6M 0s
+  6500K .......... .......... .......... .......... .......... 80% 30.6M 0s
+  6550K .......... .......... .......... .......... .......... 80% 40.4M 0s
+  6600K .......... .......... .......... .......... .......... 81% 49.1M 0s
+  6650K .......... .......... .......... .......... .......... 82% 35.4M 0s
+  6700K .......... .......... .......... .......... .......... 82% 48.8M 0s
+  6750K .......... .......... .......... .......... .......... 83% 30.9M 0s
+  6800K .......... .......... .......... .......... .......... 83% 27.7M 0s
+  6850K .......... .......... .......... .......... .......... 84% 80.6M 0s
+  6900K .......... .......... .......... .......... .......... 85% 80.8M 0s
+  6950K .......... .......... .......... .......... .......... 85% 50.5M 0s
+  7000K .......... .......... .......... .......... .......... 86% 21.9M 0s
+  7050K .......... .......... .......... .......... .......... 87% 67.5M 0s
+  7100K .......... .......... .......... .......... .......... 87% 53.0M 0s
+  7150K .......... .......... .......... .......... .......... 88% 52.7M 0s
+  7200K .......... .......... .......... .......... .......... 88% 15.2M 0s
+  7250K .......... .......... .......... .......... .......... 89% 83.8M 0s
+  7300K .......... .......... .......... .......... .......... 90% 36.9M 0s
+  7350K .......... .......... .......... .......... .......... 90%  101M 0s
+  7400K .......... .......... .......... .......... .......... 91% 73.8M 0s
+  7450K .......... .......... .......... .......... .......... 91% 42.5M 0s
+  7500K .......... .......... .......... .......... .......... 92% 61.8M 0s
+  7550K .......... .......... .......... .......... .......... 93% 37.5M 0s
+  7600K .......... .......... .......... .......... .......... 93% 28.1M 0s
+  7650K .......... .......... .......... .......... .......... 94% 3.18M 0s
+  7700K .......... .......... .......... .......... .......... 95% 99.0M 0s
+  7750K .......... .......... .......... .......... .......... 95% 58.7M 0s
+  7800K .......... .......... .......... .......... .......... 96% 91.7M 0s
+  7850K .......... .......... .......... .......... .......... 96% 99.4M 0s
+  7900K .......... .......... .......... .......... .......... 97%  101M 0s
+  7950K .......... .......... .......... .......... .......... 98% 81.4M 0s
+  8000K .......... .......... .......... .......... .......... 98% 73.4M 0s
+  8050K .......... .......... .......... .......... .......... 99%  109M 0s
+  8100K .......... .......... .......... .......... .......... 99% 91.6M 0s
+  8150K ......                                                100% 44.2M=0.2s
+
+2026-09-21 11:34:00 (38.6 MB/s) - ‘trgt-v5.1.0-x86_64-unknown-linux-gnu.tar.gz’ saved [8352335/8352335]
+
++ tar -xzf trgt-v5.1.0-x86_64-unknown-linux-gnu.tar.gz
++ apt-get remove -y wget
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following packages were automatically installed and are no longer required:
+  libpsl5t64 publicsuffix
+Use 'apt autoremove' to remove them.
+The following packages will be REMOVED:
+  wget
+0 upgraded, 0 newly installed, 1 to remove and 0 not upgraded.
+After this operation, 938 kB disk space will be freed.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4864 files and directories currently installed.)
+Removing wget (1.21.4-1ubuntu4.5) ...
++ apt-get autoremove -y
+Reading package lists...
+Building dependency tree...
+Reading state information...
+The following packages will be REMOVED:
+  libpsl5t64 publicsuffix
+0 upgraded, 0 newly installed, 2 to remove and 0 not upgraded.
+After this operation, 485 kB disk space will be freed.
+(Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 4854 files and directories currently installed.)
+Removing libpsl5t64:amd64 (0.21.2-1.1build1) ...
+Removing publicsuffix (20231001.0357-0.1) ...
+Processing triggers for libc-bin (2.39-0ubuntu8.9) ...
++ apt-get clean
++ rm -rf /var/lib/apt/lists/auxfiles /var/lib/apt/lists/lock /var/lib/apt/lists/partial
+INFO:    Adding environment to container
+INFO:    Creating SIF file...
+INFO:    Build complete: trgt_v5.1.0-20260921.sif

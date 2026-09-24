@@ -647,8 +647,6 @@ while(!gzeof($handle))
 	$info = $tmp;
 
 	//skip high-sensitivy calls from DRAGEN MRJD caller
-	//trigger_error($info, E_USER_NOTICE);
-	//if (isset($info["MRJD_HS"])) continue;
 	if (isset($info["MRJD_HS"]) && isset($info["REF_DIFF_SITE"])) continue;
 	if (isset($info["MRJD_HS"]) && isset($info["ALT_LOCATION"])) continue;
 

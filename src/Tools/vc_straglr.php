@@ -10,7 +10,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 // parse command line arguments
-$parser = new ToolBase("vc_straglr", "Call repeat expansions with straglr. Creates an BED file.");
+$parser = new ToolBase("vc_straglr", "Call repeat expansions with straglr.");
 $parser->addInfile("in", "Input BAM file. Note: .bam.bai file is required!", false);
 $parser->addOutfile("out", "Output VCF file.", false);
 $parser->addInfile("loci", "BED file containing repeat loci.", false);
