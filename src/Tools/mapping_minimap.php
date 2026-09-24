@@ -16,12 +16,11 @@ $parser->addString("sample", "Sample name to use in BAM header. If unset the bas
 $parser->addInfileArray("in_fastq",  "Input file(s) in FASTQ format.", true);
 $parser->addInfileArray("in_bam", "Input BAM file(s), with modified bases information (MM ML tags).", true);
 $parser->addInfile("system",  "Processing system INI file (automatically determined from NGSD if 'sample' or 'out' is a valid processed sample name).", true);
-$parser->addString("qc_fastq", "Output qcML file with read statistics.", true, "");
-$parser->addString("qc_map", "Output qcML file with mapping statistics.", true, "");
 $parser->addOutfile("local_bam", "Filename the local BAM file is written to. It can be used to speed up variant calling etc. Not created if unset.", true);
 $parser->addFlag("bam_output", "Output is BAM instead of CRAM.");
 $parser->addInt("threads", "Maximum number of threads used.", true, 2);
 $parser->addFlag("softclip_supplements", "Use soft clipping for supplementary alignments.");
+$parser->addFlag("no_qc", "Do not perform QC.");
 extract($parser->parse($argv));
 
 if ((is_null($in_fastq) && is_null($in_bam)) || (!is_null($in_fastq) && (count($in_fastq) > 0) && !is_null($in_bam) && (count($in_bam) > 0)))
@@ -181,7 +180,7 @@ if ($bam_input)
 }
 
 //run mapping QC
-if ($qc_map !== "")
+if (!$no_qc)
 {
 	$in_files = array();
 	$in_files[] = genome_fasta($sys["build"]);

@@ -165,8 +165,6 @@ if (in_array("ma", $steps))
 		"-sample {$name}",
 		"-threads {$threads}",
 		"-system {$system}",
-		"-qc_fastq {$qc_fastq}",
-		"-qc_map {$qc_map}",
 		"-softclip_supplements"	];
 	if ($bam_output)
 	{
