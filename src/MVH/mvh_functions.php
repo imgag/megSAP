@@ -254,6 +254,10 @@ function add_submission_to_sap($sap_case_id, $data_type, $tan)
 			"10" => "Uploaddatum fehlt",
 			"11" => "Meldedatum fehlt",
 			"12" => "Fallnummer fehlt",
+			"13" => "ZUKT_MVG_GENOM_DATA: Es liegt kein MVG-Dokument für diese Fallnummer vor",
+			"14" => "ZUKT_MVG_GENOM_DATA: Fehler beim Zugriff auf das MVG-Dokument",
+			"15" => "ZUKT_MVG_GENOM_DATA: Fehler beim Zugriff auf erste Meldung im MVG-Dokument",
+			"16" => "ZUKT_MVG_GENOM_DATA: Fehler beim Schreiben der Meldung in die MVG-Sekundärtabelle",
 		];
 		trigger_error("SOAP server returned response code {$response_code} (".$code2error[$response_code].")\nresponse: {$response}", E_USER_ERROR);
 	}
