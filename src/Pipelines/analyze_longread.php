@@ -122,7 +122,8 @@ $cnv_file2 = $folder."/".$name."_cnvs_clincnv.seg";
 $sv_vcf_file = $folder ."/". $name . "_var_structural_variants.vcf.gz";
 $bedpe_file = substr($sv_vcf_file,0,-6)."bedpe";
 //repeat expansions
-$straglr_file = $folder."/".$name."_repeats.vcf";
+//TODO: rename
+$repeat_file = $folder."/".$name."_repeats.vcf";
 //methylation files
 $methyl_regions = repository_basedir()."/data/methylation/methylartist_catalog_grch38.tsv";
 $methylation_table = $folder."/".$name."_var_methylation.tsv";
@@ -849,10 +850,26 @@ else if(in_array("ma", $steps) || in_array("vc", $steps) || in_array("sv", $step
 // repeat expansion
 if (in_array("re", $steps))
 {
-	//Repeat-expansion calling using straglr
-	$variant_catalog = repository_basedir()."/data/repeat_expansions/straglr_variant_catalog_grch38.bed";
-	
-	$parser->execTool("Tools/vc_straglr.php", "-in {$used_bam_or_cram} -out {$straglr_file} -loci {$variant_catalog} ".((!file_exists($sv_vcf_file))?"-sv_vcf {$sv_vcf_file} ":"")."-threads {$threads} -build {$build} --log ".$parser->getLogFile());
+	if ($platform == "PacBio")
+	{
+		//Repeat-expansion calling using trgt 
+		$gender = "n/a";
+		if (db_is_enabled("NGSD"))
+		{
+			$db = DB::getInstance("NGSD", false);
+			$info = get_processed_sample_info($db, $name, false);
+			if (!is_null($info)) $gender  = $info['gender'];
+		}
+		$variant_catalog = repository_basedir()."/data/repeat_expansions/trgt_variant_catalog_grch38.bed";
+		$parser->execTool("Tools/vc_trgt.php", "-in {$used_bam_or_cram} -out {$repeat_file} -loci {$variant_catalog} -gender '{$gender}' -threads {$threads} -build {$build} --log ".$parser->getLogFile());
+	}
+	else
+	{
+		//Repeat-expansion calling using straglr
+		$variant_catalog = repository_basedir()."/data/repeat_expansions/straglr_variant_catalog_grch38.bed";
+		$parser->execTool("Tools/vc_straglr.php", "-in {$used_bam_or_cram} -out {$repeat_file} -loci {$variant_catalog} ".((!file_exists($sv_vcf_file))?"-sv_vcf {$sv_vcf_file} ":"")."-threads {$threads} -build {$build} --log ".$parser->getLogFile());
+
+	}
 }
 
 
@@ -1369,12 +1386,12 @@ if (in_array("db", $steps))
 		
 		$args[] = "-sv {$bedpe_file}";
 	}
-	if (file_exists($straglr_file))
+	if (file_exists($repeat_file))
 	{
 		//check genome build
-		check_genome_build($straglr_file, $build);
+		check_genome_build($repeat_file, $build);
 		
-		$args[] = "-re {$straglr_file}";
+		$args[] = "-re {$repeat_file}";
 	}
 	if (count($args)>0)
 	{

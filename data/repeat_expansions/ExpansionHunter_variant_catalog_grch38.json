@@ -3036,12 +3036,12 @@
         "MainReferenceRegion": "chr15:34419425-34419451"
     },
 	{
-        "LocusId": "TBC1D7 ",
+        "LocusId": "TBC1D7",
         "LocusStructure": "(CCG)*",
         "ReferenceRegion": "chr6:13328476-13328603",
         "RepeatUnit": "CCG",
         "VariantType": "RareRepeat",
-        "Gene": "TBC1D7 ",
+        "Gene": "TBC1D7",
         "GeneRegion": "promotor",
         "GeneId": "ENSG00000145979",
         "Diseases": [],
