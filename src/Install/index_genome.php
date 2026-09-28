@@ -31,6 +31,7 @@ if ($mask || ($additional_masking_region != ""))
 	$tmp = $parser->tempFile("_masked.fa");
 	$parser->execApptainer("ngs-bits", "FastaMask", "-in {$in} -reg {$combined_exclusion_bed} -out {$tmp}", [$in]);	
 	if (!$skip_checksum_update) $parser->execApptainer("ngs-bits", "FastaChecksumUpdate", "-in {$tmp} -out {$in}", [$in]);
+	else $parser->moveFile($tmp, $in);
 }
 
 //BWA index

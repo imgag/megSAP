@@ -75,8 +75,8 @@ function extract_methylation($bam, $chr, $start, $end, $highlight_start, $highli
         $args_modkit[] = "--prefix {$prefix}";
     } 
     list($stdout, $stderr, $ec) = $parser->execApptainer("modkit", "modkit", implode(" ", $args_modkit), [$ref_genome, $bam], [$tmp_out], false, true, false, true);
-    // workaround to allow 0 reads in BAM region (e.g. in test cases)
-    if (($ec != 0) && (end($stderr) != "> Error! zero reads found in bam index")) 
+    // workaround to allow 0 or 1 reads in BAM region (e.g. in test cases)
+    if (($ec != 0) && ((end($stderr) != "> Error! zero reads found in bam index") && (end($stderr) != "> Error! not enough datapoints, got 1"))) 
     {
         $parser->toStderr($stdout);
 		$parser->toStderr($stderr);

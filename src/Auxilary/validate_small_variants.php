@@ -150,7 +150,7 @@ function get_variants($vcf_gz, $roi, $max_indel, $min_qual, $sample_id, &$skippe
 			@$skipped["genotype wildtype: 0/0"] += 1;
 			continue;
 		}
-		if ($gt!="0/1" && $gt!="1/1")
+		if ($gt!="0/1" && $gt!="1/1" && (($chr == "chrMT" || $chr == "chrY") && ($gt!="1")))
 		{
 			@$skipped["genotype invalid: ".$sample[0]] += 1;
 			continue;
@@ -429,10 +429,14 @@ function stats($var_type, $expected, $var_diff)
 		
 	$tp = $c_expected - $fn;
 	$tn = $bases_used - $c_expected - $fp;
-	$recall = number_format($tp/($tp+$fn),4);
-	$precision = number_format($tp/($tp+$fp),4);
-	$geno_acc = number_format(($tp-$gt_false)/$tp,4);
-	$f1 = number_format(2*$tp/(2*$tp+$fp+$fn),4);
+	if (($tp+$fn)!= 0) $recall = number_format($tp/($tp+$fn),4);
+	else $recall = NAN;
+	if (($tp+$fp)!= 0) $precision = number_format($tp/($tp+$fp),4);
+	else $precision = NAN;
+	if ($tp != 0) $geno_acc = number_format(($tp-$gt_false)/$tp,4);
+	else $geno_acc = NAN;
+	if (($tp+$fp+$fn)!= 0) $f1 = number_format(2*$tp/(2*$tp+$fp+$fn),4);
+	else $f1 = NAN;
 	
 	return [$c_expected, $recall, $precision, $geno_acc, $f1];
 }

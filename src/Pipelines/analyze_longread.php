@@ -402,6 +402,21 @@ if (in_array("vc", $steps))
 		
 		$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
 
+		//run mosaic calling
+		$tmp_mosaic = $parser->tempFile("_mosaic.vcf.gz");
+		$args = [];
+		$args[] = "-bam {$used_bam_or_cram}";
+		$args[] = "-out {$tmp_mosaic}";
+		$args[] = "-name {$name}";
+		$args[] = "-model hifi_revio";
+		$args[] = "-threads ".$threads;
+		$args[] = "-build ".$build;
+		$parser->execTool("Tools/vc_clair_mosaic.php", implode(" ", $args));
+		//add to main variant list
+		$vcf_merged = $parser->tempFile("_merged_mosaic.vcf");
+		$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mosaic} -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out {$vcf_merged}", [$vcf_file, $tmp_mosaic]);
+		$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
+
 		//run mito calling
 		$tmp_mito = $parser->tempFile("_mito.vcf.gz");
 		$args = [];
@@ -412,10 +427,9 @@ if (in_array("vc", $steps))
 		$args[] = "-threads ".$threads;
 		$args[] = "-build ".$build;
 		$parser->execTool("Tools/vc_himito.php", implode(" ", $args));
-
 		//add to main variant list
-		$vcf_merged = $parser->tempFile("_merged_mosaic.vcf");
-		$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mito} -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out {$vcf_merged}", [$vcf_file]);
+		$vcf_merged = $parser->tempFile("_merged_mito.vcf");
+		$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mito} -skip_duplicates -out {$vcf_merged}", [$vcf_file]);
 		$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
 	}
 	//ONT
@@ -576,7 +590,7 @@ if (in_array("vc", $steps))
 
 		//add to main variant list
 		$vcf_merged = $parser->tempFile("_merged_mosaic.vcf");
-		$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mito} -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out {$vcf_merged}", [$vcf_file]);
+		$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mito} -skip_duplicates -out {$vcf_merged}", [$vcf_file]);
 		$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
 
 		//sort and remove unused contig lines
