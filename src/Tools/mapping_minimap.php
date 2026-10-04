@@ -194,7 +194,7 @@ if (!$no_qc)
 		"-single_end"
 	];
 
-	if ($sys['target_file']=="" || $sys['type']=="lrGS")
+	if (target_region_is_genome_wide($sys['target_file']))
 	{
 		$params[] = "-wgs";
 	}

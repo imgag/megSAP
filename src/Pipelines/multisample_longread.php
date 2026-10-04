@@ -115,7 +115,14 @@ foreach($bams as $bam)
 }
 
 //enable check if chromosomes are complete only if the ROI covers the whole genome (pipeline test are not)
-$check_chrs = bed_size($target_file) > 3e9;
+$check_chrs = target_region_is_genome_wide($target_file);
+
+//CNV calling is only supported for genome-wide long-read data (binning/reference-cohort approach is not validated for targeted/adaptive-sampling regions)
+if (in_array("cn", $steps) && !$check_chrs)
+{
+	trigger_error("Skipping step 'cn' - Copy-number calling is not supported for targeted/adaptive-sampling long-read data (target region does not cover the whole genome)!", E_USER_WARNING);
+	if (($key = array_search("cn", $steps)) !== false) unset($steps[$key]);
+}
 
 //set up local NGS data copy
 if (!$no_sync) $parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);

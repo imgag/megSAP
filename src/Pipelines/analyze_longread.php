@@ -140,8 +140,15 @@ $sample_name = $name_sample_ps[0];
 if(!$sys['target_file']) trigger_error("Target region is missing in processing system config.", E_USER_NOTICE);
 
 //check if target region covers whole genome (based on ROI size because pipeline test does not contain all chromosomes)
-$check_chrs = bed_size(realpath($sys['target_file'])) > 3e9;
+$check_chrs = target_region_is_genome_wide($sys['target_file']);
 if(!$check_chrs) trigger_error("Target region does not cover whole genome. Cannot check for missing chromosomes in variant calls.", E_USER_NOTICE);
+
+//CNV calling is only supported for genome-wide long-read data (binning/reference-cohort approach is not validated for targeted/adaptive-sampling regions)
+if (in_array("cn", $steps) && !$check_chrs)
+{
+	trigger_error("Skipping step 'cn' - Copy-number calling is not supported for targeted/adaptive-sampling long-read data (target region does not cover the whole genome)!", E_USER_WARNING);
+	if (($key = array_search("cn", $steps)) !== false) unset($steps[$key]);
+}
 
 //mapping
 if (in_array("ma", $steps))
@@ -787,7 +794,6 @@ if (in_array("ph", $steps))
 	if (file_exists($sv_vcf_file))
 	{
 		$args[] = "--sv-file {$sv_vcf_file}";
-		$in_files[] = $sv_vcf_file;
 	} 
 	
 	$tagged_bam_file = $parser->tempFile(".tagged.bam");
