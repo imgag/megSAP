@@ -169,9 +169,10 @@ if ($skipped_only)
 	if (isset($secondary_output) && ($secondary_output != ""))
 	{
 		//copy BAMs to secondary output
+		$parser->exec("mkdir", "-p {$secondary_output}");
 		foreach ($bams_to_merge as $bam_file) 
 		{
-			$parser->exec("cp", "{$bam_file} $secondary_output");
+			$parser->copyFile($bam_file, $secondary_output);
 		}
 
 	}
