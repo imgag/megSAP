@@ -136,4 +136,7 @@ foreach($containers as $tool => $tmp)
 	}
 }
 
+print "Info: megSAP container depolyment folder: {$container_folder}\n";
+print "Info: megSAP container recipies folder: ".repository_basedir()."/data/tools/container_recipes/\n";
+
 ?>
