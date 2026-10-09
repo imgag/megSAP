@@ -134,7 +134,7 @@ foreach($ps_rna_bams as $rna_id => $rna_bam)
 	
 	if (file_exists($t_bam))
 	{
-		$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$rna_bam} {$t_bam} -mode bam -ref {$genome} -build ".ngsbits_build($sys['build']), [$rna_bam, $t_bam]);
+		$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$rna_bam} {$t_bam} -mode bam -ref {$genome}", [$rna_bam, $t_bam]);
 		$correlation = explode("\t", $output[0][1])[3];
 		if ($correlation < $min_corr && ! $skip_correlation)
 		{

@@ -8,7 +8,7 @@ require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 //parse command line arguments
-$parser = new ToolBase("analyze", "Complete NGS analysis pipeline.");
+$parser = new ToolBase("analyze", "Short-read germline analysis pipeline.");
 $parser->addInfile("folder", "Analysis data folder.", false);
 $parser->addString("name", "Base file name, typically the processed sample ID (e.g. 'GS120001_01').", false);
 //optional
@@ -58,6 +58,8 @@ $is_panel = $sys['type']=="Panel" || $sys['type']=="Panel Haloplex";
 $is_wgs_shallow = $sys['type']=="WGS (shallow)";
 $roi = trim($sys['target_file']);
 $build = $sys['build'];
+$platform = $sys['platform'];
+$location = trim(get_path("location", false));
 
 //check that ROI is sorted
 if ($roi!="")
@@ -138,6 +140,7 @@ $dragen_cram = "{$dragen_folder}/{$name}.cram";
 $dragen_bam_or_cram_exists = file_exists($dragen_bam) || file_exists($dragen_cram);
 $dragen_output_vcf = "{$dragen_folder}/{$name}.hard-filtered.vcf.gz";
 $dragen_output_sv_vcf = "{$dragen_folder}/{$name}.sv.vcf.gz";
+$dragen_output_mrjd_vcf = "{$dragen_folder}/{$name}.mrjd.hard-filtered.vcf.gz";
 
 //output file names:
 //mapping
@@ -164,6 +167,7 @@ $bedpe_out = substr($sv_manta_file,0,-6)."bedpe";
 //repeat expansions
 $expansion_hunter_file = $folder."/".$name."_repeats_expansionhunter.vcf";
 //db import
+$qc_mvh = $folder."/".$name."_mvh_qc.tsv";
 $qc_fastq  = $folder."/".$name."_stats_fastq.qcML";
 $qc_map  = $folder."/".$name."_stats_map.qcML";
 $qc_vc  = $folder."/".$name."_stats_vc.qcML";
@@ -191,10 +195,16 @@ if ($annotation_only)
 	} 
 }
 
-//prevent accidentally re-mapping if DRAGEN already ran
+//prevent accidentally re-mapping if data is pre-analyzed with DRAGEN
 if (in_array("ma", $steps) && !$no_dragen && file_exists($dragen_folder) && ($bam_or_cram_exists || $dragen_bam_or_cram_exists)) 
 {
 	trigger_error("'ma' step requested, but sample is already analyzed with DRAGEN. Use '-no_dragen' if you really want to do a re-mapping!", E_USER_ERROR);
+}
+
+//Roche AXELIOS1 data is mapped on the sequencer
+if ($platform=="Roche" && in_array("ma", $steps))
+{
+	trigger_error("'ma' step requested, but is not supported for Roche data!", E_USER_ERROR);
 }
 
 //move BAM/CRAM from DRAGEN folder to sample folder (on first analysis)
@@ -202,15 +212,37 @@ if (!in_array("ma", $steps) && !$no_dragen && file_exists($dragen_folder))
 {
 	if ($dragen_bam_or_cram_exists)
 	{
+		$illumina_ref = get_path("data_folder")."/dbs/illumina_dragen44_genome/hg38.fa";
+		$unsupported_regs = repository_basedir()."/data/misc/unsupported_regions_dragen44_pangenome.bed";
 		if (file_exists($dragen_cram))
 		{
-			$parser->moveFile($dragen_cram, $cramfile);
-			$parser->moveFile($dragen_cram.".crai", $cramfile.".crai");
+			if (is_dragen_pangenome_bam($dragen_cram))
+			{
+				if (!file_exists($cramfile))
+				{
+					$parser->execTool("Tools/convert_dragen_cram.php", "-in $dragen_cram -in_ref $illumina_ref -unsupported $unsupported_regs -threads $threads -out $cramfile");
+				}
+			}
+			else
+			{
+				$parser->moveFile($dragen_cram, $cramfile);
+				$parser->moveFile($dragen_cram.".crai", $cramfile.".crai");
+			}
 		}
 		else
 		{
-			$parser->moveFile($dragen_bam, $bamfile);
-			$parser->moveFile($dragen_bam.".bai", $bamfile.".bai");
+			if (is_dragen_pangenome_bam($dragen_bam))
+			{	
+				if (!file_exists($cramfile))
+				{
+					$parser->execTool("Tools/convert_dragen_cram.php", "-in $dragen_bam -in_ref $illumina_ref -unsupported $unsupported_regs -threads $threads -out $cramfile");
+				}
+			}
+			else
+			{
+				$parser->moveFile($dragen_bam, $bamfile);
+				$parser->moveFile($dragen_bam.".bai", $bamfile.".bai");
+			}
 		}
 		$bam_or_cram_exists = true;
 	}
@@ -368,8 +400,8 @@ else if ($bam_or_cram_exists)
 	
 	//check genome build of BAM
 	check_genome_build($used_bam_or_cram, $build);
-
-	//QC for samples mapped/called on NovaSeq X
+	
+	//QC for samples pre-mapped by sequencer (NovaSeq X, Illumina DRAGEN, Roche AXELIOS1)
 	if( (!file_exists($qc_map) && !$no_qc) || $force_qc)
 	{
 		//QC
@@ -398,6 +430,10 @@ else if ($bam_or_cram_exists)
 		if (!file_exists($qc_fastq) || $force_qc)
 		{
 			$params[] = "-read_qc $qc_fastq";
+		}
+		if ($platform=="Roche")
+		{
+			$params[] = "-single_end";
 		}
 		$parser->execApptainer("ngs-bits", "MappingQC", implode(" ", $params), $in_files);
 	}
@@ -464,6 +500,13 @@ else if ($bam_or_cram_exists)
 			}
 		}
 	}
+	
+	//check sample name is correct in BAM/CRAM header
+	$sample_id = get_bam_sample_id($used_bam_or_cram);
+	if ($sample_id!=$name)
+	{
+		trigger_error("BAM/CRAM file contains sample ID '$sample_id' in @RG header, but expected '$name': $used_bam_or_cram", E_USER_ERROR);
+	}
 }
 else
 {
@@ -510,8 +553,8 @@ if (in_array("vc", $steps))
 
 		//perform main variant calling on autosomes/genosomes
 		if(!$only_mito_in_target_region)
-		{			
-			if (!$no_dragen && file_exists($dragen_output_vcf))
+		{
+			if (!$no_dragen && file_exists($dragen_output_vcf)) //use DRAGEN output
 			{
 				trigger_error("DRAGEN analysis found in sample folder. Using this data for small variant calling. ", E_USER_NOTICE);
 				$pipeline = [];
@@ -542,8 +585,7 @@ if (in_array("vc", $steps))
 				$tmp = $parser->tempFile("_offtarget.vcf");
 				$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $vcffile -mark off-target -reg {$roi} -out $tmp", [$folder, $roi]);
 				
-				//remove variants with less than 3 alternative observations
-				//(still required in DRAGEN 4.4.6: removes ~50k variants)
+				//remove variants with less than 3 alternative observations - still required in DRAGEN 4.4.6: removes ~50k variants
 				$tmp2 = $parser->tempFile("_ad.vcf");
 				$hr = gzopen2($tmp, "r");
 				$hw = fopen2($tmp2, "w");
@@ -575,21 +617,44 @@ if (in_array("vc", $steps))
 
 				//split up VCF in targeted/mosaic and merge again to remove duplicates
 				$tmp_mosaic = $parser->tempFile("_mosaic.vcf");
-				$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp2} -out {$tmp_mosaic} -info_flags MOSAIC");
+				$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp2} -out {$tmp_mosaic} -info_flags MOSAIC -ref $genome", [$genome]);
 				$tmp_targeted = $parser->tempFile("_targeted.vcf");
-				$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp2} -out {$tmp_targeted} -info_flags TARGETED");
+				$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp2} -out {$tmp_targeted} -info_flags TARGETED -ref $genome", [$genome]);
 				$tmp_normal = $parser->tempFile("_normal.vcf");
-				$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp2} -out {$tmp_normal} -info_flags_exclude MOSAIC,TARGETED");
+				$parser->execApptainer("ngs-bits", "VcfFilter", "-in {$tmp2} -out {$tmp_normal} -info_flags_exclude MOSAIC,TARGETED -ref $genome", [$genome]);
 
 				$tmp3 = $parser->tempFile("_with_mosaic.vcf");
 				$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$tmp_normal} {$tmp_mosaic} -out {$tmp3} -filter mosaic -filter_desc Variant_is_called_by_mosaic_caller -skip_duplicates");
 				$tmp4 = $parser->tempFile("_with_mosaic+targeted.vcf");
 				$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$tmp3} {$tmp_targeted} -out {$tmp4} -filter targeted -filter_desc Variant_is_called_by_targeted_caller -skip_duplicates");
 
-				//sort and convert to VCF.GZ
-				$parser->execApptainer("ngs-bits", "VcfSort", "-in {$tmp4} -compression_level 7 -out {$vcffile}", [], [dirname($vcffile)]);
+				//add DRAGEN MRJD variants
+				if (file_exists($dragen_output_mrjd_vcf))
+				{
+					trigger_error("DRAGEN MRJD analysis found in sample folder. Using this data for MRJD small variant calling. ", E_USER_NOTICE);
 
-				//index output file
+					//fix mrjd file
+					$pipeline = [];
+					$tmp_mrjd = $parser->tempFile("mrjd.vcf");
+					$pipeline[] = array("zcat", $dragen_output_mrjd_vcf);
+					//split multi-allelic variants
+					$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "", [], [], true)];
+					//normalize all variants and align INDELs to the left
+					$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome -out {$tmp_mrjd}", [$genome], [], true));
+					//execute pipeline
+					$parser->execPipeline($pipeline, "Dragen MRJD post processing");
+
+					$tmp5 = $parser->tempFile("_with_mosaic_targeted_mrjd.vcf");
+					$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$tmp4} {$tmp_mrjd} -out {$tmp5} -filter dragen_mrjd -filter_desc Variant_is_called_by_DRAGEN_MRJD-Caller -skip_duplicates");					
+				}
+				else
+				{
+					$tmp5 = $tmp4;
+					//TODO add own MRJD caller
+				}
+
+				//sort and convert to VCF.GZ
+				$parser->execApptainer("ngs-bits", "VcfSort", "-in {$tmp5} -compression_level 7 -out {$vcffile}", [], [dirname($vcffile)]);
 				$parser->execApptainer("htslib", "tabix", "-p vcf $vcffile", [], [dirname($vcffile)]);
 			}
 			else //perform variant calling with DeepVariant
@@ -611,22 +676,61 @@ if (in_array("vc", $steps))
 				$args[] = "-min_mq ".$min_mq;
 				$args[] = "-min_bq ".$min_bq;
 				$args[] = "-allow_empty_examples";
+				if ($platform=="Roche") 
+				{
+					$args[] = "-sbx";
+				}
 
 				$parser->execTool("Tools/vc_deepvariant.php", implode(" ", $args));
+
+				//TODO: add own MRJD caller
 			}
 		}
 		
-		//perform special variant calling for mitochondria
+		//determine mito variants
 		$mito = enable_special_mito_vc($sys) || $only_mito_in_target_region;
 		if ($mito)
 		{
 			$vcffile_mito = $parser->tempFile("_mito.vcf.gz");
-			if (!$no_dragen && file_exists($dragen_output_vcf) && contains_mito($dragen_output_vcf))
+			if (!$no_dragen && file_exists($dragen_output_vcf) && contains_mito($dragen_output_vcf, true) && is_dragen_pangenome_bam($used_bam_or_cram)) //use DRAGEN mito calls
 			{
-				trigger_error("DRAGEN analysis found in sample folder. Using this data for mito small variant calling. ", E_USER_NOTICE);
-				$pipeline = [];
+				trigger_error("DRAGEN analysis found in sample folder. Using DRAGEN mito small variants calls.", E_USER_NOTICE);
 				
-				$pipeline[] = array("zcat", $dragen_output_vcf);
+				$mito_vcf = $dragen_output_vcf;
+				
+				//pan-genome: rename chrM to chrMT, set filter to PASS, move SQ INFO value to QUAL
+				if (is_dragen_pangenome_bam($used_bam_or_cram))
+				{
+					$tmp = [];
+					
+					$tmp_file_mito = $parser->tempFile("_mito_pan.vcf");
+					$parser->execApptainer("htslib", "tabix", "-h $dragen_output_vcf chrM:1-16569 > $tmp_file_mito", [$dragen_output_vcf]);
+					foreach(file($tmp_file_mito) as $line)
+					{
+						$line = nl_trim($line);
+						if ($line=="") continue;
+						
+						if ($line[0]=="#") //headers
+						{
+							$tmp[] = $line;
+						}
+						else //variants
+						{
+							$parts = explode("\t", $line);
+							$parts[0] = "chrMT";
+							$sq_index = array_search("SQ", explode(":", $parts[8]));
+							$sq = explode(":", $parts[9])[$sq_index];
+							$parts[5] = $sq;
+							$parts[6] = "PASS";
+							$tmp[] = implode("\t", $parts);
+						}
+					}
+					$mito_vcf = $parser->tempFile("_mito_pan.vcf.gz");
+					file_put_contents($mito_vcf, gzencode(implode("\n", $tmp)));
+				}
+				
+				$pipeline = [];
+				$pipeline[] = array("zcat", $mito_vcf);
 				
 				//filter by target region and quality 5
 				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfFilter", "-reg chrMT:1-16569 -qual 5 -filter_clear -ref $genome", [$genome], [], true));
@@ -649,7 +753,7 @@ if (in_array("vc", $steps))
 				//index output file
 				$parser->execApptainer("htslib", "tabix", "-p vcf $vcffile_mito");
 			}
-			else
+			else //perform own mito variant calling
 			{
 				$target_mito = $parser->tempFile("_mito.bed");
 				file_put_contents($target_mito, "chrMT\t0\t16569");
@@ -666,7 +770,6 @@ if (in_array("vc", $steps))
 				$args[] = "-min_mq 20";
 				$parser->execTool("Tools/vc_mosaic.php", implode(" ", $args)); //TODO Marc: maybe there are better mito callers, see https://pmc.ncbi.nlm.nih.gov/articles/PMC8957813 and newer papers
 			}
-		
 			if($only_mito_in_target_region) 
 			{
 				$parser->copyFile($vcffile_mito, $vcffile);
@@ -768,13 +871,9 @@ if (in_array("vc", $steps))
 							
 		}
 
-				
 		//sort and remove unused contig lines
-		$parser->execApptainer("ngs-bits", "VcfSort", "-in $vcf -remove_unused_contigs -out $vcf");
-		
-		//zip and index
-		$parser->execApptainer("htslib", "bgzip", "-c $vcf > $vcffile", [], [dirname($vcffile)]);
-		$parser->execApptainer("htslib", "tabix", "-f -p vcf $vcffile", [], [dirname($vcffile)]);
+		$parser->execApptainer("ngs-bits", "VcfSort", "-in {$vcf} -remove_unused_contigs -compression_level 5 -out {$vcffile}", [$vcf], [dirname($vcffile)]);
+		$parser->execApptainer("htslib", "tabix", "-f -p vcf {$vcffile}", [$vcffile], [dirname($vcffile)]);
 		
 		//create b-allele frequency file
 		$params = array();
@@ -790,7 +889,7 @@ if (in_array("vc", $steps))
 	else
 	{
 		check_genome_build($vcffile, $build);
-	}
+	}	
 
 	//annotation
 	$args = [];
@@ -804,7 +903,7 @@ if (in_array("vc", $steps))
 	$parser->execTool("Tools/annotate.php", implode(" ", $args));
 
 	//check for truncated output
-	if ($is_wgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$vcffile_annotated} -max_missing_perc 5");
+	if ($is_wgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$vcffile_annotated} -max_missing_perc 5 -check_mito");
 		
 	//ROH detection
 	if ($is_wes || $is_wgs)
@@ -838,7 +937,7 @@ if (in_array("vc", $steps))
 	//determine ancestry
 	if (ngsbits_build($build) != "non_human")
 	{
-		$parser->execApptainer("ngs-bits", "SampleAncestry", "-in {$vcffile} -out {$ancestry_file} -build ".ngsbits_build($build), [$folder]);
+		$parser->execApptainer("ngs-bits", "SampleAncestry", "-in {$vcffile} -out {$ancestry_file}", [$folder]);
 	}
 }
 
@@ -998,10 +1097,10 @@ if (in_array("cn", $steps))
 		}
 		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnvfile} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnvfile}", [$folder, "{$repository_basedir}/data/misc/cn_pathogenic.bed"]);
 		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnvfile}", [$folder, "{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed"]);
-		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-04.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", [$folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-04.bed"]);
+		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnvfile} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-09.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnvfile}", [$folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-09.bed"]);
 
 
-		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2026_1.bed"; //optional because of license
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2026_2.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
 			$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnvfile} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnvfile}", [$folder, $hgmd_file]);
@@ -1233,10 +1332,9 @@ if (in_array("sv", $steps))
 	if ($is_wgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$bedpe_out}");
 }
 
-//repeat expansions
+//repeat expansions (only for WGS/WES)
 if (in_array("re", $steps))
 {
-	//perform repeat expansion analysis (only for WGS/WES):
 	$parser->execTool("Tools/vc_expansionhunter.php", "-in $used_bam_or_cram -out $expansion_hunter_file -build ".$build." -pid $name -threads {$threads}");
 }
 
@@ -1369,6 +1467,41 @@ if (( (in_array("cn", $steps) || in_array("sv", $steps) || in_array("db", $steps
 		
 		$sources[] = $bedpe_out;
 	}
+	
+	//perform Modellvorhaben QC if sample is in the study
+	if ($location=="UKT" && db_is_enabled("NGSD") && ($is_wgs || $is_wes))
+	{
+		$db = DB::getInstance("NGSD", false);
+		$ps_id = get_processed_sample_id($db, $name, false);
+		if ($ps_id!=-1) //sample is in NGSD
+		{
+			$study_sample_id = $db->getValue("SELECT id FROM study_sample WHERE study_id=(SELECT id FROM study WHERE name='Modellvorhaben_2024') AND processed_sample_id='$ps_id'", -1);
+			if ($study_sample_id!=-1) //sample has MVH study
+			{
+				//if it does not exist create MVH QC file
+				if (!file_exists($qc_mvh) || $force_qc)
+				{
+					$tmp_file_in = $parser->tempFile("_mvh_qc.tsv");
+					file_put_contents($tmp_file_in, $name);
+					$parser->execTool("MVH/mvh_run_qc.php", "-samples {$tmp_file_in} -out {$qc_mvh} -threads {$threads}");
+				}
+				
+				//parse MVH QC file
+				foreach(file($qc_mvh) as $line)
+				{
+					$line = nl_trim($line);
+					if ($line=="" || $line[0]=="#") continue;
+					
+					$parts = explode("\t", $line);
+					$terms[] = "QC:2000152\t".number_format($parts[5], 2);
+					$terms[] = "QC:2000153\t".number_format($parts[7], 2);
+					$terms[] = "QC:2000154\t".number_format($parts[9], 2);
+				}				
+				$sources[] = $qc_mvh;
+			}
+		}
+	}
+
 	
 	//create qcML file
 	if (count($sources)>0)

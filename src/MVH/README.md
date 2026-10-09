@@ -83,18 +83,20 @@ ZSE/ZPM dokumentieren die Meldebestätigung dann im RedCap und SAP:
 
 ## Installation of tools (for running this script without GRZ QC workflow)
 
-### Installation of mosdepth
+### Installation of mosdepth (version of GRZ workflow at <https://github.com/BfArM-MVH/GRZ_QC_Workflow/blob/main/modules/nf-core/mosdepth/environment.yml>):
 
 	> wget https://github.com/brentp/mosdepth/releases/download/v0.3.11/mosdepth --no-check-certificate
 
-### Installation of fastp
+### Installation of fastp (version of GRZ workflow at <https://github.com/BfArM-MVH/GRZ_QC_Workflow/blob/main/modules/nf-core/fastp/environment.yml>):
 
-	> wget http://opengene.org/fastp/fastp
+	> wget http://opengene.org/fastp/fastp.1.0.1
+	> cp fastp.1.0.1 fastp
 	> chmod a+x ./fastp
 
-### Installation of fastplong
+### Installation of fastplong (version of GRZ workflow at <https://github.com/BfArM-MVH/GRZ_QC_Workflow/blob/main/modules/local/fastplong/environment.yml>):
 
-	> wget http://opengene.org/fastplong/fastplong
+	> wget http://opengene.org/fastplong/fastplong.0.2.2
+	> cp fastplong.0.2.2 fastplong
 	> chmod a+x ./fastplong
 
 ## Installation of GRZ-CLI
@@ -139,10 +141,16 @@ Note: now a JAR is available as well: https://github.com/orgs/KohlbacherLab/pack
 
 # Updates
 
-## 05.06.2026
+## 05.06.2026 - general update
 
 - fastp: 0.24 > 1.3.3
 - fastplong: 0.2.2 > 0.4.1
 - grz-cli 1.5.1 > 1.7.2
 - GRZ_QC_Workflow v1.3.0 > v1.3.2
+
+## 22.06.2026 - downgrade to versions used in official GRZ workflow
+
+- fastp: 1.3.3 > 1.0.1
+- fastplong: 0.2.2 > 0.2.2
+
 

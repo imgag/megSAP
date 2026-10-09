@@ -5,8 +5,6 @@
 ;only adapting the NGSD database credentials is necessary.
 
 [tools]
-interop = /mnt/storage2/megSAP/tools/interop-1.2.4-Linux-GNU/bin/summary
-dorado = /mnt/storage2/megSAP/tools/dorado-1.4.0-linux-x64/bin/dorado
 ngs-bits_local =
 
 [tools-data]
@@ -26,26 +24,32 @@ container_clair3 = v1.2.0-20251119
 container_clair-mosaic = v0.1.0-20260206
 container_ClinCNV = v1.19.1-20260213
 container_deepvariant = 1.9.0
+container_deepvariant_sbx = 1.9.0-20260713
 container_deepsomatic = 1.9.0
+container_dorado = v2.0.1-20260707
 container_expansionhunter = v5.0.0
 container_freebayes = v1.3.10-20260122
+container_grz_qc_workflow = master-20260727
 container_happy = v0.3.14
+container_Himito = v1.1.2-20260807
 container_hla-genotyper = 2025-04
 container_htslib = 1.23-20260123
 container_kraken2 = v2.17.1-20260108
+container_interop = v1.9.0-20260907
 container_longphase = v2.0.1-20260223
 container_manta = v1.6.0-20260123
 container_methylartist = v1.5.3-20260421
 container_minimap2 = v2.30-20251119
 container_modkit = v0.6.1-20260302
 container_msisensor-pro = v1.3.0-20251125
-container_ngs-bits = master-2025-12-294-gc0c3c0e5
+container_ngs-bits = master-2026-06-167-ge198c896
 container_orad = v2.6.1
 container_paraphase = v3.3.1-20251125
 container_python = v3.10.9-20250729
 container_REViewer = v0.2.7
 container_samblaster = v0.1.26
 container_samtools = 1.23-20260122
+container_sawfish = v2.2.1-20260824
 container_scarHRD = v1
 container_SigProfilerExtractor = v1.2.6-20260116
 container_sniffles = v2.7.2-20260305
@@ -55,8 +59,9 @@ container_straglr = v1.5.5-20251119
 container_straglrOn = v0.2.4-20250730
 container_strelka2 = v2.9.10
 container_subread = v2.1.1-20260108
+container_trgt = v5.1.0-20260921
 container_umi-tools = v1.1.6-20260108
-container_umiVar = 2025-12-20251212
+container_umiVar = 2026-08-20260826
 container_varscan2 = v2.4.6
 container_vcflib = v1.0.3
 
@@ -78,6 +83,7 @@ cnv_bin_size_wgs = 1000
 cnv_bin_size_shallow_wgs = 5000
 cnv_bin_size_longread_wgs = 10000
 use_deepsomatic = false
+use_clair3 = false
 use_bwa1 = false
 bwa_mem2_suffix = 
 annotate_refseq_consequences = false
@@ -132,6 +138,8 @@ db_pass['MVH'] = ""
 mvh_folder = ""
 mvh_redcap_token_se = ""
 mvh_redcap_token_cm = ""
+mvh_sap_user = ""
+mvh_sap_password = ""
 
 [queues]
 queuing_engine = ""

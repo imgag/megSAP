@@ -29,7 +29,7 @@ extract($parser->parse($argv));
 if(!is_null($sample_ids) && (count($sample_ids) != 0))
 {
 	//check provided sample names
-	if(count($sample_ids) != count($sample_ids)) trigger_error("Number of provided BAM files and sample names does not match!", E_USER_ERROR);
+	if(count($sample_ids) != count($bam)) trigger_error("Number of provided BAM files and sample names does not match!", E_USER_ERROR);
 }
 else
 {

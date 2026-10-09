@@ -1,6 +1,6 @@
 <?php
 /** 
-	@page validate_NA12878
+	@page validate_small_variants
 */
 
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");

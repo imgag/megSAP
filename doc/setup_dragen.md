@@ -34,7 +34,7 @@ After the required software is installed, some parameters in the megSAP `setting
 To create the hash tables in the folder `/staging/genomes/GRCh38/dragen/`, copy the GRCh38 reference genome to `/staging/genomes/GRCh38/GRCh38.fa` and run the following command (adjust DRAGEN version as needed):
 ```
 mkdir -p /staging/genomes/GRCh38/dragen44/
-/opt/dragen/4.4.6/bin/dragen --build-hash-table true --ht-reference /staging/genomes/GRCh38/GRCh38.fa --output-dir /staging/genomes/GRCh38/dragen44/ --enable-cnv true --ht-num-threads 40 --ht-build-hla-hashtable true
+/opt/dragen/4.4.6/bin/dragen --build-hash-table true --ht-reference /staging/genomes/GRCh38/GRCh38.fa --output-dir /staging/genomes/GRCh38/dragen44/ --enable-cnv true --ht-num-threads 40 --ht-build-hla-hashtable true --ht-build-rna-hashtable true
 ```
 
 * `dragen_log` - Folder to store STDOUT and STDERR of the queued DRAGEN mapping jobs to determine if a finished job has ended successfully.

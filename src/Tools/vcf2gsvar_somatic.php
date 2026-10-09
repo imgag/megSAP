@@ -132,7 +132,7 @@ while(!feof($handle))
 	list($chr, $pos, $id, $ref, $alt, $qual, $filter, $info, $format) = $cols;
 	
 	//skip bad chromosomes
-	if(chr_check($chr, 22, false) === FALSE) continue; 
+	if(chr_check($chr, false) === FALSE) continue; 
 	++$r;
 	
 	//abort if multi-allelic

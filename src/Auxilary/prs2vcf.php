@@ -298,11 +298,11 @@ if ($annotate_gnomad_af)
 	//gnomAD annotation
 	$args_gnomad = array();
 	$args_gnomad[] = "-out {$normalize_out}";
-	$args_gnomad[] = "-source ".get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz";
+	$args_gnomad[] = "-source ".get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_v4.1.1_GRCh38.vcf.gz";
 	$args_gnomad[] = "-prefix gnomADg";
 	$args_gnomad[] = "-info_keys AC,AF,Hom,Hemi,Het,Wt,AFR_AF,AMR_AF,EAS_AF,NFE_AF,SAS_AF";
 	$args_gnomad[] = "-allow_missing_header";
-	$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", implode(" ", $args_gnomad), [get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz"], [], true));
+	$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", implode(" ", $args_gnomad), [get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_v4.1.1_GRCh38.vcf.gz"], [], true));
 } 
 $parser->execPipeline($pipeline, "VCF normalize and sort");
 

@@ -360,11 +360,10 @@ if($reanalyse_cohort) //Delete all sample files in cohort folder if reanalysis s
 {
 	if(is_dir("{$cohort_folder}/somatic/")) exec2("rm -r {$cohort_folder}/somatic/");
 	if(is_dir("{$cohort_folder}/normal/")) exec2("rm -r {$cohort_folder}/normal/");
-	$args[] = "--reanalyseCohort TRUE";
+	$args[] = "--reanalyseCohort";
 }
 else //specify single output sample otherwise
 {
-	$args[] = "--reanalyseCohort FALSE"; 
 	$args[] = "--normalSample {$n_id}";
 	$args[] = "--tumorSample {$t_id}";
 }

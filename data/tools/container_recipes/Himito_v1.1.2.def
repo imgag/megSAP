@@ -1,0 +1,54 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%post
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+	
+# update ubuntu packages and install build dependencies
+apt-get update
+apt-get install -y \
+	wget \
+	build-essential \
+	make \
+	git \
+	cmake \
+	zlib1g-dev \
+	pkg-config \
+	libssl-dev \
+	libclang-dev \
+	clang \
+	curl
+
+# install rust
+curl https://sh.rustup.rs -sSf | sh -s -- -y
+    . /root/.cargo/env
+	
+#get himito
+mkdir -p /opt
+cd /opt
+git clone https://github.com/broadinstitute/Himito.git
+cd Himito
+git checkout v1.1.2
+git submodule update --recursive --init
+cargo build --release
+chmod +x Himito_quickstart.sh
+
+# cleanup build dependencies
+apt-get remove -y \
+	wget \
+	build-essential \
+	make \
+	git \
+	cmake \
+	zlib1g-dev \
+	libssl-dev \
+	libclang-dev \
+	clang \
+	curl
+apt-get autoremove -y && \
+apt-get clean && \
+rm -rf /var/lib/apt/lists/*
+
+%environment
+export PATH=/opt/Himito/target/release/:$PATH

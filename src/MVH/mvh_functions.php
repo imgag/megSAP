@@ -54,7 +54,6 @@ function get_gl_data($db_mvh, $id)
 	return $xml_obj;
 }
 
-
 //returns research consent data as an XML object
 function get_rc_data($db_mvh, $id)
 {
@@ -172,6 +171,98 @@ function add_submission_to_redcap($record_id, $data_type, $tan)
 	{
 		trigger_error("get_raw_value: Invalid exit code '{$exit_code}' - result: {$result}", E_USER_ERROR);
 	}
+}
+
+//add the TAN to the case management SAP table
+function add_submission_to_sap($sap_case_id, $data_type, $tan)
+{
+	//input checks
+	if ($data_type!="G" && $data_type!="K") trigger_error("Invalid type '{$data_type}'", E_USER_ERROR);
+	
+	//prepare data
+	$request = "<?xml version=\"1.0\" encoding=\"utf-8\"?>
+				<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:urn=\"urn:sap-com:document:sap:soap:functions:mc-style\">
+				  <soapenv:Header/>
+				  <soapenv:Body>
+					<urn:ZishWsSetGenomData>
+					  <ImpFalnr>".str_pad($sap_case_id, 10, '0', STR_PAD_LEFT)."</ImpFalnr>
+					  <ImpMeldeDatum></ImpMeldeDatum>
+					  <ImpMeldungsart>0</ImpMeldungsart>
+					  <ImpMeldungsnr></ImpMeldungsnr>
+					  <ImpMeldungstyp>{$data_type}</ImpMeldungstyp>
+					  <ImpVorgangsnr>{$tan}</ImpVorgangsnr>
+					  <ImpVgUploadDatum>".date("Y-m-d")."</ImpVgUploadDatum>
+					</urn:ZishWsSetGenomData>
+				  </soapenv:Body>
+				</soapenv:Envelope>";
+	
+	//perform SOAP query using CURL
+	$url = 'http://vslpr3ascs.med.uni-tuebingen.de:8001/sap/bc/srt/rfc/sap/zish_ws_set_genom_data/100/zish_ws_set_genom_data/zish_ws_set_genom_data';
+	$curl = curl_init($url); //http://vslpr3ascs.med.uni-tuebingen.de:8001/sap/bc/srt/wsdl/flv_10002A111AD1/bndg_url/sap/bc/srt/rfc/sap/zish_ws_set_genom_data/100/zish_ws_set_genom_data/zish_ws_set_genom_data?sap-client=100
+	if ($curl === false) trigger_error('Could not initialize cURL', E_USER_ERROR);
+
+	curl_setopt_array($curl, [
+		CURLOPT_POST => true,
+		CURLOPT_POSTFIELDS => $request,
+		CURLOPT_RETURNTRANSFER => true,
+
+		CURLOPT_HTTPAUTH => CURLAUTH_BASIC,
+		CURLOPT_USERPWD => get_path("mvh_sap_user").':'.get_path("mvh_sap_password"),
+
+		CURLOPT_HTTPHEADER => [
+			'Content-Type: text/xml; charset=utf-8',
+			'SOAPAction: "urn:sap-com:document:sap:soap:functions:mc-style:ZISH_WS_SET_GENOM_DATA:ZishWsSetGenomDataRequest"',
+			'Content-Length: ' . strlen($request),
+		],
+
+		CURLOPT_CONNECTTIMEOUT => 30,
+		CURLOPT_TIMEOUT => 120,
+		CURLOPT_PROXY => ''
+	]);
+
+	$response = curl_exec($curl);
+	if ($response === false)
+	{
+		$error = curl_error($curl);
+		$error_number = curl_errno($curl);
+		curl_close($curl);
+		trigger_error("CURL request failed: {$error} (cURL error number: {$error_number})", E_USER_ERROR);
+	}
+
+	$http_code = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
+	curl_close($curl);
+	
+	//check HTTP code
+	if ($http_code<200 || $http_code>=300) trigger_error("SOAP server returned HTTP {$http_code}:\nresponse: {$response}", E_USER_ERROR);
+	
+	//parse response code
+	$pos = strpos($response, "<Rc>")+4;
+	$pos2 = strpos($response, "</Rc>", $pos);
+	$response_code = substr($response, $pos, $pos2-$pos);
+	if ($response_code!=0)
+	{
+		$code2error = [
+			"1" => "Fallnr nicht vorhanden",
+			"2" => "Fallnr storniert",
+			"3" => "Vorgangsnr fehlt",
+			"4" => "Meldungstyp fehlt",
+			"5" => "Meldungsnr kann nicht zu medizinisch oder genom zugeordnet werden",
+			"6" => "Meldungsart fehlt",
+			"7" => "Fallnr nicht vorhanden in Tabelle zna_genom_prot",
+			"8" => "Fehler beim GENOM_CHECK",
+			"9" => "Verbucher meldet Fehler",
+			"10" => "Uploaddatum fehlt",
+			"11" => "Meldedatum fehlt",
+			"12" => "Fallnummer fehlt",
+			"13" => "ZUKT_MVG_GENOM_DATA: Es liegt kein MVG-Dokument für diese Fallnummer vor",
+			"14" => "ZUKT_MVG_GENOM_DATA: Fehler beim Zugriff auf das MVG-Dokument",
+			"15" => "ZUKT_MVG_GENOM_DATA: Fehler beim Zugriff auf erste Meldung im MVG-Dokument",
+			"16" => "ZUKT_MVG_GENOM_DATA: Fehler beim Schreiben der Meldung in die MVG-Sekundärtabelle",
+		];
+		trigger_error("SOAP server returned response code {$response_code} (".$code2error[$response_code].")\nresponse: {$response}", E_USER_ERROR);
+	}
+	//print "response_code: $response_code\n";
+	//print "response: $response\n";
 }
 
 ################# converter functions #################
@@ -515,15 +606,10 @@ function convert_se_kids_bc_to_fhir($bc_item, $se_data, $parser)
 
 ############################# QC Pipeline ###################################
 
-function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
+function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor, $parser, $seq_mode, $is_somatic, $qc_folder, $is_lrgs, $patient_id, $threads)
 {
-	global $parser;
-	global $seq_mode;
-	global $is_somatic;
-	global $qc_folder;
-	global $is_lrgs;
-	global $patient_id;
-	$qc_wf_folder = "/mnt/storage2/MVH/tools/GRZ_QC_Workflow/";
+	//init
+	$genome = genome_fasta("GRCh38");
 	
 	//run mosdepth if necessary
 	$mosdepth_folder = "{$qc_folder}/mosdepth_".($is_tumor ? "tumor" : "germline")."/";
@@ -538,10 +624,12 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 		
 		//run
 		$args = [];
-		$args[] = "--threads 10";
-		$args[] = "--by ".($roi!="" ? realpath($roi) : "{$qc_wf_folder}/assets/default_files/hg38_440_omim_genes.bed"); 
-		$args[] = "--fasta /tmp/local_ngs_data_GRCh38/GRCh38.fa";
-		exec2("/mnt/storage2/MVH/tools/mosdepth ".implode(" ", $args)." {$mosdepth_folder}/output_prefix {$bam}");
+		$args[] = "--threads {$threads}";
+		$args[] = "--by ".($roi!="" ? realpath($roi) : "/usr/bin/GRZ_QC_Workflow/assets/default_files/hg38_440_omim_genes.bed");
+		$args[] = "--fasta ".$genome;
+		$args[] = "{$mosdepth_folder}/output_prefix";
+		$args[] = $bam;
+		$parser->execApptainer("grz_qc_workflow", "mosdepth", implode(" ", $args) , [$genome, $bam, $roi], [$mosdepth_folder]);
 	}
 	else
 	{
@@ -560,23 +648,28 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 		
 		//run fastp
 		$args = [];
-		$args[] = "--thread 10";
+		$in_files = [];
+		$args[] = "--thread {$threads}";
 		if ($is_lrgs)
 		{
 			$args[] = "--in ".realpath($fq1);
+			$in_files[] = realpath($fq1);
 			$args[] = "--out {$fastp_folder}/R1.fastq.gz";
 		}
 		else
 		{
 			$args[] = "--in1 ".realpath($fq1);
+			$in_files[] = realpath($fq1);
 			$args[] = "--in2 ".realpath($fq2);
+			$in_files[] = realpath($fq2);
 			$args[] = "--out1 {$fastp_folder}/R1.fastq.gz";
 			$args[] = "--out2 {$fastp_folder}/R2.fastq.gz";
 			$args[] = "--detect_adapter_for_pe";
 		}
 		$args[] = "--json {$fastp_json}";
 		$args[] = "--html {$fastp_folder}/{$ps}.html";
-		exec2("/mnt/storage2/MVH/tools/fastp".($is_lrgs ? "long" : "")." ".implode(" ", $args));
+		
+		$parser->execApptainer("grz_qc_workflow", "fastp".($is_lrgs ? "long" : ""), implode(" ", $args) , $in_files, [$fastp_folder]);
 	}
 	else
 	{
@@ -602,6 +695,8 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 	//generate report
 	$report = "{$qc_folder}/{$ps}_report.csv";
 	$args = [];
+	$in_files = [];
+	$args[] = "/usr/bin/GRZ_QC_Workflow/bin/compare_threshold.py";
 	$args[] = "--donorPseudonym '{$patient_id}'";
 	$args[] = "--sample_id '{$ps}'";
 	$args[] = "--labDataName 'blood DNA'";
@@ -609,8 +704,11 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 	$args[] = "--sequenceSubtype {$seq_subtype}";
 	$args[] = "--genomicStudySubtype {$study_subtype}";
 	$args[] = "--fastp_json {$fastp_json}";
+	$in_files[] = $fastp_json;
 	$args[] = "--mosdepth_global_summary {$mosdepth_summary}";
+	$in_files[] = $mosdepth_summary;
 	$args[] = "--mosdepth_target_regions_bed {$mosdepth_regions}";
+	$in_files[] = $mosdepth_regions;
 	$args[] = "--output {$report}";
 	$args[] = "--meanDepthOfCoverage 1"; //dummy value, not used on our case
 	$args[] = "--targetedRegionsAboveMinCoverage 1"; //dummy value, not used on our case
@@ -620,7 +718,7 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 	$args[] = "--percentBasesAboveQualityThresholdRequired ".$thresholds['percentBasesAboveQualityThreshold']['percentBasesAbove'];
 	$args[] = "--minCoverage ".$thresholds['targetedRegionsAboveMinCoverage']['minCoverage'];
 	$args[] = "--targetedRegionsAboveMinCoverageRequired ".$thresholds['targetedRegionsAboveMinCoverage']['fractionAbove'];
-	exec2("/mnt/storage2/MVH/tools/python3/bin/python3 {$qc_wf_folder}/bin/compare_threshold.py ".implode(" ", $args));
+	$parser->execApptainer("grz_qc_workflow", "python3", implode(" ", $args), $in_files, [$qc_folder]);
 
 	//parse QC report
 	$file = file($report);
@@ -628,19 +726,5 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor)
 	$metrics = explode(",", trim($file[1]));
 	return array_combine($headers, $metrics);
 }
-
-function print_grz_qc($grz_qc)
-{
-	$minQual  = $grz_qc["qualityThreshold"];
-	$percQual = $grz_qc["percentBasesAboveQualityThreshold"];
-	$meanDepth = (float)($grz_qc["meanDepthOfCoverage"]);
-	$minCov = $grz_qc["minCoverage"];
-	$regionsAboveMin = number_format($grz_qc["targetedRegionsAboveMinCoverage"],2);
-	
-	print "\tQuality Threshold: {$minQual}\tpercentBasesAboveQualityThreshold: {$percQual}\n";
-	print "\tMean Depth of Coverage: {$meanDepth}\t- with 5%: ".number_format($meanDepth*1.05,2)."\n";
-	print "\tminCoverage: {$minCov}\ttarget regions above min coverage: {$regionsAboveMin}\n";
-}
-
 
 ?>

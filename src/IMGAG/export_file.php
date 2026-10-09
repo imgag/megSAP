@@ -21,7 +21,7 @@ if (!file_exists($file))
 
 //determine password and folder
 $share_url = $internal ? "https://datashare.img.med.uni-tuebingen.de/" : "https://download.imgag.de/DataShare/";
-list($stdout) = exec2("curl --noproxy '*' ".($internal ? " -k" : "")." '{$share_url}/index.php?action=request&filename={$file}'");
+list($stdout) = exec2("curl --noproxy '*' ".($internal ? " -k" : "")." '{$share_url}/index.php?action=request&filename=".basename($file)."'");
 if (contains(implode(" ", $stdout), "ERROR:")) trigger_error(implode(" ", $stdout), E_USER_ERROR);
 $folder = trim($stdout[0]);
 $password = trim($stdout[1]);
@@ -38,7 +38,7 @@ else
 }
 
 print "The URL of the file is:\n";
-print "  {$share_url}/index.php?filename={$file}\n";
+print "  {$share_url}/index.php?filename=".basename($file)."\n";
 
 print "Password:\n";
 print "  {$password}\n";

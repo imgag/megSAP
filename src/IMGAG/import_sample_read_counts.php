@@ -113,7 +113,13 @@ foreach($read_counts as $sample_name => $read_count)
 {
 	print "$sample_name: \t $read_count \n";
 	// get psid
-	$ps_id = get_processed_sample_id($db_conn, $sample_name);
+	$ps_id = get_processed_sample_id($db_conn, $sample_name, false);
+	
+	if ($ps_id == -1)
+	{
+		trigger_error("Sample '$sample_name' not found in NGSD! Skipped importing read counts.", E_USER_NOTICE);
+		continue;
+	}
 	// generate query:
 	$query = "REPLACE INTO processed_sample_qc (processed_sample_id, qc_terms_id, value) "
 			."VALUES ($ps_id, $qc_term_id, $read_count)";

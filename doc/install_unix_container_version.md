@@ -6,7 +6,7 @@ We are providing instructions for the latest Ubuntu LTS distibution (Ubuntu 24.0
 If you are using other Linux distributions, you have to adapt them yourself.
 
 	> sudo apt-get update
-	> sudo apt-get install -y rsync zlib1g bzip2 php8.3-cli php8.3-xml php8.3-mysql make unzip wget git gnumeric pigz ghostscript
+	> sudo apt-get install -y rsync zlib1g bzip2 php8.3-cli php8.3-xml php8.3-mysql php8.3-curl make unzip wget git gnumeric pigz ghostscript
 
 Install Apptainer:
 
@@ -17,7 +17,7 @@ Install Apptainer:
 ## Building the container
 
 First, you have to create a container with megSAP inside.  
-A apptainer recipe to create a container with megSAP 2025_10 can be found [here](../data/tools/container_recipes/megSAP_container.def).  
+A apptainer recipe to create a container with megSAP 2026_06 can be found [here](../data/tools/container_recipes/megSAP_container.def).  
 
 ## Initial Setup
 

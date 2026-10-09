@@ -69,7 +69,6 @@ if ($somatic) $args[] = "-somatic";
 if (get_path("annotate_refseq_consequences", false)) $args[] = "-annotate_refseq_consequences";
 $args[] = "-custom custom_columns";
 if ($no_splice) $args[] = "-no_splice";
-if ($multi && !$is_lrgs) $args[] = "-low_mappabily_filter low_mappability";
 if ($is_lrgs) $args[] = "-low_mappabily_filter sr_low_mappability";
 $parser->execTool("Tools/an_vcf.php", implode(" ", $args));
 
@@ -173,7 +172,7 @@ if (!$somatic) //germline only
 
 				if (file_exists($dna_bam))
 				{
-					$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$bam_rna} {$dna_bam} -mode bam -ref {$genome} -build ".ngsbits_build($sys['build']), [$bam_rna, $dna_bam, $genome]);
+					$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$bam_rna} {$dna_bam} -mode bam -ref {$genome}", [$bam_rna, $dna_bam, $genome]);
 					$correlation = explode("\t", $output[0][1])[3];
 					if ($correlation=="nan")
 					{

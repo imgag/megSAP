@@ -13,6 +13,7 @@ extract($parser->parse($argv));
 
 //init
 $genome = genome_fasta($build);
+$bam = realpath2($bam);
 
 //convert CRAM to BAM
 $parser->execApptainer("samtools", "samtools view", "-@ {$threads} -b -T {$genome} -o {$bam} {$cram}", [$genome, $cram], [dirname($bam)]);

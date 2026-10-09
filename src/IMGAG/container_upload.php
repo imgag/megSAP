@@ -151,7 +151,7 @@ if (!$no_upload)
 }
 
 //move/copy to container repository
-$container_repo = "/mnt/storage2/megSAP/tools/apptainer_container/";
+$container_repo = get_path("container_folder");
 print "Deploying container {$sif} to {$container_repo}\n";
 if (file_exists("{$container_repo}/{$sif}"))
 {

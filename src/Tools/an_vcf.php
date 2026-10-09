@@ -114,17 +114,17 @@ fwrite($config_file, annotation_file_path("/dbs/dbSNP/dbSNP_b157.vcf.gz")."\t\tR
 $in_files[] = annotation_file_path("/dbs/dbSNP/dbSNP_b157.vcf.gz");
 
 //add gnomAD annotation
-fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz")."\tgnomADg\tAC,AF,Hom,Hemi,Het,Wt,AFR_AF,AMR_AF,EAS_AF,NFE_AF,SAS_AF\t\ttrue\n");
-$in_files[] = annotation_file_path("/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz");
+fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v4.1.1_GRCh38.vcf.gz")."\tgnomADg\tAC,AF,Hom,Hemi,Het,Wt,AFR_AF,AMR_AF,EAS_AF,NFE_AF,SAS_AF\t\ttrue\n");
+$in_files[] = annotation_file_path("/dbs/gnomAD/gnomAD_genome_v4.1.1_GRCh38.vcf.gz");
 fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz")."\tgnomADm\tAF_hom\t\ttrue\n");
 $in_files[] = annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz");
 
 //add ClinVar annotation
-fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20260329_converted_GRCh38.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
-$in_files[] = annotation_file_path("/dbs/ClinVar/clinvar_20260329_converted_GRCh38.vcf.gz");
+fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20260913_converted_GRCh38.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
+$in_files[] = annotation_file_path("/dbs/ClinVar/clinvar_20260913_converted_GRCh38.vcf.gz");
 
 //add HGMD annotation
-$hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2026_1_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
+$hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2026_2_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
 if(file_exists($hgmd_file) && !$test)
 {
 	fwrite($config_file, $hgmd_file."\tHGMD\tCLASS,MUT,GENE,PHEN\tID\n");
@@ -156,7 +156,7 @@ if (file_exists($am_iso))
 }
 
 //precalculated SpliceAI scores
-$spliceai_file = annotation_file_path("/dbs/SpliceAI/spliceai_scores_2024_08_26_GRCh38.vcf.gz");
+$spliceai_file = annotation_file_path("/dbs/SpliceAI/spliceai_scores_2026_07_31_GRCh38.vcf.gz");
 if (file_exists($spliceai_file))
 {
 	fwrite($config_file, $spliceai_file."\t\tSpliceAI\t\n");

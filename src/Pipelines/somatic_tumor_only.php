@@ -41,6 +41,9 @@ $parser->addString("rna_ref_tissue", "Reference data for RNA annotation", true);
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
 extract($parser->parse($argv));
 
+//start time
+$start_time = microtime(true);
+
 //check steps
 $steps = explode(",", $steps);
 foreach($steps as $step)
@@ -359,9 +362,9 @@ if(in_array("cn",$steps))
 	$data_folder = get_path("data_folder");
 	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$som_clincnv}", [$som_clincnv, "{$repository_basedir}/data/misc/cn_pathogenic.bed"]);
 	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$som_clincnv}", [$som_clincnv, "{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed"]);
-	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-04.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$som_clincnv}", [$som_clincnv, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-04.bed"]);
+	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-09.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$som_clincnv}", [$som_clincnv, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-09.bed"]);
 
-	$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2026_1.bed"; //optional because of license
+	$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2026_2.bed"; //optional because of license
 	if (file_exists($hgmd_file))
 	{
 		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$som_clincnv} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$som_clincnv}", [$som_clincnv, $hgmd_file]);
@@ -452,7 +455,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	if (is_null($t_info)) trigger_error("NGSD import failed: Could not find processed sample '$t_id' in NGSD!", E_USER_ERROR);
 	
 	// import qcML files
-	$qcmls = array_filter(["{$t_basename}_stats_fastq.qcML", "{$t_basename}_stats_map.qcML", $qc_other], "file_exists");
+	$qcmls = array_filter(["{$t_basename}_stats_fastq.qcML", "{$t_basename}_stats_map.qcML", "{$t_basename}_stats_other.qcML", $qc_other], "file_exists");
 	$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps $t_id -files ".implode(" ", $qcmls)." -force", $qcmls);
 
 	// check tumor/normal flag
@@ -487,5 +490,8 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 				
 	//add secondary analysis (if missing)
 	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'somatic' -gsvar {$variants_gsvar}");
+	
+	//log analysis time
+	log_analysis_time($db_conn, 'tumor-only', [$prefix], $threads, $steps, $steps_all, false, microtime(true)-$start_time);
 }
 ?>

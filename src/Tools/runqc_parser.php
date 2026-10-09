@@ -56,7 +56,8 @@ if (!file_exists($run_dir."/Fq"))
 	}
 
 	//parse QC data from InterOp summary output
-	list($stdout) = exec2(get_path("interop") . " $run_dir --level=3");
+	$container_command = execApptainer("interop", "summary", "$run_dir --level=3", [$run_dir], [], true);
+	list($stdout) = exec2($container_command);
 	foreach ($stdout as $line)
 	{
 		$line = trim($line);

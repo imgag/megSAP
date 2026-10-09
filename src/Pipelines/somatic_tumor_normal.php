@@ -50,6 +50,9 @@ $parser->addString("rna_ref_tissue", "Reference data for RNA annotation", true);
 $parser->addInt("threads", "The maximum number of threads to use.", true, 4);
 extract($parser->parse($argv));
 
+//start time
+$start_time = microtime(true);
+
 ###################################### AUXILARY FUNCTIONS ######################################
 
 //Checks $baf_folder for missing B-AF files and creates them if neccessary
@@ -229,7 +232,6 @@ else
 	$args_similarity = [
 		"-in ".implode(" ", $bams),
 		"-mode bam",
-		"-build ".ngsbits_build($sys['build']),
 		"-ref {$ref_genome}"
 	];
 	if (!empty($roi))
@@ -314,7 +316,7 @@ if (in_array("vc", $steps))
 	$parser->execTool("Tools/hla_genotyper.php", "-bam $n_bam -name $n_id -out " . $hla_file_normal);
 	
 	
-	if (! $use_dragen)
+	if (!$use_dragen)
 	{
 		// structural variant calling
 		if (!$sys['shotgun'])
@@ -870,8 +872,7 @@ if (in_array("an", $steps))
 		"-blacklist", repository_basedir() ."/data/gene_lists/somatic_tmb_blacklist.bed", //Blacklisted genes that are not included in TMB calculation (e.g. HLA-A and HLA-B)
 		"-tsg_bed", repository_basedir() ."/data/gene_lists/somatic_tmb_tsg.bed", //TSG genes whose mutations are treated specially in TMB calculation
 		"-ref", $ref_genome,
-		"-out", $somaticqc,
-		"-build", ngsbits_build($sys['build'])
+		"-out", $somaticqc
 	];
 	if (!empty($links))
 	{
@@ -972,10 +973,11 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 		$qcmls = implode(" ", array_filter([
 			"{$t_basename}_stats_fastq.qcML",
 			"{$t_basename}_stats_map.qcML",
+			"{$t_basename}_stats_other.qcML",
 			$somaticqc,
 			$qc_other
 		], "file_exists"));
-		$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps $t_id -files $qcmls -force", ["{$t_basename}_stats_fastq.qcML", "{$t_basename}_stats_map.qcML", $somaticqc, $qc_other]);
+		$parser->execApptainer("ngs-bits", "NGSDImportSampleQC", "-ps $t_id -files $qcmls -force", ["{$t_basename}_stats_fastq.qcML", "{$t_basename}_stats_map.qcML", "{$t_basename}_stats_other.qcML", $somaticqc, $qc_other]);
 
 		// check tumor/normal flag
 		if (!$t_info['is_tumor'])
@@ -1029,6 +1031,9 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 		
 		//add secondary analysis (if missing)
 		$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'somatic' -gsvar {$variants_gsvar}");
+		
+		//log analysis time
+		log_analysis_time($db_conn, 'tumor-normal', [$t_id, $n_id], $threads, $steps, $steps_all, $use_dragen, microtime(true)-$start_time);
 	}
 }
 ?>

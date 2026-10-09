@@ -95,18 +95,18 @@ if (in_array("Clair3", $dbs))
     //download models
     chdir($model_path);
 
-    print "Downloading Clair3 models from https://github.com/nanoporetech/rerio.git\n";
+    print "Downloading Clair3 models\n";
     exec2("git clone https://github.com/nanoporetech/rerio.git");
     execApptainer("python", "python3", "{$model_path}/rerio/download_model.py --clair3", [$model_path]);
     exec2("mv rerio/clair3_models/* .");
     exec2("rm -rf rerio");
 
-    print "Downloading Clair3 model 'r941_prom_sup_g5014' from 'http://www.bio8.cs.hku.hk/clair3/clair3_models/r941_prom_sup_g5014.tar.gz'\n";
+    print "Downloading Clair3 model 'r941_prom_sup_g5014'\n";
     exec2("wget http://www.bio8.cs.hku.hk/clair3/clair3_models/r941_prom_sup_g5014.tar.gz");
     exec2("tar xzf r941_prom_sup_g5014.tar.gz");
     exec2("rm r941_prom_sup_g5014.tar.gz");
 
-    print "Downloading Clair3 model 'r941_prom_sup_g360+g422' from 'http://www.bio8.cs.hku.hk/clair3/clair3_models/r941_prom_hac_g360+g422.tar.gz'\n";
+    print "Downloading Clair3 model 'r941_prom_sup_g360+g422'\n";
     exec2("wget http://www.bio8.cs.hku.hk/clair3/clair3_models/r941_prom_hac_g360+g422.tar.gz");
     exec2("tar xzf r941_prom_hac_g360+g422.tar.gz");
     exec2("rm r941_prom_hac_g360+g422.tar.gz");

@@ -20,6 +20,7 @@ function cons2value($cons, $line)
 	if ($cons=="vus-low") return 3;
 	if ($cons=="uncertain_significance") return 3;
 	if ($cons=="vus-high") return 3;
+	if ($cons=="vus-mid") return 3;
 	if ($cons=="likely_benign") return 2;
 	if ($cons=="benign") return 1;
 	if ($cons=="likely_risk_allele") return -1;
@@ -62,7 +63,7 @@ while(!feof($in))
 	$chr = "chr".$chr;
 	
 	//skip special chromosomes
-	if (chr_check($chr, 22, false)===FALSE)
+	if (chr_check($chr, false)===FALSE)
 	{
 		if ($debug) print "SKIPPED CHR: $line\n";
 		continue;

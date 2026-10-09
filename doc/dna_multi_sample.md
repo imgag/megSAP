@@ -2,7 +2,7 @@
 
 ## Prerequisite: Single sample analysis
 
-The multi-sample and trio pipelines require files form the sinlge sample analysis (BAM ,CNV, ...).  
+The multi-sample and trio pipelines require files form the sinlge sample analysis (BAM, VCF, ...).  
 Thus, each samples has to be analyzed using the [single sample analysis](dna_single_sample.md) first.  
 After the single-sample analyses, the multi-sample or trio analysis is perfomed.
 
@@ -20,21 +20,17 @@ The main parameters that you have to provide are:
 * `bams` - A list of input BAM files.
 * `status` - A comma-separated list of affected status corresponding to the input BAM files.
 * `out_folder` -  Output folder.
-* `system` - The processing system configuration INI file (see next section).
+* `system` - The [processing system INI file](processing_system_ini_file.md).
 
 *Note:* The processing system of the *first* sample is used to determine the target region for the multi-sample and trio analyses.
-
-### Tools used in this analysis pipeline
-
-Mapping is not part of this pipline - it has to be perfomed beforehand using the single-sample pipeline.
-The tools used for variant calling and annotation are the same as for the [single-sample pipeline](dna_single_sample.md).
 
 ### Output
 
 After the analysis, these files are created in the output folder:
 
-1. a multi-sample variant list `all.vcf.gz` in VCF format.
-2. a multi-sample variant list `multi.GSvar` in [GSvar format](https://github.com/imgag/ngs-bits/tree/master/doc/GSvar/gsvar_format.md).
+1. small variants VCF/GSvar file
+1. CNV TSV file
+1. structural variants VCF/BEDPE file
 
 ## Trio pipeline
 
@@ -52,18 +48,11 @@ The main parameters that you have to provide are:
 * `m` - BAM file of mother.
 * `c` - BAM file of child (index).
 * `out_folder` -  Output folder.
-* `system` - The processing system configuration INI file (see next section).
-
-### Tools used in this analysis pipeline
-
-Mapping is not part of this pipline - it has to be perfomed beforehand using the single-sample pipeline.
-The tools used for variant calling and annotation are the same as for the [single-sample pipeline](dna_single_sample.md).
+* `system` - The [processing system INI file](processing_system_ini_file.md).
 
 ### Output
 
-After the analysis, these files are created in the output folder:
-
-1. a multi-sample variant list `all.vcf.gz` in VCF format.
-2. a multi-sample variant list `trio.GSvar` in [GSvar format](https://github.com/imgag/ngs-bits/tree/master/doc/GSvar/gsvar_format.md).
+The same files as in the multi-sample analysis are produced.
 
 [back to the start page](../README.md)
+

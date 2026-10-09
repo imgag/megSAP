@@ -20,7 +20,6 @@ $steps_all = array("vc", "cn", "sv", "an", "db");
 $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=variant calling, cn=copy-number analysis, sv=structural variant calling, an=annotation, db=database import.", true, implode(",", $steps_all));
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
-$parser->addInfile("ped", "(PLINK-compatible) Pedigree file to phase related samples.", true);
 $parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
 extract($parser->parse($argv));
 
@@ -116,7 +115,14 @@ foreach($bams as $bam)
 }
 
 //enable check if chromosomes are complete only if the ROI covers the whole genome (pipeline test are not)
-$check_chrs = bed_size($target_file) > 3e9;
+$check_chrs = target_region_is_genome_wide($target_file);
+
+//CNV calling is only supported for genome-wide long-read data (binning/reference-cohort approach is not validated for targeted/adaptive-sampling regions)
+if (in_array("cn", $steps) && !$check_chrs)
+{
+	trigger_error("Skipping step 'cn' - Copy-number calling is not supported for targeted/adaptive-sampling long-read data (target region does not cover the whole genome)!", E_USER_WARNING);
+	if (($key = array_search("cn", $steps)) !== false) unset($steps[$key]);
+}
 
 //set up local NGS data copy
 if (!$no_sync) $parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);
@@ -133,9 +139,13 @@ if (in_array("vc", $steps))
 		$vcfs[] = $vcf;
 	}
 	
-	//filter VCFs by (extended) target region
+	//filter VCFs by (extended) target region plus chrMT
+	$reg_mito = $parser->tempFile("_mito.bed");
+	file_put_contents($reg_mito, "chrMT\t0\t16569");
+	$target_with_mito = $parser->tempFile("_roi_with_mito.bed");
+	$parser->execApptainer("ngs-bits", "BedAdd", "-in $target_file $reg_mito -out $target_with_mito", [$target_file, $genome]);
 	$target_extended = $parser->tempFile("_roi_extended.bed");
-	$parser->execApptainer("ngs-bits", "BedExtend", "-in $target_file -n 200 -out $target_extended -fai {$genome}.fai", [$target_file, $genome]);
+	$parser->execApptainer("ngs-bits", "BedExtend", "-in $target_with_mito -n 200 -out $target_extended -fai {$genome}.fai", [$genome]);
 	$vcfs_filtered = [];
 	foreach($vcfs as $vcf)
 	{
@@ -207,10 +217,10 @@ if (in_array("an", $steps))
 		$args[] = "-threads {$threads}";
 		$args[] = "-multi";
 		if ($no_splice) $args[] = "-no_splice";
-		$parser->execTool("Tools/annotate.php", "-out_name $prefix -out_folder $out_folder -system $system -threads $threads -multi");
+		$parser->execTool("Tools/annotate.php", implode(" ", $args));
 		
 		//check for truncated output
-		if ($check_chrs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$out_folder}/{$prefix}_var_annotated.vcf.gz -max_missing_perc 5");
+		if ($check_chrs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$out_folder}/{$prefix}_var_annotated.vcf.gz -max_missing_perc 5 -check_mito");
 		
 		//update sample entry 
 		update_gsvar_sample_header($gsvar, $status_map);
@@ -228,10 +238,10 @@ if (in_array("an", $steps))
 		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$repository_basedir}/data/misc/af_genomes_imgag.bed -overlap -out {$cnv_file}", [$cnv_file, "{$repository_basedir}/data/misc/af_genomes_imgag.bed"]);
 		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$repository_basedir}/data/misc/cn_pathogenic.bed -no_duplicates -url_decode -out {$cnv_file}", [$cnv_file, "{$repository_basedir}/data/misc/cn_pathogenic.bed"]);
 		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -url_decode -out {$cnv_file}", [$cnv_file, "{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed"]);
-		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-04.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnv_file}", [$cnv_file, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-04.bed"]);
+		$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-09.bed -name clinvar_cnvs -no_duplicates -url_decode -out {$cnv_file}", [$cnv_file, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-09.bed"]);
 
 
-		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2026_1.bed"; //optional because of license
+		$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2026_2.bed"; //optional because of license
 		if (file_exists($hgmd_file))
 		{
 			$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_file} -in2 {$hgmd_file} -name hgmd_cnvs -no_duplicates -url_decode -out {$cnv_file}", [$cnv_file, $hgmd_file]);

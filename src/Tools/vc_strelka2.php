@@ -231,7 +231,7 @@ while(!feof($h))
 	{
 		$filter[] = "all-unknown";
 	}
-	if (chr_check($parts[0], 22, false) === FALSE)
+	if (chr_check($parts[0], false) === FALSE)
 	{
 		$filter[] = "special-chromosome";
 	}

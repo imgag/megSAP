@@ -12,7 +12,7 @@
 ##targetRefGenome=/mnt/storage2/megSAP/data/genomes/GRCh38.fa
 ##liftOverDate=May17,2024
 ##INFO=<ID=WEIGHT,Number=1,Type=Float,Description="PRS weight of this variant.">
-##INFO=<ID=POP_AF,Number=1,Type=Float,Description="Population allele frequency of this variant.">
+##INFO=<ID=POP_AF,Number=1,Type=Float,Description="Population allele frequency of the effect allele. Usually, this is the alt allele. If REF_IS_EFFECT_ALLELE is set, it is the reference allele.">
 ##INFO=<ID=hg19_var,Number=1,Type=String,Description="Variant info (position and nucleotide change) of variant">
 ##INFO=<ID=REF_IS_EFFECT_ALLELE,Number=0,Type=Flag,Description="Reference is effect allele.">
 ##INFO=<ID=IMPUTE,Number=0,Type=Flag,Description="Variant does not exist in NGS based on HG38. Always impute with twice the expected allele frequency.">
@@ -282,7 +282,7 @@ chr16	54648152	.	G	A	.	.	POP_AF=0.4885;WEIGHT=0.0477;hg19_var=chr16_54682064_G_A
 chr16	80614399	.	A	G	.	.	POP_AF=0.2313;WEIGHT=0.0839;hg19_var=chr16_80648296_A_G
 chr16	85112371	.	T	C	.	.	POP_AF=0.4851;WEIGHT=-0.0211;hg19_var=chr16_85145977_T_C
 chr16	87052886	.	T	C	.	.	POP_AF=0.2581;WEIGHT=-0.0469;hg19_var=chr16_87086492_T_C
-chr17	30841058	.	AGAG	A	.	.	POP_AF=0.2573;WEIGHT=-0.0568;hg19_var=chr17_29168077_G_T;COMMENT=Manually%20replaced
+chr17	30841059	.	G	T	.	.	POP_AF=0.2573;WEIGHT=-0.0568;hg19_var=chr17_29168077_G_T;IMPUTE;COMMENT=MNP%20that%20is%20called%20in%20different%20ways
 chr17	41094871	.	T	C	.	.	POP_AF=0.0667;WEIGHT=0.0799;hg19_var=chr17_39251123_T_C
 chr17	41975042	.	T	C	.	.	POP_AF=0.0574;WEIGHT=0.0174;hg19_var=chr17_40127060_T_C
 chr17	42333221	.	G	T	.	.	POP_AF=0.087;WEIGHT=-0.0571;hg19_var=chr17_40485239_G_T

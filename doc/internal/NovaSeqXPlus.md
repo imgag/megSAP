@@ -6,15 +6,14 @@ This can only be done via [BaseSpace](https://basespace.illumina.com)
 (see https://knowledge.illumina.com/software/on-instrument-analysis-software/software-on-instrument-analysis-software-troubleshooting-list/000007055)
 
 - create new project on BaseSpace
-- upload GRCh38.fa file
-- open `Reference Builder (Instruments) v3.0.0` in Apps 
+- upload GRCh38.fasta file use full suffix ".fasta" so the software finds the file
+- open `Reference Builder v4.4.6002` in Apps 
 - select the created project as output
-- select the correct Sequencer (`NovaSeq X Series`)
-- enter a name `GRCh38IMGAG`, as `GRCh38` will lead to a crash of the app.
-- enter organization and species
+- enter a output filename prefix `GRCh38IMGAG`, as `GRCh38` will lead to a crash of the app.
+- enter organization and species (no spaces or umlauts in the text)
 - give a link/description for the source of the *.fa file
 - set `Mask BED File` to `hg38`
-- leave `SAM Liftover File`at `None`
+- check the boxes for RNA, CNV and HLA
 (- GTF Annotation and Methylation was left empty/unchecked)
 - run application
 

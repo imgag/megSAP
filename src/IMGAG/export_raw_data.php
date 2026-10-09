@@ -11,7 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("export_raw_data", "Exports RAW data.");
 $parser->addStringArray("samples", "Processed sample names (or file with one sample per line).", false);
 $parser->addString("out", "Output folder (folder name is also used for created ZIP file).", false);
-$parser->addEnum("mode", "Export mode (FASTQ only, BAM only, whole analysis folder).", true, ["fastq", "bam", "vcf", "bam_vcf", "folder"], "fastq");
+$parser->addEnum("mode", "Export mode (FASTQ only, BAM only, variants, BAM and variants, whole folder).", true, ["fastq", "bam", "var", "bam_var", "folder"], "bam_var");
 $parser->addFlag("internal", "Use internal webserver and do not use password for zip file.");
 $parser->addFlag("allow_bad_quality", "Allow export of samples with bad quality.");
 extract($parser->parse($argv));
@@ -19,13 +19,10 @@ extract($parser->parse($argv));
 //init
 $db = DB::getInstance("NGSD");
 
-//check folder
-if (!file_exists($out) || !is_dir($out))
-{
-	print "Output folder '$out' is missing - creating it ...\n";
-	mkdir($out, 0777, true);
-}
-$out_abs = realpath($out);
+//create output folder
+while (ends_with($out, "/")) $out = $out = substr($out, 0, strlen($out)-1);
+exec2("mkdir -p {$out}/target_regions/");
+$out = realpath($out);
 
 //load samples from file
 if (count($samples)==1 && file_exists($samples[0]))
@@ -43,7 +40,7 @@ if (count($samples)==1 && file_exists($samples[0]))
 //check and create meta data file
 print "Checking ".count($samples)." samples ...\n";
 $meta = [];
-$meta[] = "#sample\texternal_name\tgender\tdisease_group_and_status\tkit\tsequencer\n";
+$meta[] = "#sample\texternal_name\tgender\tdisease_group_and_status\tplatform\tsequencer\tkit\ttarget_region_file\ttarget_region_genome_build\n";
 foreach($samples as $ps)
 {
 	$info = get_processed_sample_info($db, $ps);
@@ -55,15 +52,22 @@ foreach($samples as $ps)
 		$folder = $info['ps_folder'];
 		if (!file_exists($folder)) trigger_error("Sample folder '$folder' is missing!", E_USER_ERROR);
 	}
-	if ($mode=="bam" || $mode=="bam_vcf")
+	if ($mode=="bam" || $mode=="bam_var")
 	{
 		$bam = $info['ps_bam'];
 		if (!file_exists($bam)) trigger_error("Sample '$ps': BAM file is missing!", E_USER_ERROR);
 	}
-	if ($mode=="vcf" || $mode=="bam_vcf")
+	if ($mode=="var" || $mode=="bam_var")
 	{
+		//small variants
 		$vcf = $info['ps_folder']."/".$ps."_var.vcf.gz";
-		if (!file_exists($vcf)) trigger_error("Sample '$ps': VCF file is missing!", E_USER_ERROR);
+		if (!file_exists($vcf)) trigger_error("Sample '$ps': VCF file of small variants missing!", E_USER_ERROR);
+		//CNVs
+		$tsv = $info['ps_folder']."/".$ps."_cnvs_clincnv.tsv";
+		if (!file_exists($tsv)) trigger_error("Sample '$ps': TSV file of CNVs missing!", E_USER_ERROR);
+		//SVs
+		$vcf2 = $info['ps_folder']."/".$ps."_var_structural_variants.vcf.gz";
+		if (!file_exists($vcf2)) trigger_error("Sample '$ps': VCF file of structural variants missing!", E_USER_ERROR);
 	}
 	if ($mode=="fastq")
 	{
@@ -78,10 +82,16 @@ foreach($samples as $ps)
 	$gender = $info['gender'];
 	$external = $info['name_external'];
 	$device = $info['device_type'];
-	$system = $info['sys_name'];
+	$sys_name = $info['sys_name'];
 	$d_group = $info['disease_group'];
 	$d_status = $info['disease_status'];
-	$meta[] = "{$ps}\t{$external}\t{$gender}\t{$d_group} ({$d_status})\t{$system}\t{$device}\n";
+	$tmp = "";
+	$system = load_system($tmp, $ps);
+	$build = $system['build'];
+	$platform = $system['platform'];
+	$roi = basename($system['target_file']);
+
+	$meta[] = "{$ps}\t{$external}\t{$gender}\t{$d_group} ({$d_status})\t{$platform}\t{$device}\t{$sys_name}\t{$roi}\t{$build}\n";
 }
 file_put_contents("$out/meta_data.tsv", $meta);
 
@@ -90,13 +100,20 @@ foreach($samples as $ps)
 {
 	print "$ps\n";
 	$info = get_processed_sample_info($db, $ps);
+	$tmp = "";
+	$system = load_system($tmp, $ps);
 	
+	//copy target region
+	$roi = $system['target_file'];
+	exec2("cp $roi {$out}/target_regions/");
+	
+	//copy/link sample data
 	if ($mode=="folder")
 	{
 		$folder = $info['ps_folder'];
 		exec2("ln -s {$folder} {$out}/Sample_{$ps}");
 	}
-	if ($mode=="bam" || $mode=="bam_vcf")
+	if ($mode=="bam" || $mode=="bam_var")
 	{
 		$bam = $info['ps_bam'];
 		if (ends_with($bam, ".bam"))
@@ -107,14 +124,20 @@ foreach($samples as $ps)
 		else
 		{
 			print "  Creating BAM file from CRAM...\n";
-			$parser->execTool("Tools/cram_to_bam.php", "-cram {$bam} -bam {$out_abs}/".basename2($bam).".bam -threads 8");
+			$parser->execTool("Tools/cram_to_bam.php", "-cram {$bam} -bam {$out}/".basename2($bam).".bam -threads 8");
 		}
 	}
-	if ($mode=="vcf" || $mode=="bam_vcf")
+	if ($mode=="var" || $mode=="bam_var")
 	{
-		print "  Copying VCF file ...\n";
+		print "  Copying variants file ...\n";
 		$vcf = $info['ps_folder']."/".$ps."_var.vcf.gz";
 		exec2("ln -s {$vcf} {$out}/".basename($vcf));
+				
+		$tsv = $info['ps_folder']."/".$ps."_cnvs_clincnv.tsv";
+		exec2("ln -s {$tsv} {$out}/".basename($tsv));
+		
+		$vcf2 = $info['ps_folder']."/".$ps."_var_structural_variants.vcf.gz";
+		exec2("ln -s {$vcf2} {$out}/".basename($vcf2));
 	}
 	if ($mode=="fastq")
 	{		
@@ -131,21 +154,21 @@ foreach($samples as $ps)
 		else
 		{
 			print "  Generating FASTQ files from BAM ...\n";
-			$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$bam} -out1 {$out_abs}/{$ps}_R1_001.fastq.gz -out2 {$out_abs}/{$ps}_R2_001.fastq.gz", [$bam], [$out_abs]);
+			$parser->execApptainer("ngs-bits", "BamToFastq", "-in {$bam} -out1 {$out}/{$ps}_R1_001.fastq.gz -out2 {$out}/{$ps}_R2_001.fastq.gz", [$bam], [$out]);
 		}
 	}
 }
 
 //determine password and folder
 $share_url = $internal ? "https://datashare.img.med.uni-tuebingen.de/" : "https://download.imgag.de/DataShare/";
-list($stdout) = exec2("curl --noproxy '*' ".($internal ? " -k" : "")." '{$share_url}/index.php?action=request&filename={$out}.zip'");
+list($stdout) = exec2("curl --noproxy '*' ".($internal ? " -k" : "")." '{$share_url}/index.php?action=request&filename=".basename($out).".zip'");
 if (contains(implode(" ", $stdout), "ERROR:")) trigger_error(implode(" ", $stdout), E_USER_ERROR);
 $folder = trim($stdout[0]);
 $password = trim($stdout[1]);
  
 //zip
 print "Zipping output folder using the password '{$password}'...\n";
-exec2("zip -1 --password {$password} -r {$out}.zip $out");
+exec2("zip -1 --password {$password} -r {$out}.zip ".basename($out));
 
 //move
 print "You can move the file to the webserver using:\n";
@@ -159,6 +182,6 @@ else
 }
 
 print "The URL of the file is:\n";
-print "  {$share_url}/index.php?filename={$out}.zip\n";
+print "  {$share_url}/index.php?filename=".basename($out).".zip\n";
 
 ?>

@@ -616,7 +616,7 @@ while(!gzeof($handle))
 	}
 
 	//parse variant data from VCF
-	if(chr_check($chr, 22, false) === FALSE) continue; //skip bad chromosomes
+	if(chr_check($chr, false) === FALSE) continue; //skip bad chromosomes
 	$start = $pos;
 	$end = $pos;
 	$ref = strtoupper($ref);
@@ -645,19 +645,10 @@ while(!gzeof($handle))
 		}
 	}
 	$info = $tmp;
-	
-	//TODO: remove (now already done in VCF)
-	/*
-	//special handling for DRAGEN calling
-	if (isset($info["TARGETED"]))
-	{
-		$filter[] = "targeted";
-	}
-	if ($chr!="chrMT" && isset($info["MOSAIC"]))
-	{
-		$filter[] = "mosaic";
-	}
-	*/
+
+	//skip high-sensitivy calls from DRAGEN MRJD caller
+	if (isset($info["MRJD_HS"]) && isset($info["REF_DIFF_SITE"])) continue;
+	if (isset($info["MRJD_HS"]) && isset($info["ALT_LOCATION"])) continue;
 
 	//convert genotype information to TSV format
 	if($sample_count==1)
@@ -730,24 +721,20 @@ while(!gzeof($handle))
 		//special handling of DRAGEN targeted calls (can have multiple alleles)
 		if (isset($info["TARGETED"]))
 		{
-			$affected_alleles = array_sum(explode("|", strtr($sample["GT"], array("."=>"0", "/"=>"|"))));
-			if ($affected_alleles == 0)
+			$alleles = explode("|", strtr($sample["GT"], array("."=>"0", "/"=>"|")));
+			$alt_alleles = array_sum($alleles);
+			if ($alt_alleles == 0)
 			{
 				$genotype = "wt";
-			} 
-			else if ($affected_alleles == 1)
+			}
+			else if ($alt_alleles < count($alleles))
 			{
 				$genotype = "het";
 			}
-			else if ($affected_alleles == 2)
+			else
 			{
 				$genotype = "hom";
 			}
-			else 
-			{
-				trigger_error("VCF contains invalid genotype '".$sample["GT"]."'!", E_USER_ERROR);	
-			}
-
 		}
 		else
 		{
@@ -1126,6 +1113,9 @@ while(!gzeof($handle))
 	$gnomad_het = collapse($tag, "gnomAD Het", $het_gnomad, "max");
 	$gnomad_wt = collapse($tag, "gnomAD Wt", $wt_gnomad, "max");
 
+	//NGSD clas
+	$ngsd_clas = "";
+
 	if (!$skip_ngsd)
 	{
 		// extract NGSD somatic counts
@@ -1213,10 +1203,6 @@ while(!gzeof($handle))
 		{
 			$ngsd_clas = trim($info["NGSD_CLAS"]);
 		}
-		else
-		{
-			$ngsd_clas = "";
-		}
 
 		if (isset($info["NGSD_CLAS_COM"]))
 		{
@@ -1261,11 +1247,12 @@ while(!gzeof($handle))
 	{
 		$tmp = [];
 		$spliceai_info = trim($info["SpliceAI"]);
-		$spliceai_values = [];
-
 		$entries = explode(",", strtr($spliceai_info, "&", ",")); //both & and , are used as separator, depending on the sources of the SpliceAI annotation (pre-calcualted or calculated on the fly)
 		foreach($entries as $entry)
 		{
+			$entry = trim($entry);
+			if ($entry=="" || $entry==".") continue;
+			
 			$delta_scores = explode("|", $entry);
 			if(count($delta_scores) == 10)
 			{

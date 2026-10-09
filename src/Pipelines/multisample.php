@@ -27,7 +27,7 @@ extract($parser->parse($argv));
 //init
 $repository_basedir = repository_basedir();
 $data_folder = get_path("data_folder");
-$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2026_1.bed";
+$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2026_2.bed";
 $omim_file = "{$data_folder}/dbs/OMIM/omim.bed";
 $vcf_multi = "{$out_folder}/{$prefix}_var.vcf.gz";
 $cnv_multi = "{$out_folder}/{$prefix}_cnvs_clincnv.tsv";
@@ -135,19 +135,19 @@ foreach($bams as $bam)
 }
 
 //check steps
-$is_wes = $sys['type']=="WES";
 $is_wgs = $sys['type']=="WGS";
 $is_wgs_shallow = $sys['type']=="WGS (shallow)";
+$is_lrgs = $sys['type']=="lrGS";
 if ($is_wgs_shallow)
 {
 	if (in_array("vc", $steps))
 	{
-		trigger_error("Skipping step 'vc' - Variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
+		trigger_error("Skipping step 'vc' - Small variant calling is not supported for shallow WGS samples!", E_USER_NOTICE);
 		if (($key = array_search("vc", $steps)) !== false) unset($steps[$key]);
 	}
-	if (in_array("an", $steps))
+	if (in_array("sv", $steps))
 	{
-		trigger_error("Skipping step 'an' - Annotation is not supported for shallow WGS samples!", E_USER_NOTICE);
+		trigger_error("Skipping step 'sv' - Structural variant calling for shallow WGS samples!", E_USER_NOTICE);
 		if (($key = array_search("an", $steps)) !== false) unset($steps[$key]);
 	}
 }
@@ -214,9 +214,13 @@ if (in_array("vc", $steps))
 			$vcfs[] = $vcf;
 		}
 		
-		//filter VCFs by (extended) target region
+		//filter VCFs by (extended) target region plus chrMT
+		$reg_mito = $parser->tempFile("_mito.bed");
+		file_put_contents($reg_mito, "chrMT\t0\t16569");
+		$target_with_mito = $parser->tempFile("_roi_with_mito.bed");
+		$parser->execApptainer("ngs-bits", "BedAdd", "-in $target_file $reg_mito -out $target_with_mito", [$target_file, $genome]);
 		$target_extended = $parser->tempFile("_roi_extended.bed");
-		$parser->execApptainer("ngs-bits", "BedExtend", "-in $target_file -n 200 -out $target_extended -fai {$genome}.fai", [$target_file, $genome]);
+		$parser->execApptainer("ngs-bits", "BedExtend", "-in $target_with_mito -n 200 -out $target_extended -fai {$genome}.fai", [$genome]);
 		$vcfs_filtered = [];
 		foreach($vcfs as $vcf)
 		{
@@ -255,7 +259,7 @@ if (in_array("vc", $steps))
 	$parser->execTool("Tools/annotate.php", implode(" ", $args));
 
 	//check for truncated output
-	if ($is_wgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$out_folder}/{$prefix}_var_annotated.vcf.gz -max_missing_perc 5");
+	if ($is_wgs || $is_lrgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$out_folder}/{$prefix}_var_annotated.vcf.gz -max_missing_perc 5 -check_mito");
 	
 	//update sample entry 
 	$status_map = array();
@@ -272,10 +276,13 @@ if (in_array("cn", $steps))
 	//(3.1) CNV calling
 	if (!$annotation_only)
 	{
-		//load target region BED for exome (to determine the number of regions)
+		$debug_cnvs = false;
+		
+		//load target region BED for exome/panel (to determine the number of regions)
 		$roi = [];
-		if (!$is_wgs && !$is_wgs_shallow && $sys_matching)
+		if (!$is_wgs && !$is_lrgs && !$is_wgs_shallow && $sys_matching)
 		{
+			if ($debug_cnvs) print "Loading target region for CNV processing: $target_file\n";
 			foreach(file($target_file) as $line)
 			{
 				$line = trim($line);
@@ -321,17 +328,20 @@ if (in_array("cn", $steps))
 				$data[] = array("chr" => $chr, "start" => $start, "end" =>$end, "cn" => $cn, "loglike" =>$loglikelihood, "pot_af" => $potential_af, "qvalue" => $qvalue);
 			}
 			$cnv_data[] = $data;
+			if ($debug_cnvs) print "CNVs loaded for sample {$ps_name}: ".count($data)."\n";
 		}
 		
 		//intersect CNV regions of affected (with same CN state)
 		$regions = null;
 		$i = -1;
+		$c_affected = 0;
 		foreach($status as $bam => $stat)
 		{
 			++$i;
 			
 			//skip controls
 			if ($stat != "affected") continue;
+			++$c_affected;
 			
 			//first affected => init
 			if (is_null($regions))
@@ -361,15 +371,18 @@ if (in_array("cn", $steps))
 			}
 			$regions = $tmp;
 		}
+		if ($debug_cnvs) print "CNVs remaining after intersecting $c_affected affected samples: ".count($tmp)."\n";
 		
 		//subtract CNV regions of controls (with same CN state)
 		$i=-1;
+		$c_unaffected = 0;
 		foreach($status as $bam => $stat)
 		{
 			++$i;
 			
 			//skip affected
 			if($stat == "affected") continue;
+			++$c_unaffected;
 			
 			//subtract
 			$tmp = array();
@@ -397,8 +410,9 @@ if (in_array("cn", $steps))
 			}
 			$regions = $tmp;
 		}
+		if ($debug_cnvs) print "CNVs remaining after subtracting $c_unaffected unaffected samples: ".count($regions)."\n";
 		
-		//create output file
+		//write output file
 		$output[] = "#".implode("\t", ["chr", "start", "end", "sample", "size", "CN_change", "loglikelihood", "no_of_regions", "qvalue", "potential_AF"]);
 		foreach($regions as $reg)
 		{
@@ -406,20 +420,23 @@ if (in_array("cn", $steps))
 			$start = $reg["start"];
 			$end = $reg["end"];
 			
-			//filter by target region (mainly to keep test file sizes managable)
-			$in_roi = false;
-			if (isset($roi[$chr]))
+			//if target region exists, filter by target region (mainly to keep test file sizes managable)
+			if (count($roi)>0)
 			{
-				foreach($roi[$chr] as list($start2, $end2))
+				$in_roi = false;
+				if (isset($roi[$chr]))
 				{
-					if (range_overlap($start, $end, $start2, $end2))
+					foreach($roi[$chr] as list($start2, $end2))
 					{
-						$in_roi = true;
-						break;
+						if (range_overlap($start, $end, $start2, $end2))
+						{
+							$in_roi = true;
+							break;
+						}
 					}
 				}
+				if (!$in_roi) continue;
 			}
-			if (!$in_roi) continue;
 			
 			$size = intval($end)-intval($start);
 			
@@ -435,6 +452,11 @@ if (in_array("cn", $steps))
 			else if ($is_wgs_shallow)
 			{
 				$bin_size = get_path("cnv_bin_size_shallow_wgs");
+				$line[] = round($size/$bin_size); 
+			}
+			else if($is_lrgs)
+			{
+				$bin_size = get_path("cnv_bin_size_longread_wgs");
 				$line[] = round($size/$bin_size); 
 			}
 			else if ($sys_matching) //calculate based on the number of target regions overlapping
@@ -459,10 +481,9 @@ if (in_array("cn", $steps))
 			$line[] = number_format(max(explode(",", $reg["pot_af"])), 3);
 			
 			$output[] = implode("\t",$line);
-		}	
-	
-		//write output file
+		}
 		file_put_contents($cnv_multi, implode("\n", $output));
+		if ($debug_cnvs) print "CNVs file lines written: ".count($output)."\n";
 
 		//create dummy GSvar file for shallow WGS (needed to be able to open the sample in GSvar)
 		if ($is_wgs_shallow)
@@ -535,7 +556,7 @@ if (in_array("cn", $steps))
 	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed -no_duplicates -out {$cnv_multi}", [$out_folder, "{$data_folder}/dbs/ClinGen/dosage_sensitive_disease_genes_GRCh38.bed"]);
 	
 	//pathogenic ClinVar CNVs
-	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-04.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", [$out_folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-04.bed"]);
+	$parser->execApptainer("ngs-bits", "BedAnnotateFromBed", "-in {$cnv_multi} -in2 {$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-09.bed -name clinvar_cnvs -url_decode -no_duplicates -out {$cnv_multi}", [$out_folder, "{$data_folder}/dbs/ClinVar/clinvar_cnvs_2026-09.bed"]);
 	
 	//HGMD CNVs
 	if (file_exists($hgmd_file)) //optional because of license
@@ -569,7 +590,7 @@ if (in_array("sv", $steps))
 			"--log ".$parser->getLogFile(),
 			"-target ".$target_file
 		];
-		if(!$is_wgs) $manta_args[] = "-exome";
+		if(!$is_wgs && !$is_lrgs) $manta_args[] = "-exome";
 		
 		$parser->execTool("Tools/vc_manta.php", implode(" ", $manta_args));
 
@@ -718,7 +739,7 @@ if (in_array("sv", $steps))
 	update_gsvar_sample_header($bedpe_out, $status_map);	
 
 	//check for truncated output
-	if ($is_wgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$bedpe_out}");
+	if ($is_wgs || $is_lrgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$bedpe_out}");
 }
 
 //NGSD import

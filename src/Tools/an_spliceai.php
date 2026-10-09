@@ -145,14 +145,9 @@ function add_contigs_if_missing($vcf)
 	$parser->log("Contig lines are missing. Adding them from genome FAI file!");
 	
 	//parse contig data from genome FAI file
-	$new_contigs = array();
-	$fai = file(genome_fasta($build).".fai");
-	foreach($fai as $line)
+	$new_contigs = [];
+	foreach(genome_chr_sizes(genome_fasta($build)) as $chr => $len)
 	{
-		$line = trim($line);
-		if ($line=="") continue;
-		
-		list($chr, $len) = explode("\t", $line);
 		if (contains($chr, "chrUn") || contains($chr, "_random") || contains($chr, "_decoy")) continue;
 		$new_contigs[] = "##contig=<ID={$chr},length={$len}>\n";
 	}
@@ -253,7 +248,7 @@ $spliceai_regions = $parser->tempFile("spliceai_scoring_regions.bed");
 $pipeline = [];
 $pipeline[] = array("cut", "-f 2,4,5 -d'\t' {$transcript_annotations}");
 $pipeline[] = array("sed", "'1d' > {$spliceai_regions}");
-$parser->execPipeline($pipeline, "Dragen small variants post processing");
+$parser->execPipeline($pipeline, "SpliceAI region creation");
 
 //filter for variants in SpliceAI transcript regions
 $tmp2 = $parser->tempFile("_spliceai_filtered_regions.vcf");

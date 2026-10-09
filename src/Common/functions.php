@@ -83,6 +83,7 @@ function exec2($command, $abort_on_error = true)
 */
 function range_overlap($from1, $to1, $from2, $to2)
 {
+	//TODO Marc try return $from1 <= $to2 && $from2 <= $to1;
 	return ($from2<=$from1 && $to2>=$from1) || ($from2<=$to1 && $to2>=$to1) || ($from2>=$from1 && $to2<=$to1);
 }
 
@@ -865,16 +866,23 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 			{
 				$filepath = dirname(realpath($file));
 			}
-			if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
+			if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath;
 		}
 
 		foreach($out_folders as $folder)
 		{
-			//check it is a folder
-			if (is_file($folder)) trigger_error("{$container}: Only folders can be bound as output parameters. '{$folder}' is a file!", E_USER_ERROR);
+			//abort if file given
+			if (file_exists($folder) && is_file($folder)) trigger_error("{$container}: Only folders can be bound as output parameters. '{$folder}' is a file!", E_USER_ERROR);
 			
-			// ! Bind parent folder of given output in case the out-folder doesn't exist yet. (Folder can't be bound if it doesn't exist)
-			$filepath = realpath(dirname($folder));
+			//bind
+			if (file_exists($folder))
+			{
+				$filepath = realpath($folder);
+			}
+			else //bind parent folder in case the output folder doesn't exist yet - a folder can't be bound if it doesn't exist
+			{
+				$filepath = realpath(dirname($folder));
+			}
 
 			if(!in_array($filepath.":".$filepath, $bind_paths)) $bind_paths[] = $filepath.":".$filepath; 
 		}
@@ -1113,6 +1121,12 @@ function realpath2(string $path)
     }
 
     return '/'.implode('/', $parts);
+}
+
+//trim leading/trailing whitespace and collapse internal whitespace to a single space
+function str_simplified(string $text): string
+{
+	return preg_replace('/\s+/', ' ', trim($text));
 }
 
 ?>

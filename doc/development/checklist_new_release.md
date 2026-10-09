@@ -1,6 +1,6 @@
 # megSAP release
 
-1. Check that containers are ok
+1. Check that containers are the same in all settings files and uploaded to megsap.de:
 	
 	> php src/IMGAG/container_status.php -check_md5
 
@@ -8,24 +8,33 @@
 
 	> make find_unused_tools
 
-1. Check for missing tests
+1. Check for missing tests (on SRV005)
 
 	> make find_missing_tests
+
+1. Make sure there are no PHP warnings/errors in the tests
+
+	> make find_php_warnings_in_tests
 
 1. Execute all tests
 
 	> make test_all
 
-1. Make sure there are no PHP warnings in the tests
+1. Check URLs
 
-	> make find_php_warnings_in_tests
+	> make doc_check_urls
+	
+1. Make a test deployment of the `master` on a clean Ubuntu using WSL on out test laptop.
 
-1. Make a test deployment on a clean Ubuntu using WSL on out test laptop.
-1. Update the release version in `doc/install_unix.md`, commit and push.
+1. Update the release version in `doc/install_unix.md` to `[version]_with_fixes`, commit and push.
+
 1. Compile changelog for the new release:
 
 	> git log [last-tag]..master --oneline  
 	> git diff -w [last-tag] master src/Pipelines/
  
 1. Create a new release on GitHub.
+
+1. Create a branch based on the new release called `[version]_with_fixes`.
+
 1. Update Zenodo links in `README.md`.

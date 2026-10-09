@@ -118,7 +118,7 @@ if (db_is_enabled($db))
 
 //determine gender from BAM
 $genome = genome_fasta($build);
-list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-in {$in} -method {$method} {$args} -build ".ngsbits_build($build)." -ref {$genome}", [$in, $genome]);
+list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-in {$in} -method {$method} {$args} -ref {$genome}", [$in, $genome]);
 $gender2 = explode("\t", $stdout[1])[1];
 
 check_gender($gender, $gender2, $method, $in);
@@ -127,7 +127,7 @@ if ($check_sry_cov && $method != "sry")
 {
 	if (sry_in_target($parser, $sys_roi)) //SRY is in roi
 	{
-		list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-in {$in} -method sry -sry_cov {$sry_cov} -build ".ngsbits_build($build)." -ref {$genome}", [$in, $genome]);
+		list($stdout, $stderr) = $parser->execApptainer("ngs-bits", "SampleGender", "-in {$in} -method sry -sry_cov {$sry_cov} -ref {$genome}", [$in, $genome]);
 		$gender_sry = explode("\t", $stdout[1])[1];
 	
 		check_gender($gender, $gender_sry, $method, $in);

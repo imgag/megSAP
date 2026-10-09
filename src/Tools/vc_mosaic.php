@@ -29,11 +29,11 @@ extract($parser->parse($argv));
 //check parameters
 if ($max_af <= 0)
 {
-	trigger_error("The maximum allel frequency cannot be smaller or equal to zero.", E_USER_ERROR);
+	trigger_error("The maximum allele frequency cannot be smaller or equal to zero.", E_USER_ERROR);
 }
 if ($max_gnomad_af <= 0)
 {
-	trigger_error("The maximum allowed gnomad allel frequency cannot be smaller or equal to zero.", E_USER_ERROR);
+	trigger_error("The maximum allowed gnomad allele frequency cannot be smaller or equal to zero.", E_USER_ERROR);
 }
 if ($min_obs < 0)
 {
@@ -164,7 +164,7 @@ $pipeline[] = ["", $parser->execApptainer("vcflib", "vcfallelicprimitives", "-kg
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfBreakMulti", "-no_errors", [], [], true)];  // -no_errors flag can be removed, when vcfallelicprimitives is replaced
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stream -ref $genome", [$genome], [], true)];
 $tmp_annotated = temp_file("_annotated.vcf");
-$gnomad_file = get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_v4.1_GRCh38.vcf.gz";
+$gnomad_file = get_path("data_folder")."/dbs/gnomAD/gnomAD_genome_v4.1.1_GRCh38.vcf.gz";
 $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", "-out $tmp_annotated -source $gnomad_file -info_keys AF -prefix gnomADg -threads $threads", [$gnomad_file], [], true)];
 $parser->execPipeline($pipeline, "vc_mosaic post processing");
 

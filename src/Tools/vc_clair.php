@@ -110,6 +110,9 @@ $parser->execApptainer("clair3", "run_clair3.sh", implode(" ", $args), $in_files
 $clair_vcf = $clair_temp."/merge_output.vcf.gz";
 $clair_gvcf = $clair_temp."/merge_output.gvcf.gz";
 
+
+//TODO: switch to himito if reactivated!!
+trigger_error("No good mito-calling available for clair3!", E_USER_WARNING);
 //run Clair3 on chrM
 $args_mito[] = "--output={$clair_mito_temp}";
 $target_mito = $parser->tempFile("_mito.bed");
