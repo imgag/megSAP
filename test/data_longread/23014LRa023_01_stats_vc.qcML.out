@@ -6,17 +6,17 @@
   ]>
 <qcML version="0.0.8" xmlns="http://www.prime-xs.eu/ms/qcml" >
   <runQuality ID="rq0001">
-    <metaDataParameter ID="md0001" name="creation software" value="VariantQC 2026_06-79-g3e4c43fc" cvRef="QC" accession="QC:1000002"/>
+    <metaDataParameter ID="md0001" name="creation software" value="VariantQC 2026_06-167-ge198c896" cvRef="QC" accession="QC:1000002"/>
     <metaDataParameter ID="md0002" name="creation software parameters" value="" cvRef="QC" accession="QC:1000003"/>
-    <metaDataParameter ID="md0003" name="creation date" value="2026-08-07T09:00:20" cvRef="QC" accession="QC:1000004"/>
-    <metaDataParameter ID="md0004" name="source file" value="annotate_g5b8nR.vcf" cvRef="QC" accession="QC:1000005"/>
+    <metaDataParameter ID="md0003" name="creation date" value="2026-10-12T14:02:56" cvRef="QC" accession="QC:1000004"/>
+    <metaDataParameter ID="md0004" name="source file" value="annotate_sjYVTx.vcf" cvRef="QC" accession="QC:1000005"/>
     <qualityParameter ID="qp0001" name="variant count" description="Total number of variants in the target region." value="1674" cvRef="QC" accession="QC:2000013"/>
     <qualityParameter ID="qp0002" name="known variants percentage" description="Percentage of variants that are known polymorphisms in the dbSNP database." value="99.88" cvRef="QC" accession="QC:2000014"/>
     <qualityParameter ID="qp0003" name="high-impact variants percentage" description="Percentage of variants with high impact on the protein, i.e. stop-gain, stop-loss, frameshift, splice-acceptor or splice-donor variants." value="0.06" cvRef="QC" accession="QC:2000015"/>
     <qualityParameter ID="qp0004" name="homozygous variants percentage" description="Percentage of variants that are called as homozygous." value="38.89" cvRef="QC" accession="QC:2000016"/>
     <qualityParameter ID="qp0005" name="indel variants percentage" description="Percentage of variants that are insertions/deletions." value="16.43" cvRef="QC" accession="QC:2000017"/>
     <qualityParameter ID="qp0006" name="transition/transversion ratio" description="Transition/transversion ratio of single nucleotide variants." value="2.44" cvRef="QC" accession="QC:2000018"/>
-    <qualityParameter ID="qp0007" name="mosaic variant count" description="Number of variants that are flagged as mosaic variants (in filter column)." value="0" cvRef="QC" accession="QC:2000142"/>
+    <qualityParameter ID="qp0007" name="mosaic variant count" description="Number of variants that are flagged as mosaic variants (in filter column)." value="14" cvRef="QC" accession="QC:2000142"/>
     <qualityParameter ID="qp0008" name="mean phasing block size" description="Mean size of all annotated phasing blocks." value="214461.75" cvRef="QC" accession="QC:2000133"/>
     <qualityParameter ID="qp0009" name="median phasing block size" description="Median size of all annotated phasing blocks." value="192693.50" cvRef="QC" accession="QC:2000134"/>
     <qualityParameter ID="qp0010" name="phasing block count" description="Number of different phasing bocks." value="4" cvRef="QC" accession="QC:2000135"/>

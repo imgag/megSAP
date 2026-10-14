@@ -144,7 +144,7 @@ $check_chrs = target_region_is_genome_wide($sys['target_file']);
 if(!$check_chrs) trigger_error("Target region does not cover whole genome. Cannot check for missing chromosomes in variant calls.", E_USER_NOTICE);
 
 //CNV calling is only supported for genome-wide long-read data (binning/reference-cohort approach is not validated for targeted/adaptive-sampling regions)
-if (in_array("cn", $steps) && !$check_chrs)
+if (in_array("cn", $steps) && !$check_chrs && !$test)
 {
 	trigger_error("Skipping step 'cn' - Copy-number calling is not supported for targeted/adaptive-sampling long-read data (target region does not cover the whole genome)!", E_USER_WARNING);
 	if (($key = array_search("cn", $steps)) !== false) unset($steps[$key]);
