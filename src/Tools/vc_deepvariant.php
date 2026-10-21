@@ -96,8 +96,7 @@ $env = [
 ];
 apptainerEnv($env);
 $dv_exe = $sbx ? "run_pangenome_aware_deepvariant" : "run_deepvariant";
-$dv_container = $sbx ? "deepvariant_sbx" : "deepvariant";
-$parser->execApptainer($dv_container, $dv_exe, implode(" ", $args)." --output_vcf={$vcf_deepvar_out}", [$genome, $bam, get_path("data_folder")."/dbs/graph_genome/"], [dirname($out)], false, true, true, true, $gpu);
+$parser->execApptainer($sbx ? "deepvariant_sbx" : "deepvariant", $dv_exe, implode(" ", $args)." --output_vcf={$vcf_deepvar_out}", [$genome, $bam, get_path("data_folder")."/dbs/graph_genome/"], [dirname($out)], false, true, true, true, $gpu);
 
 //raw output > no post-processing
 if ($raw_output)

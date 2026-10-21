@@ -21,6 +21,7 @@ $parser->addString("steps", "Comma-separated list of steps to perform:\nvc=varia
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addFlag("no_sync", "Skip syncing annotation databases and genomes to the local tmp folder (Needed only when starting many short-running jobs in parallel).");
 $parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
+$parser->addFlag("test", "Run pipeline in test-mode (e.g. perform CNV calling on targeted data).");
 extract($parser->parse($argv));
 
 //create output folder if missing
@@ -115,7 +116,14 @@ foreach($bams as $bam)
 }
 
 //enable check if chromosomes are complete only if the ROI covers the whole genome (pipeline test are not)
-$check_chrs = bed_size($target_file) > 3e9;
+$check_chrs = target_region_is_genome_wide($target_file);
+
+//CNV calling is only supported for genome-wide long-read data (binning/reference-cohort approach is not validated for targeted/adaptive-sampling regions)
+if (in_array("cn", $steps) && !$check_chrs && !$test)
+{
+	trigger_error("Skipping step 'cn' - Copy-number calling is not supported for targeted/adaptive-sampling long-read data (target region does not cover the whole genome)!", E_USER_WARNING);
+	if (($key = array_search("cn", $steps)) !== false) unset($steps[$key]);
+}
 
 //set up local NGS data copy
 if (!$no_sync) $parser->execTool("Tools/data_setup.php", "-build ".$sys['build']);

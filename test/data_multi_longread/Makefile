@@ -14,7 +14,7 @@ link:
 	php ../link_test_data.php 24067LRa026_01_cnvs_clincnv.tsv
 
 call:
-	php ../../src/Pipelines/multisample_longread.php -bams 24067LRa008_01.cram 24067LRa026_01.cram -status affected control -prefix test_multi -out_folder . -system system.ini -steps vc,cn,sv,an
+	php ../../src/Pipelines/multisample_longread.php -bams 24067LRa008_01.cram 24067LRa026_01.cram -status affected control -prefix test_multi -out_folder . -system system.ini -test -steps vc,cn,sv,an
 
 diff:
 	php ../compare_variants.php -in1 test_multi.GSvar.out -in2 test_multi.GSvar -add 24067LRa008_01,24067LRa026_01

@@ -215,7 +215,7 @@ function get_trio_parents($ps)
 {
 	global $db_conn;
 	
-	$info = get_processed_sample_info($db_conn, $ps, false);
+	$info = get_processed_sample_info($db_conn, $ps, false, true);
 	if (is_null($info)) return NULL;
 	$s_id = $info['s_id'];
 	$sys_id = $info['sys_id'];
@@ -435,7 +435,7 @@ if($run_name != "")
 			$n_genomes = 0;
 			foreach($processed_samples as $ps)
 			{
-				$processed_sample_info = get_processed_sample_info($db_conn,$ps);
+				$processed_sample_info = get_processed_sample_info($db_conn, $ps, true, true);
 				if ($processed_sample_info['sys_type'] == "WGS") $n_genomes++;
 			}
 

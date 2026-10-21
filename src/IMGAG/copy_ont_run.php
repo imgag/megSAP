@@ -38,7 +38,7 @@ function check_data_available($path, $subdir_name, $suffix)
 //find subdirectory in directory
 function get_sub_dirs($dir)
 {
-	$subdirs = array_values(array_diff(scandir($dir), array("..", ".")));
+	$subdirs = array_values(array_diff(scandir($dir), array("..", ".", "IMGAG_CopyDone.txt")));
 	if (count($subdirs) === 0)
 	{
 		trigger_error("No subdirectories found in '{$dir}'.", E_USER_ERROR);
