@@ -16,7 +16,7 @@
     <qualityParameter ID="qp0004" name="homozygous variants percentage" description="Percentage of variants that are called as homozygous." value="38.89" cvRef="QC" accession="QC:2000016"/>
     <qualityParameter ID="qp0005" name="indel variants percentage" description="Percentage of variants that are insertions/deletions." value="16.43" cvRef="QC" accession="QC:2000017"/>
     <qualityParameter ID="qp0006" name="transition/transversion ratio" description="Transition/transversion ratio of single nucleotide variants." value="2.44" cvRef="QC" accession="QC:2000018"/>
-    <qualityParameter ID="qp0007" name="mosaic variant count" description="Number of variants that are flagged as mosaic variants (in filter column)." value="14" cvRef="QC" accession="QC:2000142"/>
+    <qualityParameter ID="qp0007" name="mosaic variant count" description="Number of variants that are flagged as mosaic variants (in filter column)." value="0" cvRef="QC" accession="QC:2000142"/>
     <qualityParameter ID="qp0008" name="mean phasing block size" description="Mean size of all annotated phasing blocks." value="214461.75" cvRef="QC" accession="QC:2000133"/>
     <qualityParameter ID="qp0009" name="median phasing block size" description="Median size of all annotated phasing blocks." value="192693.50" cvRef="QC" accession="QC:2000134"/>
     <qualityParameter ID="qp0010" name="phasing block count" description="Number of different phasing bocks." value="4" cvRef="QC" accession="QC:2000135"/>

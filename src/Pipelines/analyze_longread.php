@@ -421,8 +421,8 @@ if (in_array("vc", $steps))
 		$parser->execTool("Tools/vc_himito.php", implode(" ", $args));
 
 		//add to main variant list
-		$vcf_merged = $parser->tempFile("_merged_mosaic.vcf");
-		$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mito} -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out {$vcf_merged}", [$vcf_file]);
+		$vcf_merged = $parser->tempFile("_merged_mito.vcf");
+		$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mito} -skip_duplicates -filter mito -filter_desc Himito_mito_calling. -out {$vcf_merged}", [$vcf_file]);
 		$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
 	}
 	//ONT
@@ -522,6 +522,22 @@ if (in_array("vc", $steps))
 		//sort and remove unused contig lines
 		$parser->execApptainer("ngs-bits", "VcfSort", "-in {$vcf_file} -remove_unused_contigs -compression_level 5 -out {$vcf_file}", [$vcf_file], [dirname($vcf_file)]);
 		$parser->execApptainer("htslib", "tabix", "-f -p vcf {$vcf_file}", [$vcf_file], [dirname($vcf_file)]);
+
+		//run mito calling
+		$tmp_mito = $parser->tempFile("_mito.vcf.gz");
+		$args = [];
+		$args[] = "-bam {$used_bam_or_cram}";
+		$args[] = "-out {$tmp_mito}";
+		$args[] = "-name {$name}";
+		$args[] = "-data_type pacbio";
+		$args[] = "-threads ".$threads;
+		$args[] = "-build ".$build;
+		$parser->execTool("Tools/vc_himito.php", implode(" ", $args));
+
+		//add to main variant list
+		$vcf_merged = $parser->tempFile("_merged_mito.vcf");
+		$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mito} -skip_duplicates -filter mito -filter_desc Himito_mito_calling. -out {$vcf_merged}", [$vcf_file]);
+		$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
 	}
 	else //deepvariant
 	{
@@ -582,8 +598,8 @@ if (in_array("vc", $steps))
 		$parser->execTool("Tools/vc_himito.php", implode(" ", $args));
 
 		//add to main variant list
-		$vcf_merged = $parser->tempFile("_merged_mosaic.vcf");
-		$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mito} -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out {$vcf_merged}", [$vcf_file]);
+		$vcf_merged = $parser->tempFile("_merged_mito.vcf");
+		$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mito} -skip_duplicates -filter mito -filter_desc Himito_mito_calls. -out {$vcf_merged}", [$vcf_file]);
 		$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
 
 		//sort and remove unused contig lines
@@ -871,7 +887,7 @@ if (in_array("re", $steps))
 	{
 		//Repeat-expansion calling using straglr
 		$variant_catalog = repository_basedir()."/data/repeat_expansions/straglr_variant_catalog_grch38.bed";
-		$parser->execTool("Tools/vc_straglr.php", "-in {$used_bam_or_cram} -out {$repeat_file} -loci {$variant_catalog} ".((!file_exists($sv_vcf_file))?"-sv_vcf {$sv_vcf_file} ":"")."-threads {$threads} -build {$build} --log ".$parser->getLogFile());
+		$parser->execTool("Tools/vc_straglr.php", "-in {$used_bam_or_cram} -out {$repeat_file} -loci {$variant_catalog} ".((file_exists($sv_vcf_file))?"-sv_vcf {$sv_vcf_file} ":"")."-threads {$threads} -build {$build} --log ".$parser->getLogFile());
 
 	}
 }
