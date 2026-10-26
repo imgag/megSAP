@@ -185,7 +185,7 @@ function writeCohortCounts($full_cohort, $ps_name, $out, $exons)
 	$tmp_count_file = $parser->tempFile("_rna_cohort_counts.tsv");
 	$cohort_counts->toTSV($tmp_count_file);
 	
-	$parser->execApptainer("htslib", "bgzip", "-c $tmp_count_file > $out", [], [dirname($out)]);
+	$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $tmp_count_file > $out", [], [dirname($out)]);
 	
 	return $removed_samples;
 }
@@ -245,7 +245,7 @@ function remove_helper_samples($cohort_count_file, $batch_correct_samples)
 	
 	$cohort_mat->toTSV($tmp_cohort_count_file);
 	//overwrite old cohort_count file with cleaned version
-	$parser->execApptainer("htslib", "bgzip", "-c $tmp_cohort_count_file > $cohort_count_file", [], [dirname($cohort_count_file)]);
+	$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $tmp_cohort_count_file > $cohort_count_file", [], [dirname($cohort_count_file)]);
 }
 
 function writeTSV($array, $out_file, $headers)

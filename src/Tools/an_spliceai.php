@@ -212,7 +212,7 @@ function annotate_spliceai_scores($in, $vcf_filtered, $out)
 	//sort, zip and index scored variants to make them usable with VcfAnnotateFromVcf
 	$tmp2 = $parser->tempFile("_spliceai_new_annotations.vcf.gz");
 	$parser->execApptainer("ngs-bits", "VcfSort", "-in {$tmp1} -out {$tmp1}");
-	$parser->execApptainer("htslib", "bgzip", "-c $tmp1 > $tmp2");
+	$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $tmp1 > $tmp2");
 	$parser->execApptainer("htslib", "tabix", "-f -p vcf $tmp2");
 	
 	//annotate variants in input with scored variants

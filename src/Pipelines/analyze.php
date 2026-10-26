@@ -576,7 +576,7 @@ if (in_array("vc", $steps))
 				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true));
 
 				//zip
-				$pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c > $vcffile", [], [dirname($vcffile)], true));
+				$pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} > $vcffile", [], [dirname($vcffile)], true));
 
 				//execute pipeline
 				$parser->execPipeline($pipeline, "Dragen small variants post processing");
@@ -745,7 +745,7 @@ if (in_array("vc", $steps))
 				$pipeline[] = array("", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true));
 
 				//zip
-				$pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c > $vcffile_mito", [], [], true));
+				$pipeline[] = array("", $parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} > $vcffile_mito", [], [], true));
 
 				//execute pipeline
 				$parser->execPipeline($pipeline, "Dragen small variants post processing (chrMT)");
@@ -1167,7 +1167,7 @@ if (in_array("sv", $steps))
 			}
 	
 			//bgzip and index
-			$parser->execApptainer("htslib", "bgzip", "-c $vcf_marked > $sv_manta_file", [], [dirname($sv_manta_file)]);
+			$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $vcf_marked > $sv_manta_file", [], [dirname($sv_manta_file)]);
 			$parser->execApptainer("htslib", "tabix", "-p vcf $sv_manta_file", [], [dirname($sv_manta_file)]);
 		}
 		else

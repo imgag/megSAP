@@ -39,7 +39,7 @@ if (ends_with($vcffile, ".vcf"))
 else
 {
 	$vcf_unzipped = $parser->tempFile("_unzipped.vcf");
-	$parser->execApptainer("htslib", "bgzip", "-cd $vcffile > $vcf_unzipped", [$vcffile]);
+	$parser->execApptainer("htslib", "bgzip", "-cd -@ {$threads} $vcffile > $vcf_unzipped", [$vcffile]);
 }
 
 //output file names
@@ -118,7 +118,7 @@ if ($is_lrgs && !$multi && !$somatic && db_is_enabled("NGSD"))
 }
 
 //zip annotated VCF file
-$parser->execApptainer("htslib", "bgzip", "-c $annfile > $annfile_zipped", [], [dirname($annfile_zipped)]);
+$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $annfile > $annfile_zipped", [], [dirname($annfile_zipped)]);
 $parser->execApptainer("htslib", "tabix", "-f -p vcf $annfile_zipped", [], [dirname($annfile_zipped)]);
 
 //convert to GSvar file

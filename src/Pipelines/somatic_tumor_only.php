@@ -408,7 +408,7 @@ if (in_array("an", $steps))
 	vcf_replace_comments($tmp_vcf, $comments);
 	
 	//zip and index VCF
-	$parser->execApptainer("htslib", "bgzip", "-c {$tmp_vcf} > {$variants_annotated}", [], [dirname($variants_annotated)]);
+	$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} {$tmp_vcf} > {$variants_annotated}", [], [dirname($variants_annotated)]);
 	$parser->execApptainer("htslib", "tabix", "-f -p vcf {$variants_annotated}", [], [dirname($variants_annotated)]);
 
 	//convert VCF to GSvar

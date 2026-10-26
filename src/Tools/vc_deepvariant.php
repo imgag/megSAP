@@ -141,14 +141,14 @@ $vcf->setComments($comments);
 $vcf->toTSV($tmp_out);
 
 //zip
-$parser->execApptainer("htslib", "bgzip", "-c $tmp_out > $out", [], [dirname($out)]);
+$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $tmp_out > $out", [], [dirname($out)]);
 
 //(3) mark off-target variants
 if ($target_extend>0)
 {
 	$tmp = $parser->tempFile(".vcf");
 	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $out -mark off-target -reg $target -out $tmp", [$out, $target]);
-	$parser->execApptainer("htslib", "bgzip", "-c $tmp > $out", [], [dirname($out)]);
+	$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $tmp > $out", [], [dirname($out)]);
 }
 
 //(4) index output file

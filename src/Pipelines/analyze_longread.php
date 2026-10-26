@@ -423,7 +423,7 @@ if (in_array("vc", $steps))
 		//add to main variant list
 		$vcf_merged = $parser->tempFile("_merged_mito.vcf");
 		$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mito} -skip_duplicates -filter mito -filter_desc Himito_mito_calling. -out {$vcf_merged}", [$vcf_file]);
-		$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
+		$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
 	}
 	//ONT
 	else if (get_path("use_clair3"))
@@ -512,7 +512,7 @@ if (in_array("vc", $steps))
 			//add to main variant list
 			$vcf_merged = $parser->tempFile("_merged_mosaic.vcf");
 			$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mosaic} -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out {$vcf_merged}", [$vcf_file, $tmp_mosaic]);
-			$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
+			$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
 		}
 		else
 		{
@@ -537,7 +537,7 @@ if (in_array("vc", $steps))
 		//add to main variant list
 		$vcf_merged = $parser->tempFile("_merged_mito.vcf");
 		$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mito} -skip_duplicates -filter mito -filter_desc Himito_mito_calling. -out {$vcf_merged}", [$vcf_file]);
-		$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
+		$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
 	}
 	else //deepvariant
 	{
@@ -578,7 +578,7 @@ if (in_array("vc", $steps))
 			//add to main variant list
 			$vcf_merged = $parser->tempFile("_merged_mosaic.vcf");
 			$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mosaic} -skip_duplicates -filter mosaic -filter_desc Putative_mosaic_variants. -out {$vcf_merged}", [$vcf_file, $tmp_mosaic]);
-			$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
+			$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
 		}
 		else
 		{
@@ -600,7 +600,7 @@ if (in_array("vc", $steps))
 		//add to main variant list
 		$vcf_merged = $parser->tempFile("_merged_mito.vcf");
 		$parser->execApptainer("ngs-bits", "VcfAdd", "-in {$vcf_file} {$tmp_mito} -skip_duplicates -filter mito -filter_desc Himito_mito_calls. -out {$vcf_merged}", [$vcf_file]);
-		$parser->execApptainer("htslib", "bgzip", "-c {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
+		$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} {$vcf_merged} > {$vcf_file}", [$vcf_merged], [dirname($vcf_file)]);
 
 		//sort and remove unused contig lines
 		$parser->execApptainer("ngs-bits", "VcfSort", "-in {$vcf_file} -remove_unused_contigs -compression_level 5 -out {$vcf_file}", [$vcf_file], [dirname($vcf_file)]);
@@ -746,7 +746,7 @@ if (in_array("ph", $steps))
 	$contig_pipeline[] = array("egrep", "-v \"^##contig=\" > {$tmp_vcf}");
 	$parser->execPipeline($contig_pipeline, "contig removal");
 	vcf_add_missing_contigs($sys['build'], $tmp_vcf);
-	$parser->execApptainer("htslib", "bgzip", "-c {$tmp_vcf} > {$vcf_file}", [], [dirname($vcf_file)]);
+	$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} {$tmp_vcf} > {$vcf_file}", [], [dirname($vcf_file)]);
 	$parser->execApptainer("htslib", "tabix", "-f -p vcf {$vcf_file}", [], [dirname($vcf_file)]);
 	
 	//check for methylation
@@ -792,11 +792,11 @@ if (in_array("ph", $steps))
 	$parser->execApptainer("longphase", "longphase", implode(" ", $args), [$folder, $genome], [$folder]);
 	
 	//create compressed file and index
-	$parser->execApptainer("htslib", "bgzip", "-c $phased_tmp > {$vcf_file}", [], [dirname($vcf_file)]);
+	$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $phased_tmp > {$vcf_file}", [], [dirname($vcf_file)]);
 	$parser->execApptainer("htslib", "tabix", "-f -p vcf $vcf_file", [], [dirname($vcf_file)]);
 	if (file_exists($sv_vcf_file))
 	{
-		$parser->execApptainer("htslib", "bgzip", "-c $phased_sv_tmp > {$sv_vcf_file}", [], [dirname($sv_vcf_file)]);
+		$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $phased_sv_tmp > {$sv_vcf_file}", [], [dirname($sv_vcf_file)]);
 		$parser->execApptainer("htslib", "tabix", "-f -p vcf $sv_vcf_file", [], [dirname($sv_vcf_file)]);
 	}
 

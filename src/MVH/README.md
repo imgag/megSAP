@@ -63,47 +63,15 @@ ZSE/ZPM dokumentieren die Meldebestätigung dann im RedCap und SAP:
 
 ![Meldebestaetigung](Meldebestaetigung.png)
 
-## Installation of GRZ QC workflow (not used right now because of the Nextflow problems)
+## Installation of GRZ QC workflow (for running this script without GRZ QC workflow, which is not used because of the NextFlow proxy issues)
 
-### Installation nexflow
-
-	> cd /mnt/storage2/MVH/tools/nextflow
-	> curl -s https://get.nextflow.io | bash
-
-### Installation of nf-core tools
-
-	> pipx install nf-core
-
-### Installation of GRZ QC pipeline
-
-	> export PATH=$PATH:/mnt/storage2/MVH/tools/nextflow/
-	> nf-core pipelines download BfArM-MVH/GRZ_QC_Workflow --container-system singularity
-	> nextflow plugin install nf-schema@2.1.1
-
-
-## Installation of tools (for running this script without GRZ QC workflow)
-
-### Installation of mosdepth (version of GRZ workflow at <https://github.com/BfArM-MVH/GRZ_QC_Workflow/blob/main/modules/nf-core/mosdepth/environment.yml>):
-
-	> wget https://github.com/brentp/mosdepth/releases/download/v0.3.11/mosdepth --no-check-certificate
-
-### Installation of fastp (version of GRZ workflow at <https://github.com/BfArM-MVH/GRZ_QC_Workflow/blob/main/modules/nf-core/fastp/environment.yml>):
-
-	> wget http://opengene.org/fastp/fastp.1.0.1
-	> cp fastp.1.0.1 fastp
-	> chmod a+x ./fastp
-
-### Installation of fastplong (version of GRZ workflow at <https://github.com/BfArM-MVH/GRZ_QC_Workflow/blob/main/modules/local/fastplong/environment.yml>):
-
-	> wget http://opengene.org/fastplong/fastplong.0.2.2
-	> cp fastplong.0.2.2 fastplong
-	> chmod a+x ./fastplong
+See container definition at <https://github.com/imgag/megSAP/blob/master/data/tools/container_recipes/grz_qc_workflow_master.def>
 
 ## Installation of GRZ-CLI
 
 see <https://github.com/BfArM-MVH/grz-tools/blob/main/packages/grz-cli/README.md> for details
 
-Install miniforge at /mnt/storage2/megSAP/tools/miniforge3/
+Install miniforge at /mnt/storage2/MVH/tools/miniforge3/
 
 	> curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
 	> bash Miniforge3-$(uname)-$(uname -m).sh
@@ -117,17 +85,10 @@ Updates with:
 
 	> /mnt/storage2/MVH/tools/miniforge3/bin/conda update -n base -c conda-forge conda -c bioconda
 	> /mnt/storage2/MVH/tools/miniforge3/bin/conda update -n grz-tools -c conda-forge -c bioconda grz-cli
-	> cd /mnt/storage2/MVH/tools/GRZ_QC_Workflow && git pull
 
 List all package versions:
 
-	> /mnt/storage2/MVH/tools/miniforge3/bin/conda list -n grz-tools 
-
-## Installation of python3
-
-	> python3 -m venv /mnt/storage2/MVH/tools/python
-	> /mnt/storage2/MVH/tools/python3/bin/pip install grz-pydantic-models pandas argparse importlib
-
+	> /mnt/storage2/MVH/tools/miniforge3/bin/conda list -n grz-tools
 
 ## Installation of consent mapper
 
@@ -141,16 +102,18 @@ Note: now a JAR is available as well: https://github.com/orgs/KohlbacherLab/pack
 
 # Updates
 
-## 05.06.2026 - general update
+## 26.10.2026 - general update
 
-- fastp: 0.24 > 1.3.3
-- fastplong: 0.2.2 > 0.4.1
-- grz-cli 1.5.1 > 1.7.2
-- GRZ_QC_Workflow v1.3.0 > v1.3.2
+- grz-cli 1.7.2 > 3.0.1
 
 ## 22.06.2026 - downgrade to versions used in official GRZ workflow
 
 - fastp: 1.3.3 > 1.0.1
 - fastplong: 0.2.2 > 0.2.2
 
+## 05.06.2026 - general update
 
+- fastp: 0.24 > 1.3.3
+- fastplong: 0.2.2 > 0.4.1
+- grz-cli 1.5.1 > 1.7.2
+- GRZ_QC_Workflow v1.3.0 > v1.3.2

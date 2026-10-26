@@ -183,7 +183,7 @@ if ($add_unfiltered_output)
 {
 	//copy unfiltered to output
 	$out_nofilter = dirname($out)."/".basename($out, ".vcf.gz")."_no_filter.vcf.gz";
-	$parser->execApptainer("htslib", "bgzip", "-c {$tmp_vcf_nofilter} > {$out_nofilter}", [], [dirname($out)]);
+	$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} {$tmp_vcf_nofilter} > {$out_nofilter}", [], [dirname($out)]);
 	$parser->execApptainer("htslib", "tabix", "-f -p vcf {$out_nofilter}", [], [dirname($out)]);
 }
 
@@ -212,7 +212,7 @@ $vcf->unique(); //remove duplicate variant calls
 $vcf->setComments($comments);
 $vcf->toTSV($tmp_vcf);
 
-$parser->execApptainer("htslib", "bgzip", "-c $tmp_vcf > $out", [], [dirname($out)]);
+$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $tmp_vcf > $out", [], [dirname($out)]);
 
 //index output file
 $parser->execApptainer("htslib", "tabix", "-f -p vcf $out", [], [dirname($out)]);

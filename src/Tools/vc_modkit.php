@@ -42,7 +42,7 @@ $parser->execApptainer("modkit", "modkit", implode(" ", $args), $in_files);
 if ($debug) $parser->log("modkit pileup log file", file($log_file));
 
 //store compressed file
-$parser->execApptainer("htslib", "bgzip", "-c $uncompressed_bed > $bed", [], [dirname($bed)]);
+$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $uncompressed_bed > $bed", [], [dirname($bed)]);
 $parser->execApptainer("htslib", "tabix", "-f -p bed $bed", [], [dirname($bed)]);
 
 //run summary

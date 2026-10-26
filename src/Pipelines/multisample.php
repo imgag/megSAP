@@ -244,7 +244,7 @@ if (in_array("vc", $steps))
 		vcf_replace_comments($vcf_merged, $comments);
 		
 		//bgzip and index
-		$parser->execApptainer("htslib", "bgzip", "-c $vcf_merged > $vcf_multi", [], [dirname($vcf_multi)]);
+		$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $vcf_merged > $vcf_multi", [], [dirname($vcf_multi)]);
 		$parser->execApptainer("htslib", "tabix", "-p vcf $vcf_multi", [], [dirname($vcf_multi)]);
 	}
 
