@@ -2186,7 +2186,9 @@ function bed_size($filename)
 function target_region_is_genome_wide($target_file)
 {
 	if ($target_file=="") return true;
-	return bed_size(realpath($target_file)) > 3e9;
+	$target_path = realpath($target_file);
+	if ($target_path===false) trigger_error("Target region file '{$target_file}' does not exist!", E_USER_ERROR);
+	return bed_size($target_path) > 3e9;
 }
 
 function phenotype_roi(&$db_conn, $ps_name)

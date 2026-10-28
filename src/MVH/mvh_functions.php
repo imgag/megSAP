@@ -258,8 +258,20 @@ function add_submission_to_sap($sap_case_id, $data_type, $tan)
 			"14" => "ZUKT_MVG_GENOM_DATA: Fehler beim Zugriff auf das MVG-Dokument",
 			"15" => "ZUKT_MVG_GENOM_DATA: Fehler beim Zugriff auf erste Meldung im MVG-Dokument",
 			"16" => "ZUKT_MVG_GENOM_DATA: Fehler beim Schreiben der Meldung in die MVG-Sekundärtabelle",
+			"20" => "kein ambulanter Fall – keine Verbuchung in NV2000, aber Weitergabe der Daten ans PMD",
+			"21" => "Fall ist schon endabgerechnet – keine Verbuchung in NV2000, aber Weitergabe der Daten ans PMD",
+			"22" => "zur übergebenen Vorgangsnr wurde eine andere Fallnr in der Tabelle ZNA_GENOM_PROT gefunden",
 		];
-		trigger_error("SOAP server returned response code {$response_code} (".$code2error[$response_code].")\nresponse: {$response}", E_USER_ERROR);
+	
+		$number = "";
+		if (contains($response, "<Number>"))
+		{
+			$pos = strpos($response, "<Number>")+8;
+			$pos2 = strpos($response, "</Number>", $pos);
+			$number = "/".substr($response, $pos, $pos2-$pos);
+		}
+		
+		trigger_error("SOAP server returned response code {$response_code}{$number} (".$code2error[$response_code].")\nresponse: {$response}", E_USER_ERROR);
 	}
 	//print "response_code: $response_code\n";
 	//print "response: $response\n";

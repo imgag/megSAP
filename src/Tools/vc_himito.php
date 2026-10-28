@@ -50,7 +50,7 @@ $pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfLeftNormalize", "-stre
 if ($gz_output) 
 {
 	$pipeline[] = ["", $parser->execApptainer("ngs-bits", "VcfStreamSort", "", [], [], true)];
-	$pipeline[] = ["", $parser->execApptainer("htslib", "bgzip", "-c > $out", [], [dirname($out)], true)];
+	$pipeline[] = ["", $parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} > $out", [], [dirname($out)], true)];
 }
 else
 {

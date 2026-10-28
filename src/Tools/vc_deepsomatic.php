@@ -194,7 +194,7 @@ if (!empty($target) && !$tumor_only)
 	if (file_exists($artefact_vcf))
 	{
 		$vcf_with_artefacts = dirname($out)."/".basename($out, ".vcf.gz")."_with_enzymatic_artefacts.vcf.gz";
-		$parser->execApptainer("htslib", "bgzip", "-c $final > $vcf_with_artefacts", [], [dirname($vcf_with_artefacts)]);
+		$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $final > $vcf_with_artefacts", [], [dirname($vcf_with_artefacts)]);
 		$vcf_no_artefacts = $parser->tempFile("_filtered_no_artefacts.vcf");
 		$parser->execApptainer("ngs-bits", "VcfSubtract", "-in $final -in2 $artefact_vcf -out $vcf_no_artefacts", [$artefact_vcf]);
 		$final = $vcf_no_artefacts;
@@ -205,7 +205,7 @@ if (!empty($target) && !$tumor_only)
 if (!$tumor_only) $parser->execApptainer("ngs-bits", "VcfAnnotateFrequency", "-in {$final} -bam {$bam_normal} -depth -out {$final} -name {$normal_id}", [$final, $bam_normal]);
 
 //zip
-$parser->execApptainer("htslib", "bgzip", "-c $final > $out", [], [dirname($out)]);
+$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $final > $out", [], [dirname($out)]);
 
 //(3) index output file
 $parser->execApptainer("htslib", "tabix", "-f -p vcf $out", [], [dirname($out)]);

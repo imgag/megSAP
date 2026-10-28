@@ -58,7 +58,7 @@ diff:
 # 2nd test with BAM input (default test)
 bam_analysis: clean
 	php ../link_test_data.php 23014LRa023_01.mod.unmapped.bam . -copy
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023_01 -system system.ini -steps ma,vc,cn,sv,ph,re,me,pg,an -threads 4 --log analyze_longread_bam_all_$(TIMESTAMP).log -test
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023_01 -system system.ini -steps ma,vc,cn,sv,ph,re,me,pg,an -threads 4 -test --log analyze_longread_bam_all_$(TIMESTAMP).log
 
 # 3rd test with each step separate (not performed on default)
 bam_analysis_single_steps: clean

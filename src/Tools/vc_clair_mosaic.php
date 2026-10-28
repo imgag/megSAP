@@ -144,11 +144,11 @@ if ($target_extend>0)
 	$result = $parser->execApptainer("ngs-bits", "BedAdd", "-in {$target} {$target_mito} -out {$on_target_region}", [$target]);
 	$tmp = $parser->tempFile(".vcf");
 	$parser->execApptainer("ngs-bits", "VariantFilterRegions", "-in $uncompressed_vcf -mark off-target -reg {$on_target_region} -out $tmp", [$on_target_region]);
-	$parser->execApptainer("htslib", "bgzip", "-c $tmp > $out", [], [dirname($out)]);
+	$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $tmp > $out", [], [dirname($out)]);
 }
 else
 {
-	$parser->execApptainer("htslib", "bgzip", "-c $uncompressed_vcf > $out", [], [dirname($out)]);
+	$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $uncompressed_vcf > $out", [], [dirname($out)]);
 }
 
 //index output file
