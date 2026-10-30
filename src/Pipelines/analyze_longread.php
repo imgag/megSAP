@@ -26,6 +26,7 @@ $parser->addFloat("min_bq", "Minimum base quality used for variant calling (Deep
 $parser->addFloat("min_mq", "Minimum mapping quality used for variant calling (DeepVariant 'min-mapping-quality' parameter).", true, 20);
 $parser->addFlag("test", "Run pipeline in test mode (e.g. use hard-coded cohort for methylation analysis)");
 $parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
+$parser->addEnum("gender", "Gender of the sample. If unset, use gender from NGSD.", true, ["female", "male", "n/a", ""], "");
 extract($parser->parse($argv));
 
 //start time
@@ -50,6 +51,18 @@ $platform = $sys['platform'];
 trigger_error("Long-read platform: {$platform}", E_USER_NOTICE);
 if ($platform!="PacBio" && $platform!="ONT") trigger_error("Unsupported platform '{$platform}'! Only 'ONT' or 'PacBio' are supported!", E_USER_ERROR);
 if ($test) trigger_error("Pipeline running in test mode!", E_USER_WARNING);
+
+//get gender if not provided
+if ($gender == "")
+{
+	if (db_is_enabled("NGSD"))
+	{
+		$db = DB::getInstance("NGSD", false);
+		$info = get_processed_sample_info($db, $name, false);
+		if (!is_null($info)) $gender  = $info['gender'];
+	}
+}
+	
 
 //check steps
 $steps = explode(",", $steps);
@@ -124,7 +137,6 @@ $cnv_file2 = $folder."/".$name."_cnvs_clincnv.seg";
 $sv_vcf_file = $folder ."/". $name . "_var_structural_variants.vcf.gz";
 $bedpe_file = substr($sv_vcf_file,0,-6)."bedpe";
 //repeat expansions
-//TODO: rename
 $repeat_file = $folder."/".$name."_repeats.vcf";
 //methylation files
 $methyl_regions = repository_basedir()."/data/methylation/methylartist_catalog_grch38.tsv";
@@ -698,13 +710,6 @@ if (in_array("sv", $steps))
 	if ($platform == "PacBio")
 	{
 		//run sawfish
-		$gender = "n/a";
-		if (db_is_enabled("NGSD"))
-		{
-			$db = DB::getInstance("NGSD", false);
-			$info = get_processed_sample_info($db, $name, false);
-			if (!is_null($info)) $gender  = $info['gender'];
-		}
 		$args = array();
 		$args[] = "-bams {$used_bam_or_cram}";
 		$args[] = "-genders '{$gender}'";
@@ -862,13 +867,6 @@ if (in_array("re", $steps))
 	if ($platform == "PacBio")
 	{
 		//Repeat-expansion calling using trgt 
-		$gender = "n/a";
-		if (db_is_enabled("NGSD"))
-		{
-			$db = DB::getInstance("NGSD", false);
-			$info = get_processed_sample_info($db, $name, false);
-			if (!is_null($info)) $gender  = $info['gender'];
-		}
 		$variant_catalog = repository_basedir()."/data/repeat_expansions/trgt_variant_catalog_grch38.bed";
 		$parser->execTool("Tools/vc_trgt.php", "-in {$used_bam_or_cram} -out {$repeat_file} -loci {$variant_catalog} -gender '{$gender}' -threads {$threads} -build {$build} --log ".$parser->getLogFile());
 	}
@@ -1122,23 +1120,6 @@ if (in_array("me", $steps))
 		$args[] = "-build ".$build;
 		$parser->execTool("Tools/vc_modkit.php", implode(" ", $args));
 
-		//copy to cohort folder
-		if (!isset($db)) trigger_error("NGSD is disabled! Skip copying/replacing of cohort methylation files.", E_USER_WARNING); //no NGSD
-		else if (realpath($folder) != realpath($sample_info["ps_folder"])) trigger_error("Sample is not in correct folder according to NGSD! Skip copying/replacing of cohort methylation files.", E_USER_WARNING); //not in correct sample folder
-		else
-		{
-			//copy methyl files to cohort folder 
-			$cohort_folder = get_path("methylation_cohorts")."/".$sample_info["sys_name_short"]."/";
-			$parser->copyFile($modkit_track, $cohort_folder);
-			$parser->copyFile($modkit_track.".tbi", $cohort_folder);
-			$modkit_track_hp1 = dirname($modkit_track)."/".basename($modkit_track, ".bed.gz")."_hp1.bed.gz";
-			$parser->copyFile($modkit_track_hp1, $cohort_folder);
-			$parser->copyFile($modkit_track_hp1.".tbi", $cohort_folder);
-			$modkit_track_hp2 = dirname($modkit_track)."/".basename($modkit_track, ".bed.gz")."_hp2.bed.gz";
-			$parser->copyFile($modkit_track_hp2, $cohort_folder);
-			$parser->copyFile($modkit_track_hp2.".tbi", $cohort_folder);
-		}
-
 		//create plots
 		$args = [];
 		$args[] = "-folder {$folder}";
@@ -1147,9 +1128,11 @@ if (in_array("me", $steps))
 		$args[] = "-out {$methylation_table}";
 		$args[] = "-build {$build}";
 		$args[] = "-threads {$threads}";
+		$args[] = "-gender {$gender}";
 		$args[] = "--log ".$parser->getLogFile();
 		if ($test)
 		{
+			//TODO adapt test
 			$args[] = "-regions ".repository_basedir()."/test/data/create_methyl_plot_regions_pipeline_test.tsv";
 			$args[] = "-custom_cohort_table ".repository_basedir()."/test/data/create_methyl_plot_custom_cohort.tsv";
 			$args[] = "-test";
@@ -1158,12 +1141,11 @@ if (in_array("me", $steps))
 		{
 			$args[] = "-regions {$methyl_regions}";
 		}
-		$parser->execTool("Tools/create_methyl_plot.php", implode(" ", $args));
+		$parser->execTool("Tools/vc_methylation.php", implode(" ", $args));
 		
 		// create Epigen TSV file
 		$epic_id_file = get_path("data_folder")."/dbs/illumina-epicids/EPIC-8v2-0_A1.csv";
-		$parser->execApptainer("ngs-bits", "BedToEpigen", "-in {$modkit_track} -out {$epigen_tsv} -id_file {$epic_id_file} -sample {$name}", [$epic_id_file, $modkit_track], [dirname($epigen_tsv)]);
-		
+		$parser->execApptainer("ngs-bits", "BedToEpigen", "-in {$modkit_track} -out {$epigen_tsv} -id_file {$epic_id_file} -sample {$name}", [$epic_id_file, $modkit_track], [dirname($epigen_tsv)]);	
 	}
 }
 

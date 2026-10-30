@@ -16,6 +16,7 @@ $parser->addOutfile("bed", "Output BED file containing the methylation info. Bgz
 $parser->addOutfile("summary", "Optional summary file.", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
+$parser->addString("region", "Limit processing to specific region (e.g. for testing). Format: [CHR]:[START]-[END] or [CHR]", true);
 $parser->addFlag("debug", "Enable modkit debug log.");
 
 extract($parser->parse($argv));
@@ -24,6 +25,8 @@ extract($parser->parse($argv));
 $genome = genome_fasta($build);
 $log_file = $parser->tempFile("_modkit_pileup.log");
 $tmp_folder = $parser->tempFolder("modkit");
+//convert to absolute path
+$bed = realpath2($bed);
 
 //run modkit
 $in_files = [];
@@ -36,15 +39,21 @@ $args[] = $tmp_folder;
 $args[] = "--phased";
 $args[] = "--cpg";
 $args[] = "--modified-bases 5mC 5hmC";
-// $args[] = "--bgzf";
+$args[] = "--combine-strands";
 $args[] = "--ref ".$genome;
-if ($debug) $args[] = "--log-filepath ".$log_file;
 $args[] = "--threads ".$threads;
+if ($debug) $args[] = "--log-filepath ".$log_file;
+if (isset($region)) $args[] = "--region ".$region;
+
 $parser->execApptainer("modkit", "modkit", implode(" ", $args), $in_files);
 
 //filter & copy logfile
-$log = array_filter(file($log_file), fn($line) => !strpos($line, "[DEBUG]"));
-$parser->log("modkit pileup log file", $log);
+if ($debug)
+{
+	$log = array_filter(file($log_file), fn($line) => !strpos($line, "[DEBUG]"));
+	$parser->log("modkit pileup log file", $log);
+}
+
 //compress BED files
 $bed_hp1 = dirname($bed)."/".basename($bed, ".bed.gz")."_hp1.bed.gz";
 $bed_hp2 = dirname($bed)."/".basename($bed, ".bed.gz")."_hp2.bed.gz";
@@ -53,10 +62,10 @@ $parser->execApptainer("htslib", "bgzip", "-@ {$threads} -c -l 9 {$tmp_folder}/h
 $parser->execApptainer("htslib", "bgzip", "-@ {$threads} -c -l 9 {$tmp_folder}/hp2.bedmethyl > {$bed_hp2}", [], [dirname($bed_hp2)]);
 
 //create index
-$parser->execApptainer("htslib", "tabix", "--help");
-$parser->execApptainer("htslib", "tabix", "-f -0 -s 1 -b 2 -e 3 {$bed}", [$bed], [dirname($bed)], false, true, false, true);
-$parser->execApptainer("htslib", "tabix", "-f -0 -s 1 -b 2 -e 3 {$bed_hp1}", [$bed_hp1], [dirname($bed_hp1)], false, true, false, true);
-$parser->execApptainer("htslib", "tabix", "-f -0 -s 1 -b 2 -e 3 {$bed_hp2}", [$bed_hp2], [dirname($bed_hp2)], false, true, false, true);
+// $parser->execApptainer("htslib", "tabix", "--help");
+$parser->execApptainer("htslib", "tabix", "--verbosity 4 -p bed {$bed}", [$bed], [dirname($bed)], false, true, false, true);
+$parser->execApptainer("htslib", "tabix", "--verbosity 4 -p bed {$bed_hp1}", [$bed_hp1], [dirname($bed_hp1)], false, true, false, true);
+$parser->execApptainer("htslib", "tabix", "--verbosity 4 -p bed {$bed_hp2}", [$bed_hp2], [dirname($bed_hp2)], false, true, false, true);
 
 //run summary
 if (isset($summary))
