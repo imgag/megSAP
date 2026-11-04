@@ -846,7 +846,14 @@ if (in_array("an", $steps))
 	$tmp_folder1 = $parser->tempFolder();
 	$tmp_vcf = "{$tmp_folder1}/{$prefix}_var_annotated.vcf.gz";
 	$parser->execTool("Tools/annotate.php", "-out_name $prefix -out_folder $tmp_folder1 -system $system -vcf $variants -somatic -threads $threads");
+	
+	//add sample info to VCF header
+	list($comments) = vcf_load_header($tmp_vcf);
+	$comments[] = gsvar_sample_header($t_id, array("IsTumor" => "yes"));
+	$comments[] = gsvar_sample_header($n_id, array("IsTumor" => "no"));
+	vcf_replace_comments($tmp_vcf, $comments);
 
+	
 	// run somatic QC
 	$links = array_filter([
 		"{$t_basename}_stats_fastq.qcML",
@@ -881,12 +888,6 @@ if (in_array("an", $steps))
 		$in_files = array_merge($in_files, $links);
 	}
 	$parser->execApptainer("ngs-bits", "SomaticQC", implode(" ", $args_somaticqc), $in_files, [dirname($somaticqc)]);
-
-	//add sample info to VCF header
-	list($comments) = vcf_load_header($tmp_vcf);
-	$comments[] = gsvar_sample_header($t_id, array("IsTumor" => "yes"));
-	$comments[] = gsvar_sample_header($n_id, array("IsTumor" => "no"));
-	vcf_replace_comments($tmp_vcf, $comments);
 
 	// zip and index vcf file
 	$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $tmp_vcf > $variants_annotated", [], [dirname($variants_annotated)]);
