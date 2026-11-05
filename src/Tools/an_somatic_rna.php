@@ -26,7 +26,8 @@ $t_basename = dirname($t_bam)."/".$t_id;
 $sys = load_system($system, $t_id);
 $genome = genome_fasta($sys['build']);
 
-$variants_gsvar = $full_prefix . ".GSvar"; // GSvar variants
+$variants_gsvar = $full_prefix.".GSvar"; // GSvar file
+if (!file_exists($variants_gsvar)) $variants_gsvar .= ".gz";
 $som_clincnv = $full_prefix . "_clincnv.tsv"; //ClinCNV output file
 
 list($t_name) = explode("_", $t_id);
@@ -182,9 +183,7 @@ $args = [
 	"-gsvar_in $variants_gsvar",
 	"-out $variants_gsvar",
 ];
-
 if (isset($rna_ref_tissue)) $args[] = "-rna_ref_tissue " .str_replace(" ", 0, $rna_ref_tissue); //Replace spaces by 0 because it is diffcult to pass spaces via command line.
-
 $parser->execTool("Tools/an_somatic_gsvar.php", implode(" ", $args));
 
 ?>

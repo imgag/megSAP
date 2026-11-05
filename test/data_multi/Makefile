@@ -3,7 +3,7 @@ all:
 	make clear link call diff reanno
 	
 clear:
-	rm -rf *.cram *.crai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML *_cnvs_clincnv.tsv *.bedpe manta_evid/ reanno 
+	rm -rf *.cram *.crai *.log *.GSvar.gz *.vcf.gz *.vcf.gz.tbi *.qcML *_cnvs_clincnv.tsv *.bedpe manta_evid/ reanno 
 
 link:
 	php ../link_test_data.php GS140549_01.cram
@@ -20,7 +20,7 @@ call:
 
 diff:
 	#variants
-	php ../compare_variants.php -in1 multi.GSvar.out -in2 multi.GSvar -add GS140549_01,GS140550_01
+	php ../compare_variants.php -in1 multi.GSvar.gz.out -in2 multi.GSvar.gz -add GS140549_01,GS140550_01
 	#CNVs
 	php ../compare_tsv.php -in1 multi_cnvs_clincnv.tsv.out -in2 multi_cnvs_clincnv.tsv -skip_cols ngsd_pathogenic_cnvs,genes,gene_info
 	#SVs
@@ -36,5 +36,5 @@ reanno:
 	php ../../src/Pipelines/multisample.php -bams GS140549_01.cram GS140550_01.cram -status affected affected -system system.ini -out_folder reanno -steps vc,cn,sv -annotation_only
 	# diff
 	diff multi_cnvs_clincnv.tsv reanno/multi_cnvs_clincnv.tsv
-	diff multi.GSvar reanno/multi.GSvar
+	diff multi.GSvar.gz reanno/multi.GSvar.gz
 	diff multi_var_structural_variants.bedpe reanno/multi_var_structural_variants.bedpe --ignore-matching-lines="^##"

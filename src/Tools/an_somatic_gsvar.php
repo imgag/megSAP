@@ -2,7 +2,7 @@
 require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
 
 $parser = new ToolBase("an_somatic_gsvar", "Annotates additional somatic data to GSvar file (NCG7.2 / RNA).");
-$parser->addInfile("gsvar_in", "Input .gsvar-file with SNV data.", false);
+$parser->addInfile("gsvar_in", "Input GSvar file.", false);
 $parser->addFlag("include_ncg", "Annotate column with info from NCG7.2 whether a gene is TSG or oncogene");
 $parser->addString("rna_id", "ID of RNA sample if RNA data is annotated.", true);
 $parser->addInfile("rna_counts", "Input file that contains RNA transcript counts.", true);

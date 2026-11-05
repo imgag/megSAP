@@ -1962,9 +1962,9 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 	}
 		
 	//GSvar
-	if (ends_with($filename, ".GSvar"))
+	if (ends_with($filename, ".GSvar") || ends_with($filename, ".GSvar.gz"))
 	{
-		list($stdout, $stderr, $exit_code) = exec2("egrep '^##GENOME_BUILD=' $filename", false);
+		list($stdout, $stderr, $exit_code) = exec2("zgrep -e '^##GENOME_BUILD=' $filename", false);
 		if ($exit_code==0)
 		{
 			foreach($stdout as $line)
@@ -2191,15 +2191,20 @@ function target_region_is_genome_wide($target_file)
 	return bed_size($target_path) > 3e9;
 }
 
-function phenotype_roi(&$db_conn, $ps_name)
-{		
-	$info = get_processed_sample_info($db_conn, $ps_name);
-	$s_id = $info['s_id'];
-	$hpos = $db_conn->getValues("SELECT disease_info FROM sample_disease_info WHERE sample_id='$s_id' AND `type`='HPO term id'");
+function get_processed_sample_hpos(&$db, $ps_name)
+{
+	$ps_id = get_processed_sample_id($db, $ps_name);
+	$s_id = $db->getValue("SELECT sample_id FROM processed_sample WHERE id='$ps_id'");
+	return $db->getValues("SELECT disease_info FROM sample_disease_info WHERE sample_id='$s_id' AND type='HPO term id'");
+}
+
+function phenotype_roi(&$db, $ps_name)
+{
+	$hpos = get_processed_sample_hpos($db, $ps_name);
 	
 	//store HPO term ids
 	$tmp_hpos = temp_file(".txt");
-	file_put_contents($tmp_hpos, $hpos);
+	file_put_contents($tmp_hpos, implode("\n", $hpos));
 	
 	//convert HPO terms to gene symbols
 	$tmp_genes = temp_file(".tsv");
@@ -2475,7 +2480,16 @@ function update_gsvar_sample_header($file_name, $disease_status_map)
 		$new_comments[] = gsvar_sample_header($ps, $override_map, "#", "\n"); 
 	}
 	$file_content->setComments($new_comments);
-	$file_content->toTSV($file_name);
+	if (ends_with($file_name, ".gz"))
+	{
+		$file_name_no_gz = substr($file_name, 0, -3);
+		$file_content->toTSV($file_name_no_gz);
+		execApptainer("htslib", "bgzip", "-f $file_name_no_gz", [$file_name_no_gz]);
+	}
+	else
+	{
+		$file_content->toTSV($file_name);
+	}
 }
 
 //get bam read count

@@ -50,7 +50,7 @@ to_diff:
 	# low coverage bed
 	php ../compare_bed.php expected_case1/DX000001_01_stat_lowcov.bed out_case1/DX000001_01_stat_lowcov.bed
 	# small variants
-	php ../compare_variants.php -in1 expected_case1/DX000001_01.GSvar -in2 out_case1/DX000001_01.GSvar -add tumor_af,tumor_dp
+	php ../compare_variants.php -in1 expected_case1/DX000001_01.GSvar.gz -in2 out_case1/DX000001_01.GSvar.gz -add tumor_af,tumor_dp
 	# virus detection
 	numdiff -D "\t \n" -r 0.0001 expected_case1/DX000001_01_viral.tsv Sample_DX000001_01/DX000001_01_viral.tsv
 	# qcML files
@@ -93,7 +93,7 @@ tn_somatic:
 tn_diff:
 	#tn_diff:
 	# small variants
-	php ../compare_variants.php -in1 expected_case2/GS110168_03-GS110169_03.GSvar -in2 out_case2/GS110168_03-GS110169_03.GSvar -add tumor_af,tumor_dp,normal_af,normal_dp,rna_ref_tpm
+	php ../compare_variants.php -in1 expected_case2/GS110168_03-GS110169_03.GSvar.gz -in2 out_case2/GS110168_03-GS110169_03.GSvar.gz -add tumor_af,tumor_dp,normal_af,normal_dp,rna_ref_tpm
 	# low coverge file
 	php ../compare_bed.php expected_case2/GS110168_03-GS110169_03_stat_lowcov.bed out_case2/GS110168_03-GS110169_03_stat_lowcov.bed
 	# qcML files
@@ -153,7 +153,7 @@ tn_deepsom:
 		
 tn_deepsom_diff:
 	# small variants
-	php ../compare_variants.php -in1 expected_case_deepsom/GS110168_03-GS110169_03.GSvar -in2 out_case_deepsom/GS110168_03-GS110169_03.GSvar -add tumor_af,tumor_dp,normal_af,normal_dp,rna_ref_tpm
+	php ../compare_variants.php -in1 expected_case_deepsom/GS110168_03-GS110169_03.GSvar.gz -in2 out_case_deepsom/GS110168_03-GS110169_03.GSvar.gz -add tumor_af,tumor_dp,normal_af,normal_dp,rna_ref_tpm
 	# low coverge file
 	php ../compare_bed.php expected_case_deepsom/GS110168_03-GS110169_03_stat_lowcov.bed out_case_deepsom/GS110168_03-GS110169_03_stat_lowcov.bed
 	# qcML files

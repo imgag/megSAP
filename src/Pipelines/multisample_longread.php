@@ -52,7 +52,7 @@ foreach($steps as $step)
 }
 
 //file names
-$gsvar = "{$out_folder}/{$prefix}.GSvar";
+$gsvar_gz = "{$out_folder}/{$prefix}.GSvar.gz";
 $vcf_file = "{$out_folder}/{$prefix}_var.vcf.gz";
 $cnv_file = "{$out_folder}/{$prefix}_cnvs_clincnv.tsv";
 $sv_vcf_file = "{$out_folder}/{$prefix}_var_structural_variants.vcf.gz";
@@ -224,7 +224,7 @@ if (in_array("an", $steps))
 		if ($check_chrs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$out_folder}/{$prefix}_var_annotated.vcf.gz -max_missing_perc 5 -check_mito");
 		
 		//update sample entry 
-		update_gsvar_sample_header($gsvar, $status_map);
+		update_gsvar_sample_header($gsvar_gz, $status_map);
 	}
 	else
 	{
@@ -410,7 +410,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	$db_conn = DB::getInstance("NGSD", false);
 	
 	//add secondary analysis (if missing)
-	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'multi sample' -gsvar {$gsvar}");
+	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'multi sample' -gsvar {$gsvar_gz}");
 }
 
 ?>

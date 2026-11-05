@@ -11,13 +11,14 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 function fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data)
 {
 	global $parser;
+	global $threads;
 	
-	$h = fopen2($gsvar, "r");
+	$h = gzopen2($gsvar, "r");
 	$tmp = $parser->tempFile(".GSvar");
 	$h2 = fopen2($tmp, "w");
-	while(!feof($h))
+	while(!gzeof($h))
 	{
-		$line = nl_trim(fgets($h));
+		$line = nl_trim(gzgets($h));
 		if ($line=="") continue;
 		
 		//compare child gender from data with gender from header
@@ -66,9 +67,11 @@ function fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data)
 		
 		fwrite($h2, "$line\n");
 	}
+	gzclose($h);
 	fclose($h2);
-	fclose($h);
-	$parser->moveFile($tmp, $gsvar);
+	
+	//bgzip output GSvar
+	$parser->execApptainer("htslib", "bgzip", "-@ $threads -c $tmp > $gsvar", [$tmp], [dirname($gsvar)]);
 }
 
 //parse command line arguments
@@ -104,7 +107,7 @@ if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/trio_".date("Ym
 $parser->logServerEnvronment();
 
 //file names
-$gsvar = "{$out_folder}/trio.GSvar";
+$gsvar = "{$out_folder}/trio.GSvar.gz"; //GSvar is already bgzipped by multisample pipleline
 $vcf_file = "{$out_folder}/trio_var.vcf.gz";
 $cnv_file = "{$out_folder}/trio_cnvs_clincnv.tsv";
 $sv_vcf_file = "{$out_folder}/trio_var_structural_variants.vcf.gz";
@@ -134,9 +137,9 @@ if (!$no_sync) $parser->execTool("Tools/data_setup.php", "-build $build");
 if (!$no_check)
 {
 	//check parent-child correlation
-	$c_gsvar = dirname($c)."/".basename2($c).".GSvar";
-	$f_gsvar = dirname($f)."/".basename2($f).".GSvar";
-	$m_gsvar = dirname($m)."/".basename2($m).".GSvar";
+	$c_gsvar = dirname($c)."/".basename2($c).".GSvar.gz";
+	$f_gsvar = dirname($f)."/".basename2($f).".GSvar.gz";
+	$m_gsvar = dirname($m)."/".basename2($m).".GSvar.gz";
 	$output = $parser->execApptainer("ngs-bits", "SampleSimilarity", "-in {$f_gsvar} {$c_gsvar} -mode gsvar -min_cov 15 -max_snps 4000 -ref {$genome}", [$f_gsvar, $c_gsvar, $genome]);
 	$correlation = explode("\t", $output[0][1])[3];
 	if ($correlation<$min_corr)

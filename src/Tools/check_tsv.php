@@ -28,11 +28,11 @@ $col_desc = array(
 
 //load input
 $i = -1;
-$handle = fopen2($in, "r");
-while(!feof($handle))
+$handle = gzopen2($in, "r");
+while(!gzeof($handle))
 {
 	++$i;
-	$line = nl_trim(fgets($handle));
+	$line = nl_trim(gzgets($handle));
 	
 	//skip empty lines
 	if($line=="") continue;
@@ -132,6 +132,6 @@ while(!feof($handle))
 	}
 }
 
-fclose($handle);
+gzclose($handle);
 
 ?>

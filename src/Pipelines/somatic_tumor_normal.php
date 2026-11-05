@@ -81,19 +81,19 @@ function complement_baf_folder($t_id, $n_id, $t_n_id_file, $baf_folder, &$db_con
 	foreach($ids as $line)
 	{
 		if(starts_with($line,"#")) continue;
-		list($tid,$nid) = explode(",",trim($line));
+		list($tid, $nid) = explode(",",trim($line));
+		
+		$ninfo = get_processed_sample_info($db_conn, $nid);
+		$n_gsvar = $ninfo["ps_folder"] ."/{$nid}.GSvar.gz";
+		
 		if(!file_exists("{$baf_folder}/{$nid}.tsv"))
 		{
-			$ninfo = get_processed_sample_info($db_conn,$nid);
-			$n_gsvar = $ninfo["ps_folder"] ."/{$nid}.GSvar";
 			$n_bam = $ninfo["ps_bam"];
 			$parser->execTool("Auxilary/create_baf_file.php", "-gsvar $n_gsvar -bam $n_bam -build $build -out_file {$baf_folder}/{$nid}.tsv");
 		}
 		if(!file_exists("{$baf_folder}/{$tid}.tsv"))
 		{
-			$ninfo = get_processed_sample_info($db_conn,$nid);
-			$n_gsvar = $ninfo["ps_folder"] ."/{$nid}.GSvar";
-			$tinfo = get_processed_sample_info($db_conn,$tid);
+			$tinfo = get_processed_sample_info($db_conn, $tid);
 			$t_bam = $tinfo["ps_bam"];
 			$parser->execTool("Auxilary/create_baf_file.php", "-gsvar $n_gsvar -bam $t_bam -build $build -out_file {$baf_folder}/{$tid}.tsv");
 		}
@@ -744,7 +744,7 @@ if(in_array("cn",$steps))
 	}
 	else
 	{
-		$normal_gsvar = "{$n_basename}.GSvar";
+		$normal_gsvar = "{$n_basename}.GSvar.gz";
 		$parser->execTool("Auxilary/create_baf_file.php", "-gsvar $normal_gsvar -bam $n_bam -build ".$sys['build']." -out_file {$baf_folder}/{$n_id}.tsv");
 	}
 
@@ -835,7 +835,7 @@ if(in_array("cn",$steps))
 
 //annotation
 $variants_annotated = $full_prefix . "_var_annotated.vcf.gz";	// annotated variants
-$variants_gsvar     = $full_prefix . ".GSvar";					// GSvar variants
+$variants_gsvar_gz  = $full_prefix . ".GSvar.gz";				// GSvar variants
 $somaticqc          = $full_prefix . "_stats_som.qcML";			// SomaticQC qcML
 $cfdna_folder       = $full_prefix . "_cfDNA_candidates";       // folder containing cfDNA monitoring variants 
 if (in_array("an", $steps))
@@ -893,12 +893,12 @@ if (in_array("an", $steps))
 	$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $tmp_vcf > $variants_annotated", [], [dirname($variants_annotated)]);
 	$parser->execApptainer("htslib", "tabix", "-f -p vcf $variants_annotated", [], [dirname($variants_annotated)]);
 
-	// convert vcf to GSvar
-	$args = array("-in $tmp_vcf", "-out $variants_gsvar", "-t_col $t_id", "-n_col $n_id");
-	$parser->execTool("Tools/vcf2gsvar_somatic.php", implode(" ", $args));
+	// convert vcf to GSvar	
+	$tmp_gsvar = $parser->tempFile(".GSvar");
+	$parser->execTool("Tools/vcf2gsvar_somatic.php", "-in $tmp_vcf -out $tmp_gsvar -t_col $t_id -n_col $n_id");
 	
 	//Annotate data from network of cancer genes
-	$parser->execTool("Tools/an_somatic_gsvar.php" , "-gsvar_in $variants_gsvar -out $variants_gsvar -include_ncg");
+	$parser->execTool("Tools/an_somatic_gsvar.php" , "-gsvar_in $tmp_gsvar -out $tmp_gsvar -include_ncg");
 
 	//Determine cfDNA monitoring candidates
 	//remove previous calls
@@ -907,13 +907,16 @@ if (in_array("an", $steps))
 	// call variant selection in umiVar container
 	$params = array();
 	$params[] = "-v $tmp_vcf";
-	$params[] = "-g $variants_gsvar";
+	$params[] = "-g $tmp_gsvar";
 	$params[] = "-o $cfdna_folder";
 	$params[] = "-r $ref_genome";
 	$params[] = "-n 65"; //number of variants to select
 	$params[] = "-i"; // ignore INDELS
 	$params[] = "-s $n_id";
-	$parser->execApptainer("umiVar", "select_monitoring_variants.py", implode(" ", $params), [$variants_gsvar, $ref_genome], [$out_folder]);
+	$parser->execApptainer("umiVar", "select_monitoring_variants.py", implode(" ", $params), [$ref_genome], [$out_folder]);
+	
+	//gzip GSvar file after all processing
+	$parser->execApptainer("htslib", "bgzip", "-@ $threads -c $tmp_gsvar > $variants_gsvar_gz", [], [dirname($variants_gsvar_gz)]);
 }
 
 //MSI calling
@@ -1009,11 +1012,11 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 		// import variants into NGSD
 		$args = ["-t_ps {$t_id}", "-n_ps {$n_id}", "-force"];
 		$binds = [];
-		if (file_exists($variants_gsvar))
+		if (file_exists($variants_gsvar_gz))
 		{
-			check_genome_build($variants_gsvar, $sys['build']);
-			$args[] = "-var {$variants_gsvar}";
-			$binds[] = $variants_gsvar;
+			check_genome_build($variants_gsvar_gz, $sys['build']);
+			$args[] = "-var {$variants_gsvar_gz}";
+			$binds[] = $variants_gsvar_gz;
 		}
 		if(file_exists($som_clincnv))
 		{
@@ -1031,7 +1034,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 		}	
 		
 		//add secondary analysis (if missing)
-		$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'somatic' -gsvar {$variants_gsvar}");
+		$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'somatic' -gsvar {$variants_gsvar_gz}");
 		
 		//log analysis time
 		log_analysis_time($db_conn, 'tumor-normal', [$t_id, $n_id], $threads, $steps, $steps_all, $use_dragen, microtime(true)-$start_time);

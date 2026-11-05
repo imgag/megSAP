@@ -5,7 +5,7 @@ all: default_pipeline dragen_analysis
 default_pipeline: clean link map call diff reanno
 
 clean:
-	rm -rf *.fastq.gz *.log *.txt *.GSvar *.vcf.gz *.vcf.gz.tbi *.cram *.crai *.bam *.bai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe manta_evid repeat_expansions *_bafs.igv *_circos.png *_mosaic_cnvs.tsv *_repeats_expansionhunter.json *_repeats_expansionhunter.vcf *_rohs.tsv *_ancestry.tsv dragen
+	rm -rf *.fastq.gz *.log *.txt *.GSvar.gz *.vcf.gz *.vcf.gz.tbi *.cram *.crai *.bam *.bai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe manta_evid repeat_expansions *_bafs.igv *_circos.png *_mosaic_cnvs.tsv *_repeats_expansionhunter.json *_repeats_expansionhunter.vcf *_rohs.tsv *_ancestry.tsv dragen
 
 link:
 	php ../link_test_data.php NA12878_17_GTAGAGGATATCCTCT_L001_R1_001.fastq.gz
@@ -18,7 +18,7 @@ call:
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps vc,cn,sv,re
 
 diff:
-	php ../compare_variants.php -in1 NA12878_17.GSvar.out -in2 NA12878_17.GSvar -add NA12878_17
+	php ../compare_variants.php -in1 NA12878_17.GSvar.gz.out -in2 NA12878_17.GSvar.gz -add NA12878_17
 	php ../compare_qcml_xml.php NA12878_17_stats_fastq.qcML.out NA12878_17_stats_fastq.qcML
 	php ../compare_qcml_xml.php NA12878_17_stats_map.qcML.out NA12878_17_stats_map.qcML 0.01
 	php ../compare_qcml_xml.php NA12878_17_stats_vc.qcML.out NA12878_17_stats_vc.qcML
@@ -31,11 +31,11 @@ diff:
 	test -f NA12878_17_circos.png
 
 reanno:
-	cp NA12878_17.GSvar NA12878_17_old.GSvar
+	cp NA12878_17.GSvar.gz NA12878_17_old.GSvar.gz
 	cp NA12878_17_cnvs_clincnv.tsv NA12878_17_old_cnvs_clincnv.tsv
 	cp NA12878_17_var_structural_variants.bedpe NA12878_17_old_var_structural_variants.bedpe
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps vc,cn,sv -annotation_only
-	diff NA12878_17.GSvar NA12878_17_old.GSvar
+	diff NA12878_17.GSvar.gz NA12878_17_old.GSvar.gz
 	diff NA12878_17_cnvs_clincnv.tsv NA12878_17_old_cnvs_clincnv.tsv
 	diff NA12878_17_var_structural_variants.bedpe NA12878_17_old_var_structural_variants.bedpe
 
@@ -61,7 +61,7 @@ dragen_call:
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_17 -system system.ini -steps vc,cn,sv,re -threads 5
 
 diff2:
-	php ../compare_variants.php -in1 NA12878_17.GSvar.out2 -in2 NA12878_17.GSvar -add NA12878_17
+	php ../compare_variants.php -in1 NA12878_17.GSvar.gz.out2 -in2 NA12878_17.GSvar.gz -add NA12878_17
 	php ../compare_qcml_xml.php NA12878_17_stats_fastq.qcML.out NA12878_17_stats_fastq.qcML
 	php ../compare_qcml_xml.php NA12878_17_stats_map.qcML.out2 NA12878_17_stats_map.qcML 0.01
 	php ../compare_qcml_xml.php NA12878_17_stats_vc.qcML.out2 NA12878_17_stats_vc.qcML

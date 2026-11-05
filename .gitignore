@@ -1,6 +1,17 @@
-/settings.ini
 /*.log
+/*.sif
+/.idea
+/settings.ini
 /megSAP_tag.txt
+
+/data/dbs/*/
+/data/tools/ngsbits_settings.ini
+/data/genomes/*/
+/data/genomes/somatic_viral.fa.*
+/data/genomes/GRCh38.fa*
+/data/genomes/GRCh38.dict
+/data/misc/human_hemoglobin_tx.fa
+/data/tools/ngsbits_settings.ini
 
 /test/data_amplicon/*.fastq.gz
 /test/data_amplicon/*.cram
@@ -9,7 +20,7 @@
 /test/data_amplicon/*.qcML
 /test/data_amplicon/*.vcf.gz
 /test/data_amplicon/*.vcf.gz.tbi
-/test/data_amplicon/*.GSvar
+/test/data_amplicon/*.GSvar.gz
 /test/data_amplicon/*_QCML.txt
 /test/data_amplicon/*_cnvs_clincnv.tsv
 /test/data_amplicon/*_lowcov.bed
@@ -27,7 +38,7 @@
 /test/data_chrx/*.qcML
 /test/data_chrx/*.vcf.gz
 /test/data_chrx/*.vcf.gz.tbi
-/test/data_chrx/*.GSvar
+/test/data_chrx/*.GSvar.gz
 /test/data_chrx/*_QCML.txt
 /test/data_chrx/*_cnvs_clincnv.tsv
 /test/data_chrx/*_cnvs_clincnv.seg
@@ -39,8 +50,11 @@
 /test/data_chrx/*_ancestry.tsv
 /test/data_chrx/manta_evid/
 /test/data_chrx/*_circos.png
+/test/data_chrx/*.vcf
+/test/data_chrx/*.json
+/test/data_chrx/dragen
 
-/test/data_trio/*.GSvar
+/test/data_trio/*.GSvar.gz
 /test/data_trio/*.log
 /test/data_trio/*.qcML
 /test/data_trio/*.cram
@@ -53,8 +67,9 @@
 /test/data_trio/manta_evid/
 /test/data_trio/*_manta_var_structural.bedpe
 /test/data_trio/*.bedpe
+/test/data_trio/reanno
 
-/test/data_multi/*.GSvar
+/test/data_multi/*.GSvar.gz
 /test/data_multi/*.log
 /test/data_multi/*.qcML
 /test/data_multi/*.cram
@@ -64,23 +79,7 @@
 /test/data_multi/*_clincnv.tsv
 /test/data_multi/manta_evid/
 /test/data_multi/*.bedpe
-
-/test/data_capa/*.GSvar
-/test/data_capa/*.log
-/test/data_capa/*_report.rtf
-/test/data_capa/*_igv.xml
-/test/data_capa/*_qcML.txt
-/test/data_capa/*_lowcov.bed
-/test/data_capa/Sample_GS150496_01/
-/test/data_capa/Sample_GS150497_01/
-/test/data_capa/Somatic_GS150497_01-GS150496_01/
-/test/data_capa/Sample_Normal*/*_filtered.GSvar
-/test/data_capa/Sample_Normal*/*_cnvs_filtered.tsv
-/test/data_capa/Somatic_Tumor*/*_igv.xml
-/test/data_capa/Somatic_Tumor*/*_report.rtf
-/test/data_capa/Somatic_Tumor*/*.log
-/test/data_capa/Somatic_Tumor*/*_cnvs_filtered.tsv
-/test/data_capa/Somatic_Tumor*/*_filtered.GSvar
+/test/data_multi/reanno
 
 /test/data_rna/analyze_rna_out_se.log
 /test/data_rna/analyze_rna_out_pe.log
@@ -103,39 +102,9 @@
 /test/data_out/test_toolbase
 /test/data_out/test_functions
 
-/test/data_emed/Sample_GS160540_01/
-/test/data_emed/Sample_GS160539_01/
-/test/data_emed/Sample_I16R003a06_01/
-/test/data_emed/Sample_I16R003a05_01/
-/test/data_emed/results_emed1/
-/test/data_emed/results_emed2/
-/test/data_emed/*.GSvar
-/test/data_emed/*.vcf.gz
-/test/data_emed/*.tsv
-
-/test/data_ivac/Sample_GS140850_02/
-/test/data_ivac/Sample_GS140851_02/
-/test/data_ivac/Sample_I14R010d01_01/
-/test/data_ivac/Sample_I14R010d02_01/
-/test/data_ivac/results_ivac1/
-/test/data_ivac/results_ivac2/
-/test/data_ivac/*.GSvar
-/test/data_ivac/*.vcf.gz
-/test/data_ivac/*.tsv
-/test/data_ivac/*_qcML.txt
-/test/data_trio/reanno
-/test/data_multi/reanno
-/test/data_chrx/*.vcf
-/test/data_chrx/*.json
-
 /test/data_cfdna/CFDNA_01/
 /test/data_cfdna/CFDNA_02/
 /test/data_somatic/expected_case2
-
-/data/dbs/*/
-/data/tools/ngsbits_settings.ini
-/data/genomes/*/
-/data/genomes/somatic_viral.fa.*
 
 /test/data_longread/*.fastq.gz
 /test/data_longread/*.cram
@@ -146,7 +115,7 @@
 /test/data_longread/*.vcf.gz.tbi
 /test/data_longread/*.gvcf.gz
 /test/data_longread/*.gvcf.gz.tbi
-/test/data_longread/*.GSvar
+/test/data_longread/*.GSvar.gz
 /test/data_longread/*_cnvs_clincnv.tsv
 /test/data_longread/*_cnvs_clincnv.seg
 /test/data_longread/*_mosaic_cnvs.tsv
@@ -173,7 +142,9 @@
 /test/data_longread/methylation
 /test/data_longread/*.cov
 /test/data_longread/*.mod.unmapped.bam
-
+/test/data_longread/paraphase
+/test/data_longread/methylartist/*.png
+/test/data_longread/23014LRa023_01_epigen.tsv
 
 /test/data_trio_longread/*.fastq.gz
 /test/data_trio_longread/*.cram
@@ -184,7 +155,7 @@
 /test/data_trio_longread/*.vcf.gz.tbi
 /test/data_trio_longread/*.gvcf.gz
 /test/data_trio_longread/*.gvcf.gz.tbi
-/test/data_trio_longread/*.GSvar
+/test/data_trio_longread/*.GSvar.gz
 /test/data_trio_longread/*_cnvs_clincnv.tsv
 /test/data_trio_longread/*_cnvs_clincnv_cut.tsv
 /test/data_trio_longread/*_cnvs_clincnv.seg
@@ -206,7 +177,7 @@
 /test/data_multi_longread/*.vcf.gz.tbi
 /test/data_multi_longread/*.gvcf.gz
 /test/data_multi_longread/*.gvcf.gz.tbi
-/test/data_multi_longread/*.GSvar
+/test/data_multi_longread/*.GSvar.gz
 /test/data_multi_longread/*_cnvs_clincnv.tsv
 /test/data_multi_longread/*_cnvs_clincnv_cut.tsv
 /test/data_multi_longread/*_cnvs_clincnv.seg
@@ -217,17 +188,3 @@
 /test/data_multi_longread/*.bedpe
 /test/data_multi_longread/*_ancestry.tsv
 /test/data_multi_longread/*.csi
-
-/.idea
-
-data/genomes/GRCh38.fa*
-data/genomes/GRCh38.dict
-data/misc/human_hemoglobin_tx.fa
-
-data/tools/ngsbits_settings.ini
-/test/data_longread/paraphase
-/*.sif
-Clair3-v1.0.10
-/test/data_chrx/dragen
-/test/data_longread/methylartist/*.png
-/test/data_longread/23014LRa023_01_epigen.tsv

@@ -2,7 +2,7 @@
 all: clean link map call diff reanno
 
 clean:
-	rm -rf *.fastq.gz *.log *.txt *.GSvar *.vcf.gz *.vcf.gz.tbi *.cram *.crai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe manta_evid *_ancestry.tsv *_bafs.igv
+	rm -rf *.fastq.gz *.log *.txt *.GSvar.gz *.vcf.gz *.vcf.gz.tbi *.cram *.crai *.qcML *.bed *_cnvs_clincnv.seg *_cnvs_clincnv.tsv *.bedpe manta_evid *_ancestry.tsv *_bafs.igv
 	
 link:
 	php ../link_test_data.php NA12878_02_AACGTGAT_L001_R1_001.fastq.gz
@@ -17,7 +17,7 @@ call:
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_03 -system system.ini -steps vc,cn
 
 diff:
-	php ../compare_variants.php -in1 NA12878_03.GSvar.out -in2 NA12878_03.GSvar -add NA12878_03
+	php ../compare_variants.php -in1 NA12878_03.GSvar.gz.out -in2 NA12878_03.GSvar.gz -add NA12878_03
 	php ../compare_qcml_xml.php NA12878_03_stats_fastq.qcML.out NA12878_03_stats_fastq.qcML
 	php ../compare_qcml_xml.php NA12878_03_stats_map.qcML.out NA12878_03_stats_map.qcML
 	php ../compare_qcml_xml.php NA12878_03_stats_vc.qcML.out NA12878_03_stats_vc.qcML
@@ -26,8 +26,8 @@ diff:
 	php ../compare_bed.php NA12878_03_hpHBOCv5_lowcov.bed.out NA12878_03_hpHBOCv5_lowcov.bed
 
 reanno:
-	cp NA12878_03.GSvar NA12878_03_old.GSvar
+	cp NA12878_03.GSvar.gz NA12878_03_old.GSvar.gz
 	cp NA12878_03_cnvs_clincnv.tsv NA12878_03_old_cnvs_clincnv.tsv
 	php ../../src/Pipelines/analyze.php -folder . -name NA12878_03 -system system.ini -steps vc,cn -annotation_only
-	diff NA12878_03.GSvar NA12878_03_old.GSvar
+	zdiff NA12878_03.GSvar.gz NA12878_03_old.GSvar.gz
 	diff NA12878_03_cnvs_clincnv.tsv NA12878_03_old_cnvs_clincnv.tsv

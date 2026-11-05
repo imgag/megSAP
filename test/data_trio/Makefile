@@ -3,7 +3,7 @@ all:
 	make clear link call diff reanno
 	
 clear:
-	rm -rf *.cram *.crai *.log *.GSvar *.vcf.gz *.vcf.gz.tbi *.qcML *_clincnv.tsv  trio_upd.tsv *.bedpe manta_evid/ reanno
+	rm -rf *.cram *.crai *.log *.GSvar.gz *.vcf.gz *.vcf.gz.tbi *.qcML *_clincnv.tsv  trio_upd.tsv *.bedpe manta_evid/ reanno
 
 link:
 	php ../link_test_data.php GS140127_01.cram
@@ -24,7 +24,7 @@ call:
 
 diff:
 	#variants
-	php ../compare_variants.php -in1 trio.GSvar.out -in2 trio.GSvar -add GS140127_01,GS140549_01,GS140550_01
+	php ../compare_variants.php -in1 trio.GSvar.gz.out -in2 trio.GSvar.gz -add GS140127_01,GS140549_01,GS140550_01
 	#CNVs
 	php ../compare_tsv.php -in1 trio_cnvs_clincnv.tsv.out -in2 trio_cnvs_clincnv.tsv -skip_cols ngsd_pathogenic_cnvs,genes,gene_info
 	#UPDs
@@ -42,7 +42,7 @@ reanno:
 	php ../../src/Pipelines/trio.php -c GS140127_01.cram -m GS140549_01.cram -f GS140550_01.cram -system system.ini -out_folder reanno -steps vc,cn,sv -annotation_only
 	# diff
 	diff trio_cnvs_clincnv.tsv reanno/trio_cnvs_clincnv.tsv
-	diff trio.GSvar reanno/trio.GSvar
+	diff trio.GSvar.gz reanno/trio.GSvar.gz
 	diff trio_var_structural_variants.bedpe reanno/trio_var_structural_variants.bedpe
 
 ######################### AUXILARY TARGETS #########################

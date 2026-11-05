@@ -11,13 +11,14 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 function fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data)
 {
 	global $parser;
+	global $threads;
 	
-	$h = fopen2($gsvar, "r");
+	$h = gzopen2($gsvar, "r");
 	$tmp = $parser->tempFile(".GSvar");
 	$h2 = fopen2($tmp, "w");
-	while(!feof($h))
+	while(!gzeof($h))
 	{
-		$line = nl_trim(fgets($h));
+		$line = nl_trim(gzgets($h));
 		if ($line=="") continue;
 		
 		//compare child gender from data with gender from header
@@ -66,9 +67,11 @@ function fix_gsvar_file($gsvar, $sample_c, $sample_f, $sample_m, $gender_data)
 		
 		fwrite($h2, "$line\n");
 	}
+	gzclose($h);
 	fclose($h2);
-	fclose($h);
-	$parser->moveFile($tmp, $gsvar);
+	
+	//bgzip output GSvar
+	$parser->execApptainer("htslib", "bgzip", "-@ $threads -c $tmp > $gsvar", [$tmp], [dirname($gsvar)]);
 }
 
 //parse command line arguments
@@ -103,7 +106,7 @@ if ($parser->getLogFile()=="") $parser->setLogFile($out_folder."/trio_".date("Ym
 $parser->logServerEnvronment();
 
 //file names
-$gsvar = "{$out_folder}/trio.GSvar";
+$gsvar = "{$out_folder}/trio.GSvar.gz"; //GSvar is already bgzipped by multisample pipleline
 $vcf_multi = "{$out_folder}/trio_var.vcf.gz";
 $cnv_multi = "{$out_folder}/trio_cnvs_clincnv.tsv";
 $bedpe_out = "{$out_folder}/trio_var_structural_variants.bedpe";
@@ -309,7 +312,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	$db_conn->executeStmt("INSERT IGNORE INTO `sample_relations`(`sample1_id`, `relation`, `sample2_id`) VALUES ({$s_id_m},'parent-child',{$s_id_c})");
 	
 	//add secondary analysis (if missing)
-	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'trio' -gsvar {$gsvar}");
+	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'trio' -gsvar $gsvar");
 	
 	//log analysis time
 	if (db_is_enabled("NGSD"))

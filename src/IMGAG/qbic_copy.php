@@ -577,9 +577,9 @@ foreach($res as $row)
 			//determine files to transfer
 			$patterns =  array();
 			$patterns[] = "{$ps_name}-{$ps_name2}*_var_annotated.vcf.gz";
-			$patterns[] = "{$ps_name}-{$ps_name2}*.GSvar";
+			$patterns[] = "{$ps_name}-{$ps_name2}*.GSvar.gz";
 			$patterns[] = "{$ps_name2}*_var_annotated.vcf.gz";
-			$patterns[] = "{$ps_name2}*.GSvar";
+			$patterns[] = "{$ps_name2}*.GSvar.gz";
 			$patterns[] = "*_counts.tsv,*_var_fusions.tsv";
 			$files = glob("{$data_folder}/{".implode(",", $patterns)."}", GLOB_BRACE);
 						
