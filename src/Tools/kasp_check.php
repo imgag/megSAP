@@ -29,8 +29,7 @@ function txt2geno_lightcycler($snps, $in_file, $out_file, $lanes_to_check)
 	
 	//parse data
 	$parsed = array();
-	$file = file($in_file);
-	foreach($file as $line)
+	foreach(file($in_file) as $line)
 	{
 		//parse
 		if (trim($line)=="" || starts_with($line, "Experiment") || starts_with($line, "Include")) continue;
@@ -142,8 +141,7 @@ function txt2geno_steponeplus($snps, $in_file, $out_file, $lanes_to_check)
 
 	//parse data
 	$parsed = array();
-	$file = file($in_file);
-	foreach($file as $line)
+	foreach(file($in_file) as $line)
 	{
 		$line = trim($line);
 		
@@ -455,6 +453,29 @@ else
 	txt2geno_steponeplus($snps, $in, $tsv_file, $lanes_to_check);
 }
 
+//ignore KASPs with less than 10 SNPs
+$min_snps = 10;
+$skip_too_few_snps = [];
+foreach(file($tsv_file) as $line)
+{
+	$line = trim($line);
+	if ($line=="" || $line[0]=="#") continue;
+	
+	$genotypes = explode("\t", $line);
+	$name = trim($genotypes[0]);
+	$genotypes = array_slice($genotypes, 1);
+	$c_kasp = 0;
+	foreach($genotypes as $gt)
+	{
+		if ($gt!="n/a") ++$c_kasp;
+	}
+	if ($c_kasp<$min_snps)
+	{
+		print "KASP: {$name} - ERROR: ignored because less than $min_snps SNPs were genotyped\n";
+		$skip_too_few_snps[$name] = true;
+	}
+}
+
 $db = DB::getInstance("NGSD");
 $output = array();
 if ($cross_check)
@@ -465,15 +486,14 @@ else
 {
 	$output[] = "#sample_name\trandom_match_prob\tgenos_kasp\tgenos_both\tgenos_match\tbam\n";
 }
-$file = file($tsv_file);
-//print_r($file);
-foreach($file as $line)
+foreach(file($tsv_file) as $line)
 {
 	$line = trim($line);
 	if ($line=="" || $line[0]=="#") continue;
 	
 	$genotypes = explode("\t", $line);
 	$name = trim($genotypes[0]);
+	if (isset($skip_too_few_snps[$name])) continue;
 	$genotypes = array_slice($genotypes, 1);
 
 	if ($cross_check)
@@ -647,7 +667,7 @@ foreach($file as $line)
 
 						//determine overall match
 						print "    ".basename2($bam)." sys:{$system}".($quality=="bad" ? " [qualty:bad]" : "")." kasp:$c_kasp both:$c_both match:$c_match";
-						if ($c_both<10)
+						if ($c_both<$min_snps)
 						{
 							$messages[] = "ERROR - too few common SNPs";
 						}
