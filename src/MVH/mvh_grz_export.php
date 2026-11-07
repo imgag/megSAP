@@ -269,7 +269,7 @@ print "Export start: ".date('Y-m-d H:i:s')."\n";
 $time_start = microtime(true);
 
 //check germline processed sample is ok
-$ps = $db_mvh->getValue("SELECT ps FROM case_data WHERE id='{$id}'");
+$ps = trim($db_mvh->getValue("SELECT ps FROM case_data WHERE id='{$id}'"));
 $info = get_processed_sample_info($db_ngsd, $ps);
 $sys = $info['sys_name_short'];
 $sys_type = $info['sys_type'];

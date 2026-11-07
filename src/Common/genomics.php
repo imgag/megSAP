@@ -2421,13 +2421,16 @@ function get_basecall_model($bam_file)
 
 }
 
-//returns the project path, or NULL if the project does not exist in NGSD
+//returns the project path. Returns -1 if the project does not exist in NGSD. Returns -2 if the project is marked as archived in NGSD.
 function get_project_folder(&$db, $project_name)
 {
 	//get project id
 	$project_name = trim($project_name);
 	$project_id = $db->getValue("SELECT id FROM project WHERE name LIKE '$project_name'", -1);
-	if ($project_id==-1) return NULL;
+	if ($project_id==-1) return -1;
+	
+	$archived = $db->getValue("SELECT archived FROM project WHERE id=$project_id");
+	if ($archived==1) return -2;
 	
 	//folder override
 	$folder_override = $db->getValue("SELECT folder_override FROM project WHERE id='{$project_id}'");

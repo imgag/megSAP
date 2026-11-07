@@ -826,7 +826,6 @@ function execApptainer($container, $command, $parameters, $in_files=[], $out_fol
 
 			//try to change permissions
 			exec2("chmod 777 {$ngsbits_settings_loc}", false);
-
 		}
 		
 		$parameters = "--settings {$ngsbits_settings_loc} ".$parameters;
