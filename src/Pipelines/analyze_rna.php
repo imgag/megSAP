@@ -292,7 +292,7 @@ foreach($steps as $step)
 $prefix = $out_folder."/".$name;
 $sys = load_system($system, $name);
 $build = $sys['build'];
-$target_file = $sys['target_file'];
+$target_file = realpath($sys['target_file']);
 
 //determine genome from build
 $genome = get_path("data_folder")."/genomes/STAR/{$build}/";
