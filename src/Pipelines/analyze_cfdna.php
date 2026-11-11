@@ -208,7 +208,7 @@ if (isset($db))
 			$sample_info = get_processed_sample_info($db, $sample);
 			
 			//GSvar files
-			$gsvar = $sample_info['ps_folder'].$sample_info['ps_name'].".GSvar";
+			$gsvar = $sample_info['ps_folder'].$sample_info['ps_name'].".GSvar.gz";
 			if (file_exists($gsvar))
 			{
 				$related_cfdna_gsvars[$sample] = $gsvar;
@@ -511,9 +511,8 @@ if (in_array("vc", $steps))
 	$parser->execApptainer("htslib", "tabix", "-f -p vcf $vcffile_annotated", [], [dirname($vcffile_annotated)]);
 
 	// convert vcf to GSvar
-	$gsvar_file = "$folder/${name}.GSvar";
-	$args = array("-in $tmp_vcf", "-out $gsvar_file", "-t_col $name", "-cfdna");
-	$parser->execTool("Tools/vcf2gsvar_somatic.php", implode(" ", $args));
+	$tmp_gsvar = $parser->tempFile(".GSvar");
+	$parser->execTool("Tools/vcf2gsvar_somatic.php", "-in $tmp_vcf -out $tmp_gsvar -t_col $name -cfdna");
 
 	if (!$skip_tumor && ($tumor_id != ""))
 	{
@@ -534,7 +533,7 @@ if (in_array("vc", $steps))
 				$in_files[] = $psinfo_normal['ps_bam'];
 				$out_files = array();
 				$out_files[] = $folder;
-				$parser->execApptainer("ngs-bits", "VariantAnnotateFrequency", "-in $gsvar_file -out $gsvar_file -depth -name normal -bam ".$psinfo_normal['ps_bam'], $in_files, $out_files);
+				$parser->execApptainer("ngs-bits", "VariantAnnotateFrequency", "-in $tmp_gsvar -out $tmp_gsvar -depth -name normal -bam ".$psinfo_normal['ps_bam'], $in_files, $out_files);
 			}
 		}
 		else
@@ -547,17 +546,17 @@ if (in_array("vc", $steps))
 	if ($is_patient_specific)
 	{
 		if (!isset($related_cfdna_gsvars)) $related_cfdna_gsvars = array();
-		$related_cfdna_gsvars[$name] = $gsvar_file;
+		$related_cfdna_gsvars[$name] = $tmp_gsvar;
 		ksort($related_cfdna_gsvars); //sort by sample name --> //TODO: sort by sample id
 
 		// modify output file list so that only the GSvar file of the current sample is written
 		$related_cfdna_gsvars_output = array_fill(0, count($related_cfdna_gsvars), "");
 		$sample_pos = array_search($name, array_keys($related_cfdna_gsvars));
-		$related_cfdna_gsvars_output[$sample_pos] = $gsvar_file;
+		$related_cfdna_gsvars_output[$sample_pos] = $tmp_gsvar;
 		
 		// initialize input and output file list for umivar container execution
 		$in_files = array();
-		$in_files[] = $gsvar_file;
+		$in_files[] = $tmp_gsvar;
 
 		$temp_logfile = $parser->tempFile(".log");
 		$args = [
@@ -599,8 +598,10 @@ if (in_array("vc", $steps))
 		//post-filtering
 		$parser->execApptainer("umiVar", "cfDNA_postfiltering.py", implode(" ", $args), $in_files, [$folder]);
 		$parser->log("post-filtering log: ", file($temp_logfile));
-
 	}
+	
+	//gzip GSvar file after all processing
+	$parser->execApptainer("htslib", "bgzip", "-@ $threads -c $tmp_gsvar > $folder/${name}.GSvar.gz", [], [$folder]);
 
 	// calculate alternative MRD & monitoring counts
 	if ($is_patient_specific)

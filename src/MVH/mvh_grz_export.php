@@ -9,7 +9,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 function megsap_version($gsvar)
 {
-	list($stdout) = exec2("grep '##PIPELINE=' {$gsvar}");
+	list($stdout) = exec2("zgrep '##PIPELINE=' {$gsvar}");
 	foreach($stdout as $line)
 	{
 		$line = trim($line);
@@ -269,7 +269,7 @@ print "Export start: ".date('Y-m-d H:i:s')."\n";
 $time_start = microtime(true);
 
 //check germline processed sample is ok
-$ps = $db_mvh->getValue("SELECT ps FROM case_data WHERE id='{$id}'");
+$ps = trim($db_mvh->getValue("SELECT ps FROM case_data WHERE id='{$id}'"));
 $info = get_processed_sample_info($db_ngsd, $ps);
 $sys = $info['sys_name_short'];
 $sys_type = $info['sys_type'];
@@ -313,7 +313,7 @@ $se_data = get_se_data($db_mvh, $id);
 $se_data_rep = get_se_data($db_mvh, $id, true);
 
 //determine megSAP version from germline GSvar file
-$megsap_ver = megsap_version($info['ps_folder']."/{$ps}.GSvar");
+$megsap_ver = megsap_version($info['ps_folder']."/{$ps}.GSvar.gz");
 
 //create export folder
 exec2("mkdir -p {$folder}");

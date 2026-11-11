@@ -153,7 +153,7 @@ $somatic_custom_panel = get_path("data_folder") . "/enrichment/somatic_VirtualPa
 //variant calling
 $vcffile = $folder."/".$name."_var.vcf.gz";
 $vcffile_annotated = $folder."/".$name."_var_annotated.vcf.gz";
-$varfile = $folder."/".$name.".GSvar";
+$varfile = $folder."/".$name.".GSvar.gz";
 $rohfile = $folder."/".$name."_rohs.tsv";
 $baffile = $folder."/".$name."_bafs.igv";
 $ancestry_file = $folder."/".$name."_ancestry.tsv";

@@ -22,7 +22,7 @@ function load_rare_variants($sample, $max_af)
 	if (is_null($info)) return "No sample info in NGSD";
 		
 	//load variant list
-	$gsvar_file = $info['ps_folder']."/".$info['ps_name'].".GSvar";
+	$gsvar_file = $info['ps_folder']."/".$info['ps_name'].".GSvar.gz";
 	if (!file_exists($gsvar_file)) return "GSvar file missing";
 	
 	$file = Matrix::fromTSV($gsvar_file);

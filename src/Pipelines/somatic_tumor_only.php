@@ -391,7 +391,7 @@ if(in_array("cn",$steps))
 
 //annotation
 $variants_annotated = $full_prefix . "_var_annotated.vcf.gz";	// annotated variants
-$variants_gsvar     = $full_prefix . ".GSvar";					// GSvar variants
+$variants_gsvar_gz  = $full_prefix . ".GSvar.gz";				// GSvar variants
 $cfdna_folder       = $full_prefix . "_cfDNA_candidates";       // folder containing cfDNA monitoring variants 
 if (in_array("an", $steps))
 {
@@ -412,11 +412,14 @@ if (in_array("an", $steps))
 	$parser->execApptainer("htslib", "tabix", "-f -p vcf {$variants_annotated}", [], [dirname($variants_annotated)]);
 
 	//convert VCF to GSvar
-	$args = ["-in {$tmp_vcf}", "-out {$variants_gsvar}", "-t_col {$t_id}"];
-	$parser->execTool("Tools/vcf2gsvar_somatic.php", implode(" ", $args));
+	$tmp_gsvar = $parser->tempFile(".GSvar");
+	$parser->execTool("Tools/vcf2gsvar_somatic.php", "-in {$tmp_vcf} -out {$tmp_gsvar} -t_col {$t_id}");
 	
 	//Annotate data from network of cancer genes
-	$parser->execTool("Tools/an_somatic_gsvar.php" , "-gsvar_in {$variants_gsvar} -out {$variants_gsvar} -include_ncg");
+	$parser->execTool("Tools/an_somatic_gsvar.php" , "-gsvar_in {$tmp_gsvar} -out {$tmp_gsvar} -include_ncg");
+	
+	//gzip GSvar file after all processing
+	$parser->execApptainer("htslib", "bgzip", "-@ $threads -c $tmp_gsvar > $variants_gsvar_gz", [], [dirname($variants_gsvar_gz)]);
 }
 
 if (in_array("an_rna", $steps))
@@ -467,11 +470,11 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	// import variants into NGSD
 	$args = ["-t_ps {$t_id}", "-force"];
 	$binds = [];
-	if (file_exists($variants_gsvar))
+	if (file_exists($variants_gsvar_gz))
 	{
-		check_genome_build($variants_gsvar, $sys['build']);
-		$args[] = "-var {$variants_gsvar}";
-		$binds[] = $variants_gsvar;
+		check_genome_build($variants_gsvar_gz, $sys['build']);
+		$args[] = "-var {$variants_gsvar_gz}";
+		$binds[] = $variants_gsvar_gz;
 	}
 	if(file_exists($som_clincnv))
 	{

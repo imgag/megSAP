@@ -193,7 +193,7 @@ if (!$tumor_only && file_exists($msi_o_file))
 if ($tumor_only)
 {
 	//filter GSvar for somatic variants
-	$gsvar = "{$full_prefix}.GSvar";
+	$gsvar = "{$full_prefix}.GSvar.gz";
 	$filter = repository_basedir()."/data/misc/gsvar_filters/tumor_only.txt";
     $gsvar_filtered = $parser->tempFile(".GSvar");
 	$parser->execApptainer("ngs-bits", "VariantFilterAnnotations", "-in {$gsvar} -filters {$filter} -out {$gsvar_filtered}", [$gsvar, $filter]);

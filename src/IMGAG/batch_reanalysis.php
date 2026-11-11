@@ -77,7 +77,7 @@ foreach($samples as $ps)
 				}
 			}
 			
-			$gsvar = $base.".GSvar";
+			$gsvar = $base.".GSvar.gz";
 			if (!file_exists($gsvar) || filemtime($gsvar)<$before)
 			{
 				$skip = false;

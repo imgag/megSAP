@@ -42,8 +42,9 @@ if (db_is_enabled("NGSD"))
 
 	//test 3 - Trio handling from GenLab
 	$out_file = output_folder().$name."_out3Makefile";
+	$out_log = output_folder().$name."_out3Makefile.log";
 	$runinfo = data_folder().$name."_in3_RunInfo.xml";
-	check_exec("cd ".output_folder()."190228_NB501582_0169_AH5LG5BDXX_01489/ && php ".src_folder()."/IMGAG/{$name}.php -test -samplesheet {$name}_in3.csv -out {$out_file} -db NGSD_TEST -runinfo {$runinfo} -no_dragen");
+	check_exec("cd ".output_folder()."190228_NB501582_0169_AH5LG5BDXX_01489/ && php ".src_folder()."/IMGAG/{$name}.php -test -samplesheet {$name}_in3.csv -out {$out_file} -db NGSD_TEST -runinfo {$runinfo} -no_dragen --log {$out_log}");
 	check_file($out_file, data_folder()."{$name}_out3Makefile");
 
 	//test 4 - NovaSeq X with analysis

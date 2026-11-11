@@ -292,7 +292,8 @@ foreach($steps as $step)
 $prefix = $out_folder."/".$name;
 $sys = load_system($system, $name);
 $build = $sys['build'];
-$target_file = $sys['target_file'];
+$target_file  = $sys['target_file'];
+if ($target_file !== "") $target_file = realpath2($target_file);
 
 //determine genome from build
 $genome = get_path("data_folder")."/genomes/STAR/{$build}/";
@@ -521,8 +522,8 @@ if (in_array("ma", $steps))
 
 	if (isset($target_file) && $target_file != "")
 	{
-		$mappingqc_params[] = "-roi ".realpath($target_file);
-		$in_files[] = realpath($target_file);
+		$mappingqc_params[] = "-roi {$target_file}";
+		$in_files[] = $target_file;
 
 	}
 	else

@@ -22,6 +22,7 @@ $parser->addString("secondary_output", "Folder to store a (additional) copy of t
 $parser->addFlag("rename_skip_folder", "Rename the 'pod5_skip' folder(s) after basecalling.");
 $parser->addFlag("emit_moves", "Write the move table to the 'mv' tag of the output BAM (see https://software-docs.nanoporetech.com/dorado/latest/basecaller/move_table/)");
 $parser->addInfile("benchmark_file",  "Dorado benchmark file to skip on-the-fly benchmarking", true);
+$parser->addEnum("db",  "Database to connect to.", true, db_names(), "NGSD");
 
 extract($parser->parse($argv));
 
@@ -42,6 +43,7 @@ else
 }
 
 //init
+$db = DB::getInstance($db);
 
 //log server, user, etc.
 $parser->logServerEnvronment();
@@ -221,7 +223,7 @@ if ($skipped_only && $rename_skip_folder)
 }
 
 //set file permissions for output BAM
-$parser->exec("chmod", "775 {$out_bam}");
+$parser->exec("chmod", "775 {$out_bam}", true, false);
 $parser->exec("chgrp", "f_ad_bi_l_medgen_access_storages {$out_bam}", true, false);
 
 
@@ -230,6 +232,14 @@ if ($queue_sample)
 {
 	$sample_name = basename2($out_bam);
 	$parser->execTool("Tools/db_queue_analysis.php", "-samples {$sample_name} -type 'single sample'");
+	//check if trio needs to be queued
+	$parents = get_trio_parents($db, $sample_name);
+	if (!is_null($parents))
+	{
+		list($father, $mother) = $parents;
+		$trio_parameters = "-type 'trio' -samples {$sample_name} {$father} {$mother} -info child father mother";
+		$parser->execTool("Tools/db_queue_analysis.php", $trio_parameters);
+	}
 }
 
 

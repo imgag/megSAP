@@ -5,7 +5,7 @@ list($stdout) = exec2("find mnt/storage2/projects/diagnostic/ /mnt/storage3/proj
 
 foreach($stdout as $folder)
 {
-	$gsvar_file = "{$folder}/".strtolower(explode("_", basename($folder))[0]).".GSvar";
+	$gsvar_file = "{$folder}/".strtolower(explode("_", basename($folder))[0]).".GSvar.gz";
 	if (!file_exists($gsvar_file))
 	{
 		$files = glob("$folder/*.*");

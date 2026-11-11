@@ -14,10 +14,17 @@ init_ngsd($name);
 exec2("rm -rf ".output_folder()."/21073LRa277_01234");
 exec2("tar -xvzf ".data_folder().$name."_in1.tar.gz -C ".output_folder());
 
-//test 1: bam
-check_exec("php ".src_folder()."/IMGAG/{$name}.php -run_name '#01234' -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST -threads 4 --log ".output_folder()."{$name}_1.log");
+//test 1: fail due missing IMGAG_CopyDone.txt
+list($stdout, $stderr, $exit_code) = exec2("php ".src_folder()."/IMGAG/{$name}.php -run_name '#01234' -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST -threads 4 --log ".output_folder()."{$name}_1.log", FALSE); //should fail
+check(($exit_code == 0), FALSE); // check exit code
+check(str_contains(implode("", $stderr), "''IMGAG_CopyDone.txt' file missing! Copy from sequencer may not be completed.'"), TRUE); //check error message
+
+
+//test 2: bam
+$stdout = check_exec("php ".src_folder()."/IMGAG/{$name}.php -run_name '#01234' -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST -threads 4 -ignore_copy_complete_check --log ".output_folder()."{$name}_2.log");
 check_file(output_folder()."/21073LRa277_01234/TEST_Sample_21073LRa277_01/21073LRa277_01.mod.unmapped.bam", data_folder()."{$name}_out1.bam");
-# move folder to don't interfere with next tests
+check(str_contains(implode("", $stdout), "''IMGAG_CopyDone.txt' file missing! Copy from sequencer may not be completed.'"), TRUE); // check for warning due to missing IMGAG_CopyDone.txt
+// move folder to don't interfere with next tests
 exec2("mv ".output_folder()."/21073LRa277_01234/TEST_Sample_21073LRa277_01 ".output_folder()."/TEST_Sample_21073LRa277_01_test1");
 
 //check runQC import
@@ -36,6 +43,9 @@ check($db_con->getValue("SELECT software_args FROM runqc_ont WHERE sequencing_ru
 																							."--read_filtering min_qscore=7 --min_read_length=200 --split_files_by_barcode=off");
 check($db_con->getValue("SELECT device_firmware_versions FROM runqc_ont WHERE sequencing_run_id=1"), "Hublett Board:2.1.10;Satellite Board:2.1.9");
 check($db_con->getValue("SELECT minknow_version FROM runqc_ont WHERE sequencing_run_id=1"), "5.9.7");
+
+//create IMGAG_CopyDone.txt for further testing
+exec2("touch ".output_folder()."/21073LRa277_01234/IMGAG_CopyDone.txt");
 
 //TODO: recheck if fastq support is back
 /*
@@ -114,7 +124,7 @@ exec2("mv ".output_folder()."/21073LRa277_01234/20000101_1200_3D_PAW01234_abcdef
 //test 8: test wrong basecall model -> fail
 list($stdout, $stderr, $exit_code) = exec2("php ".src_folder()."/IMGAG/{$name}.php -run_dir ".output_folder()."/21073LRa277_01234 -db NGSD_TEST -threads 4 -basecall_model sup --log ".output_folder()."{$name}_8.log", false);
 check(($exit_code == 0), FALSE); // check exit code
-check((strpos(implode("", $stderr), "ERROR: 'Basecall Models doesn't match: On-device basecall model: 'dna_r10.4.1_e8.2_400bps_hac@v3.5.2', requested basecall model: 'sup'. Please check setting or re-do basecalling!'") != FALSE), TRUE); //check error message
+check((strpos(implode("", $stderr), "ERROR: 'Basecall models do not match: On-device basecall model: 'dna_r10.4.1_e8.2_400bps_hac@v3.5.2', requested basecall model: 'sup'. Please check setting or re-do basecalling!'") != FALSE), TRUE); //check error message
 
 // add second flowcell with different basecall model
 exec2("mkdir ".output_folder()."/21073LRa277_01234/20000002_1200_3D_PAW05678_abcdef12/");

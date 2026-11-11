@@ -48,7 +48,7 @@ for ($i=0; $i<count($result); ++$i)
 	}
 	
 	//skip when GSvar missing
-	$gsvar = $info['ps_folder']."/".$ps.".GSvar";
+	$gsvar = $info['ps_folder']."/".$ps.".GSvar.gz";
 	if (!file_exists($gsvar))
 	{
 		print "Skipped: GSvar file missing!\n";

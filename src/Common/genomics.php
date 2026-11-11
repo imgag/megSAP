@@ -1962,9 +1962,9 @@ function check_genome_build($filename, $build_expected, $throw_error = true)
 	}
 		
 	//GSvar
-	if (ends_with($filename, ".GSvar"))
+	if (ends_with($filename, ".GSvar") || ends_with($filename, ".GSvar.gz"))
 	{
-		list($stdout, $stderr, $exit_code) = exec2("egrep '^##GENOME_BUILD=' $filename", false);
+		list($stdout, $stderr, $exit_code) = exec2("zgrep -e '^##GENOME_BUILD=' $filename", false);
 		if ($exit_code==0)
 		{
 			foreach($stdout as $line)
@@ -2191,15 +2191,20 @@ function target_region_is_genome_wide($target_file)
 	return bed_size($target_path) > 3e9;
 }
 
-function phenotype_roi(&$db_conn, $ps_name)
-{		
-	$info = get_processed_sample_info($db_conn, $ps_name);
-	$s_id = $info['s_id'];
-	$hpos = $db_conn->getValues("SELECT disease_info FROM sample_disease_info WHERE sample_id='$s_id' AND `type`='HPO term id'");
+function get_processed_sample_hpos(&$db, $ps_name)
+{
+	$ps_id = get_processed_sample_id($db, $ps_name);
+	$s_id = $db->getValue("SELECT sample_id FROM processed_sample WHERE id='$ps_id'");
+	return $db->getValues("SELECT disease_info FROM sample_disease_info WHERE sample_id='$s_id' AND type='HPO term id'");
+}
+
+function phenotype_roi(&$db, $ps_name)
+{
+	$hpos = get_processed_sample_hpos($db, $ps_name);
 	
 	//store HPO term ids
 	$tmp_hpos = temp_file(".txt");
-	file_put_contents($tmp_hpos, $hpos);
+	file_put_contents($tmp_hpos, implode("\n", $hpos));
 	
 	//convert HPO terms to gene symbols
 	$tmp_genes = temp_file(".tsv");
@@ -2416,13 +2421,16 @@ function get_basecall_model($bam_file)
 
 }
 
-//returns the project path, or NULL if the project does not exist in NGSD
+//returns the project path. Returns -1 if the project does not exist in NGSD. Returns -2 if the project is marked as archived in NGSD.
 function get_project_folder(&$db, $project_name)
 {
 	//get project id
 	$project_name = trim($project_name);
 	$project_id = $db->getValue("SELECT id FROM project WHERE name LIKE '$project_name'", -1);
-	if ($project_id==-1) return NULL;
+	if ($project_id==-1) return -1;
+	
+	$archived = $db->getValue("SELECT archived FROM project WHERE id=$project_id");
+	if ($archived==1) return -2;
 	
 	//folder override
 	$folder_override = $db->getValue("SELECT folder_override FROM project WHERE id='{$project_id}'");
@@ -2475,7 +2483,16 @@ function update_gsvar_sample_header($file_name, $disease_status_map)
 		$new_comments[] = gsvar_sample_header($ps, $override_map, "#", "\n"); 
 	}
 	$file_content->setComments($new_comments);
-	$file_content->toTSV($file_name);
+	if (ends_with($file_name, ".gz"))
+	{
+		$file_name_no_gz = substr($file_name, 0, -3);
+		$file_content->toTSV($file_name_no_gz);
+		execApptainer("htslib", "bgzip", "-f $file_name_no_gz", [$file_name_no_gz]);
+	}
+	else
+	{
+		$file_content->toTSV($file_name);
+	}
 }
 
 //get bam read count
@@ -2782,5 +2799,28 @@ function log_analysis_time($db, $type, $samples, $threads, $steps, $steps_all, $
 	$min = number_format($sec/60.0, 2, ".", "");
 	$db->executeStmt("INSERT INTO `analysis_time`(`type`, `samples`, `processing_system_id`, `dragen_used`, `server`, `threads`, `min`) VALUES ('$type','".implode(" ", $samples)."',$sys_id,'".($dragen_used ? "1" : "0")."','$server',$threads,$min)");
 }
+
+
+//Returns father/mother of a given processed sample
+function get_trio_parents(&$db_conn, $ps)
+{
+	$info = get_processed_sample_info($db_conn, $ps, false, true);
+	if (is_null($info)) return NULL;
+	$s_id = $info['s_id'];
+	$sys_id = $info['sys_id'];
+	
+	//check if father/mother are defined
+	$s_id_mother = $db_conn->getValue("SELECT s.id FROM sample_relations sr, sample s WHERE s.id=sr.sample1_id AND sr.relation='parent-child' AND sample2_id='{$s_id}' AND s.gender='female'", "");
+	$s_id_father = $db_conn->getValue("SELECT s.id FROM sample_relations sr, sample s WHERE s.id=sr.sample1_id AND sr.relation='parent-child' AND sample2_id='{$s_id}' AND s.gender='male'", "");
+	if ($s_id_mother=="" || $s_id_father=="") return NULL;
+	
+	//select latest processing of father/mother with same system
+	$ps_id_mother = $db_conn->getValue("SELECT id FROM processed_sample WHERE sample_id={$s_id_mother} AND processing_system_id={$sys_id} ORDER BY id DESC LIMIT 1", "");
+	$ps_id_father = $db_conn->getValue("SELECT id FROM processed_sample WHERE sample_id={$s_id_father} AND processing_system_id={$sys_id} ORDER BY id DESC LIMIT 1", "");
+	if ($ps_id_mother=="" || $ps_id_father=="") return NULL;
+	
+	return array(processed_sample_name($db_conn, $ps_id_father), processed_sample_name($db_conn, $ps_id_mother));
+}
+
 
 ?>

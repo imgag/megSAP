@@ -18,7 +18,7 @@ $parser->addInfile("vcf", "Path to (bgzipped) VCF file (if different from {outpu
 // $parser->addInfile("mosaic_vcf", "Path to (bgzipped) VCF file (if different from {output_folder}/{out_name}_mosaic.vcf.gz).", true, "");
 $parser->addFlag("no_fc", "No format check (vcf/tsv).");
 $parser->addFlag("multi", "Enable multi-sample mode.");
-$parser->addFlag("somatic", "Enable somatic mode (cancer-sepific annotations, but no variant QC and no GSvar file).");
+$parser->addFlag("somatic", "Enable somatic mode (cancer-specific annotations, but no variant QC and no GSvar file).");
 $parser->addInt("threads", "The maximum number of threads used.", true, 2);
 $parser->addString("rna_sample", "Processed sample name of the RNA sample which should be used for annotation.", true, "");
 $parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated (this can be very slow).");
@@ -44,8 +44,8 @@ else
 
 //output file names
 $annfile = $parser->tempFile(".vcf");
-$annfile_zipped = $out_folder."/".$out_name."_var_annotated.vcf.gz";	
-$varfile = $out_folder."/".$out_name.".GSvar";
+$annfile_gz = $out_folder."/".$out_name."_var_annotated.vcf.gz";	
+$gsvar_gz = $out_folder."/".$out_name.".GSvar.gz";
 $statfile = $out_folder."/".$out_name."_stats_vc.qcML";
 $phasing_track = $out_folder."/".$out_name."_phasing_track.bed"; //(only for longreads)
 
@@ -118,8 +118,8 @@ if ($is_lrgs && !$multi && !$somatic && db_is_enabled("NGSD"))
 }
 
 //zip annotated VCF file
-$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $annfile > $annfile_zipped", [], [dirname($annfile_zipped)]);
-$parser->execApptainer("htslib", "tabix", "-f -p vcf $annfile_zipped", [], [dirname($annfile_zipped)]);
+$parser->execApptainer("htslib", "bgzip", "-c -@ {$threads} $annfile > $annfile_gz", [], [$out_folder]);
+$parser->execApptainer("htslib", "tabix", "-f -p vcf $annfile_gz", [], [$out_folder]);
 
 //convert to GSvar file
 if (!$somatic) //germline only
@@ -127,9 +127,10 @@ if (!$somatic) //germline only
 	//calculate variant statistics (after annotation because it needs the rs-number and the CSQ data)
 	if (!$multi) $parser->execApptainer("ngs-bits", "VariantQC", "-in $annfile -out $statfile".($is_lrgs ? " -long_read -phasing_bed {$phasing_track}" : ""), [$out_folder]);
 	
+	$tmp_gsvar = $parser->tempFile(".GSvar");
 	$args = [];
 	$args[] = "-in ".$annfile;
-	$args[] = "-out ".$varfile;
+	$args[] = "-out ".$tmp_gsvar;
 	$args[] = "-updown";
 	if ($multi) $args[] = "-genotype_mode multi";
 	if ($sys['type']=="WGS") $args[] = "-wgs";
@@ -163,7 +164,7 @@ if (!$somatic) //germline only
 			$bam_rna = $psample_info["ps_bam"];
 			if (file_exists($bam_rna))
 			{
-				$parser->execApptainer("ngs-bits", "VariantAnnotateASE", "-in {$varfile} -out {$varfile} -bam {$bam_rna}", [$out_folder, $bam_rna]);
+				$parser->execApptainer("ngs-bits", "VariantAnnotateASE", "-in $tmp_gsvar -out $tmp_gsvar -bam $bam_rna", [$out_folder, $bam_rna]);
 
 				//check sample similarity
 				$min_corr = 0.85;
@@ -201,9 +202,9 @@ if (!$somatic) //germline only
 			$splicing = $psample_info['ps_folder']."{$psample}_splicing_gene.tsv";
 			if (file_exists($splicing))
 			{
-				$gsvar = Matrix::fromTSV($varfile);
+				$gsvar = Matrix::fromTSV($tmp_gsvar);
 				annotate_gsvar_by_gene($gsvar, $splicing, "symbol", "aberrant_frac", "aberrant_splicing", "Fraction of aberrant splicing reads in gene.");
-				$gsvar->toTSV($varfile);
+				$gsvar->toTSV($tmp_gsvar);
 			}
 			else
 			{
@@ -211,14 +212,17 @@ if (!$somatic) //germline only
 			}
 
 			//add RNA annotation
-			$parser->execApptainer("ngs-bits", "NGSDAnnotateGeneExpression", "-in {$varfile} -out {$varfile} -rna_ps {$psample}", [$out_folder]);
+			$parser->execApptainer("ngs-bits", "NGSDAnnotateGeneExpression", "-in $tmp_gsvar -out $tmp_gsvar -rna_ps $psample", [$out_folder]);
 		}
 	}
+	
+	//bgzip GSvar file after all processing
+	$parser->execApptainer("htslib", "bgzip", "-@ $threads -c $tmp_gsvar > $gsvar_gz", [], [$out_folder]);
 	
 	//check output TSV file
 	if(!$no_fc)
 	{
-		$parser->execTool("Tools/check_tsv.php", "-in $varfile -build ".$sys['build']);
+		$parser->execTool("Tools/check_tsv.php", "-in $gsvar_gz -build ".$sys['build']);
 	}
 }	
 

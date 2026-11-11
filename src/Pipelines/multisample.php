@@ -32,6 +32,7 @@ $omim_file = "{$data_folder}/dbs/OMIM/omim.bed";
 $vcf_multi = "{$out_folder}/{$prefix}_var.vcf.gz";
 $cnv_multi = "{$out_folder}/{$prefix}_cnvs_clincnv.tsv";
 $gsvar = "{$out_folder}/{$prefix}.GSvar";
+$gsvar_gz = "{$out_folder}/{$prefix}.GSvar.gz";
 $sv_manta_file = "{$out_folder}/{$prefix}_var_structural_variants.vcf.gz";
 $bedpe_out = "{$out_folder}/{$prefix}_var_structural_variants.bedpe";
 
@@ -257,7 +258,7 @@ if (in_array("vc", $steps))
 	$args[] = "-multi";
 	if ($no_splice) $args[] = "-no_splice";
 	$parser->execTool("Tools/annotate.php", implode(" ", $args));
-
+	
 	//check for truncated output
 	if ($is_wgs || $is_lrgs) $parser->execTool("Tools/check_for_missing_chromosomes.php", "-in {$out_folder}/{$prefix}_var_annotated.vcf.gz -max_missing_perc 5 -check_mito");
 	
@@ -267,7 +268,7 @@ if (in_array("vc", $steps))
 	{
 		$status_map[basename2($bam)] = $disease_status;
 	}
-	update_gsvar_sample_header($gsvar, $status_map);
+	update_gsvar_sample_header($gsvar_gz, $status_map);
 }
 
 //(3) copy-number calling
@@ -528,7 +529,10 @@ if (in_array("cn", $steps))
 				);
 			$content = array_merge($content, $desc_and_filter);
 			$content[] = "#chr	start	end	ref	obs	".implode("\t", array_values($names))."	filter	quality	gene	variant_type	coding_and_splicing	regulatory	OMIM	ClinVar	HGMD	RepeatMasker	dbSNP	1000g	gnomAD	gnomAD_hom_hemi	gnomAD_sub	phyloP	CADD	REVEL	MaxEntScan	NGSD_hom	NGSD_het	NGSD_group	classification	classification_comment	validation	comment	gene_info";
+			
+			//write gzipped
 			file_put_contents($gsvar, implode("\n", $content));
+			$parser->execApptainer("htslib", "bgzip", "-@ $threads -f $gsvar", [$gsvar]);
 		}
 	}
 
@@ -746,7 +750,7 @@ if (in_array("sv", $steps))
 if (in_array("db", $steps) && db_is_enabled("NGSD"))
 {
 	//add secondary analysis (if missing)
-	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'multi sample' -gsvar {$gsvar}");
+	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'multi sample' -gsvar {$gsvar_gz}");
 }
 
 ?>

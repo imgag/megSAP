@@ -210,29 +210,6 @@ function check_former_run(&$db_conn, $run_name)
 	return "";
 }
 
-//Returns father/mother of the sample
-function get_trio_parents($ps)
-{
-	global $db_conn;
-	
-	$info = get_processed_sample_info($db_conn, $ps, false, true);
-	if (is_null($info)) return NULL;
-	$s_id = $info['s_id'];
-	$sys_id = $info['sys_id'];
-	
-	//check if father/mother are defined
-	$s_id_mother = $db_conn->getValue("SELECT s.id FROM sample_relations sr, sample s WHERE s.id=sr.sample1_id AND sr.relation='parent-child' AND sample2_id='{$s_id}' AND s.gender='female'", "");
-	$s_id_father = $db_conn->getValue("SELECT s.id FROM sample_relations sr, sample s WHERE s.id=sr.sample1_id AND sr.relation='parent-child' AND sample2_id='{$s_id}' AND s.gender='male'", "");
-	if ($s_id_mother=="" || $s_id_father=="") return NULL;
-	
-	//select latest processing of father/mother with same system
-	$ps_id_mother = $db_conn->getValue("SELECT id FROM processed_sample WHERE sample_id={$s_id_mother} AND processing_system_id={$sys_id} ORDER BY id DESC LIMIT 1", "");
-	$ps_id_father = $db_conn->getValue("SELECT id FROM processed_sample WHERE sample_id={$s_id_father} AND processing_system_id={$sys_id} ORDER BY id DESC LIMIT 1", "");
-	if ($ps_id_mother=="" || $ps_id_father=="") return NULL;
-	
-	return array(processed_sample_name($db_conn, $ps_id_father), processed_sample_name($db_conn, $ps_id_mother));
-}
-
 //extract samples names and sequencer type from sample sheet
 function get_sample_data_from_db(&$db_conn, $run_name)
 {
@@ -879,7 +856,7 @@ foreach($sample_data as $sample => $sample_infos)
 			}
 			
 			//check if trio needs to be queued
-			$parents = get_trio_parents($sample);
+			$parents = get_trio_parents($db_conn, $sample);
 			if (!is_null($parents))
 			{
 				list($father, $mother) = $parents;
