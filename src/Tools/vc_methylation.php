@@ -214,7 +214,7 @@ if (!$skip_cohort_annotation)
     for ($i=0; $i < $cohort_table->rows(); $i++) 
     { 
         $cohort_ps_name = $cohort_table->get($i, $i_sample_name);
-        $cohort_sample_folder = $cohort_table->get($i, $i_path);
+        $cohort_sample_folder = realpath2($cohort_table->get($i, $i_path));
 
         $cohort_files_hp1[] = "{$cohort_sample_folder}/{$cohort_ps_name}_modkit_track_hp1.bed.gz";
         $cohort_files_hp2[] = "{$cohort_sample_folder}/{$cohort_ps_name}_modkit_track_hp2.bed.gz";
@@ -247,18 +247,20 @@ if (file_exists($phasing_track_file))
     $args_stats[] = "-phasing_track {$phasing_track_file}";
     $infiles[] = $phasing_track_file;
 }
-execApptainer("ngs-bits", "BedMethylationStats", implode(" ", $args_stats), $infiles, [$out]);
+execApptainer("ngs-bits", "BedMethylationStats", implode(" ", $args_stats), $infiles, [dirname($out)]);
 
-//extract plot data
-$tmp_plot_data = $parser->tempFile("plot_data.bed");
-$args_plot_data = $args;
-$args_plot_data[] = "-out {$tmp_plot_data}";
-execApptainer("ngs-bits", "BedExtractMethylationPlotData", implode(" ", $args_plot_data), $infiles);
-if ($keep_plotdata) $parser->copyFile($tmp_plot_data, "{$folder}/methylartist/{$name}_plotdata.tsv");
+
 
 //assemble plot commands
 if (!$skip_plot)
 {
+    //extract plot data
+    $tmp_plot_data = $parser->tempFile("plot_data.bed");
+    $args_plot_data = $args;
+    $args_plot_data[] = "-out {$tmp_plot_data}";
+    execApptainer("ngs-bits", "BedExtractMethylationPlotData", implode(" ", $args_plot_data), $infiles);
+    if ($keep_plotdata) $parser->copyFile($tmp_plot_data, "{$folder}/methylartist/{$name}_plotdata.tsv");
+
     $regions_table = Matrix::fromTSV($regions);
     $jobs_plotting = array();
     for($r=0; $r<$regions_table->rows(); ++$r)

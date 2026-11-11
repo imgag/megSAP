@@ -1,0 +1,4 @@
+#identifier	title	gene symbol	gene chr	gene start	gene end	highlight start	highlight end
+artifical_site	artifical site for pipeline test	PUM1	chr1	32010000	32016500	32014000	32014500
+PLAGL1_alt-TSS-DMR	PLAGL1:alt-TSS-DMR	PLAGL1	chr6	143940299	144064599	144006941	144008751
+PHF6	PHF6	PHF6	chrX	134372188	134428792	134372188	134374713

@@ -1,0 +1,25 @@
+##DESCRIPTION=meth_hp1_avg=average methylation in haplotype 1 (higher mean methylation)
+##DESCRIPTION=meth_hp1_std=standard deviation of methylation in haplotype 1 (higher mean methylation)
+##DESCRIPTION=cov_hp1=average CpG coverage in haplotype 1 (higher mean methylation)
+##DESCRIPTION=meth_hp2_avg=average methylation in haplotype 2 (lower mean methylation)
+##DESCRIPTION=meth_hp2_std=standard deviation of methylation in haplotype 2 (lower mean methylation)
+##DESCRIPTION=cov_hp2=average CpG coverage in haplotype 2 (lower mean methylation)
+##DESCRIPTION=meth_all_avg=average methylation
+##DESCRIPTION=meth_all_std=standard deviation of methylation
+##DESCRIPTION=cov_all=average CpG coverage
+##DESCRIPTION=cohort_mean_hp1=average methylation in cohort in haplotype 1
+##DESCRIPTION=cohort_mean_hp2=average methylation in cohort in haplotype 2
+##DESCRIPTION=cohort_mean_all=average methylation in cohort overall
+##DESCRIPTION=cohort_stdev_hp1=standard deviation in cohort in haplotype 1
+##DESCRIPTION=cohort_stdev_hp2=standard deviation in cohort in haplotype 2
+##DESCRIPTION=cohort_stdev_all=standard deviation in cohort overall
+##DESCRIPTION=zscore_hp1=zscore in haplotype 1
+##DESCRIPTION=zscore_hp2=zscore in haplotype 2
+##DESCRIPTION=zscore_all=zscore overall
+##DESCRIPTION=cohort_size=number of cohort samples in hp1, hp2, all
+#identifier	title	gene symbol	gene chr	gene start	gene end	highlight start	highlight end	filter	meth_hp1_avg	meth_hp1_std	cov_hp1	meth_hp2_avg	meth_hp2_std	cov_hp2	meth_all_avg	meth_all_std	cov_all	cohort_mean_hp1	cohort_stdev_hp1	zscore_hp1	cohort_mean_hp2	cohort_stdev_hp2	zscore_hp2	cohort_mean_all	cohort_stdev_all	zscore_all	cohort_size
+PLAGL1_alt-TSS-DMR	PLAGL1:alt-TSS-DMR	PLAGL1	chr6	143940299	144064599	144006941	144008751		92.581	10.988	11.070	1.062	3.686	25.380	29.572	10.189	36.273	93.449	2.875	-0.302	4.946	2.906	-1.336	55.954	11.001	-2.398	3,3,3
+GRB10_alt-TSS-DMR	GRB10:alt-TSS-DMR	GRB10	chr7	50590062	50793462	50781029	50783615		77.735	23.588	24.865	18.182	29.121	21.047	49.179	18.870	47.216	82.506	7.355	-0.649	19.504	1.860	-0.710	55.900	9.083	-0.740	2,2,3
+PEG10_TSS-DMR	PEG10:TSS-DMR	PEG10	chr7	94656225	94669695	94656225	94658648		93.134	19.392	15.866	0.191	0.914	20.336	41.114	9.956	36.202	88.736	3.324	1.323	2.448	2.106	-1.071	50.695	2.119	-4.521	3,3,3
+RP2	RP2	RP2	chrX	46836539	46889240	46836539	46837273		60.187	20.235	12.088	17.002	7.959	11.912	48.744	17.095	37.772	15.088	15.088	2.989	nan	nan	nan	8.550	11.636	3.454	2,0,3
+PHF6	PHF6	PHF6	chrX	134372188	134428792	134372188	134374713	HighAmountOfUnphasedReads	55.950	31.406	9.242	5.142	21.896	8.980	31.335	19.696	37.444	44.954	0.000	nan	40.030	0.000	nan	16.655	15.593	0.941	1,1,3

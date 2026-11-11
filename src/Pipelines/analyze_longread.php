@@ -1133,9 +1133,8 @@ if (in_array("me", $steps))
 		if ($test)
 		{
 			//TODO adapt test
-			$args[] = "-regions ".repository_basedir()."/test/data/create_methyl_plot_regions_pipeline_test.tsv";
-			$args[] = "-custom_cohort_table ".repository_basedir()."/test/data/create_methyl_plot_custom_cohort.tsv";
-			$args[] = "-test";
+			$args[] = "-regions ".repository_basedir()."/test/data_longread/+methylation_cohort/regions.tsv";
+			$args[] = "-custom_cohort_table ".repository_basedir()."/test/data_longread/+methylation_cohort/custom_cohort.tsv";
 		}
 		else
 		{

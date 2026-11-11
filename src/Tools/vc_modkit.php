@@ -17,6 +17,7 @@ $parser->addOutfile("summary", "Optional summary file.", true);
 $parser->addInt("threads", "The maximum number of threads used.", true, 1);
 $parser->addString("build", "The genome build to use.", true, "GRCh38");
 $parser->addString("region", "Limit processing to specific region (e.g. for testing). Format: [CHR]:[START]-[END] or [CHR]", true);
+$parser->addInfile("include_bed", "Limit processing to specific BED file", true);
 $parser->addFlag("debug", "Enable modkit debug log.");
 
 extract($parser->parse($argv));
@@ -44,7 +45,11 @@ $args[] = "--ref ".$genome;
 $args[] = "--threads ".$threads;
 if ($debug) $args[] = "--log-filepath ".$log_file;
 if (isset($region)) $args[] = "--region ".$region;
-
+if (isset($include_bed)) 
+{
+	$args[] = "--include-bed ".realpath($include_bed);
+	$in_files[] = realpath($include_bed);
+}
 $parser->execApptainer("modkit", "modkit", implode(" ", $args), $in_files);
 
 //filter & copy logfile
