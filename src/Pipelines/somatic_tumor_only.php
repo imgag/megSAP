@@ -492,7 +492,7 @@ if (in_array("db", $steps) && db_is_enabled("NGSD"))
 	}	
 				
 	//add secondary analysis (if missing)
-	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'somatic' -gsvar {$variants_gsvar}");
+	$parser->execTool("Tools/db_import_secondary_analysis.php", "-type 'somatic' -gsvar {$variants_gsvar_gz}");
 	
 	//log analysis time
 	log_analysis_time($db_conn, 'tumor-only', [$prefix], $threads, $steps, $steps_all, false, microtime(true)-$start_time);
