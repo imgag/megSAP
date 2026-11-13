@@ -26,6 +26,7 @@ $parser->addFloat("min_bq", "Minimum base quality used for variant calling (Deep
 $parser->addFloat("min_mq", "Minimum mapping quality used for variant calling (DeepVariant 'min-mapping-quality' parameter).", true, 20);
 $parser->addFlag("test", "Run pipeline in test mode (e.g. use hard-coded cohort for methylation analysis)");
 $parser->addFlag("no_splice", "Skip SpliceAI scoring of variants that are not precalculated.");
+$parser->addEnum("gender", "Gender of the sample. If unset, use gender from NGSD.", true, ["female", "male", "n/a", ""], "");
 extract($parser->parse($argv));
 
 //start time
@@ -50,6 +51,18 @@ $platform = $sys['platform'];
 trigger_error("Long-read platform: {$platform}", E_USER_NOTICE);
 if ($platform!="PacBio" && $platform!="ONT") trigger_error("Unsupported platform '{$platform}'! Only 'ONT' or 'PacBio' are supported!", E_USER_ERROR);
 if ($test) trigger_error("Pipeline running in test mode!", E_USER_WARNING);
+
+//get gender if not provided
+if ($gender == "")
+{
+	if (db_is_enabled("NGSD"))
+	{
+		$db = DB::getInstance("NGSD", false);
+		$info = get_processed_sample_info($db, $name, false);
+		if (!is_null($info)) $gender  = $info['gender'];
+	}
+}
+	
 
 //check steps
 $steps = explode(",", $steps);
@@ -82,6 +95,8 @@ if (db_is_enabled("NGSD"))
 		trigger_error("Skipping step 're' - Report configuration with REs exists in NGSD!", E_USER_NOTICE);
 		if (($key = array_search("re", $steps)) !== false) unset($steps[$key]);
 	}
+
+	$sample_info = get_processed_sample_info($db, $name, false);
 }
 
 //set up local NGS data copy (to reduce network traffic and speed up analysis)
@@ -122,7 +137,6 @@ $cnv_file2 = $folder."/".$name."_cnvs_clincnv.seg";
 $sv_vcf_file = $folder ."/". $name . "_var_structural_variants.vcf.gz";
 $bedpe_file = substr($sv_vcf_file,0,-6)."bedpe";
 //repeat expansions
-//TODO: rename
 $repeat_file = $folder."/".$name."_repeats.vcf";
 //methylation files
 $methyl_regions = repository_basedir()."/data/methylation/methylartist_catalog_grch38.tsv";
@@ -214,18 +228,6 @@ if (in_array("ma", $steps))
 	
 	$parser->execTool("Tools/mapping_minimap.php", implode(" ", $mapping_minimap_options));
 
-	// create methylation track
-	if (contains_methylation($used_bam_or_cram, 100, $build))
-	{
-		$args = [];
-		$args[] = "-bam ".$used_bam_or_cram;
-		$args[] = "-bed ".$modkit_track;
-		$args[] = "-summary ".$modkit_summary;
-		$args[] = "-threads ".$threads;
-		$args[] = "-build ".$build;
-		$parser->execTool("Tools/vc_modkit.php", implode(" ", $args));
-	}
-
 	//low-coverage report
 	$parser->execApptainer("ngs-bits", "BedLowCoverage", "-in ".realpath($sys['target_file'])." -bam {$used_bam_or_cram} -out $lowcov_file -cutoff 20 -threads {$threads} -ref {$genome}", [$sys['target_file'], $genome, $used_bam_or_cram], [$folder]);
 	if (db_is_enabled("NGSD"))
@@ -281,10 +283,9 @@ if (in_array("ma", $steps))
 		if (db_is_enabled("NGSD"))
 		{
 			$db = DB::getInstance("NGSD", false);
-			$info = get_processed_sample_info($db, $name, false);
-			if (!is_null($info))
+			if (!is_null($sample_info))
 			{
-				$preserve_fastqs = $info['preserve_fastqs'];
+				$preserve_fastqs = $sample_info['preserve_fastqs'];
 			}
 		}
 		
@@ -709,13 +710,6 @@ if (in_array("sv", $steps))
 	if ($platform == "PacBio")
 	{
 		//run sawfish
-		$gender = "n/a";
-		if (db_is_enabled("NGSD"))
-		{
-			$db = DB::getInstance("NGSD", false);
-			$info = get_processed_sample_info($db, $name, false);
-			if (!is_null($info)) $gender  = $info['gender'];
-		}
 		$args = array();
 		$args[] = "-bams {$used_bam_or_cram}";
 		$args[] = "-genders '{$gender}'";
@@ -873,13 +867,6 @@ if (in_array("re", $steps))
 	if ($platform == "PacBio")
 	{
 		//Repeat-expansion calling using trgt 
-		$gender = "n/a";
-		if (db_is_enabled("NGSD"))
-		{
-			$db = DB::getInstance("NGSD", false);
-			$info = get_processed_sample_info($db, $name, false);
-			if (!is_null($info)) $gender  = $info['gender'];
-		}
 		$variant_catalog = repository_basedir()."/data/repeat_expansions/trgt_variant_catalog_grch38.bed";
 		$parser->execTool("Tools/vc_trgt.php", "-in {$used_bam_or_cram} -out {$repeat_file} -loci {$variant_catalog} -gender '{$gender}' -threads {$threads} -build {$build} --log ".$parser->getLogFile());
 	}
@@ -1124,6 +1111,16 @@ if (in_array("me", $steps))
 	if (!contains_methylation($used_bam_or_cram)) trigger_error("BAM file doesn't contain methylation info! Skipping step 'me'", E_USER_WARNING);
 	else 
 	{
+		// create phased methylation track
+		$args = [];
+		$args[] = "-bam ".$used_bam_or_cram;
+		$args[] = "-bed ".$modkit_track;
+		$args[] = "-summary ".$modkit_summary;
+		$args[] = "-threads ".$threads;
+		$args[] = "-build ".$build;
+		$parser->execTool("Tools/vc_modkit.php", implode(" ", $args));
+
+		//create plots
 		$args = [];
 		$args[] = "-folder {$folder}";
 		$args[] = "-name {$name}";
@@ -1131,23 +1128,23 @@ if (in_array("me", $steps))
 		$args[] = "-out {$methylation_table}";
 		$args[] = "-build {$build}";
 		$args[] = "-threads {$threads}";
+		$args[] = "-gender {$gender}";
 		$args[] = "--log ".$parser->getLogFile();
 		if ($test)
 		{
-			$args[] = "-regions ".repository_basedir()."/test/data/create_methyl_plot_regions_pipeline_test.tsv";
-			$args[] = "-custom_cohort_table ".repository_basedir()."/test/data/create_methyl_plot_custom_cohort.tsv";
-			$args[] = "-test";
+			//TODO adapt test
+			$args[] = "-regions ".repository_basedir()."/test/data_longread/+methylation_cohort/regions.tsv";
+			$args[] = "-custom_cohort_table ".repository_basedir()."/test/data_longread/+methylation_cohort/custom_cohort.tsv";
 		}
 		else
 		{
 			$args[] = "-regions {$methyl_regions}";
 		}
-		$parser->execTool("Tools/create_methyl_plot.php", implode(" ", $args));
+		$parser->execTool("Tools/vc_methylation.php", implode(" ", $args));
 		
 		// create Epigen TSV file
 		$epic_id_file = get_path("data_folder")."/dbs/illumina-epicids/EPIC-8v2-0_A1.csv";
-		$parser->execApptainer("ngs-bits", "BedToEpigen", "-in {$modkit_track} -out {$epigen_tsv} -id_file {$epic_id_file} -sample {$name}", [$epic_id_file, $modkit_track], [dirname($epigen_tsv)]);
-		
+		$parser->execApptainer("ngs-bits", "BedToEpigen", "-in {$modkit_track} -out {$epigen_tsv} -id_file {$epic_id_file} -sample {$name}", [$epic_id_file, $modkit_track], [dirname($epigen_tsv)]);	
 	}
 }
 
