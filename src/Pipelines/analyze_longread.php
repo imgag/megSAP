@@ -55,11 +55,17 @@ if ($test) trigger_error("Pipeline running in test mode!", E_USER_WARNING);
 //get gender if not provided
 if ($gender == "")
 {
+	$gender = "n/a";
 	if (db_is_enabled("NGSD"))
 	{
 		$db = DB::getInstance("NGSD", false);
 		$info = get_processed_sample_info($db, $name, false);
-		if (!is_null($info)) $gender  = $info['gender'];
+		if (is_null($info)) trigger_error("Sample {$name} not found in NGSD. Cannot determine gender!", E_USER_WARNING);
+		else $gender  = $info['gender'];
+	}
+	else
+	{
+		trigger_error("No access to NGSD database. Cannot determine gender!", E_USER_WARNING);
 	}
 }
 	

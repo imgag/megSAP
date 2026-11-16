@@ -5,9 +5,6 @@ require_once("framework.php");
 $name = "vc_methylation";
 start_test($name);
 
-//create cohort folder
-exec2("mkdir -p  ".output_folder()."/cohort");
-
 //test 1 bam
 exec2("cp ".data_folder().$name."_in1.bam ".output_folder()."Testsample_01.bam");
 exec2("cp ".data_folder().$name."_in1.bam.bai ".output_folder()."Testsample_01.bam.bai");
@@ -19,7 +16,16 @@ exec2("cp ".data_folder().$name."_in1_modkit_track_hp2.bed.gz ".output_folder().
 exec2("cp ".data_folder().$name."_in1_modkit_track.bed.gz.tbi ".output_folder()."Testsample_01_modkit_track.bed.gz.tbi");
 exec2("cp ".data_folder().$name."_in1_modkit_track.bed.gz ".output_folder()."Testsample_01_modkit_track.bed.gz");
 
-check_exec("php ".src_folder()."/Tools/".$name.".php -folder ".output_folder()." -gender male -name Testsample_01 -out ".output_folder().$name."_out1.tsv -custom_cohort_table ".data_folder().$name."_custom_cohort.tsv -regions ".data_folder().$name."_regions.tsv --log ".output_folder().$name."_1.log");
+//create custom cohort table to make sure paths are correct
+$custom_cohort_tsv = output_folder().$name."_custom_cohort.tsv";
+$buffer = [];
+$buffer[] = "#name\tpath";
+$buffer[] = "vc_methylation_in2\t".data_folder()."/{$name}_cohort/";
+$buffer[] = "vc_methylation_in3\t".data_folder()."/{$name}_cohort/";
+$buffer[] = "vc_methylation_in4\t".data_folder()."/{$name}_cohort/";
+file_put_contents($custom_cohort_tsv, implode("\n", $buffer));
+
+check_exec("php ".src_folder()."/Tools/".$name.".php -folder ".output_folder()." -gender male -name Testsample_01 -out ".output_folder().$name."_out1.tsv -custom_cohort_table {$custom_cohort_tsv} -regions ".data_folder().$name."_regions.tsv --log ".output_folder().$name."_1.log");
 check_file(output_folder().$name."_out1.tsv", data_folder().$name."_out1.tsv");
 
 check(filesize(output_folder()."methylartist/Testsample_01_GRB10_alt-TSS-DMR.png"), 334358, 2048);
@@ -46,7 +52,7 @@ exec2("cp ".data_folder().$name."_in1_modkit_track_hp2.bed.gz ".output_folder().
 exec2("cp ".data_folder().$name."_in1_modkit_track.bed.gz.tbi ".output_folder()."Testsample_02_modkit_track.bed.gz.tbi");
 exec2("cp ".data_folder().$name."_in1_modkit_track.bed.gz ".output_folder()."Testsample_02_modkit_track.bed.gz");
 
-check_exec("php ".src_folder()."/Tools/".$name.".php -folder ".output_folder()." -gender male -name Testsample_02 -out ".output_folder().$name."_out2.tsv -custom_cohort_table ".data_folder().$name."_custom_cohort.tsv -regions ".data_folder().$name."_regions.tsv -skip_plot --log ".output_folder().$name."_2.log");
+check_exec("php ".src_folder()."/Tools/".$name.".php -folder ".output_folder()." -gender male -name Testsample_02 -out ".output_folder().$name."_out2.tsv -custom_cohort_table {$custom_cohort_tsv} -regions ".data_folder().$name."_regions.tsv -skip_plot --log ".output_folder().$name."_2.log");
 check_file(output_folder().$name."_out2.tsv", data_folder().$name."_out2.tsv");
 // check_file(output_folder().$name."_out2_raw_data.tsv", data_folder().$name."_out2_raw_data.tsv");
 
