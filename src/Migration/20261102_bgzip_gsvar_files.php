@@ -6,15 +6,10 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
 $parser = new ToolBase("20261102_bgzip_gsvar_files", "Use bgzip to compress GSvar files.");
 $parser->addInfile("samples", "Samples to process. Create with 'NGSDExportSamples -add_path SAMPLE_FOLDER'.", false);
-$parser->addFlag("delete_unzipped", "Delete unzipped GSvar file after creating bgzipped version.");
+$parser->addFlag("rename_unzipped", "Add suffix '.bgzip_bak' to unzipped GSvar file after creating bgzipped version.");
 extract($parser->parse($argv));
 
 $db = DB::getInstance("NGSD");
-
-function exists_and_not_empty($filename)
-{
-	return file_exists($filename) && filesize($filename)>0;
-}
 
 print "#ps\tfolder\tstatus\n";
 
@@ -58,7 +53,7 @@ foreach($stdout as $line)
 	if ($order_ok && $gz_ok)
 	{
 		print $ps."\t".$folder."\tGZ already exists\n";
-		if ($delete_unzipped) exec2("rm -f $gsvar");
+		if ($rename_unzipped) exec2("mv $gsvar $gsvar.bgzip_bak");
 	}
 	else
 	{
@@ -66,7 +61,7 @@ foreach($stdout as $line)
 		if ($exit_code2==0)
 		{
 			print $ps."\t".$folder."\tGZ created\n";
-			if ($delete_unzipped) exec2("rm -f $gsvar");
+			if ($rename_unzipped) exec2("mv $gsvar $gsvar.bgzip_bak");
 		}
 		else
 		{
@@ -84,7 +79,7 @@ foreach($res as $row)
 {
 	$id = $row['id'];
 	$type = $row['type'];
-	$gsvar = $row['gsvar_file'];
+	$gsvar = trim($row['gsvar_file']);
 	$folder = dirname($gsvar);
 	
 	//code to fix paths of moved secondary analyses (commented out because it was needed only once at IMGAG)
@@ -144,10 +139,10 @@ foreach($res as $row)
 	if ($order_ok && $gz_ok)
 	{
 		print "secondary:$type\t".$folder."\tGZ already exists\n";
-		if ($delete_unzipped)
+		if ($rename_unzipped)
 		{
-			//TODO update NGSD
-			exec2("rm -f $gsvar");
+			$db->executeStmt("UPDATE secondary_analysis SET gsvar_file='$gsvar_gz' WHERE id=$id");
+			exec2("mv $gsvar $gsvar.bgzip_bak");
 		}
 	}
 	else
@@ -156,10 +151,10 @@ foreach($res as $row)
 		if ($exit_code2==0)
 		{
 			print "secondary:$type\t".$folder."\tGZ created\n";
-			if ($delete_unzipped)
+			if ($rename_unzipped)
 			{
-				//TODO update NGSD
-				exec2("rm -f $gsvar");
+				$db->executeStmt("UPDATE secondary_analysis SET gsvar_file='$gsvar_gz' WHERE id=$id");
+				exec2("mv $gsvar $gsvar.bgzip_bak");
 			}
 		}
 		else

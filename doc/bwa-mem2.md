@@ -6,7 +6,7 @@ To map FastQ files megSAP can also use `bwa-mem2`. It is faster than the origina
 
 ## installation and usage
 
-`bwa-mem2` is automatically installed besides the standard `bwa` during the [initial setup](install_unix.md#initial-setup) (it is part of the `download_tools.sh` script in `data/`) and is activated by default. To use the standard `bwa` you simply have to change the `use_bwa1` parameter in the megSAP `settings.ini` to `true`.
+`bwa-mem2` is automatically installed besides the standard `bwa` during the [initial setup](install_unix.md#initial-setup) and is activated by default. To use the standard `bwa` you simply have to change the `use_bwa1` parameter in the megSAP `settings.ini` to `true`.
 
 ## update from older megSAP version
 `bwa-mem2` requires additional index files for reference genome. If you update from an older megSAP version these index files have to be created either by (re-)run the reference download script:

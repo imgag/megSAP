@@ -2644,6 +2644,7 @@
 ##INFO=<ID=NGSD_SOM_TO_C,Number=1,Type=Integer,Description="Somatic variant count (tumor-only) in the NGSD. (from file an_vcf_NGSD_somatic.vcf.gz)">
 ##INFO=<ID=NGSD_SOM_VICC,Number=1,Type=String,Description="Somatic variant interpretation according VICC standard in the NGSD. (from file an_vcf_NGSD_somatic.vcf.gz)">
 ##INFO=<ID=NGSD_SOM_VICC_COMMENT,Number=1,Type=String,Description="Somatic VICC interpretation comment in the NGSD. (from file an_vcf_NGSD_somatic.vcf.gz)">
+##INFO=<ID=AIDIVA,Number=1,Type=Float,Description="aiDIVA pathogenicity score (independent of phenotype).">
 ##INFO=<ID=REGULATORY,Number=.,Type=String,Description="Annotation from Ensembl_regulatory_115.bed delimited by ','">
 ##INFO=<ID=REPEATMASKER,Number=.,Type=String,Description="Annotation from RepeatMasker_GRCh38.bed delimited by '&'">
 ##FILTER=<ID=all-unknown,Description="Allele unknown">

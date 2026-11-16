@@ -248,6 +248,11 @@ fclose($config_file);
 $vcf_annotate_output = $parser->tempFile("_annotateFromVcf.vcf");
 $parser->execApptainer("ngs-bits", "VcfAnnotateFromVcf", "-config_file ".$config_file_path." -in {$vcf_output_mes} -out {$vcf_annotate_output} -threads {$threads}", $in_files);
 
+//annotate aiDiva score
+$tmp = $parser->tempFile("_aidiva.vcf");
+$parser->execTool("Tools/an_aidiva.php", "-in {$vcf_annotate_output} -out {$tmp}");
+$parser->moveFile($tmp, $vcf_annotate_output);
+
 // annotate gene info from NGSD
 $gene_file = $test ? repository_basedir()."/test/data/an_vcf_NGSD_gene_info.bed" : resolve_symlink($data_folder."/dbs/NGSD/NGSD_genes.bed");
 if (file_exists($gene_file))
@@ -349,8 +354,8 @@ $parser->moveFile($tmp_low_conf_ann, $out);
 //check vcf file
 if($check_lines >= 0)
 {
-	$in_files = [$out, $genome];
-	$parser->execApptainer("ngs-bits", "VcfCheck", "-in $out -lines $check_lines -ref $genome", $in_files);
+	$out = realpath($out);	
+	$parser->execApptainer("ngs-bits", "VcfCheck", "-in $out -lines $check_lines -ref $genome", [$out, $genome]);
 }
 
 ?>

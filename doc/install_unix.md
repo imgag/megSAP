@@ -48,9 +48,8 @@ First, we make sure the privileges of the installation scripts are correct:
 	> cd megSAP/data
 	> chmod 755 *.sh
 
-Next, we install a few tools and download apptainer containers for the rest of the tools:
+Next, we download apptainer containers containing needed tools:
 
-	> ./download_tools.sh
 	> ./download_container.sh
 
 Next, we need to download and index the reference genome:

@@ -1,0 +1,87 @@
+Bootstrap: docker
+From: ubuntu:24.04
+
+%post
+	LANG=C.UTF-8
+	LC_ALL=C.UTF-8
+	PATH=/bin:$PATH
+
+	# update package list and install build dependencies
+	apt-get update --fix-missing 
+	apt-get install -y \
+		wget \
+		make \
+		build-essential \
+		zlib1g-dev \
+		bzip2 \
+		libssl-dev \
+		libffi-dev \
+		libbz2-dev \
+		liblzma-dev \
+		libsqlite3-dev \
+		libreadline-dev \
+		libncursesw5-dev \
+		xz-utils \
+		git
+	
+	# install python 3.12.3
+	mkdir -p /opt/Python-3.12.3
+	cd /opt/Python-3.12.3
+	wget https://www.python.org/ftp/python/3.12.3/Python-3.12.3.tgz
+	tar -zxvf Python-3.12.3.tgz
+	rm -rf Python-3.12.3.tgz
+	cd Python-3.12.3
+	./configure --prefix=/opt/Python-3.12.3 --enable-loadable-sqlite-extensions LDFLAGS="-L/usr/lib/x86_64-linux-gnu" CPPFLAGS="-I/usr/include"
+	make
+	make install
+	cd ..
+	rm -rf Python-3.12.3
+	PATH=/opt/Python-3.12.3/bin:$PATH
+	pip3 install --upgrade setuptools wheel
+	
+	#install aiDIVA
+	git clone --branch 1.4.2 --depth 1 https://github.com/imgag/aiDIVA.git /opt/aidiva_local
+	cd /opt/aidiva_local
+	python3 -m pip install --upgrade pip
+	python3 -m pip install -r /opt/aidiva_local/requirements.txt
+	
+	# cleanup build dependencies
+	cd /
+	apt-get remove -y \
+		wget \
+		make \
+		build-essential \
+		zlib1g-dev \
+		libssl-dev \
+		libffi-dev \
+		libbz2-dev \
+		libsqlite3-dev \
+		libreadline-dev \
+		libncursesw5-dev \
+		liblzma-dev \
+		git
+
+	apt-get autoremove -y
+	apt-get clean
+	rm -rf /var/lib/apt/lists/*
+
+%environment
+	export LANG=C.UTF-8
+	export LC_ALL=C.UTF-8
+	export PATH=/opt/aidiva_local:/opt/Python-3.12.3/bin:$PATH
+
+%runscript
+    echo "Available apps: aidiva-meta, aidiva-meta-rf, aidiva-rf, aidiva-score"
+    echo "Run with: apptainer run --app <app> image.sif [args]"
+
+%apprun aidiva-meta
+    exec python3 /opt/aidiva_local/aidiva/run_aidiva-meta.py "$@"
+
+%apprun aidiva-meta-rf
+    exec python3 /opt/aidiva_local/aidiva/run_aidiva-meta-rf.py "$@"
+
+%apprun aidiva-rf
+    exec python3 /opt/aidiva_local/aidiva/run_aidiva-rf.py "$@"
+
+%apprun aidiva-score
+    exec python3 /opt/aidiva_local/aidiva/run_aidiva-score.py "$@"

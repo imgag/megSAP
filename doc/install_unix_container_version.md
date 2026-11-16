@@ -36,7 +36,6 @@ mkdir -p <path-to-host-data-folder>
 Next, download a few tools and Apptainer containers for the rest of the tools:
 
 ```sh
-apptainer exec --pwd /megSAP/data -B <path-to-host-data-folder>:/megSAP/data/data_folder/ megSAP_[version].sif ./download_tools.sh
 apptainer exec --pwd /megSAP/data -B <path-to-host-data-folder>:/megSAP/data/data_folder/ megSAP_[version].sif ./download_container.sh
 ```
 

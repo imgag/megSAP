@@ -1128,4 +1128,9 @@ function str_simplified(string $text): string
 	return preg_replace('/\s+/', ' ', trim($text));
 }
 
+//returns if a file exists and is not empty
+function exists_and_not_empty($filename)
+{
+	return file_exists($filename) && filesize($filename)>0;
+}
 ?>

@@ -323,6 +323,12 @@ cd illumina_dragen44_genome
 wget https://webdata.illumina.com/downloads/software/dragen/resource-files/fasta-files/hg38-fasta-0-1.tar.gz
 tar xzf hg38-fasta-0-1.tar.gz
 
+#download aiDIVA model
+cd $dbs
+mkdir -p aiDIVA
+cd aiDIVA
+wget https://megsap.de/download/aiDIVA/aiDIVA_megSAP_model.pkl.gz
+
 # # install OMIM (you might need a license; production NGSD has to be available and initialized)
 # cd $dbs
 # mkdir -p OMIM

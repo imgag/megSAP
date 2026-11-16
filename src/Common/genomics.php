@@ -2191,11 +2191,21 @@ function target_region_is_genome_wide($target_file)
 	return bed_size($target_path) > 3e9;
 }
 
-function get_processed_sample_hpos(&$db, $ps_name)
+function get_processed_sample_hpos(&$db, $ps_name, $add_term_names=false)
 {
 	$ps_id = get_processed_sample_id($db, $ps_name);
 	$s_id = $db->getValue("SELECT sample_id FROM processed_sample WHERE id='$ps_id'");
-	return $db->getValues("SELECT disease_info FROM sample_disease_info WHERE sample_id='$s_id' AND type='HPO term id'");
+	$hpos_ids = $db->getValues("SELECT disease_info FROM sample_disease_info WHERE sample_id='$s_id' AND type='HPO term id'");
+	if ($add_term_names)
+	{
+		for($i=0; $i<count($hpos_ids); ++$i)
+		{
+			$hpo_id = $hpos_ids[$i];
+			$hpos_ids[$i] .= " ".$db->getValue("SELECT name FROM hpo_term WHERE hpo_id='$hpo_id'", "unknown term");
+		}
+	}
+	
+	return $hpos_ids;
 }
 
 function phenotype_roi(&$db, $ps_name)

@@ -261,6 +261,7 @@ $column_desc = array(
 	array("phyloP", "phyloP (100way vertebrate) annotation. Deleterious threshold > 1.6."),
 	array("CADD", "CADD pathogenicity prediction scores (scaled phred-like). Deleterious threshold > 10-20."),
 	array("REVEL", "REVEL pathogenicity prediction score. Deleterious threshold > 0.5."),
+	array("aiDIVA", "aiDIVA pathogenicity prediction score."),
 	array("AlphaMissense", "AlphaMissense pathogenicity score. Deleterious threshold > 0.564."),
 	array("MaxEntScan", "MaxEntScan reference score and alternate score for (1) native splice site, (2) acceptor gain and (3) donor gain. Comma-separated list if there are different predictions for several transcripts."),
 	array("SpliceAI", "SpliceAI prediction. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG), acceptor loss (AL), donor gain (DG), and donor loss (DL). Format: GENE|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL."),
@@ -810,14 +811,20 @@ while(!gzeof($handle))
 		$revel = explode("&", $info["REVEL"]);
 	}
 	
-	$alphamissense = [];
-	if (isset($info["AM_MAIN"])) 
+	$aidiva = "";
+	if (isset($info["AIDIVA"])) 
 	{
-		$alphamissense = explode("&", $info["AM_MAIN"]);
+		$aidiva = trim($info["AIDIVA"]);
 	}
+	
+	$alphamissense = [];
 	if (isset($info["AM_ISO"])) 
 	{
 		$alphamissense = explode("&", $info["AM_ISO"]);
+	}
+	if (isset($info["AM_MAIN"])) //main transcript score second, i.e. use main if both main transcript and isoform-specific scores exist
+	{
+		$alphamissense = explode("&", $info["AM_MAIN"]);
 	}
 	
 	//variant details
@@ -1418,7 +1425,7 @@ while(!gzeof($handle))
 	{
 		fwrite($handle_out,"\t".$phasing_info);
 	}
-	fwrite($handle_out,"\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$cadd\t$revel\t$alphamissense\t$maxentscan\t$spliceai");
+	fwrite($handle_out,"\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$cadd\t$revel\t$aidiva\t$alphamissense\t$maxentscan\t$spliceai");
 	if ($annotate_refseq_consequences)
 	{
 		fwrite($handle_out, "\t".implode(",", $coding_and_splicing_refseq));

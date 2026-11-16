@@ -198,7 +198,7 @@ function add_submission_to_sap($sap_case_id, $data_type, $tan)
 	
 	//perform SOAP query using CURL
 	$url = 'http://vslpr3ascs.med.uni-tuebingen.de:8001/sap/bc/srt/rfc/sap/zish_ws_set_genom_data/100/zish_ws_set_genom_data/zish_ws_set_genom_data';
-	$curl = curl_init($url); //http://vslpr3ascs.med.uni-tuebingen.de:8001/sap/bc/srt/wsdl/flv_10002A111AD1/bndg_url/sap/bc/srt/rfc/sap/zish_ws_set_genom_data/100/zish_ws_set_genom_data/zish_ws_set_genom_data?sap-client=100
+	$curl = curl_init($url);
 	if ($curl === false) trigger_error('Could not initialize cURL', E_USER_ERROR);
 
 	curl_setopt_array($curl, [
