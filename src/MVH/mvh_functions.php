@@ -1,6 +1,6 @@
 <?php
 
-require_once(dirname($_SERVER['SCRIPT_FILENAME'])."/../Common/all.php");
+require_once(__DIR__."/../Common/all.php");
 
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 
@@ -737,6 +737,195 @@ function run_qc_pipeline($ps, $bam, $fq1, $fq2, $roi, $is_tumor, $parser, $seq_m
 	$headers = explode(",", trim($file[0]));
 	$metrics = explode(",", trim($file[1]));
 	return array_combine($headers, $metrics);
+}
+
+############################# Broad consent ###################################
+
+//Return broad consent information from meDIC, i.e. an array with BC type (string), research consent given (yes/no) and BC text (JSON or XML depending on source).
+//If no BC is available, return ["", "", ""].
+function get_bc_data(string $sap_id, DB& $db_mvh): array
+{
+    $consent_client_id = get_path("mvh_medic_client_id");
+    $consent_client_secret = get_path("mvh_medic_client_secret");
+	
+    // meDIC API expects SAP ID padded to 10 characters
+    $sap_id = str_pad(trim($sap_id), 10, '0', STR_PAD_LEFT);
+
+    // Get token
+    $url = "https://tc-p.med.uni-tuebingen.de/auth/realms/consent/protocol/openid-connect/token";
+
+    $data = http_build_query([
+        'grant_type' => 'client_credentials',
+        'client_id' => $consent_client_id,
+        'client_secret' => $consent_client_secret
+    ]);
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $data,
+        CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_SSL_VERIFYPEER => false,
+		CURLOPT_PROXY => '',
+        CURLOPT_HTTPHEADER => [
+            "Content-Type: application/x-www-form-urlencoded",
+            "Prefer: handling=strict"
+        ],
+        CURLOPT_TIMEOUT => 30
+    ]);
+
+    try
+    {
+        $reply = curl_exec($ch);
+        if ($reply === false)
+        {
+            throw new RuntimeException("Token request failed: " . curl_error($ch));
+        }
+
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        if ($status < 200 || $status >= 300)
+        {
+            throw new RuntimeException("Token request returned HTTP $status: $reply");
+        }
+    }
+    finally
+    {
+        curl_close($ch);
+    }
+
+    $json = json_decode($reply, true, 512, JSON_THROW_ON_ERROR);
+    $token = $json['access_token'] ?? null;
+
+    if (!is_string($token) || $token === '')
+    {
+        throw new RuntimeException("Access token missing in token response");
+    }
+
+    // Get consent
+    $url = "https://tc-p.med.uni-tuebingen.de:8443/fhir/Consent?"
+         . http_build_query(['patient.identifier' => $sap_id]);
+
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+		CURLOPT_SSL_VERIFYPEER => false,
+		CURLOPT_PROXY => '',
+        CURLOPT_HTTPHEADER => [
+            "Authorization: Bearer " . $token
+        ],
+        CURLOPT_TIMEOUT => 30
+    ]);
+
+    try
+    {
+        $reply = curl_exec($ch);
+        if ($reply === false)
+        {
+            throw new RuntimeException("Consent request failed: " . curl_error($ch));
+        }
+
+        $status = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        if ($status < 200 || $status >= 300)
+        {
+            throw new RuntimeException("Consent request returned HTTP $status");
+        }
+    }
+    finally
+    {
+        curl_close($ch);
+    }
+
+    // Filter active Consent resources
+    $entries_filtered = [];
+    $json = json_decode($reply, true, 512, JSON_THROW_ON_ERROR);
+    $entries = $json['entry'] ?? [];
+    foreach ($entries as $entry)
+    {
+        $resource = $entry['resource'] ?? [];
+        if (($resource['resourceType'] ?? '') !== 'Consent') continue;
+        if (($resource['status'] ?? '') !== 'active') continue;
+
+		$type = trim($entry['resource']['identifier'][0]['system']);
+		$research = "no";
+		if ($type=="https://difuture.de/fhir/NamingSystem/identifier/DocumentId/v12")
+		{
+			$type = "v12";
+			
+			foreach ($resource['provision']['provision'] ?? [] as $provision)
+			{
+				if (($provision['type'] ?? '') !== 'permit') continue;
+
+				foreach ($provision['code'] ?? [] as $code)
+				{
+					foreach ($code['coding'] ?? [] as $coding)
+					{
+						if (($coding['code'] ?? '') === '2.16.840.1.113883.3.1937.777.24.5.3.8')
+						{
+							$research = "yes";
+						}
+					}
+				}
+			}
+		}
+		else if ($type=="source.ish.document.v12")
+		{
+			$type = "v12 (old)";
+			
+			foreach ($resource['provision']['provision'] ?? [] as $provision)
+			{
+				if (($provision['type'] ?? '') !== 'permit') continue;
+
+				foreach ($provision['code'] ?? [] as $code)
+				{
+					foreach ($code['coding'] ?? [] as $coding)
+					{
+						if (($coding['code'] ?? '') === '2.16.840.1.113883.3.1937.777.24.5.3.1')
+						{
+							$research = "yes";
+						}
+					}
+				}
+			}
+		}
+		else trigger_error("Unhandled BC type '$type' for for SAP PAT-ID $sap_id", E_USER_ERROR);
+
+        $entries_filtered[] = [$type, $research, $resource];
+    }
+	
+	//no consent => check if Kinder consent exists in MVH case management RedCap
+	if (count($entries_filtered)==0)
+	{
+		$se_data = $db_mvh->getValue("SELECT se_data FROM case_data WHERE sap_id='".ltrim($sap_id, '0')."'", false);
+		
+		$type = "";
+		$research = "no";
+		foreach(explode("\n", $se_data) as $line)
+		{
+			if (contains($line, "<vers_einwillig_forsch>") && contains($line, "Kinder"))
+			{
+				if (!contains($line, "Kinder v.1.7.2")) trigger_error("Unhandled children consent: $line", E_USER_ERROR);
+				
+				$type = "Kinder v.1.7.2";	
+			}
+			if (contains($line, "<bc_sb_1>") && contains($line, "Yes"))
+			{
+				$research = "yes";
+			}
+		}
+		if ($type!="")
+		{
+			$entries_filtered[] = [$type, $research, $se_data];
+		}
+	}
+	
+	if (count($entries_filtered)==0) $entries_filtered[] = ["", "", ""];
+	
+	if (count($entries_filtered)>1)
+	{
+		trigger_error("More than one active broad consent found for SAP PAT-ID $sap_id", E_USER_ERROR);
+	}
+	
+    return $entries_filtered[0];
 }
 
 ?>
