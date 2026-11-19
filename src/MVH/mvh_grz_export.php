@@ -515,7 +515,7 @@ else
 			
 			foreach($consent->permit as $permit)
 			{
-				if ($permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.8" || $permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.1")
+				if ($permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.8" || $permit->code=="2.16.840.1.113883.3.1937.777.24.5.3.1") //2.16.840.1.113883.3.1937.777.24.5.3.1 is checked because of old v12 BCs of system 'source.ish.document.v12'
 				{
 					$research_use_allowed = true;
 				}
