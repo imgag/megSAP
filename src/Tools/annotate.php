@@ -134,7 +134,11 @@ if (!$somatic) //germline only
 	$args[] = "-updown";
 	if ($multi) $args[] = "-genotype_mode multi";
 	if ($sys['type']=="WGS") $args[] = "-wgs";
-	if ($is_lrgs) $args[] = "-wgs -longread";
+	if ($sys['type']=="lrGS")
+	{
+		$args[] = "-longread";
+		if ($sys['target_file']=="") $args[] = "-wgs";
+	}
 	$args[] = "-custom custom_columns";
 	$parser->execTool("Tools/vcf2gsvar.php", implode(" ", $args));
 	

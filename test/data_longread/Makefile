@@ -19,24 +19,27 @@ clean:
 clean_logs:
 	rm -rf *.log
 
-link:
-	php ../link_test_data.php 23014LRa023L2_01_chr1_longread.fastq.gz
+link_fastq:
+	php ../link_test_data.php 23014LRa023L2_01_chr1_chrMT.fastq.gz
+
+link_bam:
+	php ../link_test_data.php 23014LRa023_01.mod.unmapped.bam . -copy
 
 test_fastq:
 	make clean
-	make link
+	make link_fastq
 	make fastq_analysis
 	make fastq_diff
 
 test_bam:
 	make clean
-	make link
+	make link_bam
 	make bam_analysis
 	make bam_diff
 
 test_bam_single_steps:
 	make clean
-	make link
+	make link_bam
 	make bam_analysis_single_steps
 	make bam_diff
 
@@ -48,10 +51,10 @@ fastq_analysis:
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps sv -threads 4 --log analyze_longread_fastq_sv_$(TIMESTAMP).log
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps ph -threads 4 --log analyze_longread_fastq_ph_$(TIMESTAMP).log
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps re -threads 4 --log analyze_longread_fastq_re_$(TIMESTAMP).log
-	# should only print warning since input data doesn't contain methylation
-	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps me -threads 4 --log analyze_longread_fastq_me_$(TIMESTAMP).log
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps pg -threads 4 --log analyze_longread_fastq_pg_$(TIMESTAMP).log
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps an -threads 4 --log analyze_longread_fastq_an_$(TIMESTAMP).log
+	# should only print warning since input data doesn't contain methylation
+	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023L2_01 -system system.ini -steps me -threads 4 --log analyze_longread_fastq_me_$(TIMESTAMP).log
 
 fastq_diff:
 	php ../compare_variants.php -in1 23014LRa023L2_01.GSvar.gz.out -in2 23014LRa023L2_01.GSvar.gz -add 23014LRa023L2_01
@@ -68,7 +71,6 @@ fastq_diff:
 
 # 2nd test with BAM input (default test)
 bam_analysis:
-	php ../link_test_data.php 23014LRa023_01.mod.unmapped.bam . -copy
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023_01 -system system.ini -steps ma,vc,cn,sv,ph,re,me,pg,an -threads 4 -test --log analyze_longread_bam_all_$(TIMESTAMP).log
 
 bam_diff:
@@ -88,7 +90,6 @@ bam_diff:
 
 # 3rd test with each step separate (not performed by default)
 bam_analysis_single_steps:
-	php ../link_test_data.php 23014LRa023_01.mod.unmapped.bam . -copy
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023_01 -system system.ini -steps ma -threads 4 --log analyze_longread_bam_ma_$(TIMESTAMP).log
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023_01 -system system.ini -steps vc -threads 4 --log analyze_longread_bam_vc_$(TIMESTAMP).log
 	php ../../src/Pipelines/analyze_longread.php -folder . -name 23014LRa023_01 -system system.ini -steps cn -threads 4 --log analyze_longread_bam_cn_$(TIMESTAMP).log -test
