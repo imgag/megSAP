@@ -16,6 +16,7 @@ dorado_model_path = [path]/data/dbs/dorado_basecall_models/
 sigprofilerextractor_data = [path]/data/dbs/SigProfilerExtractor/
 
 [apptainer-container]
+container_aidiva = 1.4.2-20261112
 container_arriba = v2.5.1-20250904
 container_bwa = v0.7.19-20260126
 container_bwa-mem2 = v2.3-20260126
@@ -42,7 +43,7 @@ container_methylartist = v1.5.3-20260421
 container_minimap2 = v2.30-20251119
 container_modkit = v0.6.4-20260611
 container_msisensor-pro = v1.3.0-20251125
-container_ngs-bits = master-2026-06-287-g65753fda
+container_ngs-bits = master-2026-06-303-gd9bd7132
 container_orad = v2.6.1
 container_paraphase = v3.3.1-20251125
 container_python = v3.10.9-20250729
@@ -122,9 +123,9 @@ db_user['NGSD_TEST'] = "ngsdtestuser"
 db_pass['NGSD_TEST'] = ""
 
 #GenLab SQL credentials - only used by ngs-bits tools
-genlab_mssql = 
+genlab_mssql = true
 genlab_host = ""
-genlab_port = 
+genlab_port = ""
 genlab_name = ""
 genlab_user = ""
 genlab_pass = ""
@@ -132,7 +133,7 @@ genlab_pass = ""
 #Modellvorhaben
 db_host['MVH'] = ""
 db_name['MVH'] = ""
-db_port['MVH'] = 3306
+db_port['MVH'] = 
 db_user['MVH'] = ""
 db_pass['MVH'] = ""
 mvh_folder = ""
@@ -140,6 +141,8 @@ mvh_redcap_token_se = ""
 mvh_redcap_token_cm = ""
 mvh_sap_user = ""
 mvh_sap_password = ""
+mvh_medic_client_id = ""
+mvh_medic_client_secret = ""
 
 [queues]
 queuing_engine = ""

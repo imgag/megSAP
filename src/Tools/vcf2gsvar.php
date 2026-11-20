@@ -15,6 +15,7 @@ $parser->addEnum("genotype_mode", "Genotype handling mode.", true, array("single
 $parser->addFlag("updown", "Don't discard up- or downstream annotations (5000 bases around genes).");
 $parser->addFlag("wgs", "Enables WGS mode: MODIFIER variants with a AF>2% are skipped to reduce the number of variants to a manageable size.");
 $parser->addFlag("longread", "Add additional columns for long-read samples (e.g. phasing information)");
+$parser->addFlag("aidiva_hpo", "Adds aiDIVA columns with phenotype-specific score and rank.");
 $parser->addString("custom", "Settings key name for custom column definitions.", true, "");
 $parser->addFlag("test", "Run in test mode. Skips replacing sample headers with NGSD information.");
 extract($parser->parse($argv));
@@ -266,6 +267,11 @@ $column_desc = array(
 	array("MaxEntScan", "MaxEntScan reference score and alternate score for (1) native splice site, (2) acceptor gain and (3) donor gain. Comma-separated list if there are different predictions for several transcripts."),
 	array("SpliceAI", "SpliceAI prediction. These include delta scores (DS) and delta positions (DP) for acceptor gain (AG), acceptor loss (AL), donor gain (DG), and donor loss (DL). Format: GENE|DS_AG|DS_AL|DS_DG|DS_DL|DP_AG|DP_AL|DP_DG|DP_DL."),
 );
+if ($aidiva_hpo)
+{
+	$column_desc[] = ["aiDIVA_final", "aiDIVA pathogenicity prediction score (phenotype-specific)."];
+	$column_desc[] = ["aiDIVA_rank", "aiDIVA rank based on phenotype-specific score."];	
+}
 
 // optional NGSD somatic header description if vcf contains NGSD somatic information
 $column_desc_ngsd_som = array(
@@ -811,11 +817,9 @@ while(!gzeof($handle))
 		$revel = explode("&", $info["REVEL"]);
 	}
 	
-	$aidiva = "";
-	if (isset($info["AIDIVA"])) 
-	{
-		$aidiva = trim($info["AIDIVA"]);
-	}
+	$aidiva = $info["AIDIVA"] ?? "";	
+	$aidiva_final = $info["FINAL_AIDIVA_SCORE"] ?? "";
+	$aidiva_rank = $info["AIDIVA_RANK"] ?? "";
 	
 	$alphamissense = [];
 	if (isset($info["AM_ISO"])) 
@@ -1426,6 +1430,10 @@ while(!gzeof($handle))
 		fwrite($handle_out,"\t".$phasing_info);
 	}
 	fwrite($handle_out,"\t".implode(";", $filter)."\t".implode(";", $quality)."\t".implode(",", $genes)."\t$variant_details\t$coding_and_splicing_details\t$regulatory\t$omim\t$clinvar\t$hgmd\t$repeatmasker\t$dbsnp\t$gnomad\t$gnomad_sub\t$gnomad_hom_hemi\t$gnomad_het\t$gnomad_wt\t$phylop\t$cadd\t$revel\t$aidiva\t$alphamissense\t$maxentscan\t$spliceai");
+	if ($aidiva_hpo)
+	{
+		fwrite($handle_out, "\t$aidiva_final\t$aidiva_rank");
+	}
 	if ($annotate_refseq_consequences)
 	{
 		fwrite($handle_out, "\t".implode(",", $coding_and_splicing_refseq));

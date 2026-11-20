@@ -1,11 +1,28 @@
 Assembly-Build: GRCh38
-Reference-Genome: 
+Reference-Genome: [GENOME]
+
 
 Analysis-Input:
     scoring-model: [MODEL]
 
+    prioritization-information:
+        allele-frequency-filter: 0.01
+        filter-exclusion-list:
+            - low_conf_region
+    prioritization-weights:
+        pathogenicity-weight: 0.34
+        hpo-weight: 0.65
+        hpo-interacting-weight: 0.01
+
+
 Model-Features:
     allele-frequency-list:
+        - gnomADg_AFR_AF
+        - gnomADg_AMR_AF
+        - gnomADg_EAS_AF
+        - gnomADg_NFE_AF
+        - gnomADg_SAS_AF
+
     feature-list:
         - CADD_PHRED
         - REVEL
@@ -17,6 +34,8 @@ Model-Features:
         - IS_INDEL
 
 Internal-Parameters:
+    use-hpo-cache: true
+    hpo-resources-cache: [CACHE]
     CONSTANTS:
         RANDOM_SEED: 14038
         VARIANT_CONSEQUENCES:
@@ -61,8 +80,8 @@ Internal-Parameters:
             regulatory_region_variant: 39
             intergenic_variant: 40
             sequence_variant: 41
-            # use "unknown" consequence as default if new consequence terms are added to the database that are not yet in this mapping (this prevents the program from exiting with an error)
             unknown: 42
+
         CODING_VARIANTS:
             - coding_sequence_variant
             - frameshift_variant
@@ -74,6 +93,7 @@ Internal-Parameters:
             - start_lost
             - stop_gained
             - stop_lost
+
         SPLICE_VARIANTS:
             - splice_acceptor_variant
             - splice_donor_5th_base_variant
@@ -81,18 +101,8 @@ Internal-Parameters:
             - splice_donor_variant
             - splice_polypyrimidine_tract_variant
             - splice_region_variant
+
         SYNONYMOUS_VARIANTS:
             - start_retained_variant
             - stop_retained_variant
             - synonymous_variant
-        MEAN_DICT:
-            ALPHA_MISSENSE_SCORE: 0.4074365673385914
-            CADD_PHRED: 4.471745325
-            oe_lof: 0.53667483333333332
-            phyloP_vertebrate: 0.06761867323083483
-            REVEL: 0.28019263637740743
-        MEDIAN_DICT:
-            ALPHA_MISSENSE_SCORE: 0.2509
-            CADD_PHRED: 3.99
-            oe_lof: 0.48225
-            REVEL: 0.193
