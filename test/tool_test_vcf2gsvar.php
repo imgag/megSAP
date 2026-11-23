@@ -75,6 +75,12 @@ check_exec("php ".src_folder()."/Tools/{$name}.php -in ".data_folder().$name."_i
 remove_lines_containing($out_file7, "#CREATION_DATE=");
 check_file($out_file7, data_folder().$name."_out7.GSvar", true);
 
+//genotype_mode=single, with aiDIVA
+$out_file8 = output_folder().$name."_out8.GSvar";
+check_exec("php ".src_folder()."/Tools/{$name}.php -in ".data_folder().$name."_in5.vcf -aidiva_hpo -out $out_file8 --log ".output_folder().$name."_out6.log -test");
+remove_lines_containing($out_file8, "#CREATION_DATE=");
+check_file($out_file8, data_folder().$name."_out8.GSvar", true);
+
 end_test();
 
 ?>

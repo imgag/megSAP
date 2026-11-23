@@ -328,6 +328,9 @@ cd $dbs
 mkdir -p aiDIVA
 cd aiDIVA
 wget https://megsap.de/download/aiDIVA/aiDIVA_megSAP_model.pkl.gz
+wget https://megsap.de/download/aiDIVA/hpo_cache_files.zip
+unzip hpo_cache_files.zip
+rm -rf hpo_cache_files.zip
 
 # # install OMIM (you might need a license; production NGSD has to be available and initialized)
 # cd $dbs

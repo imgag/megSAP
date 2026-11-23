@@ -31,10 +31,11 @@ function get_cm_data($db_mvh, $id)
 function get_se_data($db_mvh, $id, $with_repeat_instances=false)
 {	
 	$xml_string = $db_mvh->getValue("SELECT se_data FROM case_data WHERE id='{$id}'", "");
+	if ($xml_string=="") return null;
+	
 	$xml_obj = simplexml_load_string($xml_string, "SimpleXMLElement", LIBXML_NOCDATA);
-	
 	if ($with_repeat_instances) return $xml_obj;
-	
+
 	//determine main item
 	$main_item = null;
 	foreach($xml_obj->item as $item)
