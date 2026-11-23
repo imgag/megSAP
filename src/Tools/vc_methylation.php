@@ -158,7 +158,7 @@ function get_haplotype_count($gender, $chr, $start, $end)
 $ref_genome = genome_fasta($build);
 exec2("mkdir -p {$folder}/methylartist");
 if ($build != "GRCh38") trigger_error("Only GRCh38 is supported as build!", E_USER_ERROR);
-$gtf = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.115.gtf.gz";
+$gtf = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.116.gtf.gz";
 
 //input files
 $modkit_hp1 = "{$folder}/{$name}_modkit_track_hp1.bed.gz";

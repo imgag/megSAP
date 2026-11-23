@@ -42,35 +42,35 @@ wget https://ftp.ncbi.nih.gov/snp/archive/b157/VCF/GCF_000001405.40.gz
 zcat GCF_000001405.40.gz | php $src/Install/db_converter_dbsnp.php | singularity exec $ngsbits VcfBreakMulti | singularity exec -B $genome_dir $ngsbits VcfLeftNormalize -stream -ref $genome | singularity exec $ngsbits VcfStreamSort | singularity exec $htslib bgzip > dbSNP_b157.vcf.gz
 singularity exec $htslib tabix -p vcf -C -m9 -f dbSNP_b157.vcf.gz
 
-#Download ensembl transcripts database
+#Download Ensembl transcripts database
 cd $dbs
 mkdir -p Ensembl
 cd Ensembl
-wget -O Homo_sapiens.GRCh38.115.gff3.gz https://ftp.ensembl.org/pub/release-115/gff3/homo_sapiens/Homo_sapiens.GRCh38.115.gff3.gz
-gunzip Homo_sapiens.GRCh38.115.gff3.gz
-wget -O Homo_sapiens.GRCh38.115_original.gtf.gz https://ftp.ensembl.org/pub/release-115/gtf/homo_sapiens/Homo_sapiens.GRCh38.115.gtf.gz
-gunzip Homo_sapiens.GRCh38.115_original.gtf.gz
+wget -O Homo_sapiens.GRCh38.116.gff3.gz https://ftp.ensembl.org/pub/release-116/gff3/homo_sapiens/Homo_sapiens.GRCh38.116.gff3.gz
+gunzip Homo_sapiens.GRCh38.116.gff3.gz
+wget -O Homo_sapiens.GRCh38.116_original.gtf.gz https://ftp.ensembl.org/pub/release-116/gtf/homo_sapiens/Homo_sapiens.GRCh38.116.gtf.gz
+gunzip Homo_sapiens.GRCh38.116_original.gtf.gz
 # create sorted & indexed file for methylartist
-(grep ^"#" Homo_sapiens.GRCh38.115_original.gtf; grep -v ^"#" Homo_sapiens.GRCh38.115_original.gtf | sort -k1,1 -k4,4n | sed -e 's/^/chr/') | singularity exec $htslib bgzip  > Homo_sapiens.GRCh38.115.gtf.gz
-singularity exec $htslib tabix -p gff Homo_sapiens.GRCh38.115.gtf.gz
+(grep ^"#" Homo_sapiens.GRCh38.116_original.gtf; grep -v ^"#" Homo_sapiens.GRCh38.116_original.gtf | sort -k1,1 -k4,4n | sed -e 's/^/chr/') | singularity exec $htslib bgzip  > Homo_sapiens.GRCh38.116.gtf.gz
+singularity exec $htslib tabix -p gff Homo_sapiens.GRCh38.116.gtf.gz
 
 #Download Ensembl regulatory data
 cd $dbs
 mkdir -p Ensembl
 cd Ensembl
-wget https://ftp.ensembl.org/pub/release-115/regulation/homo_sapiens/GRCh38/annotation/Homo_sapiens.GRCh38.regulatory_features.v115.gff3.gz
-wget https://ftp.ensembl.org/pub/release-115/regulation/homo_sapiens/GRCh38/annotation/Homo_sapiens.GRCh38.motif_features.v115.gff3.gz
-php $src/Install/db_converter_ensembl_regulatory.php Homo_sapiens.GRCh38.115.gff3 Homo_sapiens.GRCh38.regulatory_features.v115.gff3.gz Homo_sapiens.GRCh38.motif_features.v115.gff3.gz > Ensembl_regulatory_115.bed
-singularity exec -B $genome_dir $ngsbits BedSort -in Ensembl_regulatory_115.bed -out Ensembl_regulatory_115.bed
+wget https://ftp.ensembl.org/pub/release-116/regulation/homo_sapiens/GRCh38/annotation/Homo_sapiens.GRCh38.regulatory_features.v116.gff3.gz
+wget https://ftp.ensembl.org/pub/release-116/regulation/homo_sapiens/GRCh38/annotation/Homo_sapiens.GRCh38.motif_features.v116.gff3.gz
+php $src/Install/db_converter_ensembl_regulatory.php Homo_sapiens.GRCh38.116.gff3 Homo_sapiens.GRCh38.regulatory_features.v116.gff3.gz Homo_sapiens.GRCh38.motif_features.v116.gff3.gz > Ensembl_regulatory_116.bed
+singularity exec -B $genome_dir $ngsbits BedSort -in Ensembl_regulatory_116.bed -out Ensembl_regulatory_116.bed
 
 #Download Ensembl domain data
 cd $dbs
 mkdir -p Ensembl
 cd Ensembl
-wget https://ftp.ensembl.org/pub/release-115/mysql/homo_sapiens_core_115_38/protein_feature.txt.gz
-wget https://ftp.ensembl.org/pub/release-115/mysql/homo_sapiens_core_115_38/translation.txt.gz
-wget https://ftp.ensembl.org/pub/release-115/mysql/homo_sapiens_core_115_38/transcript.txt.gz
-php $src/Install/db_converter_ensembl_domains.php protein_feature.txt.gz translation.txt.gz transcript.txt.gz > Ensembl_domains_115.tsv
+wget https://ftp.ensembl.org/pub/release-116/mysql/homo_sapiens_core_116_38/protein_feature.txt.gz
+wget https://ftp.ensembl.org/pub/release-116/mysql/homo_sapiens_core_116_38/translation.txt.gz
+wget https://ftp.ensembl.org/pub/release-116/mysql/homo_sapiens_core_116_38/transcript.txt.gz
+php $src/Install/db_converter_ensembl_domains.php protein_feature.txt.gz translation.txt.gz transcript.txt.gz > Ensembl_domains_116.tsv
 
 #Download RefSeq transcripts database
 cd $dbs
@@ -105,19 +105,19 @@ cat hg38.fa.out | php $src/Install/db_converter_repeatmasker.php | singularity e
 cd $dbs
 mkdir -p ClinVar 
 cd ClinVar
-wget -O - https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2026/clinvar_20260913.vcf.gz | gunzip | php $src/Install/db_converter_clinvar.php | singularity exec $ngsbits VcfStreamSort | singularity exec $htslib bgzip > clinvar_20260913_converted_GRCh38.vcf.gz
-singularity exec $htslib tabix -C -m 9 -p vcf clinvar_20260913_converted_GRCh38.vcf.gz
+wget -O - https://ftp.ncbi.nlm.nih.gov/pub/clinvar/vcf_GRCh38/archive_2.0/2026/clinvar_20261108.vcf.gz | gunzip | php $src/Install/db_converter_clinvar.php | singularity exec $ngsbits VcfStreamSort | singularity exec $htslib bgzip > clinvar_20261108_converted_GRCh38.vcf.gz
+singularity exec $htslib tabix -C -m 9 -p vcf clinvar_20261108_converted_GRCh38.vcf.gz
 #CNVs
-wget -O - https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2026-09.txt.gz | gunzip > variant_summary_2026-09.txt
-cat variant_summary_2026-09.txt | php $src/Install/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2026-09.bed
-singularity exec $ngsbits BedSort -with_name -in clinvar_cnvs_2026-09.bed -out clinvar_cnvs_2026-09.bed
+wget -O - https://ftp.ncbi.nlm.nih.gov/pub/clinvar/tab_delimited/archive/variant_summary_2026-11.txt.gz | gunzip > variant_summary_2026-11.txt
+cat variant_summary_2026-11.txt | php $src/Install/db_converter_clinvar_cnvs.php 5 "Pathogenic/Likely pathogenic" | sort | uniq > clinvar_cnvs_2026-11.bed
+singularity exec $ngsbits BedSort -with_name -in clinvar_cnvs_2026-11.bed -out clinvar_cnvs_2026-11.bed
 
 #Install HGNC - http://ftp.ebi.ac.uk/pub/databases/genenames/hgnc/tsv/
 cd $dbs
 mkdir -p HGNC
 cd HGNC
-wget -O - https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/hgnc_complete_set_2026-04-07.tsv > hgnc_complete_set_2026-04-07.tsv
-wget -O - https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/withdrawn_2026-04-07.tsv > hgnc_withdrawn_2026-04-07.tsv
+wget -O - https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/hgnc_complete_set_2026-10-06.tsv > hgnc_complete_set_2026-10-06.tsv
+wget -O - https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/withdrawn_2026-10-06.tsv > hgnc_withdrawn_2026-10-06.tsv
 
 #Install gnomAD (genome data) - 
 cd $dbs
@@ -343,12 +343,12 @@ rm -rf hpo_cache_files.zip
 # cd $dbs
 # mkdir -p HGMD
 # cd HGMD
-# # manual download of files HGMD_Pro_2026.2_hg38.vcf.gz and hgmd_pro-2026.2.dump.gz from https://apps.ingenuity.com/ingsso/login
-# zcat HGMD_Pro_2026.2_hg38.vcf.gz | php $src/Install/db_converter_hgmd.php | singularity exec $htslib bgzip > HGMD_PRO_2026_2_fixed.vcf.gz
-# singularity exec $htslib tabix -p vcf HGMD_PRO_2026_2_fixed.vcf.gz
+# # manual download of files HGMD_Pro_2026.3_hg38.vcf.gz and hgmd_pro-2026.3.dump.gz from https://apps.ingenuity.com/ingsso/login
+# zcat HGMD_Pro_2026.3_hg38.vcf.gz | php $src/Install/db_converter_hgmd.php | singularity exec $htslib bgzip > HGMD_PRO_2026_3_fixed.vcf.gz
+# singularity exec $htslib tabix -p vcf HGMD_PRO_2026_3_fixed.vcf.gz
 # #CNVs
-# zcat hgmd_pro-2026.2.dump.gz | php $src/Install/db_converter_hgmd_cnvs.php > HGMD_CNVS_2026_2.bed
-# singularity exec $ngsbits BedSort -with_name -in HGMD_CNVS_2026_2.bed -out HGMD_CNVS_2026_2.bed
+# zcat hgmd_pro-2026.3.dump.gz | php $src/Install/db_converter_hgmd_cnvs.php > HGMD_CNVS_2026_3.bed
+# singularity exec $ngsbits BedSort -with_name -in HGMD_CNVS_2026_3.bed -out HGMD_CNVS_2026_3.bed
 
 # # install COSMIC
 # # for reasearch use, register at https://cancer.sanger.ac.uk/ and manually download data:

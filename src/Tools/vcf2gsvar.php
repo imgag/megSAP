@@ -169,7 +169,7 @@ function load_hgnc_db()
 	$output = [];
 	
 	//parse approved genes
-	$filename = get_path("data_folder")."/dbs/HGNC/hgnc_complete_set_2026-04-07.tsv";
+	$filename = get_path("data_folder")."/dbs/HGNC/hgnc_complete_set_2026-10-06.tsv";
 	foreach (file($filename) as $line)
 	{
 		$line = trim($line);
@@ -187,7 +187,7 @@ function load_hgnc_db()
 	
 	//try to replace withdrawn symbols by current symbols
 	$withdrawn = [];
-	$filename = get_path("data_folder")."/dbs/HGNC/hgnc_withdrawn_2026-04-07.tsv";
+	$filename = get_path("data_folder")."/dbs/HGNC/hgnc_withdrawn_2026-10-06.tsv";
 	foreach (file($filename) as $line)
 	{
 		$line = nl_trim($line);
@@ -225,7 +225,7 @@ function load_pfam_data()
 	$output = [];
 	
 	//parse approved genes
-	$handle = fopen2(get_path("data_folder")."/dbs/Ensembl/Ensembl_domains_115.tsv", "r");
+	$handle = fopen2(get_path("data_folder")."/dbs/Ensembl/Ensembl_domains_116.tsv", "r");
 	while(!feof($handle))
 	{
 		$line = nl_trim(fgets($handle));
