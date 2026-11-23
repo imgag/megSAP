@@ -63,7 +63,11 @@ function aidiva_vcf2tsv($in, $out, $add_aidiva_score = false)
 			if ($key=="CADD_SNV") $cadd = $value;
 			if ($key=="CADD_INDEL") $cadd = $value;
 			
-			if ($key=="gnomADg_AFR_AF" || $key=="gnomADg_AMR_AF" || $key=="gnomADg_EAS_AF" || $key=="gnomADg_NFE_AF" || $key=="gnomADg_SAS_AF") $maxaf = max($maxaf, $value);
+			if ($key=="gnomADg_AFR_AF" || $key=="gnomADg_AMR_AF" || $key=="gnomADg_EAS_AF" || $key=="gnomADg_NFE_AF" || $key=="gnomADg_SAS_AF")
+			{
+				if (contains($value, '&')) $value = max(explode('&', $value));
+				$maxaf = max($maxaf, $value);
+			}
 			
 			if ($key=="REVEL") $revel = $value;
 			
