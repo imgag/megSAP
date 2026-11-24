@@ -142,12 +142,13 @@ function aidiva_vcf2tsv($in, $out, $add_aidiva_score = false)
 				list($allele, $consequence, $impact, $symbol) = $max;
 				if ($impact=="HIGH") $high_impact = "1";
 			}
+			
+			if ($add_aidiva_score && $key=="AIDIVA")
+			{
+				$aidiva = $value;
+			}
 		}
-		if ($add_aidiva_score && $key=="AIDIVA")
-		{
-			$aidiva = $value;
-		}
-		
+	
 		//is indel?
 		$is_indel = strlen($ref)>1 || strlen($alt)>1 ? "1" : "0";
 		
