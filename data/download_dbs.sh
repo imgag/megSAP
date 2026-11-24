@@ -323,7 +323,7 @@ cd illumina_dragen44_genome
 wget https://webdata.illumina.com/downloads/software/dragen/resource-files/fasta-files/hg38-fasta-0-1.tar.gz
 tar xzf hg38-fasta-0-1.tar.gz
 
-#download aiDIVA model
+#download aiDIVA model and cache file
 cd $dbs
 mkdir -p aiDIVA
 cd aiDIVA
