@@ -40,7 +40,7 @@ From: ubuntu:24.04
 	pip3 install --upgrade setuptools wheel
 	
 	#install aiDIVA
-	git clone --branch 1.4.2 --depth 1 https://github.com/imgag/aiDIVA.git /opt/aidiva_local
+	git clone --branch 1.4.3 --depth 1 https://github.com/imgag/aiDIVA.git /opt/aidiva_local
 	cd /opt/aidiva_local
 	python3 -m pip install --upgrade pip
 	python3 -m pip install -r /opt/aidiva_local/requirements.txt
