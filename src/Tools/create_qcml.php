@@ -151,11 +151,19 @@ if (file_exists($viral_tsv))
     $detected_viruses = [];
     foreach(file($viral_tsv) as $line)
     {
-        if (starts_with($line, "#")) continue;
+		if (starts_with($line, "##")) continue;
+        if (starts_with($line, "#"))
+		{
+			#check important columns are correct
+			list($chr, $start, $end, $v_name, $reads, $coverage, $coverage_rel, $mismatches, $ident) = explode("\t", $line);
+			if ($reads != "reads" || $coverage_rel != "coverage_rel" || $v_name != "name") trigger_error("Virus file format has changed! Virus Qc cannot be created!", E_USER_ERROR);
+			
+			continue;
+		}
         
         list($chr, $start, $end, $v_name, $reads, $coverage, $coverage_rel, $mismatches, $ident) = explode("\t", $line);
         $v_base_name = explode("_", $v_name)[0];
-        if (intval($reads) > 100 && ! in_array($v_base_name, $detected_viruses))
+        if (intval($reads) > 100 && floatval($coverage_rel) > 0.05 && ! in_array($v_base_name, $detected_viruses))
         {
             $detected_viruses[] = $v_base_name;
         }
