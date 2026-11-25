@@ -58,7 +58,7 @@ else
 }
 $parser->execPipeline($pipeline, "Himito post processing");
 
-if ($gz_output) $parser->execApptainer("htslib", "tabix", "-f -p vcf $out", [], [dirname($out)]);
+// if ($gz_output) $parser->execApptainer("htslib", "tabix", "-f -p vcf $out", [], [dirname($out)]);
 
 if ($keep_additional_data)
 {

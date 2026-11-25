@@ -141,7 +141,7 @@ else
 	}
 	else
 	{
-		$exclude_raw = "--exclude='*.fast5' --exclude='*.pod5'";
+		$exclude_raw = "--exclude='*.fast5' --exclude='*.pod5' --exclude='{$basename}/*/bam_pass_fast'"; 
 	}
 	//normal run => backup BCL files
 	$parser->exec("tar", "cfW {$tmp_tar} {$exclude_raw} --exclude='{$basename}/Unaligned*' --exclude='{$basename}/Thumbnail_Images' --exclude='{$basename}/Images' -C ".dirname($in)." {$basename}", true);
