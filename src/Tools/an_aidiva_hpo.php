@@ -11,7 +11,7 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 $parser = new ToolBase("an_aidiva_hpo", "Ranks variants in a VCF using the phenotype-specific aiDIVA score. INFO tags in output: FINAL_AIDIVA_SCORE and AIDIVA_RANK");
 $parser->addInfile("in",  "Input file in VCF or VCF.GZ format that is annotated with 'an_aidiva'.", false);
 $parser->addOutfile("out", "Output file in VCF format.", false);
-$parser->addOutfile("hpo_list", "Comma-speparated list of HPO terms: HP:XXXXXX,HP:XXXXXX", false);
+$parser->addString("hpo_list", "Comma-speparated list of HPO terms: HP:XXXXXX,HP:XXXXXX", false);
 $parser->addInt("threads", "Number of threads to use.", true, 1);
 extract($parser->parse($argv));
 
