@@ -27,7 +27,7 @@ extract($parser->parse($argv));
 //init
 $repository_basedir = repository_basedir();
 $data_folder = get_path("data_folder");
-$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2026_2.bed";
+$hgmd_file = "{$data_folder}/dbs/HGMD/HGMD_CNVS_2026_3.bed";
 $omim_file = "{$data_folder}/dbs/OMIM/omim.bed";
 $vcf_multi = "{$out_folder}/{$prefix}_var.vcf.gz";
 $cnv_multi = "{$out_folder}/{$prefix}_cnvs_clincnv.tsv";

@@ -57,7 +57,7 @@ function annotation_file_path($rel_path, $is_optional=false)
 }
 
 //add consequences for Ensembl transcripts
-$gff = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.115.gff3";
+$gff = get_path("data_folder")."/dbs/Ensembl/Homo_sapiens.GRCh38.116.gff3";
 $vcf_output_consequence = $parser->tempFile("_consequence.vcf");
 $parser->execApptainer("ngs-bits", "VcfAnnotateConsequence", "-in {$in} -out {$vcf_output_consequence} -ref {$genome} -threads {$threads} -tag CSQ -gff {$gff}", [$in, $gff, $genome]);
 
@@ -120,11 +120,11 @@ fwrite($config_file, annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_G
 $in_files[] = annotation_file_path("/dbs/gnomAD/gnomAD_genome_v3.1.mito_GRCh38.vcf.gz");
 
 //add ClinVar annotation
-fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20260913_converted_GRCh38.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
-$in_files[] = annotation_file_path("/dbs/ClinVar/clinvar_20260913_converted_GRCh38.vcf.gz");
+fwrite($config_file, annotation_file_path("/dbs/ClinVar/clinvar_20261108_converted_GRCh38.vcf.gz")."\tCLINVAR\tDETAILS\tID\n");
+$in_files[] = annotation_file_path("/dbs/ClinVar/clinvar_20261108_converted_GRCh38.vcf.gz");
 
 //add HGMD annotation
-$hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2026_2_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
+$hgmd_file = annotation_file_path("/dbs/HGMD/HGMD_PRO_2026_3_fixed.vcf.gz", true); //HGMD annotation (optional because of license)
 if(file_exists($hgmd_file) && !$test)
 {
 	fwrite($config_file, $hgmd_file."\tHGMD\tCLASS,MUT,GENE,PHEN\tID\n");
@@ -276,7 +276,7 @@ if (!$no_splice)
 
 //annotate regluatory data
 $tmp = $parser->tempFile("_regulatory.vcf");
-$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/Ensembl/Ensembl_regulatory_115.bed")." -name REGULATORY -sep ',' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", [annotation_file_path("/dbs/Ensembl/Ensembl_regulatory_115.bed")]);
+$parser->execApptainer("ngs-bits", "VcfAnnotateFromBed", "-bed ".annotation_file_path("/dbs/Ensembl/Ensembl_regulatory_116.bed")." -name REGULATORY -sep ',' -in {$vcf_annotate_output} -out {$tmp} -threads {$threads}", [annotation_file_path("/dbs/Ensembl/Ensembl_regulatory_116.bed")]);
 $parser->moveFile($tmp, $vcf_annotate_output);
 
 //annotate RepeatMasker
