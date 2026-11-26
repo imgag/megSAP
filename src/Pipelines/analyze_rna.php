@@ -781,8 +781,8 @@ if (in_array("an", $steps))
 					
 					if (count($reference_tissues) > 0)
 					{
-						$hpa_parameter = "-hpa_file ".get_path("data_folder")."/dbs/gene_expression/rna_tissue_consensus_v25.tsv";
-						$in_files[] = get_path("data_folder")."/dbs/gene_expression/rna_tissue_consensus_v25.tsv";
+						$hpa_parameter = "-hpa_file ".get_path("data_folder")."/dbs/gene_expression/rna_tissue_consensus_v26.tsv";
+						$in_files[] = get_path("data_folder")."/dbs/gene_expression/rna_tissue_consensus_v26.tsv";
 					}					
 				}
 				$in_files[] = $out_folder;
