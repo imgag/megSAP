@@ -2,7 +2,7 @@
 
 ## Databases general
 
-|database               |used for                                |last update/check               |notes                                                                                                                           |url                                                                     |
+|database               |used for                                |last update/check               |notes                                                                                                           |url                                                                     |
 |-----------------------|----------------------------------------|--------------------------------|----------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
 |dbSNP                  |pipeline                                |11.2026 (b157)                  |                                                                                                                |https://ftp.ncbi.nih.gov/snp/archive/                                   |
 |ClinGen                |pipeline                                |11.2026 (latest - not versioned)|                                                                                                                |https://ftp.clinicalgenome.org/                                         |
@@ -29,16 +29,16 @@
 
 |database               |used for                |last update/check               |notes                                                                                                                           |url                                                                     |
 |-----------------------|------------------------|--------------------------------|--------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-|CancerHotspots         |pipeline (somatic)      |10.2025                         |version is final and does not change - lifted version at data/misc/cancerhotspots                                               |https://www.cancerhotspots.org                                          |
+|CancerHotspots         |pipeline (somatic)      |11.2026                         |version is final and does not change - lifted version at data/misc/cancerhotspots                                               |https://www.cancerhotspots.org                                          |
 |NCG7.2                 |pipeline (somatic)      |10.2025 (v7.2)                  |manually update data/gene_lists/somatic_tmb_tsg.bed if NCG file changes                                                         |http://ncg.kcl.ac.uk/                                                   |
-|COSMIC CMC             |pipeline (somatic)      |10.2025 (v102)                  |                                                                                                                                |https://cancer.sanger.ac.uk/cmc                                         |
-|Human Protein Atlas    |pipeline (somatic)      |10.2025 (v24)                   |                                                                                                                                |https://www.proteinatlas.org/about/download                             |
+|COSMIC CMC             |pipeline (somatic)      |11.2026 (v105)                  |                                                                                                                                |https://cancer.sanger.ac.uk/cmc                                         |
+|Human Protein Atlas    |pipeline (somatic)      |11.2026 (v25)                   |                                                                                                                                |https://www.proteinatlas.org/about/download                             |
 
 ## Databases for RNA pipelines
 
 |database                 |used for                |last update/check                   |notes                                                                                                                     |url                                                                     |
 |-------------------------|------------------------|------------------------------------|--------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------|
-|Ensembl GTF file         |pipeline (RNA)          |01.2026 (kept on ensembl v109)      |Keep at V109 as the NGSD import is based on these transcripts                                                             |https://ftp.ensembl.org/pub/release-109/gtf/homo_sapiens/               |
+|Ensembl GTF file         |pipeline (RNA)          |11.2026 (kept on ensembl v109)      |Keep at V109 as the NGSD import is based on these transcripts                                                             |https://ftp.ensembl.org/pub/release-109/gtf/homo_sapiens/               |
 
 
 ## Tools general
@@ -74,7 +74,7 @@
 |umiVar2                |variant calling cfDNA                                |11.2025 (2025_08) |                                                                                                                 |https://github.com/imgag/umiVar2                                        |
 |hla-genotyper          |HLA genotyping                                       |01.2026 (2025_04) |                                                                                                                 |https://github.com/axelgschwind/hla-genotyper                           |
 |SigProfilerExtractor   |mutational signatures                                |01.2026 (1.2.6)   |                                                                                                                 |https://github.com/AlexandrovLab/SigProfilerExtractor                   |
-|DeepSomatic            |variant calling (tumor/normal + tumor/only)          |12.2025 (1.9.0)   |                                                                                                                 |https://github.com/google/deepsomatic                                  |
+|DeepSomatic            |variant calling (tumor/normal + tumor/only)          |12.2025 (1.9.0)   |                                                                                                                 |https://github.com/google/deepsomatic                                   |
 
 
 ## Tools for RNA pipeline
@@ -97,7 +97,7 @@
 |Himito                 |small variant calling for mito variants              |08.2026 (v1.1.2)  | used for ONT and PacBio samples                                                                                 |https://github.com/broadinstitute/Himito                                |
 |longphase              |phasing                                              |04.2026 (v2.0.1)  |                                                                                                                 |https://github.com/twolinin/longphase                                   |
 |sniffles               |structural variant calling                           |03.2026 (v2.7.2)  | used for ONT samples                                                                                            |https://github.com/fritzsedlazeck/Sniffles                              |
-|sawfish                |structural variant calling for PacBio                |08.2026 (v2.2.1)  | used for PacBio samples                                                                                         |https://github.com/PacificBiosciences/sawfish                              |
+|sawfish                |structural variant calling for PacBio                |08.2026 (v2.2.1)  | used for PacBio samples                                                                                         |https://github.com/PacificBiosciences/sawfish                           |
 |straglr                |repeat expansion caller                              |11.2025 (v1.5.5)  |                                                                                                                 |https://github.com/bcgsc/straglr                                        |
 |straglrOn              |repeat expansion visualization                       |04.2026 (v0.2.4)  |                                                                                                                 |https://github.com/leonschuetz/StraglrOn                                |
 |modkit                 |methylation extraction                               |11.2025 (v0.5.0)  |                                                                                                                 |https://github.com/nanoporetech/modkit                                  |
